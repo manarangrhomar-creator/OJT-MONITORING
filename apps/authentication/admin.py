@@ -1,0 +1,14 @@
+from django.contrib import admin
+from .models import LoginAttempt
+
+
+@admin.register(LoginAttempt)
+class LoginAttemptAdmin(admin.ModelAdmin):
+    list_display = ('user', 'get_status', 'ip_address', 'created_at')
+    list_filter = ('success', 'created_at')
+    search_fields = ('user__username', 'ip_address')
+    readonly_fields = ('id', 'created_at', 'updated_at')
+    
+    def get_status(self, obj):
+        return "✓ Success" if obj.success else "✗ Failed"
+    get_status.short_description = 'Status'
