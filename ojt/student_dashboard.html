@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ISU Portal - OJT Student Dashboard & Archives</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #eaf4ec; }
+        .isu-header-font { font-weight: 900; color: #11693A; }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #11693A; border-radius: 10px; }
+    </style>
+</head>
+<body class="h-screen overflow-hidden flex flex-col md:flex-row p-0 m-0 relative">
+
+    <div class="w-full bg-[#11693A] text-white p-4 flex justify-between items-center md:hidden shrink-0 shadow-md z-40">
+        <div class="flex items-center gap-3">
+            <img src="https://tse4.mm.bing.net/th/id/OIP.9kfaz2e3juU8vO3-Y-EBMQHaHa?r=0&rs=1&pid=ImgDetMain&o=7&rm=3" alt="ISU Logo" class="w-8 h-8 object-contain bg-white p-0.5 rounded-md">
+            <span class="font-black text-sm tracking-wide uppercase">ISU-CC OJT</span>
+        </div>
+        <button id="mobileMenuBtn" class="text-white text-xl p-2 focus:outline-none">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+    </div>
+
+    <div id="sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full md:translate-x-0 md:relative w-[260px] bg-[#11693A] text-white flex flex-col pt-10 pb-6 items-center shrink-0 transition-transform duration-300 ease-in-out z-50 shadow-2xl md:shadow-none">
+        
+        <button id="closeMobileMenuBtn" class="absolute top-4 right-4 text-white text-xl md:hidden p-2">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="bg-white p-2 w-28 h-28 md:w-32 md:h-32 flex items-center justify-center shadow-md mb-8 md:mb-12">
+            <img src="https://tse4.mm.bing.net/th/id/OIP.9kfaz2e3juU8vO3-Y-EBMQHaHa?r=0&rs=1&pid=ImgDetMain&o=7&rm=3" alt="ISU Logo" class="w-full h-full object-contain">
+        </div>
+
+        <div class="w-full space-y-2 px-3">
+            <button id="tabDashboardBtn" class="w-full h-12 bg-white rounded-xl flex items-center pl-6 gap-3 text-[#11693A] font-bold text-sm shadow-sm transition-all">
+                <i class="fa-solid fa-chart-pie text-base"></i> Dashboard Overview
+            </button>
+            <button id="tabArchivesBtn" class="w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center pl-6 gap-3 text-emerald-100 font-medium text-sm transition-all">
+                <i class="fa-solid fa-folder-open text-base"></i> Narrative Archives
+            </button>
+        </div>
+
+        <div class="mt-auto text-[10px] text-emerald-300/50 uppercase tracking-widest font-bold">
+            ISU-CC OJT Portal
+        </div>
+    </div>
+
+    <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+
+    <div class="hidden md:block w-[3px] bg-[#6366f1] h-full shrink-0"></div>
+
+    <div class="flex-1 flex flex-col relative overflow-hidden w-full">
+        
+        <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center pl-4 pr-6 pt-4 md:pl-6 md:pr-8 md:pt-6 pb-4 gap-3 shrink-0">
+            <div>
+                <h1 class="text-2xl md:text-4xl isu-header-font tracking-tight">Welcome, User!</h1>
+                <p id="pageSubtitle" class="text-[11px] md:text-xs text-slate-500 font-bold mt-0.5 uppercase tracking-wider">Dashboard Overview Session</p>
+            </div>
+            <button id="btnLogout" class="bg-[#11693A] hover:bg-[#0e5630] text-white text-xs font-bold px-5 py-2 md:px-6 md:py-2.5 transition shadow-sm flex items-center gap-2 rounded-lg self-end sm:self-auto">
+                <i class="fa-solid fa-right-from-bracket"></i> Logout
+            </button>
+        </div>
+
+        <div class="flex-1 bg-white rounded-t-[30px] md:rounded-t-none md:rounded-tl-[45px] shadow-2xl border-t border-x md:border-r-0 md:border-l border-white p-4 md:p-6 md:ml-6 overflow-y-auto custom-scroll">
+            
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
+                <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 flex items-center gap-4">
+                    <div class="w-10 h-10 md:w-12 md:h-12 bg-[#11693A] rounded-xl flex items-center justify-center text-white shadow-sm"><i class="fa-solid fa-flag-checkered text-lg md:text-xl"></i></div>
+                    <div>
+                        <p class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider">Required Hours</p>
+                        <h3 class="text-lg md:text-xl font-black text-slate-800">480.0 <span class="text-xs font-normal">hrs</span></h3>
+                    </div>
+                </div>
+                <div class="bg-blue-50 p-4 rounded-2xl border border-blue-100 flex items-center gap-4">
+                    <div class="w-10 h-10 md:w-12 md:h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white shadow-sm"><i class="fa-solid fa-user-clock text-lg md:text-xl"></i></div>
+                    <div>
+                        <p class="text-[10px] font-bold text-blue-700 uppercase tracking-wider">Rendered (Consumed)</p>
+                        <h3 class="text-lg md:text-xl font-black text-slate-800"><span id="rendered-hours">120.5</span> <span class="text-xs font-normal">hrs</span></h3>
+                    </div>
+                </div>
+                <div class="bg-amber-50 p-4 rounded-2xl border border-amber-100 flex items-center gap-4">
+                    <div class="w-10 h-10 md:w-12 md:h-12 bg-amber-500 rounded-xl flex items-center justify-center text-white shadow-sm"><i class="fa-solid fa-hourglass-half text-lg md:text-xl"></i></div>
+                    <div>
+                        <p class="text-[10px] font-bold text-amber-700 uppercase tracking-wider">Remaining Balance</p>
+                        <h3 class="text-lg md:text-xl font-black text-slate-800">359.5 <span class="text-xs font-normal">hrs</span></h3>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sectionDashboard" class="space-y-6">
+                <div class="bg-slate-50 p-4 md:p-6 rounded-[25px] border border-slate-200">
+                    
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 mb-6">
+                        <h3 class="font-black text-sm text-[#11693A] flex items-center gap-2 uppercase">
+                            <i class="fa-solid fa-file-arrow-up"></i> Today's Accomplishment Report
+                        </h3>
+                        <button type="button" id="goToArchivesPillBtn" class="inline-flex items-center gap-2 bg-amber-100 hover:bg-amber-200 text-amber-800 font-bold text-[10px] md:text-[11px] px-4 py-2 rounded-full border border-amber-300 transition shadow-sm uppercase tracking-wide w-full sm:w-auto justify-center">
+                            <i class="fa-solid fa-user-pen"></i> Edit Existing Attached Report
+                        </button>
+                    </div>
+
+                    <form id="narrativeForm" class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="flex flex-col">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase mb-1">Log Date</label>
+                                <input type="date" id="reportDate" value="2026-05-24" readonly class="p-2.5 border-2 border-[#11693A] text-xs font-bold outline-none bg-slate-100 cursor-not-allowed text-slate-500 rounded-xl">
+                            </div>
+                            <div class="flex flex-col">
+                                <label class="text-[10px] font-bold text-slate-400 uppercase mb-1">Subject Matter / Core Topic</label>
+                                <input type="text" id="reportTopic" required placeholder="Core Subject Matter Topic Today" class="p-2.5 border-2 border-[#11693A] text-xs outline-none bg-white rounded-xl">
+                            </div>
+                        </div>
+                        
+                        <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Attach Proof Photos (Max 4)</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <label class="aspect-square border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-slate-100"><i class="fa-solid fa-camera text-slate-400 text-lg"></i><input type="file" class="hidden" accept="image/*"></label>
+                            <label class="aspect-square border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-slate-100"><i class="fa-solid fa-camera text-slate-400 text-lg"></i><input type="file" class="hidden" accept="image/*"></label>
+                            <label class="aspect-square border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-slate-100"><i class="fa-solid fa-camera text-slate-400 text-lg"></i><input type="file" class="hidden" accept="image/*"></label>
+                            <label class="aspect-square border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-slate-100"><i class="fa-solid fa-camera text-slate-400 text-lg"></i><input type="file" class="hidden" accept="image/*"></label>
+                        </div>
+
+                        <div class="flex flex-col">
+                            <label class="text-[10px] font-bold text-slate-400 uppercase mb-1">Technical Activity Description</label>
+                            <textarea id="reportContent" required rows="5" placeholder="Describe specific actions performed during the structural workspace shift..." class="w-full p-4 border-2 border-[#11693A] text-xs outline-none bg-white rounded-xl resize-none"></textarea>
+                        </div>
+
+                        <div class="flex justify-end">
+                            <button type="submit" class="w-full sm:w-auto bg-[#11693A] hover:bg-[#0e5630] text-white font-bold text-xs px-10 py-3.5 rounded-full shadow-md uppercase tracking-wider">Submit Log</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div id="sectionArchives" class="hidden space-y-6">
+                
+                <div id="archiveEditFormCard" class="hidden bg-amber-50 border-2 border-amber-400 p-4 md:p-6 rounded-[25px] shadow-sm">
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="font-black text-xs md:text-sm text-amber-800 uppercase flex items-center gap-2">
+                            <i class="fa-solid fa-pen-to-square"></i> Modify Archived Narrative Entry
+                        </h4>
+                        <span class="text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full bg-amber-500 text-white animate-pulse">Archive Edit Mode</span>
+                    </div>
+                    <form id="archiveModifyForm" class="space-y-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <input type="text" id="archEditDate" readonly class="p-2.5 border border-amber-300 text-xs font-bold outline-none bg-amber-100/50 text-amber-900 rounded-xl">
+                            <input type="text" id="archEditTopic" required class="p-2.5 border-2 border-amber-400 text-xs outline-none bg-white text-slate-800 rounded-xl">
+                        </div>
+                        
+                        <p class="text-[10px] font-bold text-amber-800 uppercase tracking-widest">Update Photos</p>
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                            <div class="aspect-square bg-slate-200 rounded-xl flex items-center justify-center border border-amber-300 text-slate-500 text-xs font-bold">Photo 1</div>
+                            <div class="aspect-square bg-slate-200 rounded-xl flex items-center justify-center border border-amber-300 text-slate-500 text-xs font-bold">Photo 2</div>
+                            <div class="aspect-square bg-dashed border-2 border-amber-300 bg-white rounded-xl flex items-center justify-center cursor-pointer text-amber-500"><i class="fa-solid fa-plus"></i></div>
+                            <div class="aspect-square bg-dashed border-2 border-amber-300 bg-white rounded-xl flex items-center justify-center cursor-pointer text-amber-500"><i class="fa-solid fa-plus"></i></div>
+                        </div>
+
+                        <textarea id="archEditContent" required rows="4" class="w-full p-4 border-2 border-amber-400 text-xs outline-none bg-white text-slate-800 rounded-xl resize-none"></textarea>
+                        <div class="flex flex-col sm:flex-row justify-end gap-2">
+                            <button type="button" onclick="closeArchiveEdit()" class="w-full sm:w-auto bg-slate-400 text-white font-bold text-xs px-6 py-2.5 rounded-full uppercase">Cancel</button>
+                            <button type="submit" class="w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs px-8 py-2.5 rounded-full uppercase shadow-sm">Save Structural Updates</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="bg-slate-50 p-4 md:p-6 rounded-[25px] border border-slate-200">
+                    <div class="mb-4">
+                        <h3 class="font-black text-sm text-[#11693A] uppercase tracking-widest">Historical Accomplishment Ledger</h3>
+                    </div>
+
+                    <div class="block md:hidden space-y-4">
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                                <span class="text-[11px] font-bold text-slate-400">May 23, 2026</span>
+                                <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600 font-bold text-[9px] uppercase">Submitted</span>
+                            </div>
+                            <div class="space-y-1">
+                                <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Topic Header</p>
+                                <p class="text-xs font-mono font-bold text-slate-700">Database Schema & my.ini Repair</p>
+                            </div>
+                            <div class="flex justify-between items-center pt-1">
+                                <div>
+                                    <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Hours Concluded</p>
+                                    <p class="text-xs font-black text-slate-800">9.0 hrs</p>
+                                </div>
+                                <button type="button" onclick="openArchiveEdit('May 23, 2026', 'Database Schema & my.ini Repair', 'Inayos ko ang port collision ng MySQL sa XAMPP server at muling isinaayos ang primary key indexing para sa facial identity biometric parameters.')" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 font-bold text-[10px] rounded-lg transition shadow-sm flex items-center gap-1">
+                                    <i class="fa-solid fa-pen-to-square"></i> Open & Edit
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
+                            <div class="flex justify-between items-center border-b border-slate-100 pb-2">
+                                <span class="text-[11px] font-bold text-slate-400">May 22, 2026</span>
+                                <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600 font-bold text-[9px] uppercase">Submitted</span>
+                            </div>
+                            <div class="space-y-1">
+                                <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Topic Header</p>
+                                <p class="text-xs font-mono font-bold text-slate-700">OpenCV Facial Capture Tuning</p>
+                            </div>
+                            <div class="flex justify-between items-center pt-1">
+                                <div>
+                                    <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Hours Concluded</p>
+                                    <p class="text-xs font-black text-slate-800">8.5 hrs</p>
+                                </div>
+                                <button type="button" onclick="openArchiveEdit('May 22, 2026', 'OpenCV Facial Capture Tuning', 'Isinagawa ang fine-tuning ng recognition distance at threshold ng computer vision system para sa panloob na geofence authentication test.')" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 font-bold text-[10px] rounded-lg transition shadow-sm flex items-center gap-1">
+                                    <i class="fa-solid fa-pen-to-square"></i> Open & Edit
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="hidden md:block overflow-x-auto rounded-xl border border-slate-100 shadow-inner">
+                        <table class="w-full text-left border-collapse min-w-[600px]">
+                            <thead>
+                                <tr class="bg-emerald-50 text-[10px] font-bold text-[#11693A] uppercase border-b border-emerald-100">
+                                    <th class="p-4">Date Logged</th>
+                                    <th class="p-4">Topic Header</th>
+                                    <th class="p-4">Hours Concluded</th>
+                                    <th class="p-4 text-center">Narrative Status</th>
+                                    <th class="p-4 text-center">Records Management</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-xs font-medium text-slate-600 divide-y divide-slate-100 bg-white">
+                                <tr>
+                                    <td class="p-4 font-bold text-slate-800">May 23, 2026</td>
+                                    <td class="p-4 font-mono text-slate-500">Database Schema & my.ini Repair</td>
+                                    <td class="p-4 font-black">9.0 hrs</td>
+                                    <td class="p-4 text-center">
+                                        <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-600 font-bold text-[9px] uppercase">Submitted</span>
+                                    </td>
+                                    <td class="p-4 text-center">
+                                        <button type="button" onclick="openArchiveEdit('May 23, 2026', 'Database Schema & my.ini Repair', 'Inayos ko ang port collision ng MySQL sa XAMPP server at muling isinaayos ang primary key indexing para sa facial identity biometric parameters.')" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-1.5 font-bold text-[10px] rounded-lg transition shadow-sm inline-flex items-center gap-1">
+                                            <i class="fa-solid fa-pen-to-square"></i> Open & Edit
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="p-4 font-bold text-slate-800">May 22, 2026</td>
+                                    <td class="p-4 font-mono text-slate-500">OpenCV Facial Capture Tuning</td>
+                                    <td class="p-4 font-black">8.5 hrs</td>
+                                    <td class="p-4 text-center">
+                                        <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-600 font-bold text-[9px] uppercase">Submitted</span>
+                                    </td>
+                                    <td class="p-4 text-center">
+                                        <button type="button" onclick="openArchiveEdit('May 22, 2026', 'OpenCV Facial Capture Tuning', 'Isinagawa ang fine-tuning ng recognition distance at threshold ng computer vision system para sa panloob na geofence authentication test.')" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-1.5 font-bold text-[10px] rounded-lg transition shadow-sm inline-flex items-center gap-1">
+                                            <i class="fa-solid fa-pen-to-square"></i> Open & Edit
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <div id="logoutModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-100 transform scale-95 transition-all">
+            <div class="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </div>
+            <h3 class="text-lg font-black text-slate-800 mb-1">Confirm Logout</h3>
+            <p class="text-xs text-slate-500 mb-6">Are you sure you want to exit the OJT Student Portal? Any unsaved form progress will be discarded.</p>
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" id="btnCancelLogout" class="py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition uppercase">
+                    Cancel
+                </button>
+                <button type="button" id="btnConfirmLogout" class="py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition uppercase shadow-sm">
+                    Yes, Logout
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // MOBILE HAMBURGER MECHANICS
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const closeMobileMenuBtn = document.getElementById('closeMobileMenuBtn');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        function toggleMobileMenu() {
+            sidebar.classList.toggle('-translate-x-full');
+            sidebarOverlay.classList.toggle('hidden');
+        }
+
+        mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+        closeMobileMenuBtn.addEventListener('click', toggleMobileMenu);
+        sidebarOverlay.addEventListener('click', toggleMobileMenu);
+
+        // NAVIGATION TABS ENGINE
+        const tabDashboardBtn = document.getElementById('tabDashboardBtn');
+        const tabArchivesBtn = document.getElementById('tabArchivesBtn');
+        const sectionDashboard = document.getElementById('sectionDashboard');
+        const sectionArchives = document.getElementById('sectionArchives');
+        const pageSubtitle = document.getElementById('pageSubtitle');
+        const goToArchivesPillBtn = document.getElementById('goToArchivesPillBtn');
+
+        function switchToDashboard() {
+            tabDashboardBtn.className = "w-full h-12 bg-white rounded-xl flex items-center pl-6 gap-3 text-[#11693A] font-bold text-sm shadow-sm transition-all";
+            tabArchivesBtn.className = "w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center pl-6 gap-3 text-emerald-100 font-medium text-sm transition-all";
+            sectionDashboard.classList.remove('hidden');
+            sectionArchives.classList.add('hidden');
+            pageSubtitle.innerText = "Dashboard Overview Session";
+            
+            if (!sidebar.classList.contains('-translate-x-full') && window.innerWidth < 768) toggleMobileMenu();
+        }
+
+        function switchToArchives() {
+            tabArchivesBtn.className = "w-full h-12 bg-white rounded-xl flex items-center pl-6 gap-3 text-[#11693A] font-bold text-sm shadow-sm transition-all";
+            tabDashboardBtn.className = "w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center pl-6 gap-3 text-emerald-100 font-medium text-sm transition-all";
+            sectionArchives.classList.remove('hidden');
+            sectionDashboard.classList.add('hidden');
+            pageSubtitle.innerText = "Historical Report Archives";
+            
+            if (!sidebar.classList.contains('-translate-x-full') && window.innerWidth < 768) toggleMobileMenu();
+        }
+
+        tabDashboardBtn.addEventListener('click', switchToDashboard);
+        tabArchivesBtn.addEventListener('click', switchToArchives);
+        goToArchivesPillBtn.addEventListener('click', switchToArchives);
+
+        // ARCHIVES EDIT MODAL OVERLAY ENGINE
+        const archiveEditFormCard = document.getElementById('archiveEditFormCard');
+        const archEditDate = document.getElementById('archEditDate');
+        const archEditTopic = document.getElementById('archEditTopic');
+        const archEditContent = document.getElementById('archEditContent');
+        const scrollContainer = document.querySelector('.custom-scroll');
+
+        function openArchiveEdit(date, topic, content) {
+            archiveEditFormCard.classList.remove('hidden');
+            archEditDate.value = date;
+            archEditTopic.value = topic;
+            archEditContent.value = content;
+            
+            scrollContainer.scrollTo({ top: archiveEditFormCard.offsetTop - 20, behavior: 'smooth' });
+        }
+
+        function closeArchiveEdit() {
+            archiveEditFormCard.classList.add('hidden');
+        }
+
+        document.getElementById('archiveModifyForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert(`✅ System Log Updated:\n\nChanges for [${archEditDate.value}] have been written successfully to the database layer.`);
+            closeArchiveEdit();
+        });
+
+        document.getElementById('narrativeForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            alert("✅ Form submitted safely. Today's narrative report has been logged.");
+        });
+
+        // ==========================================
+        // LOGOUT LOGIC MECHANICS
+        // ==========================================
+        const btnLogout = document.getElementById('btnLogout');
+        const logoutModal = document.getElementById('logoutModal');
+        const btnCancelLogout = document.getElementById('btnCancelLogout');
+        const btnConfirmLogout = document.getElementById('btnConfirmLogout');
+
+        btnLogout.addEventListener('click', () => { logoutModal.classList.remove('hidden'); });
+        btnCancelLogout.addEventListener('click', () => { logoutModal.classList.add('hidden'); });
+
+        logoutModal.addEventListener('click', (e) => {
+            if (e.target === logoutModal) logoutModal.classList.add('hidden');
+        });
+
+        btnConfirmLogout.addEventListener('click', () => {
+            btnConfirmLogout.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Exiting...';
+            btnConfirmLogout.disabled = true;
+            setTimeout(() => { window.location.href = "index.html"; }, 800);
+        });
+    </script>
+</body>
+</html>

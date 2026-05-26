@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OJT Coordinator Register - ISU</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght=600;700&family=Inter:wght=400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .custom-heading { font-family: 'Fredoka', sans-serif; }
+        .custom-text { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-emerald-50/50 min-h-screen flex items-center justify-center p-4">
+
+    <div class="w-full max-w-4xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row-reverse min-h-[550px]">
+        
+        <div class="w-full md:w-[40%] bg-[#11693A] flex flex-col items-center justify-center p-10 text-white">
+            <div class="w-48 h-48 bg-white p-2 mb-8 shadow-lg flex items-center justify-center">
+                <img src="https://tse4.mm.bing.net/th/id/OIP.9kfaz2e3juU8vO3-Y-EBMQHaHa?r=0&rs=1&pid=ImgDetMain&o=7&rm=3" 
+                     alt="ISU Logo" 
+                     class="w-full h-full object-contain">
+            </div>
+            <p class="custom-text mb-4 font-medium italic opacity-90 text-sm text-center">Already have an account?</p>
+            <a href="index.html" class="w-full max-w-[200px] border-2 border-white rounded-full py-2 px-6 font-bold hover:bg-white hover:text-[#11693A] transition-all duration-300 text-center">
+                Login
+            </a>
+        </div>
+
+        <div class="w-full md:w-[60%] p-8 md:p-12 relative flex flex-col justify-center">
+            
+            <button id="backBtn" onclick="handleBack()" class="absolute top-8 left-8 w-10 h-10 flex items-center justify-center rounded-full border border-gray-200 hover:bg-gray-100 transition-all shadow-sm text-[#11693A]">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+                </svg>
+            </button>
+            
+            <div class="max-w-md mx-auto w-full">
+                <h1 class="custom-heading text-[#11693A] text-4xl font-bold text-center mb-6 leading-tight">OJT Coordinator</h1>
+                
+                <form class="space-y-4" id="regForm" onsubmit="handleFormSubmit(event)">
+                    
+                    <div id="step1" class="space-y-4">
+                        <div>
+                            <label class="custom-heading text-[#11693A] text-lg block mb-1">Full Name</label>
+                            <input type="text" id="fullName" required placeholder="Last Name, First Name, M.I." class="w-full border-4 border-[#11693A] rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="custom-heading text-[#11693A] text-lg block mb-1">Gender</label>
+                                <select id="gender" required class="w-full border-4 border-[#11693A] rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all bg-white text-[#11693A] font-semibold">
+                                    <option value="" disabled selected hidden>Select</option>
+                                    <option>Male</option>
+                                    <option>Female</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="custom-heading text-[#11693A] text-lg block mb-1">Age</label>
+                                <input type="number" id="age" required min="21" max="75" placeholder="Age" class="w-full border-4 border-[#11693A] rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="custom-heading text-[#11693A] text-lg block mb-1">Contact Number</label>
+                                <input type="tel" id="contact" required placeholder="09xxxxxxxxx" class="w-full border-4 border-[#11693A] rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
+                            </div>
+                            <div>
+                                <label class="custom-heading text-[#11693A] text-lg block mb-1">Email Address</label>
+                                <input type="email" id="email" required placeholder="name@isu.edu.ph" class="w-full border-4 border-[#11693A] rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
+                            </div>
+                        </div>
+
+                        <button type="button" onclick="goToStep2()" class="w-full max-w-[250px] mx-auto block bg-[#11693A] text-white py-3 rounded-full text-2xl font-bold custom-heading hover:bg-[#0d522d] transition-all transform hover:scale-[1.02] active:scale-95 shadow-md mt-6">
+                            Next
+                        </button>
+                    </div>
+
+                    <div id="step2" class="space-y-4 hidden">
+                        <div>
+                            <label class="custom-heading text-[#11693A] text-lg block mb-1">Employee ID Username</label>
+                            <input type="text" id="empId" placeholder="Enter ID Number" class="w-full border-4 border-[#11693A] rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
+                        </div>
+
+                        <div>
+                            <label class="custom-heading text-[#11693A] text-lg block mb-1">Password</label>
+                            <div class="relative flex items-center">
+                                <input type="password" id="password" placeholder="••••••••" class="w-full border-4 border-[#11693A] rounded-xl p-2 pr-12 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
+                                <button type="button" onclick="togglePasswordVisibility('password', 'eyeIcon1')" class="absolute right-4 text-[#11693A] hover:text-emerald-600 transition-colors focus:outline-none">
+                                    <svg id="eyeIcon1" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="custom-heading text-[#11693A] text-lg block mb-1">Confirm Password</label>
+                            <div class="relative flex items-center">
+                                <input type="password" id="confirmPassword" placeholder="••••••••" class="w-full border-4 border-[#11693A] rounded-xl p-2 pr-12 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
+                                <button type="button" onclick="togglePasswordVisibility('confirmPassword', 'eyeIcon2')" class="absolute right-4 text-[#11693A] hover:text-emerald-600 transition-colors focus:outline-none">
+                                    <svg id="eyeIcon2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="w-full max-w-[250px] mx-auto block bg-[#11693A] text-white py-3 rounded-full text-2xl font-bold custom-heading hover:bg-[#0d522d] transition-all transform hover:scale-[1.02] active:scale-95 shadow-md mt-6">
+                            Register
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+
+        // JavaScript logic para sa pagpapalit ng input type at pag-swap ng SVG icons
+        function togglePasswordVisibility(inputId, iconId) {
+            const passwordInput = document.getElementById(inputId);
+            const eyeIcon = document.getElementById(iconId);
+
+            // Heroicons SVG structures
+            const eyeOpenPath = `<path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />`;
+            const eyeClosedPath = `<path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />`;
+
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                eyeIcon.innerHTML = eyeOpenPath;
+            } else {
+                passwordInput.type = "password";
+                eyeIcon.innerHTML = eyeClosedPath;
+            }
+        }
+
+        function goToStep2() {
+            const form = document.getElementById('regForm');
+            
+            const step1Inputs = [
+                document.getElementById('fullName'),
+                document.getElementById('gender'),
+                document.getElementById('age'),
+                document.getElementById('contact'),
+                document.getElementById('email')
+            ];
+
+            let isStep1Valid = true;
+            step1Inputs.forEach(input => {
+                if (!input.checkValidity()) {
+                    isStep1Valid = false;
+                }
+            });
+
+            if (!isStep1Valid) {
+                form.reportValidity();
+                return; 
+            }
+
+            document.getElementById('step1').classList.add('hidden');
+            document.getElementById('step2').classList.remove('hidden');
+            
+            document.getElementById('empId').required = true;
+            document.getElementById('password').required = true;
+            document.getElementById('confirmPassword').required = true;
+            
+            currentStep = 2;
+        }
+
+        function handleBack() {
+            if (currentStep === 2) {
+                document.getElementById('step2').classList.add('hidden');
+                document.getElementById('step1').classList.remove('hidden');
+                
+                document.getElementById('empId').required = false;
+                document.getElementById('password').required = false;
+                document.getElementById('confirmPassword').required = false;
+                
+                currentStep = 1;
+            } else {
+                window.location.href = 'index.html';
+            }
+        }
+
+        function handleFormSubmit(event) {
+            event.preventDefault(); 
+            
+            const pass = document.getElementById('password').value;
+            const confirmPass = document.getElementById('confirmPassword').value;
+
+            if (pass !== confirmPass) {
+                alert('Error: Passwords do not match! Please check again.');
+                document.getElementById('confirmPassword').focus();
+                return;
+            }
+
+            alert('Coordinator Account Created Successfully! Pending for validation.');
+            window.location.href = 'index.html';
+        }
+    </script>
+
+</body>
+</html>
