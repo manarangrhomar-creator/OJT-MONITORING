@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coordinator Dashboard | OJT Monitoring System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        .custom-heading { font-family: 'Fredoka', sans-serif; }
+        .custom-text { font-family: 'Inter', sans-serif; }
+        
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); animation: fadeIn 0.3s ease; }
+        .modal.active { display: flex; justify-content: center; align-items: center; }
+        .modal-content { background-color: #fefefe; padding: 30px; border-radius: 15px; width: 90%; max-width: 500px; box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3); animation: slideUp 0.3s ease; }
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; padding-bottom: 15px; }
+        .modal-header h2 { font-family: 'Fredoka', sans-serif; color: #11693A; font-size: 24px; font-weight: bold; }
+        .close-btn { background: none; border: none; font-size: 28px; cursor: pointer; color: #999; transition: color 0.2s; }
+        .close-btn:hover { color: #333; }
+        
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #333; font-weight: 600; font-size: 14px; }
+        .form-group input, .form-group select { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; transition: border-color 0.2s; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #11693A; }
+        
+        .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px; }
+        .btn-cancel, .btn-save { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .btn-cancel { background: #e5e7eb; color: #333; }
+        .btn-save { background: #11693A; color: white; }
+        
+        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+        .detail-label { font-weight: 600; color: #11693A; }
+        .detail-value { color: #666; }
+    </style>
+</head>
+<body class="bg-gray-50 flex h-screen custom-text">
+
+    <div class="w-64 bg-[#11693A] flex flex-col items-center py-8 px-4 shadow-xl">
+        <div class="w-32 h-32 bg-white p-2 mb-8 rounded-2xl shadow-lg flex items-center justify-center">
+            <img src="https://tse4.mm.bing.net/th/id/OIP.9kfaz2e3juU8vO3-Y-EBMQHaHa?r=0&rs=1&pid=ImgDetMain&o=7&rm=3" alt="ISU Logo" class="w-full h-full object-contain">
+        </div>
+        <div class="w-full space-y-3">
+            <button id="btn-student" class="w-full bg-white text-[#11693A] py-3 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all" onclick="window.location.href='admin_dashboard.html'">OJT Student Accounts</button>
+            <button id="btn-coordinator" class="w-full bg-white text-[#11693A] py-3 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all" onclick="window.location.href='coordinator_dashboard.html'">OJT Coordinator Accounts</button>
+            <button id="btn-approval" class="w-full bg-white text-[#11693A] py-3 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all" onclick="window.location.href='approval_dashboard.html'">OJT Coordinator Approval</button>
+        </div>
+    </div>
+
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <header class="bg-white p-6 shadow-sm flex justify-between items-center">
+            <h1 class="custom-heading text-3xl font-bold text-[#11693A]">OJT Coordinator Accounts</h1>
+            <a href="index.html" class="flex items-center gap-1.5 bg-[#11693A] text-white px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-[#0d522d] transition-all shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Logout
+            </a>
+        </header>
+
+        <main class="p-8 flex-1 overflow-y-auto">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div class="flex justify-between items-center mb-6">
+                    <input type="text" placeholder="Search coordinator..." id="searchInput" class="border-2 border-gray-200 rounded-lg px-4 py-1.5 w-64 text-sm focus:outline-none focus:border-[#11693A]">
+                    <button class="bg-violet-600 text-white px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-violet-700 transition-all shadow-sm" onclick="openAddCoordinatorModal()">
+                        + Add Coordinator
+                    </button>
+                </div>
+
+                <table class="w-full text-left border-collapse">
+                    <thead class="text-gray-500 font-bold border-b border-gray-100">
+                        <tr>
+                            <th class="pb-4 px-2">Name</th>
+                            <th class="pb-4 px-2">Email</th>
+                            <th class="pb-4 px-2">Employee ID</th>
+                            <th class="pb-4 px-2">Status</th>
+                            <th class="pb-4 px-2">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700" id="coordinatorTableBody">
+                        <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors" id="row-1">
+                            <td class="py-4 px-2 font-bold">Dr. Maria Gonzales</td>
+                            <td class="py-4 px-2">maria.gonzales@isu.edu.ph</td>
+                            <td class="py-4 px-2">EMP-2020-001</td>
+                            <td class="py-4 px-2">
+                                <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">Active</span>
+                            </td>
+                            <td class="py-4 px-2">
+                                <button class="text-blue-500 hover:text-blue-700" title="View" onclick="viewCoordinator(1)">👁️</button>
+                                <button class="text-amber-500 hover:text-amber-700" title="Edit" onclick="editCoordinator(1)">✎</button>
+                                <button class="text-red-500 hover:text-red-700" title="Delete" onclick="deleteCoordinator(1)">🗑️</button>
+                            </td>
+                        </tr>
+                        <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors" id="row-2">
+                            <td class="py-4 px-2 font-bold">Engr. Juan Reyes</td>
+                            <td class="py-4 px-2">juan.reyes@isu.edu.ph</td>
+                            <td class="py-4 px-2">EMP-2021-045</td>
+                            <td class="py-4 px-2">
+                                <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">Active</span>
+                            </td>
+                            <td class="py-4 px-2">
+                                <button class="text-blue-500 hover:text-blue-700" title="View" onclick="viewCoordinator(2)">👁️</button>
+                                <button class="text-amber-500 hover:text-amber-700" title="Edit" onclick="editCoordinator(2)">✎</button>
+                                <button class="text-red-500 hover:text-red-700" title="Delete" onclick="deleteCoordinator(2)">🗑️</button>
+                            </td>
+                        </tr>
+                        <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors" id="row-3">
+                            <td class="py-4 px-2 font-bold">Prof. Anna Santos</td>
+                            <td class="py-4 px-2">anna.santos@isu.edu.ph</td>
+                            <td class="py-4 px-2">EMP-2019-067</td>
+                            <td class="py-4 px-2">
+                                <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-bold">Inactive</span>
+                            </td>
+                            <td class="py-4 px-2">
+                                <button class="text-blue-500 hover:text-blue-700" title="View" onclick="viewCoordinator(3)">👁️</button>
+                                <button class="text-amber-500 hover:text-amber-700" title="Edit" onclick="editCoordinator(3)">✎</button>
+                                <button class="text-red-500 hover:text-red-700" title="Delete" onclick="deleteCoordinator(3)">🗑️</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- View Modal -->
+    <div id="viewModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Coordinator Details</h2>
+                <button class="close-btn" onclick="closeModal('viewModal')">&times;</button>
+            </div>
+            <div id="viewDetails"></div>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal('viewModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Coordinator</h2>
+                <button class="close-btn" onclick="closeModal('editModal')">&times;</button>
+            </div>
+            <form id="editForm">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="editName" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="editEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Employee ID</label>
+                    <input type="text" id="editEmpId" required>
+                </div>
+                <div class="form-group">
+                    <label>Department</label>
+                    <input type="text" id="editDepartment" required>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="editStatus">
+                        <option>Active</option>
+                        <option>Inactive</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" onclick="closeModal('editModal')">Cancel</button>
+                    <button type="button" class="btn-save" onclick="saveChanges()">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Add Coordinator Modal -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add New Coordinator</h2>
+                <button class="close-btn" onclick="closeModal('addModal')">&times;</button>
+            </div>
+            <form id="addForm">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="addName" required>
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="addEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>Employee ID</label>
+                    <input type="text" id="addEmpId" required>
+                </div>
+                <div class="form-group">
+                    <label>Department</label>
+                    <input type="text" id="addDepartment" required>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="addStatus">
+                        <option>Active</option>
+                        <option>Inactive</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" onclick="closeModal('addModal')">Cancel</button>
+                    <button type="button" class="btn-save" onclick="addNewCoordinator()">Add Coordinator</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Delete Coordinator</h2>
+                <button class="close-btn" onclick="closeModal('deleteModal')">&times;</button>
+            </div>
+            <p style="color: #666; margin-bottom: 20px; font-size: 16px;">
+                Are you sure you want to delete <strong id="deleteCoordinatorName"></strong>? This action cannot be undone.
+            </p>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal('deleteModal')">Cancel</button>
+                <button class="btn-save" style="background: #dc2626;" onclick="confirmDelete()" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">Delete Permanently</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize sidebar button active state
+        function initializeActiveButton() {
+            const currentPage = window.location.pathname.split('/').pop() || 'coordinator_dashboard.html';
+            
+            const btnStudent = document.getElementById('btn-student');
+            const btnCoordinator = document.getElementById('btn-coordinator');
+            const btnApproval = document.getElementById('btn-approval');
+            
+            // Default inactive button style
+            const inactiveStyle = 'w-full bg-white text-[#11693A] py-3 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all';
+            // Active button style (green background)
+            const activeStyle = 'w-full bg-[#11693A] text-white py-3 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all';
+            
+            // Reset all buttons to inactive state
+            if (btnStudent) btnStudent.className = inactiveStyle;
+            if (btnCoordinator) btnCoordinator.className = inactiveStyle;
+            if (btnApproval) btnApproval.className = inactiveStyle;
+            
+            // Apply active state to current page button
+            if (currentPage.includes('admin_dashboard') || currentPage === '') {
+                if (btnStudent) btnStudent.className = activeStyle;
+            } else if (currentPage.includes('coordinator_dashboard')) {
+                if (btnCoordinator) btnCoordinator.className = activeStyle;
+            } else if (currentPage.includes('approval_dashboard')) {
+                if (btnApproval) btnApproval.className = activeStyle;
+            }
+        }
+        
+        // Run on page load and after navigation
+        document.addEventListener('DOMContentLoaded', initializeActiveButton);
+        window.addEventListener('load', initializeActiveButton);
+        
+        const coordinators = {
+            1: { name: 'Dr. Maria Gonzales', email: 'maria.gonzales@isu.edu.ph', empId: 'EMP-2020-001', department: 'Information Technology', status: 'Active' },
+            2: { name: 'Engr. Juan Reyes', email: 'juan.reyes@isu.edu.ph', empId: 'EMP-2021-045', department: 'Engineering', status: 'Active' },
+            3: { name: 'Prof. Anna Santos', email: 'anna.santos@isu.edu.ph', empId: 'EMP-2019-067', department: 'Education', status: 'Inactive' }
+        };
+
+        let currentEditId = null;
+        let currentDeleteId = null;
+        let nextId = 4;
+
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal(modal.id);
+            });
+        });
+
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('keyup', function() {
+                const filter = this.value.toUpperCase();
+                const tbody = document.getElementById('coordinatorTableBody');
+                const rows = tbody.getElementsByTagName('tr');
+                Array.from(rows).forEach(row => {
+                    const text = row.textContent.toUpperCase();
+                    row.style.display = text.includes(filter) ? '' : 'none';
+                });
+            });
+        }
+
+        function viewCoordinator(id) {
+            const coordinator = coordinators[id];
+            if (!coordinator) return;
+            const detailsHtml = `
+                <div class="detail-row"><span class="detail-label">Name:</span><span class="detail-value">${coordinator.name}</span></div>
+                <div class="detail-row"><span class="detail-label">Employee ID:</span><span class="detail-value">${coordinator.empId}</span></div>
+                <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">${coordinator.email}</span></div>
+                <div class="detail-row"><span class="detail-label">Department:</span><span class="detail-value">${coordinator.department}</span></div>
+                <div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value">${coordinator.status}</span></div>
+            `;
+            document.getElementById('viewDetails').innerHTML = detailsHtml;
+            openModal('viewModal');
+        }
+
+        function editCoordinator(id) {
+            currentEditId = id;
+            const coordinator = coordinators[id];
+            if (!coordinator) return;
+            document.getElementById('editName').value = coordinator.name;
+            document.getElementById('editEmail').value = coordinator.email;
+            document.getElementById('editEmpId').value = coordinator.empId;
+            document.getElementById('editDepartment').value = coordinator.department;
+            document.getElementById('editStatus').value = coordinator.status;
+            openModal('editModal');
+        }
+
+        function saveChanges() {
+            if (currentEditId === null) return;
+            const coordinator = coordinators[currentEditId];
+            coordinator.name = document.getElementById('editName').value;
+            coordinator.email = document.getElementById('editEmail').value;
+            coordinator.empId = document.getElementById('editEmpId').value;
+            coordinator.department = document.getElementById('editDepartment').value;
+            coordinator.status = document.getElementById('editStatus').value;
+
+            const row = document.querySelector(`#row-${currentEditId}`);
+            if (row) {
+                const cells = row.querySelectorAll('td');
+                cells[0].textContent = coordinator.name;
+                cells[1].textContent = coordinator.email;
+                cells[2].textContent = coordinator.empId;
+                cells[3].innerHTML = `<span class="bg-${coordinator.status === 'Active' ? 'emerald' : 'yellow'}-100 text-${coordinator.status === 'Active' ? 'emerald' : 'yellow'}-700 px-3 py-1 rounded-full text-xs font-bold">${coordinator.status}</span>`;
+            }
+            alert('✓ Coordinator information updated successfully!');
+            closeModal('editModal');
+        }
+
+        function deleteCoordinator(id) {
+            currentDeleteId = id;
+            const coordinator = coordinators[id];
+            if (!coordinator) return;
+            document.getElementById('deleteCoordinatorName').textContent = coordinator.name;
+            openModal('deleteModal');
+        }
+
+        function confirmDelete() {
+            if (currentDeleteId === null) return;
+            const row = document.querySelector(`#row-${currentDeleteId}`);
+            if (row) {
+                row.style.opacity = '0';
+                row.style.transition = 'opacity 0.3s ease';
+                setTimeout(() => {
+                    row.remove();
+                    delete coordinators[currentDeleteId];
+                    alert('✓ Coordinator deleted successfully!');
+                    closeModal('deleteModal');
+                }, 300);
+            }
+        }
+
+        function openAddCoordinatorModal() {
+            document.getElementById('addForm').reset();
+            openModal('addModal');
+        }
+
+        function addNewCoordinator() {
+            const name = document.getElementById('addName').value.trim();
+            const email = document.getElementById('addEmail').value.trim();
+            const empId = document.getElementById('addEmpId').value.trim();
+            const department = document.getElementById('addDepartment').value.trim();
+            const status = document.getElementById('addStatus').value;
+
+            if (!name || !email || !empId || !department) {
+                alert('⚠️ Please fill in all required fields');
+                return;
+            }
+
+            for (let id in coordinators) {
+                if (coordinators[id].email === email) {
+                    alert('⚠️ This email is already registered');
+                    return;
+                }
+            }
+
+            const newId = nextId++;
+            coordinators[newId] = { name, email, empId, department, status };
+
+            const tbody = document.getElementById('coordinatorTableBody');
+            const newRow = document.createElement('tr');
+            newRow.id = `row-${newId}`;
+            newRow.className = 'border-b border-gray-50 hover:bg-gray-50 transition-colors';
+            newRow.innerHTML = `
+                <td class="py-4 px-2 font-bold">${name}</td>
+                <td class="py-4 px-2">${email}</td>
+                <td class="py-4 px-2">${empId}</td>
+                <td class="py-4 px-2"><span class="bg-${status === 'Active' ? 'emerald' : 'yellow'}-100 text-${status === 'Active' ? 'emerald' : 'yellow'}-700 px-3 py-1 rounded-full text-xs font-bold">${status}</span></td>
+                <td class="py-4 px-2">
+                    <button class="text-blue-500 hover:text-blue-700" title="View" onclick="viewCoordinator(${newId})">👁️</button>
+                    <button class="text-amber-500 hover:text-amber-700" title="Edit" onclick="editCoordinator(${newId})">✎</button>
+                    <button class="text-red-500 hover:text-red-700" title="Delete" onclick="deleteCoordinator(${newId})">🗑️</button>
+                </td>
+            `;
+            tbody.appendChild(newRow);
+            alert('✓ Coordinator added successfully!');
+            closeModal('addModal');
+        }
+    </script>
+</body>
+</html>
