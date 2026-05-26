@@ -2,6 +2,8 @@
 
 A comprehensive Django-based OJT (On-the-Job Training) Monitoring System for Isabela State University with role-based authentication for Admins, Coordinators, and Students.
 
+PS. i run mo yung setup.bat para mainstall na lahat ng requirements 
+
 ## Features
 
 - **Role-Based Authentication**: Admin, Coordinator, and Student roles with specific dashboards
