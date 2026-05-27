@@ -22,14 +22,14 @@
                      class="w-full h-full object-contain">
             </div>
             <p class="custom-text mb-4 font-medium italic opacity-90 text-sm text-center">Already have an account?</p>
-            <a href="index.html" class="w-full max-w-[200px] border-2 border-white rounded-full py-2 px-6 font-bold hover:bg-white hover:text-[#11693A] transition-all duration-300 text-center">
+            <a href="/auth/coordinator/login/" class="w-full max-w-[200px] border-2 border-white rounded-full py-2 px-6 font-bold hover:bg-white hover:text-[#11693A] transition-all duration-300 text-center">
                 Login
             </a>
         </div>
 
         <div class="w-full md:w-[60%] p-8 md:p-12 relative flex flex-col justify-center">
             
-            <button id="backBtn" onclick="handleBack()" class="absolute top-8 left-8 w-10 h-10 flex items-center justify-center rounded-full border border-gray-200 hover:bg-gray-100 transition-all shadow-sm text-[#11693A]">
+            <button id="backBtn" onclick="window.location.href='/'" class="absolute top-8 left-8 w-10 h-10 flex items-center justify-center rounded-full border border-gray-200 hover:bg-gray-100 transition-all shadow-sm text-[#11693A]">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-5 h-5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                 </svg>
@@ -43,7 +43,7 @@
                     <div id="step1" class="space-y-4">
                         <div>
                             <label class="custom-heading text-[#11693A] text-lg block mb-1">Full Name</label>
-                            <input type="text" id="fullName" required placeholder="Last Name, First Name, M.I." class="w-full border-4 border-[#11693A] rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
+                            <input type="text" id="fullName" required placeholder="Last Name, First Name, M.I., Suffix" pattern="[A-Za-z\s,.]+" title="Full name should only contain letters, spaces, commas, and periods" oninput="this.value = this.value.replace(/[^A-Za-z\s,.]/g, '')" class="w-full border-4 border-[#11693A] rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">

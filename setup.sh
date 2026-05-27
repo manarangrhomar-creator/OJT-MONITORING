@@ -23,7 +23,7 @@ pip install -r requirements.txt
 if [ ! -f .env ]; then
     echo "Creating .env file..."
     cp .env.example .env
-    echo "⚠️  Please update .env with your PostgreSQL credentials"
+    echo "ℹ️  Using SQLite for development. Update .env as needed."
 fi
 
 # Run migrations

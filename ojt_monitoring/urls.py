@@ -18,10 +18,32 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.views.generic import RedirectView, TemplateView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
-    # Admin panel
+    # Root URL - redirect to home
+    path('', TemplateView.as_view(template_name='index.html'), name='home'),
+    
+    # Frontend Pages - MUST come before admin/
+    # Authentication
+    path('auth/admin/login/', TemplateView.as_view(template_name='admin_login.html'), name='admin-login'),
+    path('auth/coordinator/login/', TemplateView.as_view(template_name='coordinator_login.html'), name='coordinator-login'),
+    path('auth/coordinator/register/', TemplateView.as_view(template_name='coordinator_register.html'), name='coordinator-register'),
+    path('auth/student/login/', TemplateView.as_view(template_name='ojtstudent_login.html'), name='student-login'),
+    path('auth/student/register/', TemplateView.as_view(template_name='ojtstudent_register.html'), name='student-register'),
+    
+    # Dashboards
+    path('dashboard/admin/', TemplateView.as_view(template_name='admin_dashboard.html'), name='admin-dashboard'),
+    path('dashboard/coordinator/', TemplateView.as_view(template_name='coordinator_dashboard.html'), name='coordinator-dashboard'),
+    path('dashboard/student/', TemplateView.as_view(template_name='student_dashboard.html'), name='student-dashboard'),
+    path('dashboard/generic/', TemplateView.as_view(template_name='dashboard.html'), name='dashboard'),
+    path('dashboard/approval/', TemplateView.as_view(template_name='approval_dashboard.html'), name='approval-dashboard'),
+    
+    # Student Facial Recognition
+    path('student/facial/', TemplateView.as_view(template_name='ojtstudent_facial.html'), name='student-facial'),
+    
+    # Admin panel (Django built-in)
     path('admin/', admin.site.urls),
     
     # API Documentation

@@ -27,7 +27,6 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(','
 
 # Application definition
 INSTALLED_APPS = [
-    'daphne',  # For async support
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -82,15 +81,11 @@ TEMPLATES = [
 WSGI_APPLICATION = 'ojt_monitoring.wsgi.application'
 ASGI_APPLICATION = 'ojt_monitoring.asgi.application'
 
-# Database Configuration - PostgreSQL
+# Database Configuration - SQLite for development
 DATABASES = {
     'default': {
-        'ENGINE': config('DB_ENGINE', default='django.db.backends.postgresql'),
-        'NAME': config('DB_NAME', default='ojt_monitoring_db'),
-        'USER': config('DB_USER', default='ojt_admin'),
-        'PASSWORD': config('DB_PASSWORD', default=''),
-        'HOST': config('DB_HOST', default='localhost'),
-        'PORT': config('DB_PORT', default='5432'),
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
@@ -109,6 +104,9 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+# Custom User Model
+AUTH_USER_MODEL = 'core.User'
 
 # Internationalization
 LANGUAGE_CODE = 'en-us'

@@ -22,7 +22,7 @@ REM Create environment file if it doesn't exist
 if not exist .env (
     echo Creating .env file...
     copy .env.example .env
-    echo WARNING: Please update .env with your PostgreSQL credentials
+    echo NOTE: Using SQLite for development. Update .env as needed.
 )
 
 REM Run migrations
