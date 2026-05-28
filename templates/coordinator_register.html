@@ -43,7 +43,7 @@
                     <div id="step1" class="space-y-4">
                         <div>
                             <label class="custom-heading text-[#11693A] text-lg block mb-1">Full Name</label>
-                            <input type="text" id="fullName" required placeholder="Last Name, First Name, M.I., Suffix" pattern="[A-Za-z\s,.]+" title="Full name should only contain letters, spaces, commas, and periods" oninput="this.value = this.value.replace(/[^A-Za-z\s,.]/g, '')" class="w-full border-4 border-[#11693A] rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
+                            <input type="text" id="fullName" required placeholder="Last Name, First Name, M.I., Suffix" pattern="[A-Za-z\s,.]+" title="Full name should only contain letters, spaces, commas, and periods" oninput="this.value = this.value.replace(/[^A-Za-z\s,.]/g, '')" class="w-full border-4 border-[#11693A] rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-gray-700 font-medium">
                         </div>
 
                         <div class="grid grid-cols-2 gap-4">
@@ -72,6 +72,40 @@
                             </div>
                         </div>
 
+                        <div>
+                            <label class="custom-heading text-[#11693A] text-lg block mb-1">Course / Program</label>
+                            <div class="relative">
+                                <select id="course" required class="w-full border-4 border-[#11693A] rounded-xl p-2 pr-10 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all bg-white text-[#11693A] font-semibold">
+                                    <option value="" disabled selected hidden>Select Course</option>
+                                    <option>BS Information Technology (BSIT)</option>
+                                    <option>BS Computer Science (BSCS)</option>
+                                    <option>Bachelor of Entertainment and Multimedia Computing (BEMC)</option> 
+                                    <option>Bachelor of Elementary Education (BEED)</option>
+                                    <option>Bachelor of Secondary Education (BSED)</option>
+                                    <option>Bachelor of Physical Education (BPED)</option>
+                                    <option>BS Business Administration</option>
+                                    <option>BS Entrepreneurship</option>
+                                    <option>BS Management Accounting</option>
+                                    <option>BS Accounting Information System</option>
+                                    <option>BS Hospitality Management</option>
+                                    <option>BS Tourism Management</option>
+                                    <option>BA Political Science</option>
+                                    <option>BA English Language Studies</option>
+                                    <option>BS Psychology</option>
+                                    <option>BS Legal Management</option>
+                                    <option>BS Agriculture</option>
+                                    <option>Bachelor of Agricultural Technology</option>
+                                    <option>BS Food Technology</option>
+                                    <option>BS Criminology</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#11693A]">
+                                    <svg class="fill-current h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                        <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
                         <button type="button" onclick="goToStep2()" class="w-full max-w-[250px] mx-auto block bg-[#11693A] text-white py-3 rounded-full text-2xl font-bold custom-heading hover:bg-[#0d522d] transition-all transform hover:scale-[1.02] active:scale-95 shadow-md mt-6">
                             Next
                         </button>
@@ -79,7 +113,7 @@
 
                     <div id="step2" class="space-y-4 hidden">
                         <div>
-                            <label class="custom-heading text-[#11693A] text-lg block mb-1">Employee ID Username</label>
+                            <label class="custom-heading text-[#11693A] text-lg block mb-1">Employee ID</label>
                             <input type="text" id="empId" placeholder="Enter ID Number" class="w-full border-4 border-[#11693A] rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
                         </div>
 
@@ -120,12 +154,10 @@
     <script>
         let currentStep = 1;
 
-        // JavaScript logic para sa pagpapalit ng input type at pag-swap ng SVG icons
         function togglePasswordVisibility(inputId, iconId) {
             const passwordInput = document.getElementById(inputId);
             const eyeIcon = document.getElementById(iconId);
 
-            // Heroicons SVG structures
             const eyeOpenPath = `<path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />`;
             const eyeClosedPath = `<path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />`;
 
@@ -141,12 +173,14 @@
         function goToStep2() {
             const form = document.getElementById('regForm');
             
+            // Isinama ang bagong select input sa tracking validation para sa Step 1
             const step1Inputs = [
                 document.getElementById('fullName'),
                 document.getElementById('gender'),
                 document.getElementById('age'),
                 document.getElementById('contact'),
-                document.getElementById('email')
+                document.getElementById('email'),
+                document.getElementById('course')
             ];
 
             let isStep1Valid = true;
