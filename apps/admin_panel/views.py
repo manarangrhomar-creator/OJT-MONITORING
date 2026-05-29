@@ -32,6 +32,20 @@ class AdminDashboardViewSet(viewsets.ViewSet):
         })
     
     @action(detail=False, methods=['get'])
+    def students(self, request):
+        """Get all OJT student accounts."""
+        students = User.objects.filter(role='student').order_by('-created_at')
+        serializer = AdminUserSerializer(students, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def coordinators(self, request):
+        """Get all OJT coordinator accounts."""
+        coordinators = User.objects.filter(role='coordinator').order_by('-created_at')
+        serializer = AdminUserSerializer(coordinators, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
     def system_logs(self, request):
         """Get system logs."""
         logs = SystemLog.objects.all()[:100]

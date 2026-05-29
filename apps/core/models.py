@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import URLValidator
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 import uuid
 
 
@@ -36,6 +38,17 @@ class User(AbstractUser):
     
     def is_student(self):
         return self.role == 'student'
+
+
+@receiver(post_save, sender=User)
+def assign_admin_role_to_superuser(sender, instance, created, **kwargs):
+    """
+    Automatically assign 'admin' role to superusers created in Django admin.
+    This ensures superusers can login using the authentication system.
+    """
+    if instance.is_superuser and instance.role != 'admin':
+        instance.role = 'admin'
+        instance.save(update_fields=['role'])
 
 
 class BaseModel(models.Model):

@@ -51,16 +51,16 @@
             <img src="https://tse4.mm.bing.net/th/id/OIP.9kfaz2e3juU8vO3-Y-EBMQHaHa?r=0&rs=1&pid=ImgDetMain&o=7&rm=3" alt="ISU Logo" class="w-full h-full object-contain">
         </div>
         <div class="w-full space-y-3">
-            <button id="btn-student" class="w-full bg-white text-[#11693A] py-3 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all" onclick="window.location.href='admin_dashboard.html'">OJT Student Accounts</button>
-            <button id="btn-coordinator" class="w-full bg-white text-[#11693A] py-3 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all" onclick="window.location.href='coordinator_dashboard.html'">OJT Coordinator Accounts</button>
-            <button id="btn-approval" class="w-full bg-white text-[#11693A] py-3 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all" onclick="window.location.href='approval_dashboard.html'">OJT Coordinator Approval</button>
+            <button id="btn-student" class="w-full bg-white text-[#11693A] py-3 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all" onclick="window.location.href='/dashboard/admin/'">OJT Student Accounts</button>
+            <button id="btn-coordinator" class="w-full bg-white text-[#11693A] py-3 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all" onclick="window.location.href='/dashboard/admin/'">OJT Coordinator Accounts</button>
+            <button id="btn-approval" class="w-full bg-white text-[#11693A] py-3 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all" onclick="window.location.href='/dashboard/approval/'">OJT Coordinator Approval</button>
         </div>
     </div>
 
     <div class="flex-1 flex flex-col overflow-hidden">
         <header class="bg-white p-6 shadow-sm flex justify-between items-center">
             <h1 class="custom-heading text-3xl font-bold text-[#11693A]">OJT Student Accounts</h1>
-            <a href="index.html" class="flex items-center gap-1.5 bg-[#11693A] text-white px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-[#0d522d] transition-all shadow-sm">
+            <a href="/" class="flex items-center gap-1.5 bg-[#11693A] text-white px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-[#0d522d] transition-all shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
@@ -89,45 +89,7 @@
                             </tr>
                         </thead>
                         <tbody class="text-gray-700" id="studentTableBody">
-                            <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors" id="row-1">
-                                <td class="py-4 px-2 font-bold">Juan Dela Cruz</td>
-                                <td class="py-4 px-2">juan.delacruz@student.com</td>
-                                <td class="py-4 px-2">OJT Student</td>
-                                <td class="py-4 px-2">
-                                    <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">Active</span>
-                                </td>
-                                <td class="py-4 px-2">
-                                    <button class="text-blue-500 hover:text-blue-700" title="View" onclick="viewStudent(1)">👁️</button>
-                                    <button class="text-amber-500 hover:text-amber-700" title="Edit" onclick="editStudent(1)">✎</button>
-                                    <button class="text-red-500 hover:text-red-700" title="Delete" onclick="deleteStudent(1)">🗑️</button>
-                                </td>
-                            </tr>
-                            <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors" id="row-2">
-                                <td class="py-4 px-2 font-bold">Maria Santos</td>
-                                <td class="py-4 px-2">maria.santos@student.com</td>
-                                <td class="py-4 px-2">OJT Student</td>
-                                <td class="py-4 px-2">
-                                    <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">Active</span>
-                                </td>
-                                <td class="py-4 px-2">
-                                    <button class="text-blue-500 hover:text-blue-700" title="View" onclick="viewStudent(2)">👁️</button>
-                                    <button class="text-amber-500 hover:text-amber-700" title="Edit" onclick="editStudent(2)">✎</button>
-                                    <button class="text-red-500 hover:text-red-700" title="Delete" onclick="deleteStudent(2)">🗑️</button>
-                                </td>
-                            </tr>
-                            <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors" id="row-3">
-                                <td class="py-4 px-2 font-bold">Pedro Reyes</td>
-                                <td class="py-4 px-2">pedro.reyes@student.com</td>
-                                <td class="py-4 px-2">OJT Student</td>
-                                <td class="py-4 px-2">
-                                    <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-bold">Inactive</span>
-                                </td>
-                                <td class="py-4 px-2">
-                                    <button class="text-blue-500 hover:text-blue-700" title="View" onclick="viewStudent(3)">👁️</button>
-                                    <button class="text-amber-500 hover:text-amber-700" title="Edit" onclick="editStudent(3)">✎</button>
-                                    <button class="text-red-500 hover:text-red-700" title="Delete" onclick="deleteStudent(3)">🗑️</button>
-                                </td>
-                            </tr>
+                            <!-- Students will be loaded dynamically from the database -->
                         </tbody>
                     </table>
                 </div>
@@ -278,6 +240,102 @@
 
 
     <script>
+        let students = {};
+        let currentEditId = null;
+        let currentDeleteId = null;
+        let nextStudentId = 0;
+
+        // Load students from database on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStudents();
+            initializeActiveButton();
+        });
+
+        // Fetch students from API
+        async function loadStudents() {
+            try {
+                const response = await fetch('/api/admin/admin-dashboard/students/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to load students:', response.status);
+                    return;
+                }
+
+                const studentsList = await response.json();
+                
+                // Clear the table
+                const tbody = document.getElementById('studentTableBody');
+                tbody.innerHTML = '';
+
+                // If no students, display nothing
+                if (!studentsList || studentsList.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-gray-400">No OJT students registered in the database</td></tr>';
+                    return;
+                }
+
+                // Add each student to the table
+                studentsList.forEach((student, index) => {
+                    students[index] = {
+                        id: student.id,
+                        name: student.first_name + ' ' + student.last_name,
+                        email: student.email,
+                        username: student.username,
+                        role: student.role || 'OJT Student',
+                        status: student.is_active ? 'Active' : 'Inactive'
+                    };
+
+                    const row = document.createElement('tr');
+                    row.id = `row-${index}`;
+                    row.className = 'border-b border-gray-50 hover:bg-gray-50 transition-colors';
+                    
+                    const statusClass = student.is_active ? 'emerald' : 'yellow';
+                    const statusText = student.is_active ? 'Active' : 'Inactive';
+
+                    row.innerHTML = `
+                        <td class="py-4 px-2 font-bold">${students[index].name}</td>
+                        <td class="py-4 px-2">${student.email}</td>
+                        <td class="py-4 px-2">OJT Student</td>
+                        <td class="py-4 px-2">
+                            <span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold">${statusText}</span>
+                        </td>
+                        <td class="py-4 px-2">
+                            <button class="text-blue-500 hover:text-blue-700" title="View" onclick="viewStudent(${index})">👁️</button>
+                            <button class="text-amber-500 hover:text-amber-700" title="Edit" onclick="editStudent(${index})">✎</button>
+                            <button class="text-red-500 hover:text-red-700" title="Delete" onclick="deleteStudent(${index})">🗑️</button>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+
+                nextStudentId = studentsList.length;
+            } catch (error) {
+                console.error('Error loading students:', error);
+            }
+        }
+
+        // Get CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
         // Initialize sidebar button active state
         function initializeActiveButton() {
             const currentPage = window.location.pathname.split('/').pop() || 'admin_dashboard.html';
@@ -299,49 +357,7 @@
             // Apply active state to current page button
             if (currentPage.includes('admin_dashboard') || currentPage === '') {
                 if (btnStudent) btnStudent.className = activeStyle;
-            } else if (currentPage.includes('coordinator_dashboard')) {
-                if (btnCoordinator) btnCoordinator.className = activeStyle;
-            } else if (currentPage.includes('approval_dashboard')) {
-                if (btnApproval) btnApproval.className = activeStyle;
             }
-        }
-        
-        // Run on page load and after navigation
-        document.addEventListener('DOMContentLoaded', initializeActiveButton);
-        window.addEventListener('load', initializeActiveButton);
-        
-        // Sample student data
-        const students = {
-            1: { name: 'Juan Dela Cruz', email: 'juan.delacruz@student.com', role: 'OJT Student', status: 'Active', course: 'BS Information Technology', year: '3rd Year', idNumber: '23-13541' },
-            2: { name: 'Maria Santos', email: 'maria.santos@student.com', role: 'OJT Student', status: 'Active', course: 'BS Accountancy', year: '2nd Year', idNumber: '23-13542' },
-            3: { name: 'Pedro Reyes', email: 'pedro.reyes@student.com', role: 'OJT Student', status: 'Inactive', course: 'BS Agriculture', year: '3rd Year', idNumber: '23-13543' }
-        };
-
-        let currentEditId = null;
-        let currentDeleteId = null;
-        let nextStudentId = 4;
-
-        // Tab switching for top buttons (simplified - only student tab now)
-        function switchTab(tabName) {
-            const contents = document.querySelectorAll('.tab-content');
-            const buttons = document.querySelectorAll('.tab-btn');
-            
-            // Hide all tabs
-            contents.forEach(content => content.classList.remove('active'));
-            // Deactivate all buttons
-            buttons.forEach(btn => btn.classList.remove('active'));
-            
-            // Show selected tab
-            document.getElementById(tabName).classList.add('active');
-            
-            // Activate corresponding button
-            buttons[0].classList.add('active');
-        }
-
-        // Tab switching with sidebar highlight (simplified - only student button now)
-        function switchTabAndHighlight(tabName) {
-            // No longer needed - only one tab exists
-            return;
         }
 
         // Open modal
@@ -395,20 +411,12 @@
                     <span class="detail-value">${student.name}</span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">ID Number:</span>
-                    <span class="detail-value">${student.idNumber}</span>
+                    <span class="detail-label">Username:</span>
+                    <span class="detail-value">${student.username}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Email:</span>
                     <span class="detail-value">${student.email}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Course:</span>
-                    <span class="detail-value">${student.course}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Year Level:</span>
-                    <span class="detail-value">${student.year}</span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Role:</span>
@@ -519,9 +527,6 @@
             students[newId] = {
                 name: name,
                 email: email,
-                idNumber: idNumber,
-                course: course,
-                year: '1st Year',
                 role: role,
                 status: status
             };
