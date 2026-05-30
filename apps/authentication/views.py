@@ -1,9 +1,11 @@
 from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework.decorators import action, permission_classes
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login, logout
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_http_methods
 from apps.core.models import User
 from .serializers import UserRegisterSerializer, UserLoginSerializer, UserSerializer
@@ -13,7 +15,11 @@ from .models import LoginAttempt
 class AuthenticationViewSet(viewsets.ViewSet):
     """ViewSet for authentication operations."""
     
-    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    @method_decorator(csrf_exempt)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+    
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
     def register(self, request):
         """Register a new user."""
         serializer = UserRegisterSerializer(data=request.data)
@@ -28,7 +34,7 @@ class AuthenticationViewSet(viewsets.ViewSet):
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-    @action(detail=False, methods=['post'], permission_classes=[AllowAny])
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
     def login(self, request):
         """User login with token authentication."""
         serializer = UserLoginSerializer(data=request.data)

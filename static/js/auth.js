@@ -63,12 +63,12 @@ async function apiRequest(endpoint, method = 'GET', data = null) {
         method: method,
         headers: {
             'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken'),
         },
     };
 
     const token = getAuthToken();
-    if (token) {
+    const isAuthEndpoint = endpoint === '/login/' || endpoint === '/register/';
+    if (token && !isAuthEndpoint) {
         options.headers['Authorization'] = `Token ${token}`;
     }
 
@@ -114,6 +114,8 @@ function getCookie(name) {
  */
 async function login(username, password) {
     try {
+        // Clear any stale token before attempting login
+        clearAuthData();
         const response = await apiRequest('/login/', 'POST', { username, password });
         
         if (response.token && response.user) {
