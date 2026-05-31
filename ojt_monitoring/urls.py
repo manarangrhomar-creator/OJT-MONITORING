@@ -20,7 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView, TemplateView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from apps.core.dashboard_views import admin_dashboard, coordinator_dashboard, student_dashboard, approval_dashboard, logout_view
+from apps.core.dashboard_views import admin_dashboard, student_dashboard, logout_view
 
 urlpatterns = [
     # Root URL - redirect to home
@@ -31,18 +31,18 @@ urlpatterns = [
     path('auth/admin/login/', TemplateView.as_view(template_name='admin_login.html'), name='admin-login'),
     path('auth/coordinator/login/', TemplateView.as_view(template_name='coordinator_login.html'), name='coordinator-login'),
     path('auth/coordinator/register/', TemplateView.as_view(template_name='coordinator_register.html'), name='coordinator-register'),
-    path('auth/coordinator/forgotpassword/', TemplateView.as_view(template_name='coordinator_forgotpassword.html'), name='coordinator-forgotpassword'),
+    path('auth/forgotpassword/', TemplateView.as_view(template_name='forgot_password.html'), name='forgotpassword'),
+    path('auth/coordinator/forgotpassword/', RedirectView.as_view(pattern_name='forgotpassword', permanent=False), name='coordinator-forgotpassword'),
     path('auth/student/login/', TemplateView.as_view(template_name='ojtstudent_login.html'), name='student-login'),
     path('auth/student/register/', TemplateView.as_view(template_name='ojtstudent_register.html'), name='student-register'),
-    path('auth/student/forgotpassword/', TemplateView.as_view(template_name='student_forgotpassword.html'), name='student-forgotpassword'),
+    path('auth/student/forgotpassword/', RedirectView.as_view(pattern_name='forgotpassword', permanent=False), name='student-forgotpassword'),
     path('auth/logout/', logout_view, name='logout'),
     
     # Dashboards - Protected by role-based access
     path('dashboard/admin/', admin_dashboard, name='admin-dashboard'),
-    path('dashboard/coordinator/', coordinator_dashboard, name='coordinator-dashboard'),
     path('dashboard/student/', student_dashboard, name='student-dashboard'),
     path('dashboard/generic/', TemplateView.as_view(template_name='dashboard.html'), name='dashboard'),
-    path('dashboard/approval/', approval_dashboard, name='approval-dashboard'),
+    path('dashboard/approval/', RedirectView.as_view(pattern_name='admin-dashboard', permanent=False), name='approval-dashboard'),
     
     # Student Facial Recognition
     path('student/facial/', TemplateView.as_view(template_name='ojtstudent_facial.html'), name='student-facial'),
