@@ -93,7 +93,7 @@
                 <h1 class="text-2xl md:text-4xl isu-header-font tracking-tight">OJT Admin</h1>
                 <p id="pageSubtitle" class="text-[11px] md:text-xs text-slate-500 font-bold mt-0.5 uppercase tracking-wider">OJT Student Accounts</p>
             </div>
-            <a href="/" class="bg-[#11693A] hover:bg-[#0e5630] text-white text-xs font-bold px-5 py-2 md:px-6 md:py-2.5 transition shadow-sm flex items-center gap-2 rounded-lg self-end sm:self-auto">
+            <a href="#" onclick="event.preventDefault(); openLogoutModal();" class="bg-[#11693A] hover:bg-[#0e5630] text-white text-xs font-bold px-5 py-2 md:px-6 md:py-2.5 transition shadow-sm flex items-center gap-2 rounded-lg self-end sm:self-auto">
                 <i class="fa-solid fa-right-from-bracket"></i> Logout
             </a>
         </div>
@@ -443,9 +443,10 @@
             <p style="color: #666; margin-bottom: 20px; font-size: 16px;">
                 Approve <strong id="approveName"></strong> as OJT Coordinator?
             </p>
+            <input type="hidden" id="approverId" value="">
             <div class="modal-buttons">
                 <button class="btn-cancel" onclick="closeModal('approveModal')">Cancel</button>
-                <button class="btn-approve" onclick="confirmApprove()">Approve</button>
+                <button class="btn-approve" onclick="saveApprovalChange()">Approve</button>
             </div>
         </div>
     </div>
@@ -459,13 +460,33 @@
             <p style="color: #666; margin-bottom: 20px; font-size: 16px;">
                 Reject <strong id="rejectName"></strong>? Please provide a reason.
             </p>
+            <input type="hidden" id="rejecterId" value="">
             <div class="form-group">
                 <label>Reason for Rejection</label>
                 <textarea id="rejectionReason" rows="3" placeholder="Enter reason..."></textarea>
             </div>
             <div class="modal-buttons">
                 <button class="btn-cancel" onclick="closeModal('rejectModal')">Cancel</button>
-                <button class="btn-reject" onclick="confirmReject()">Reject</button>
+                <button class="btn-reject" onclick="saveRejectionChange()">Reject</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Logout Confirmation Modal -->
+    <div id="logoutModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-100 transform scale-95 transition-all">
+            <div class="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            </div>
+            <h3 class="text-lg font-black text-slate-800 mb-1">Confirm Logout</h3>
+            <p class="text-xs text-slate-500 mb-6">Are you sure you want to exit the OJT Admin Portal? Any unsaved changes will be discarded.</p>
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" id="btnCancelLogout" class="py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition uppercase">
+                    Cancel
+                </button>
+                <button type="button" id="btnConfirmLogout" class="py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition uppercase shadow-sm">
+                    Yes, Logout
+                </button>
             </div>
         </div>
     </div>
@@ -534,13 +555,15 @@
         // Load students from database on page load
         document.addEventListener('DOMContentLoaded', function() {
             loadStudents();
+            loadCoordinators();
+            loadCoordinatorApprovals();
             switchSection('students');
         });
 
         // Fetch students from API
         async function loadStudents() {
             try {
-                const response = await fetch('/api/admin/admin-dashboard/students/', {
+                const response = await fetch('/api/admin/dashboard/students/', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -791,15 +814,10 @@
         }
 
         // ===== COORDINATOR FUNCTIONS =====
-        const coordinators = {
-            1: { name: 'Dr. Maria Gonzales', email: 'maria.gonzales@isu.edu.ph', empId: 'EMP-2020-001', department: 'Information Technology', status: 'Active' },
-            2: { name: 'Engr. Juan Reyes', email: 'juan.reyes@isu.edu.ph', empId: 'EMP-2021-045', department: 'Engineering', status: 'Active' },
-            3: { name: 'Prof. Anna Santos', email: 'anna.santos@isu.edu.ph', empId: 'EMP-2019-067', department: 'Education', status: 'Inactive' }
-        };
-
+        let coordinators = {};
+        let coordinatorList = [];
         let currentCoordEditId = null;
         let currentCoordDeleteId = null;
-        let nextCoordId = 4;
 
         const coordinatorSearchInput = document.getElementById('coordinatorSearchInput');
         if (coordinatorSearchInput) {
@@ -814,14 +832,89 @@
             });
         }
 
+        async function loadCoordinators() {
+            try {
+                const response = await fetch('/api/admin/dashboard/coordinators/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to load coordinators:', response.status);
+                    return;
+                }
+
+                const data = await response.json();
+                coordinatorList = data.map(item => ({
+                    id: item.id,
+                    name: `${item.first_name} ${item.last_name}`.trim(),
+                    email: item.email,
+                    empId: item.username || 'N/A',
+                    department: 'N/A',
+                    status: item.is_active ? 'Active' : 'Inactive',
+                    approval_status: item.approval_status || 'pending'
+                }));
+
+                coordinators = {};
+                coordinatorList.forEach(item => {
+                    coordinators[item.id] = item;
+                });
+
+                renderCoordinatorTable();
+                renderApprovalTable();
+            } catch (error) {
+                console.error('Error loading coordinators:', error);
+            }
+        }
+
+        function renderCoordinatorTable() {
+            const tbody = document.getElementById('coordinatorTableBody');
+            tbody.innerHTML = '';
+
+            if (!coordinatorList.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-gray-400">No OJT coordinators found</td></tr>';
+                return;
+            }
+
+            coordinatorList.forEach(item => {
+                const statusClass = item.status === 'Active' ? 'emerald' : 'yellow';
+                const row = document.createElement('tr');
+                row.id = `coordinator-row-${item.id}`;
+                row.className = 'border-b border-gray-50 hover:bg-gray-50 transition-colors';
+                row.innerHTML = `
+                    <td class="py-4 px-2 font-bold">${item.name}</td>
+                    <td class="py-4 px-2">${item.email}</td>
+                    <td class="py-4 px-2">${item.empId}</td>
+                    <td class="py-4 px-2">
+                        <span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold">${item.status}</span>
+                    </td>
+                    <td class="py-4 px-2">
+                        <button class="text-blue-500 hover:text-blue-700 p-2" title="View" onclick="viewCoordinator('${item.id}')">
+                            <i class="fa-regular fa-eye text-lg"></i>
+                        </button>
+                        <button class="text-amber-500 hover:text-amber-700 p-2" title="Edit" onclick="editCoordinator('${item.id}')">
+                            <i class="fa-regular fa-pen-to-square text-lg"></i>
+                        </button>
+                        <button class="text-red-500 hover:text-red-700 p-2" title="Delete" onclick="deleteCoordinator('${item.id}')">
+                            <i class="fa-regular fa-trash-can text-lg"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
         function viewCoordinator(id) {
             const coordinator = coordinators[id];
             if (!coordinator) return;
             const detailsHtml = `
                 <div class="detail-row"><span class="detail-label">Name:</span><span class="detail-value">${coordinator.name}</span></div>
-                <div class="detail-row"><span class="detail-label">Employee ID:</span><span class="detail-value">${coordinator.empId}</span></div>
                 <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">${coordinator.email}</span></div>
-                <div class="detail-row"><span class="detail-label">Department:</span><span class="detail-value">${coordinator.department}</span></div>
+                <div class="detail-row"><span class="detail-label">Employee ID:</span><span class="detail-value">${coordinator.empId}</span></div>
                 <div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value">${coordinator.status}</span></div>
             `;
             document.getElementById('coordViewDetails').innerHTML = detailsHtml;
@@ -834,8 +927,6 @@
             if (!coordinator) return;
             document.getElementById('coordEditName').value = coordinator.name;
             document.getElementById('coordEditEmail').value = coordinator.email;
-            document.getElementById('coordEditEmpId').value = coordinator.empId;
-            document.getElementById('coordEditDepartment').value = coordinator.department;
             document.getElementById('coordEditStatus').value = coordinator.status;
             openModal('coordEditModal');
         }
@@ -845,18 +936,9 @@
             const coordinator = coordinators[currentCoordEditId];
             coordinator.name = document.getElementById('coordEditName').value;
             coordinator.email = document.getElementById('coordEditEmail').value;
-            coordinator.empId = document.getElementById('coordEditEmpId').value;
-            coordinator.department = document.getElementById('coordEditDepartment').value;
             coordinator.status = document.getElementById('coordEditStatus').value;
-
-            const row = document.querySelector(`#coordinator-row-${currentCoordEditId}`);
-            if (row) {
-                const cells = row.querySelectorAll('td');
-                cells[0].textContent = coordinator.name;
-                cells[1].textContent = coordinator.email;
-                cells[2].textContent = coordinator.empId;
-                cells[3].innerHTML = `<span class="bg-${coordinator.status === 'Active' ? 'emerald' : 'yellow'}-100 text-${coordinator.status === 'Active' ? 'emerald' : 'yellow'}-700 px-3 py-1 rounded-full text-xs font-bold">${coordinator.status}</span>`;
-            }
+            renderCoordinatorTable();
+            renderApprovalTable();
             alert('Coordinator information updated successfully.');
             closeModal('coordEditModal');
         }
@@ -871,17 +953,12 @@
 
         function confirmCoordinatorDelete() {
             if (currentCoordDeleteId === null) return;
-            const row = document.querySelector(`#coordinator-row-${currentCoordDeleteId}`);
-            if (row) {
-                row.style.opacity = '0';
-                row.style.transition = 'opacity 0.3s ease';
-                setTimeout(() => {
-                    row.remove();
-                    delete coordinators[currentCoordDeleteId];
-                    alert('Coordinator deleted successfully.');
-                    closeModal('coordDeleteModal');
-                }, 300);
-            }
+            delete coordinators[currentCoordDeleteId];
+            coordinatorList = coordinatorList.filter(item => item.id !== currentCoordDeleteId);
+            renderCoordinatorTable();
+            renderApprovalTable();
+            alert('Coordinator deleted successfully.');
+            closeModal('coordDeleteModal');
         }
 
         function openAddCoordinatorModal() {
@@ -892,11 +969,9 @@
         function addNewCoordinator() {
             const name = document.getElementById('coordAddName').value.trim();
             const email = document.getElementById('coordAddEmail').value.trim();
-            const empId = document.getElementById('coordAddEmpId').value.trim();
-            const department = document.getElementById('coordAddDepartment').value.trim();
             const status = document.getElementById('coordAddStatus').value;
 
-            if (!name || !email || !empId || !department) {
+            if (!name || !email) {
                 alert('Please fill in all required fields.');
                 return;
             }
@@ -908,48 +983,26 @@
                 }
             }
 
-            const newId = nextCoordId++;
-            coordinators[newId] = { name, email, empId, department, status };
-
-            const tbody = document.getElementById('coordinatorTableBody');
-            const row = document.createElement('tr');
-            row.id = `coordinator-row-${newId}`;
-            row.className = 'border-b border-gray-50 hover:bg-gray-50 transition-colors';
-            row.innerHTML = `
-                <td class="py-4 px-2 font-bold">${name}</td>
-                <td class="py-4 px-2">${email}</td>
-                <td class="py-4 px-2">${empId}</td>
-                <td class="py-4 px-2">
-                    <span class="bg-${status === 'Active' ? 'emerald' : 'yellow'}-100 text-${status === 'Active' ? 'emerald' : 'yellow'}-700 px-3 py-1 rounded-full text-xs font-bold">${status}</span>
-                </td>
-                <td class="py-4 px-2">
-                    <button class="text-blue-500 hover:text-blue-700 p-2" title="View" onclick="viewCoordinator(${newId})">
-                        <i class="fa-regular fa-eye text-lg"></i>
-                    </button>
-                    <button class="text-amber-500 hover:text-amber-700 p-2" title="Edit" onclick="editCoordinator(${newId})">
-                        <i class="fa-regular fa-pen-to-square text-lg"></i>
-                    </button>
-                    <button class="text-red-500 hover:text-red-700 p-2" title="Delete" onclick="deleteCoordinator(${newId})">
-                        <i class="fa-regular fa-trash-can text-lg"></i>
-                    </button>
-                </td>
-            `;
-            tbody.appendChild(row);
-
+            const newCoordinator = { 
+                id: `local-${Date.now()}`, 
+                name, 
+                email, 
+                empId: 'N/A',
+                department: 'N/A',
+                status, 
+                approval_status: 'pending' 
+            };
+            coordinators[newCoordinator.id] = newCoordinator;
+            coordinatorList.unshift(newCoordinator);
+            renderCoordinatorTable();
+            renderApprovalTable();
             alert('New coordinator added successfully.');
             closeModal('coordAddModal');
         }
 
         // ===== APPROVAL FUNCTIONS =====
-        const requests = {
-            1: { name: 'Dr. Rachel Lopez', email: 'rachel.lopez@isu.edu.ph', empId: 'EMP-2024-101', department: 'Science', status: 'Pending' },
-            2: { name: 'Prof. Michael Torres', email: 'michael.torres@isu.edu.ph', empId: 'EMP-2024-102', department: 'Engineering', status: 'Approved' },
-            3: { name: 'Engr. Patricia Villanueva', email: 'patricia.villanueva@isu.edu.ph', empId: 'EMP-2024-103', department: 'Technology', status: 'Rejected' }
-        };
-
-        let currentApproveId = null;
-        let currentRejectId = null;
-        let statusFilter = 'all';
+        let approvals = {};
+        let approvalList = [];
 
         const approvalSearchInput = document.getElementById('approvalSearchInput');
         if (approvalSearchInput) {
@@ -964,92 +1017,169 @@
             });
         }
 
-        function filterByStatus(status) {
-            statusFilter = status;
+        const approvalFilterSelect = document.getElementById('approvalFilterSelect');
+        if (approvalFilterSelect) {
+            approvalFilterSelect.addEventListener('change', renderApprovalTable);
+        }
+
+        async function loadCoordinatorApprovals() {
+            try {
+                const response = await fetch('/api/admin/dashboard/coordinator-approvals/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    console.error('Failed to load coordinator approvals:', response.status);
+                    return;
+                }
+
+                const data = await response.json();
+                approvalList = data.map(item => ({
+                    id: item.id,
+                    name: `${item.first_name} ${item.last_name}`.trim(),
+                    email: item.email,
+                    empId: item.username || 'N/A',
+                    status: item.approval_status || 'pending'
+                }));
+
+                approvals = {};
+                approvalList.forEach(item => {
+                    approvals[item.id] = item;
+                });
+
+                renderApprovalTable();
+            } catch (error) {
+                console.error('Error loading coordinator approvals:', error);
+            }
+        }
+
+        function renderApprovalTable() {
             const tbody = document.getElementById('approvalTableBody');
-            const rows = tbody.getElementsByTagName('tr');
-            Array.from(rows).forEach(row => {
-                const statusBadge = row.querySelector('td:nth-child(4)');
-                const rowStatus = statusBadge.textContent.trim().toLowerCase();
-                const display = status === 'all' || rowStatus === status ? '' : 'none';
-                row.style.display = display;
+            tbody.innerHTML = '';
+            const filter = document.getElementById('approvalFilterSelect').value;
+
+            let filteredList = approvalList;
+            if (filter !== 'all') {
+                filteredList = approvalList.filter(item => item.status === filter);
+            }
+
+            if (!filteredList.length) {
+                tbody.innerHTML = `<tr><td colspan="5" class="py-8 px-4 text-center text-gray-400">No ${filter === 'all' ? '' : filter} coordinator approvals found</td></tr>`;
+                return;
+            }
+
+            filteredList.forEach(item => {
+                const statusClass = item.status === 'pending' ? 'yellow' : item.status === 'approved' ? 'emerald' : 'red';
+                const row = document.createElement('tr');
+                row.id = `row-${item.id}`;
+                row.className = 'border-b border-gray-50 hover:bg-gray-50 transition-colors';
+                row.innerHTML = `
+                    <td class="py-4 px-2 font-bold">${item.name}</td>
+                    <td class="py-4 px-2">${item.email}</td>
+                    <td class="py-4 px-2">${item.empId}</td>
+                    <td class="py-4 px-2">
+                        <span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold capitalize">${item.status}</span>
+                    </td>
+                    <td class="py-4 px-2">
+                        <button class="text-emerald-500 hover:text-emerald-700 p-2" title="Approve" onclick="confirmApprove(${item.id})">
+                            <i class="fa-regular fa-circle-check text-lg"></i>
+                        </button>
+                        <button class="text-red-500 hover:text-red-700 p-2" title="Reject" onclick="confirmReject(${item.id})">
+                            <i class="fa-regular fa-circle-xmark text-lg"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
             });
         }
 
-        function viewRequest(id) {
-            const request = requests[id];
-            if (!request) return;
-            const detailsHtml = `
-                <div class="detail-row"><span class="detail-label">Name:</span><span class="detail-value">${request.name}</span></div>
-                <div class="detail-row"><span class="detail-label">Employee ID:</span><span class="detail-value">${request.empId}</span></div>
-                <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">${request.email}</span></div>
-                <div class="detail-row"><span class="detail-label">Department:</span><span class="detail-value">${request.department}</span></div>
-                <div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value">${request.status}</span></div>
-            `;
-            document.getElementById('viewApprovalDetails').innerHTML = detailsHtml;
-            openModal('viewApprovalModal');
-        }
-
-        function approveRequest(id) {
-            currentApproveId = id;
-            const request = requests[id];
-            if (!request) return;
-            document.getElementById('approveName').textContent = request.name;
+        function confirmApprove(id) {
+            const coordinator = approvals[id];
+            if (!coordinator) return;
+            document.getElementById('approveName').textContent = coordinator.name;
+            document.getElementById('approverId').value = id;
             openModal('approveModal');
         }
 
-        function confirmApprove() {
-            if (currentApproveId === null) return;
-            const request = requests[currentApproveId];
-            request.status = 'Approved';
-
-            const row = document.querySelector(`#row-${currentApproveId}`);
-            if (row) {
-                const cells = row.querySelectorAll('td');
-                cells[3].innerHTML = '<span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">Approved</span>';
-                cells[4].innerHTML = approvalActionButtons(currentApproveId);
-            }
-
-            alert('Coordinator approved successfully.');
-            closeModal('approveModal');
+        function saveApprovalChange() {
+            const approverId = document.getElementById('approverId').value;
+            updateApprovalStatus(approverId, 'approved');
         }
 
-        function rejectRequest(id) {
-            currentRejectId = id;
-            const request = requests[id];
-            if (!request) return;
-            document.getElementById('rejectName').textContent = request.name;
+        function confirmReject(id) {
+            const coordinator = approvals[id];
+            if (!coordinator) return;
+            document.getElementById('rejectName').textContent = coordinator.name;
+            document.getElementById('rejecterId').value = id;
             document.getElementById('rejectionReason').value = '';
             openModal('rejectModal');
         }
 
-        function confirmReject() {
-            if (currentRejectId === null) return;
+        function saveRejectionChange() {
+            const rejecterId = document.getElementById('rejecterId').value;
             const reason = document.getElementById('rejectionReason').value.trim();
             if (!reason) {
                 alert('Please provide a reason for rejection.');
                 return;
             }
+            updateApprovalStatus(rejecterId, 'rejected');
+        }
 
-            const request = requests[currentRejectId];
-            request.status = 'Rejected';
+        async function updateApprovalStatus(coordinatorId, statusValue) {
+            try {
+                const response = await fetch(`/api/admin/dashboard/coordinators/${coordinatorId}/set-coordinator-approval/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    },
+                    body: JSON.stringify({ approval_status: statusValue })
+                });
 
-            const row = document.querySelector(`#row-${currentRejectId}`);
-            if (row) {
-                const cells = row.querySelectorAll('td');
-                cells[3].innerHTML = '<span class="bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-bold">Rejected</span>';
-                cells[4].innerHTML = approvalActionButtons(currentRejectId);
+                if (!response.ok) {
+                    console.error('Failed to update approval status:', response.status);
+                    alert('Failed to update approval status.');
+                    return;
+                }
+
+                alert(`Coordinator ${statusValue} successfully.`);
+                closeModal('approveModal');
+                closeModal('rejectModal');
+                loadCoordinatorApprovals();
+            } catch (error) {
+                console.error('Error updating approval status:', error);
+                alert('An error occurred while updating approval status.');
             }
-
-            alert('Request rejected successfully.');
-            closeModal('rejectModal');
         }
 
-        function approvalActionButtons(id) {
-            return '<button class="text-blue-500 hover:text-blue-700 p-2" title="View" onclick="viewRequest(' + id + ')"><i class="fa-regular fa-eye text-lg"></i></button>' +
-                '<button class="text-amber-500 hover:text-amber-700 p-2" title="Approve" onclick="approveRequest(' + id + ')"><i class="fa-regular fa-pen-to-square text-lg"></i></button>' +
-                '<button class="text-red-500 hover:text-red-700 p-2" title="Reject" onclick="rejectRequest(' + id + ')"><i class="fa-regular fa-trash-can text-lg"></i></button>';
+        // LOGOUT LOGIC MECHANICS
+        function openLogoutModal() {
+            document.getElementById('logoutModal').classList.remove('hidden');
         }
+
+        function closeLogoutModal() {
+            document.getElementById('logoutModal').classList.add('hidden');
+        }
+
+        document.getElementById('logoutModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('logoutModal')) {
+                closeLogoutModal();
+            }
+        });
+
+        document.getElementById('btnCancelLogout').addEventListener('click', closeLogoutModal);
+
+        document.getElementById('btnConfirmLogout').addEventListener('click', () => {
+            document.getElementById('btnConfirmLogout').innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Exiting...';
+            document.getElementById('btnConfirmLogout').disabled = true;
+            setTimeout(() => { window.location.href = "/auth/logout/"; }, 800);
+        });
     </script>
 </body>
 </html>

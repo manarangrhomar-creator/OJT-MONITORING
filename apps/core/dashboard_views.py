@@ -34,6 +34,13 @@ def student_dashboard(request):
     return render(request, 'student_dashboard.html')
 
 
+@login_required(login_url='coordinator-login')
+@role_required('coordinator')
+def coordinator_dashboard(request):
+    """Coordinator dashboard view."""
+    return render(request, 'coordinator_dashboard.html')
+
+
 def logout_view(request):
     """Logout user and clear authentication token."""
     try:

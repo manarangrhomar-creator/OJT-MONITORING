@@ -76,3 +76,37 @@ class Attendance(BaseModel):
     
     def __str__(self):
         return f"{self.student.username} - {self.date}"
+
+
+class NarrativeReport(BaseModel):
+    """Coordinator narrative reports about student performance."""
+    PERFORMANCE_RATING_CHOICES = [
+        (1, 'Poor'),
+        (2, 'Fair'),
+        (3, 'Good'),
+        (4, 'Very Good'),
+        (5, 'Excellent'),
+    ]
+    
+    ATTENDANCE_STATUS_CHOICES = [
+        ('excellent', 'Excellent'),
+        ('good', 'Good'),
+        ('fair', 'Fair'),
+        ('poor', 'Poor'),
+    ]
+    
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='narrative_reports', limit_choices_to={'role': 'student'})
+    program = models.ForeignKey(OJTProgram, on_delete=models.CASCADE, related_name='narratives')
+    report_date = models.DateField()
+    narrative_text = models.TextField(help_text='Coordinator narrative report about student performance')
+    performance_rating = models.IntegerField(choices=PERFORMANCE_RATING_CHOICES)
+    attendance_status = models.CharField(max_length=20, choices=ATTENDANCE_STATUS_CHOICES, default='good')
+    
+    class Meta:
+        verbose_name = 'Narrative Report'
+        verbose_name_plural = 'Narrative Reports'
+        unique_together = ('student', 'program', 'report_date')
+        ordering = ['-created_at']
+    
+    def __str__(self):
+        return f"Report for {self.student.username} on {self.report_date}"

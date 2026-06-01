@@ -20,7 +20,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.views.generic import RedirectView, TemplateView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from apps.core.dashboard_views import admin_dashboard, student_dashboard, logout_view
+from apps.core.dashboard_views import admin_dashboard, student_dashboard, coordinator_dashboard, logout_view
 
 urlpatterns = [
     # Root URL - redirect to home
@@ -40,6 +40,7 @@ urlpatterns = [
     
     # Dashboards - Protected by role-based access
     path('dashboard/admin/', admin_dashboard, name='admin-dashboard'),
+    path('dashboard/coordinator/', coordinator_dashboard, name='coordinator-dashboard'),
     path('dashboard/student/', student_dashboard, name='student-dashboard'),
     path('dashboard/generic/', TemplateView.as_view(template_name='dashboard.html'), name='dashboard'),
     path('dashboard/approval/', RedirectView.as_view(pattern_name='admin-dashboard', permanent=False), name='approval-dashboard'),
