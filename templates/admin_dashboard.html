@@ -5,60 +5,83 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard | OJT Monitoring System</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght=600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        .custom-heading { font-family: 'Fredoka', sans-serif; }
-        .custom-text { font-family: 'Inter', sans-serif; }
-        
+        body { font-family: 'Inter', sans-serif; background-color: #eaf4ec; }
+        .isu-header-font { font-weight: 900; color: #11693A; }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #11693A; border-radius: 10px; }
+
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); animation: fadeIn 0.3s ease; }
         .modal.active { display: flex; justify-content: center; align-items: center; }
-        .modal-content { background-color: #fefefe; padding: 30px; border-radius: 15px; width: 90%; max-width: 500px; box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3); animation: slideUp 0.3s ease; }
-        
+        .modal-content { background-color: #fefefe; padding: 30px; border-radius: 15px; width: 90%; max-width: 500px; box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3); animation: slideUp 0.3s ease; overflow-y: auto; max-height: 90vh; }
+
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        
+
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; padding-bottom: 15px; }
-        .modal-header h2 { font-family: 'Fredoka', sans-serif; color: #11693A; font-size: 24px; font-weight: bold; }
+        .modal-header h2 { font-family: 'Inter', sans-serif; color: #11693A; font-size: 24px; font-weight: 800; }
         .close-btn { background: none; border: none; font-size: 28px; cursor: pointer; color: #999; transition: color 0.2s; }
         .close-btn:hover { color: #333; }
-        
+
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; margin-bottom: 5px; color: #333; font-weight: 600; font-size: 14px; }
-        .form-group input, .form-group select { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; transition: border-color 0.2s; }
-        .form-group input:focus, .form-group select:focus { outline: none; border-color: #11693A; }
-        
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 14px; font-family: 'Inter', sans-serif; transition: border-color 0.2s; }
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #11693A; }
+
         .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px; }
-        .btn-cancel, .btn-save { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .btn-cancel, .btn-save, .btn-approve, .btn-reject { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
         .btn-cancel { background: #e5e7eb; color: #333; }
         .btn-save { background: #11693A; color: white; }
-        
+        .btn-approve { background: #11693A; color: white; }
+        .btn-reject { background: #dc2626; color: white; }
+
         .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
         .detail-label { font-weight: 600; color: #11693A; }
         .detail-value { color: #666; }
-        
-        .tab-buttons { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; }
-        .tab-btn { padding: 12px 20px; background: none; border: none; cursor: pointer; font-size: 16px; font-weight: 600; color: #999; border-bottom: 3px solid transparent; transition: all 0.3s; }
-        .tab-btn.active { color: #11693A; border-bottom-color: #11693A; }
-        
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
     </style>
 </head>
-<body class="bg-gray-50 flex h-screen custom-text">
+<body class="h-screen overflow-hidden flex flex-col md:flex-row p-0 m-0 relative">
 
-    <div class="w-64 bg-[#11693A] flex flex-col items-center py-8 px-4 shadow-xl">
-        <div class="w-32 h-32 bg-white p-2 mb-8 rounded-2xl shadow-lg flex items-center justify-center">
-            <img src="https://tse4.mm.bing.net/th/id/OIP.9kfaz2e3juU8vO3-Y-EBMQHaHa?r=0&rs=1&pid=ImgDetMain&o=7&rm=3" alt="ISU Logo" class="w-full h-full object-contain">
+    <div class="w-full bg-[#11693A] text-white p-4 flex justify-between items-center md:hidden shrink-0 shadow-md z-40">
+        <div class="flex items-center gap-3">
+            <img src="https://tse4.mm.bing.net/th/id/OIP.9kfaz2e3juU8vO3-Y-EBMQHaHa?r=0&rs=1&pid=ImgDetMain&o=7&rm=3" alt="ISU Logo" class="w-8 h-8 object-contain bg-white p-0.5 rounded-md">
+            <span class="font-black text-sm tracking-wide uppercase">ISU-CC OJT</span>
         </div>
-        <div class="w-full space-y-3">
-            <button id="btn-student" class="w-full bg-[#11693A] text-white py-3 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all" onclick="switchAdminTab('student')">OJT Student Accounts</button>
-            <button id="btn-coordinator" class="w-full bg-white text-[#11693A] py-3 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all" onclick="switchAdminTab('coordinator')">OJT Coordinator Accounts</button>
-            <button id="btn-approval" class="w-full bg-white text-[#11693A] py-3 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all" onclick="switchAdminTab('approval')">OJT Coordinator Approval</button>
-        </div>
+        <button id="mobileMenuBtn" class="text-white text-xl p-2 focus:outline-none">
+            <i class="fa-solid fa-bars"></i>
+        </button>
     </div>
 
-<<<<<<< HEAD
-    <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40 md:hidden"></div>
+    <div id="sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full md:translate-x-0 md:relative w-[260px] bg-[#11693A] text-white flex flex-col pt-10 pb-6 items-center shrink-0 transition-transform duration-300 ease-in-out z-50 shadow-2xl md:shadow-none">
+        <button id="closeMobileMenuBtn" class="absolute top-4 right-4 text-white text-xl md:hidden p-2">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="bg-white p-2 w-28 h-28 md:w-32 md:h-32 flex items-center justify-center shadow-md mb-8 md:mb-12">
+            <img src="https://tse4.mm.bing.net/th/id/OIP.9kfaz2e3juU8vO3-Y-EBMQHaHa?r=0&rs=1&pid=ImgDetMain&o=7&rm=3" alt="ISU Logo" class="w-full h-full object-contain">
+        </div>
+
+        <div class="w-full space-y-2 px-2">
+            <button id="btn-students" class="w-full h-12 bg-white rounded-xl flex items-center gap-3 px-5 text-[#11693A] font-bold text-sm shadow-sm transition-all" onclick="switchSection('students')">
+                <i class="fa-solid fa-users text-base"></i> Student Accounts
+            </button>
+            <button id="btn-coordinators" class="w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center gap-3 px-5 text-emerald-100 font-medium text-sm transition-all" onclick="switchSection('coordinators')">
+                <i class="fa-solid fa-users text-base"></i> Coordinator Accounts
+            </button>
+            <button id="btn-approvals" class="w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center gap-3 px-5 text-emerald-100 font-medium text-sm transition-all" onclick="switchSection('approvals')">
+                <i class="fa-solid fa-file-lines text-base"></i> Coordinator Approval
+            </button>
+        </div>
+
+        <div class="mt-auto text-[10px] text-emerald-300/50 uppercase tracking-widest font-bold">
+            ISU-CC OJT Portal
+        </div>
+    </div>
 
     <div class="hidden md:block w-[3px] bg-[#6366f1] h-full shrink-0"></div>
 
@@ -66,167 +89,110 @@
         <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center pl-4 pr-6 pt-4 md:pl-6 md:pr-8 md:pt-6 pb-4 gap-3 shrink-0">
             <div>
                 <h1 class="text-2xl md:text-4xl isu-header-font tracking-tight">OJT Admin</h1>
-                <p id="pageSubtitle" class="text-[11px] md:text-xs text-slate-500 font-bold mt-0.5 uppercase tracking-wider">OJT Student Accounts</p>
+                <p id="pageSubtitle" class="text-[11px] md:text-xs text-slate-500 font-bold mt-0.5 uppercase tracking-wider">Student Accounts</p>
             </div>
             <a href="#" onclick="event.preventDefault(); openLogoutModal();" class="bg-[#11693A] hover:bg-[#0e5630] text-white text-xs font-bold px-5 py-2 md:px-6 md:py-2.5 transition shadow-sm flex items-center gap-2 rounded-lg self-end sm:self-auto">
                 <i class="fa-solid fa-right-from-bracket"></i> Logout
-=======
-    <div class="flex-1 flex flex-col overflow-hidden">
-        <header class="bg-white p-6 shadow-sm flex justify-between items-center">
-            <h1 id="dashboard-title" class="custom-heading text-3xl font-bold text-[#11693A]">OJT Student Accounts</h1>
-            <a href="index.html" class="flex items-center gap-1.5 bg-[#11693A] text-white px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-[#0d522d] transition-all shadow-sm">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Logout
->>>>>>> e21b11f3adca8fcdf71f2d8ca78ecc264fdc3af8
             </a>
-        </header>
+        </div>
 
-        <main class="p-8 flex-1 overflow-y-auto">
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-                
-                <div id="student" class="tab-content active">
-                    <div class="flex justify-between items-center mb-6">
-                        <input type="text" placeholder="Search student..." id="searchInput" class="border-2 border-gray-200 rounded-lg px-4 py-1.5 w-64 text-sm focus:outline-none focus:border-[#11693A]">
-                        <button class="bg-violet-600 text-white px-4 py-1.5 rounded-lg text-sm font-bold hover:bg-violet-700 transition-all shadow-sm" onclick="openAddStudentModal()">
-                            + Add Student
-                        </button>
+        <!-- Main Content Area -->
+        <div class="flex-1 overflow-auto custom-scroll flex flex-col">
+            <!-- STUDENTS SECTION -->
+            <div id="studentsSection" class="section-container flex flex-col h-full">
+                <div class="flex-1 flex flex-col px-4 py-6 md:px-8 md:py-8 gap-6">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+                        <input type="text" id="studentSearchInput" placeholder="Search student by name or email..." class="border-2 border-slate-200 rounded-lg px-4 py-2 w-full sm:w-72 text-sm focus:outline-none focus:border-[#11693A] bg-white">
+                        <div class="flex flex-wrap gap-2">
+                            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-sm" onclick="filterStudentsByStatus('active')">Active</button>
+                            <button class="bg-orange-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-orange-700 transition-all shadow-sm" onclick="filterStudentsByStatus('inactive')">Inactive</button>
+                            <button class="bg-slate-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-600 transition-all shadow-sm" onclick="filterStudentsByStatus('all')">All</button>
+                            <button class="bg-[#11693A] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-[#0e5630] transition-all shadow-sm" onclick="openAddStudentModal()">
+                                <i class="fa-solid fa-plus mr-2"></i> Add Student
+                            </button>
+                        </div>
                     </div>
 
-                    <table class="w-full text-left border-collapse">
-                        <thead class="text-gray-500 font-bold border-b border-gray-100">
-                            <tr>
-                                <th class="pb-4 px-2">Name</th>
-                                <th class="pb-4 px-2">Email</th>
-                                <th class="pb-4 px-2">Role</th>
-                                <th class="pb-4 px-2">Status</th>
-                                <th class="pb-4 px-2">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-700" id="studentTableBody">
-                            <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors" id="row-1">
-                                <td class="py-4 px-2 font-bold">Juan Dela Cruz</td>
-                                <td class="py-4 px-2">juan.delacruz@student.com</td>
-                                <td class="py-4 px-2">OJT Student</td>
-                                <td class="py-4 px-2">
-                                    <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">Active</span>
-                                </td>
-                                <td class="py-4 px-2">
-                                    <button class="text-blue-500 hover:text-blue-700" title="View" onclick="viewStudent(1)">👁️</button>
-                                    <button class="text-amber-500 hover:text-amber-700 ml-1" title="Edit" onclick="editStudent(1)">✎</button>
-                                    <button class="text-red-500 hover:text-red-700 ml-1" title="Delete" onclick="deleteStudent(1)">🗑️</button>
-                                </td>
-                            </tr>
-                            <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors" id="row-2">
-                                <td class="py-4 px-2 font-bold">Maria Santos</td>
-                                <td class="py-4 px-2">maria.santos@student.com</td>
-                                <td class="py-4 px-2">OJT Student</td>
-                                <td class="py-4 px-2">
-                                    <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">Active</span>
-                                </td>
-                                <td class="py-4 px-2">
-                                    <button class="text-blue-500 hover:text-blue-700" title="View" onclick="viewStudent(2)">👁️</button>
-                                    <button class="text-amber-500 hover:text-amber-700 ml-1" title="Edit" onclick="editStudent(2)">✎</button>
-                                    <button class="text-red-500 hover:text-red-700 ml-1" title="Delete" onclick="deleteStudent(2)">🗑️</button>
-                                </td>
-                            </tr>
-                            <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors" id="row-3">
-                                <td class="py-4 px-2 font-bold">Pedro Reyes</td>
-                                <td class="py-4 px-2">pedro.reyes@student.com</td>
-                                <td class="py-4 px-2">OJT Student</td>
-                                <td class="py-4 px-2">
-                                    <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-bold">Inactive</span>
-                                </td>
-                                <td class="py-4 px-2">
-                                    <button class="text-blue-500 hover:text-blue-700" title="View" onclick="viewStudent(3)">👁️</button>
-                                    <button class="text-amber-500 hover:text-amber-700 ml-1" title="Edit" onclick="editStudent(3)">✎</button>
-                                    <button class="text-red-500 hover:text-red-700 ml-1" title="Delete" onclick="deleteStudent(3)">🗑️</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
-                <div id="coordinator" class="tab-content">
-                    <div class="flex justify-between items-center mb-6">
-                        <input type="text" placeholder="Search coordinator..." id="searchCoordinatorInput" class="border-2 border-gray-200 rounded-lg px-4 py-1.5 w-64 text-sm focus:outline-none focus:border-[#11693A]">
+                    <div class="overflow-x-auto rounded-xl border border-slate-100 shadow-inner bg-white">
+                        <table class="w-full text-left border-collapse min-w-[750px]">
+                            <thead class="text-[10px] font-bold text-[#11693A] uppercase border-b border-emerald-100 bg-emerald-50">
+                                <tr>
+                                    <th class="p-4">Name</th>
+                                    <th class="p-4">Email</th>
+                                    <th class="p-4">Role</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-xs font-medium text-slate-600 divide-y divide-slate-100 bg-white" id="studentTableBody"></tbody>
+                        </table>
                     </div>
-
-                    <table class="w-full text-left border-collapse">
-                        <thead class="text-gray-500 font-bold border-b border-gray-100">
-                            <tr>
-                                <th class="pb-4 px-2">Name</th>
-                                <th class="pb-4 px-2">Email</th>
-                                <th class="pb-4 px-2">Department</th>
-                                <th class="pb-4 px-2">Status</th>
-                                <th class="pb-4 px-2">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-700" id="coordinatorTableBody">
-                            <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors" id="coord-row-1">
-                                <td class="py-4 px-2 font-bold">Dr. Mark Agcaoili</td>
-                                <td class="py-4 px-2">mark.agcaoili@isu.edu.ph</td>
-                                <td class="py-4 px-2">DICTC (IT Department)</td>
-                                <td class="py-4 px-2">
-                                    <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">Active</span>
-                                </td>
-                                <td class="py-4 px-2">
-                                    <button class="text-blue-500 hover:text-blue-700" title="View" onclick="viewCoordinator(1)">👁️</button>
-                                    <button class="text-amber-500 hover:text-amber-700 ml-2" title="Edit" onclick="editCoordinator(1)">✎</button>
-                                    <button class="text-red-500 hover:text-red-700 ml-2" title="Delete" onclick="deleteCoordinator(1)">🗑️</button>
-                                </td>
-                            </tr>
-                            <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors" id="coord-row-2">
-                                <td class="py-4 px-2 font-bold">Prof. Elena Ramos</td>
-                                <td class="py-4 px-2">elena.ramos@isu.edu.ph</td>
-                                <td class="py-4 px-2">Business Administration</td>
-                                <td class="py-4 px-2">
-                                    <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">Active</span>
-                                </td>
-                                <td class="py-4 px-2">
-                                    <button class="text-blue-500 hover:text-blue-700" title="View" onclick="viewCoordinator(2)">👁️</button>
-                                    <button class="text-amber-500 hover:text-amber-700 ml-2" title="Edit" onclick="editCoordinator(2)">✎</button>
-                                    <button class="text-red-500 hover:text-red-700 ml-2" title="Delete" onclick="deleteCoordinator(2)">🗑️</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
                 </div>
-
-                <div id="approval" class="tab-content">
-                    <div class="mb-6 flex justify-between items-center">
-                        <h2 class="text-xl font-bold text-[#11693A]">Pending Coordinator Registrations</h2>
-                    </div>
-
-                    <table class="w-full text-left border-collapse">
-                        <thead class="text-gray-500 font-bold border-b border-gray-100">
-                            <tr>
-                                <th class="pb-4 px-2">Name</th>
-                                <th class="pb-4 px-2">Email</th>
-                                <th class="pb-4 px-2">Department</th>
-                                <th class="pb-4 px-2">Date Applied</th>
-                                <th class="pb-4 px-2">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody class="text-gray-700" id="approvalTableBody">
-                            <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors" id="approve-row-1">
-                                <td class="py-4 px-2 font-bold">Engr. Alex Cacho</td>
-                                <td class="py-4 px-2">alex.cacho@isu.edu.ph</td>
-                                <td class="py-4 px-2">DICTC (Computer Science)</td>
-                                <td class="py-4 px-2 text-sm text-gray-500">June 01, 2026</td>
-                                <td class="py-4 px-2 flex gap-2">
-                                    <button class="bg-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-emerald-700 transition-all shadow-sm" onclick="approveCoordinator(1, 'Engr. Alex Cacho', 'alex.cacho@isu.edu.ph', 'DICTC (Computer Science)')">Approve</button>
-                                    <button class="bg-red-500 text-white px-3 py-1 rounded-lg text-xs font-bold hover:bg-red-600 transition-all shadow-sm" onclick="rejectCoordinator(1)">Reject</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-
             </div>
-        </main>
-    </div>
+
+            <!-- COORDINATORS SECTION -->
+            <div id="coordinatorsSection" class="section-container hidden flex flex-col h-full">
+                <div class="flex-1 flex flex-col px-4 py-6 md:px-8 md:py-8 gap-6">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+                        <input type="text" id="coordinatorSearchInput" placeholder="Search coordinator by name or email..." class="border-2 border-slate-200 rounded-lg px-4 py-2 w-full sm:w-72 text-sm focus:outline-none focus:border-[#11693A] bg-white">
+                        <div class="flex flex-wrap gap-2">
+                            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-sm" onclick="filterCoordinatorsByStatus('active')">Active</button>
+                            <button class="bg-orange-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-orange-700 transition-all shadow-sm" onclick="filterCoordinatorsByStatus('inactive')">Inactive</button>
+                            <button class="bg-slate-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-600 transition-all shadow-sm" onclick="filterCoordinatorsByStatus('all')">All</button>
+                            <button class="bg-[#11693A] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-[#0e5630] transition-all shadow-sm" onclick="openAddCoordinatorModal()">
+                                <i class="fa-solid fa-plus mr-2"></i> Add Coordinator
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-xl border border-slate-100 shadow-inner bg-white">
+                        <table class="w-full text-left border-collapse min-w-[750px]">
+                            <thead class="text-[10px] font-bold text-[#11693A] uppercase border-b border-emerald-100 bg-emerald-50">
+                                <tr>
+                                    <th class="p-4">Name</th>
+                                    <th class="p-4">Email</th>
+                                    <th class="p-4">Employee ID</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-xs font-medium text-slate-600 divide-y divide-slate-100 bg-white" id="coordinatorTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- APPROVALS SECTION -->
+            <div id="approvalsSection" class="section-container hidden flex flex-col h-full">
+                <div class="flex-1 flex flex-col px-4 py-6 md:px-8 md:py-8 gap-6">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+                        <input type="text" id="approvalSearchInput" placeholder="Search by name or email..." class="border-2 border-slate-200 rounded-lg px-4 py-2 w-full sm:w-72 text-sm focus:outline-none focus:border-[#11693A] bg-white">
+                        <div class="flex flex-wrap gap-2">
+                            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-sm" onclick="filterApprovalsByStatus('pending')">Pending</button>
+                            <button class="bg-green-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-green-700 transition-all shadow-sm" onclick="filterApprovalsByStatus('approved')">Approved</button>
+                            <button class="bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-700 transition-all shadow-sm" onclick="filterApprovalsByStatus('rejected')">Rejected</button>
+                            <button class="bg-slate-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-600 transition-all shadow-sm" onclick="filterApprovalsByStatus('all')">All</button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-xl border border-slate-100 shadow-inner bg-white">
+                        <table class="w-full text-left border-collapse min-w-[750px]">
+                            <thead class="text-[10px] font-bold text-[#11693A] uppercase border-b border-emerald-100 bg-emerald-50">
+                                <tr>
+                                    <th class="p-4">Name</th>
+                                    <th class="p-4">Email</th>
+                                    <th class="p-4">Employee ID</th>
+                                    <th class="p-4">Date Applied</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-xs font-medium text-slate-600 divide-y divide-slate-100 bg-white" id="approvalTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     <div id="viewModal" class="modal">
         <div class="modal-content">
@@ -396,7 +362,6 @@
         </div>
     </div>
 
-<<<<<<< HEAD
     <!-- Coordinator Modals -->
     <div id="coordViewModal" class="modal">
         <div class="modal-content">
@@ -573,75 +538,121 @@
             </div>
         </div>
     </div>
-=======
->>>>>>> e21b11f3adca8fcdf71f2d8ca78ecc264fdc3af8
 
     <script>
-        // NAVIGATION SWITCHING LOGIC
-        function switchAdminTab(tabName) {
-            const contents = document.querySelectorAll('.tab-content');
-            contents.forEach(content => {
-                content.style.display = 'none';
-                content.classList.remove('active');
-            });
+        // ===== INITIALIZATION DATA =====
+        let students = {};
+        let coordinators = {};
+        let coordinatorList = [];
+        let approvals = {};
+        let approvalList = [];
 
-            const selectedTab = document.getElementById(tabName);
-            if (selectedTab) {
-                selectedTab.style.display = 'block';
-                selectedTab.classList.add('active');
+        // ===== UTILITY FUNCTIONS =====
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
             }
+            return cookieValue;
+        }
 
-            const btnStudent = document.getElementById('btn-student');
-            const btnCoordinator = document.getElementById('btn-coordinator');
-            const btnApproval = document.getElementById('btn-approval');
-
-            const inactiveStyle = 'w-full bg-white text-[#11693A] py-3 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all';
-            const activeStyle = 'w-full bg-[#11693A] text-white py-3 rounded-full text-sm font-bold shadow-md hover:shadow-lg transition-all';
-
-            if (btnStudent) btnStudent.className = inactiveStyle;
-            if (btnCoordinator) btnCoordinator.className = inactiveStyle;
-            if (btnApproval) btnApproval.className = inactiveStyle;
-
-            const headerTitle = document.getElementById('dashboard-title');
-            if (tabName === 'student') {
-                if (btnStudent) btnStudent.className = activeStyle;
-                if (headerTitle) headerTitle.textContent = 'OJT Student Accounts';
-            } else if (tabName === 'coordinator') {
-                if (btnCoordinator) btnCoordinator.className = activeStyle;
-                if (headerTitle) headerTitle.textContent = 'OJT Coordinator Accounts';
-            } else if (tabName === 'approval') {
-                if (btnApproval) btnApproval.className = activeStyle;
-                if (headerTitle) headerTitle.textContent = 'OJT Coordinator Approval';
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
             }
         }
 
-<<<<<<< HEAD
-        let students = {};
-        let currentEditId = null;
-        let currentDeleteId = null;
-        let nextStudentId = 0;
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        }
 
-        // Load students from database on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            loadStudents();
-            loadCoordinators();
-            loadCoordinatorApprovals();
-            switchSection('students');
-=======
-        document.addEventListener('DOMContentLoaded', () => {
-            switchAdminTab('student');
->>>>>>> e21b11f3adca8fcdf71f2d8ca78ecc264fdc3af8
-        });
-        
-        // Data Structures
-        const students = {
-            1: { name: 'Juan Dela Cruz', email: 'juan.delacruz@student.com', role: 'OJT Student', status: 'Active', course: 'BS Information Technology', year: '3rd Year', idNumber: '23-13541' },
-            2: { name: 'Maria Santos', email: 'maria.santos@student.com', role: 'OJT Student', status: 'Active', course: 'BS Accountancy', year: '2nd Year', idNumber: '23-13542' },
-            3: { name: 'Pedro Reyes', email: 'pedro.reyes@student.com', role: 'OJT Student', status: 'Inactive', course: 'BS Agriculture', year: '3rd Year', idNumber: '23-13543' }
-        };
+        // ===== SECTION SWITCHING =====
+        function switchSection(section) {
+            document.querySelectorAll('.section-container').forEach(el => el.classList.add('hidden'));
+            const activeSection = document.getElementById(section + 'Section');
+            if (activeSection) activeSection.classList.remove('hidden');
 
-<<<<<<< HEAD
-        // Fetch students from API
+            const buttons = {
+                'students': document.getElementById('btn-students'),
+                'coordinators': document.getElementById('btn-coordinators'),
+                'approvals': document.getElementById('btn-approvals')
+            };
+
+            Object.entries(buttons).forEach(([key, btn]) => {
+                if (btn) {
+                    if (key === section) {
+                        btn.classList.add('bg-white', 'text-[#11693A]', 'shadow-sm');
+                        btn.classList.remove('bg-transparent', 'text-emerald-100');
+                    } else {
+                        btn.classList.remove('bg-white', 'text-[#11693A]', 'shadow-sm');
+                        btn.classList.add('bg-transparent', 'text-emerald-100');
+                    }
+                }
+            });
+
+            const subtitles = {
+                'students': 'Student Accounts',
+                'coordinators': 'Coordinator Accounts',
+                'approvals': 'Coordinator Approval'
+            };
+            const subtitle = document.getElementById('pageSubtitle');
+            if (subtitle) subtitle.textContent = subtitles[section] || '';
+        }
+
+        // ===== FILTER FUNCTIONS =====
+        function filterStudentsByStatus(status) {
+            const tbody = document.getElementById('studentTableBody');
+            if (!tbody) return;
+            const rows = tbody.getElementsByTagName('tr');
+            Array.from(rows).forEach(row => {
+                const statusCell = row.querySelector('td:nth-child(4)');
+                if (statusCell) {
+                    const rowStatus = statusCell.textContent.trim().toLowerCase();
+                    row.style.display = status === 'all' || rowStatus === status ? '' : 'none';
+                }
+            });
+        }
+
+        function filterCoordinatorsByStatus(status) {
+            const tbody = document.getElementById('coordinatorTableBody');
+            if (!tbody) return;
+            const rows = tbody.getElementsByTagName('tr');
+            Array.from(rows).forEach(row => {
+                const statusCell = row.querySelector('td:nth-child(4)');
+                if (statusCell) {
+                    const rowStatus = statusCell.textContent.trim().toLowerCase();
+                    row.style.display = status === 'all' || rowStatus === status ? '' : 'none';
+                }
+            });
+        }
+
+        function filterApprovalsByStatus(status) {
+            const tbody = document.getElementById('approvalTableBody');
+            if (!tbody) return;
+            const rows = tbody.getElementsByTagName('tr');
+            Array.from(rows).forEach(row => {
+                const statusCell = row.querySelector('td:nth-child(4)');
+                if (statusCell) {
+                    const rowStatus = statusCell.textContent.trim().toLowerCase();
+                    row.style.display = status === 'all' || rowStatus === status ? '' : 'none';
+                }
+            });
+        }
+
+        // ===== STUDENT MANAGEMENT =====
         async function loadStudents() {
             try {
                 const response = await fetch('/api/admin/dashboard/students/', {
@@ -652,172 +663,105 @@
                         'Authorization': `Token ${localStorage.getItem('auth_token')}`
                     }
                 });
-=======
-        const coordinators = {
-            1: { name: 'Dr. Mark Agcaoili', email: 'mark.agcaoili@isu.edu.ph', dept: 'DICTC (IT Department)', status: 'Active', idNo: 'COORD-1011' },
-            2: { name: 'Prof. Elena Ramos', email: 'elena.ramos@isu.edu.ph', dept: 'Business Administration', status: 'Active', idNo: 'COORD-2045' }
-        };
->>>>>>> e21b11f3adca8fcdf71f2d8ca78ecc264fdc3af8
-
-        let currentEditId = null;
-        let currentEditCoordId = null; // Dedikadong tracker para sa Coordinator Edit
-        let currentDeleteId = null;
-        let deleteTarget = 'student'; 
-        let nextStudentId = 4;
-        let nextCoordId = 3;
-
-        // Open/Close Modal Utilities
-        function openModal(modalId) {
-            const modal = document.getElementById(modalId);
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
+                if (!response.ok) return;
+                const data = await response.json();
+                data.forEach(item => {
+                    students[item.id] = {
+                        id: item.id,
+                        name: item.user?.first_name && item.user?.last_name ? `${item.user.first_name} ${item.user.last_name}` : item.user?.username || 'Unknown',
+                        email: item.user?.email || 'N/A',
+                        role: item.role || 'Student',
+                        status: item.status || 'Active',
+                        course: item.course || 'N/A',
+                        year: item.year || 'N/A'
+                    };
+                });
+                renderStudentTable();
+            } catch (error) {
+                console.error('Error loading students:', error);
+            }
         }
 
-        function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            modal.classList.remove('active');
-            document.body.style.overflow = 'auto';
+        function renderStudentTable() {
+            const tbody = document.getElementById('studentTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+            if (Object.keys(students).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-gray-400">No students found</td></tr>';
+                return;
+            }
+            Object.values(students).forEach(student => {
+                const statusClass = student.status === 'Active' ? 'emerald' : 'yellow';
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-50 hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="py-4 px-2 font-bold">${student.name}</td>
+                    <td class="py-4 px-2">${student.email}</td>
+                    <td class="py-4 px-2">${student.role}</td>
+                    <td class="py-4 px-2"><span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold">${student.status}</span></td>
+                    <td class="py-4 px-2">
+                        <button class="text-blue-500 hover:text-blue-700 p-2" title="View" onclick="viewStudent(${student.id})">
+                            <i class="fa-regular fa-eye text-lg"></i>
+                        </button>
+                        <button class="text-amber-500 hover:text-amber-700 p-2" title="Edit" onclick="editStudent(${student.id})">
+                            <i class="fa-regular fa-pen-to-square text-lg"></i>
+                        </button>
+                        <button class="text-red-500 hover:text-red-700 p-2" title="Delete" onclick="deleteStudent(${student.id})">
+                            <i class="fa-regular fa-trash-can text-lg"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
         }
 
-        document.querySelectorAll('.modal').forEach(modal => {
-            modal.addEventListener('click', (e) => {
-                if (e.target === modal) closeModal(modal.id);
-            });
-        });
-
-        // Search Filters
-        document.getElementById('searchInput')?.addEventListener('keyup', function() {
-            const filter = this.value.toUpperCase();
-            const rows = document.getElementById('studentTableBody').getElementsByTagName('tr');
-            Array.from(rows).forEach(row => {
-                row.style.display = row.textContent.toUpperCase().includes(filter) ? '' : 'none';
-            });
-        });
-
-        document.getElementById('searchCoordinatorInput')?.addEventListener('keyup', function() {
-            const filter = this.value.toUpperCase();
-            const rows = document.getElementById('coordinatorTableBody').getElementsByTagName('tr');
-            Array.from(rows).forEach(row => {
-                row.style.display = row.textContent.toUpperCase().includes(filter) ? '' : 'none';
-            });
-        });
-
-        // ===== STUDENT FUNCTIONS =====
         function viewStudent(id) {
             const student = students[id];
             if (!student) return;
-            document.getElementById('viewModalTitle').textContent = "Student Details";
-            document.getElementById('viewDetails').innerHTML = `
-                <div class="detail-row"><span class="detail-label">Name:</span><span class="detail-value">${student.name}</span></div>
-                <div class="detail-row"><span class="detail-label">ID Number:</span><span class="detail-value">${student.idNumber}</span></div>
-                <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">${student.email}</span></div>
-                <div class="detail-row"><span class="detail-label">Course:</span><span class="detail-value">${student.course}</span></div>
-                <div class="detail-row"><span class="detail-label">Year Level:</span><span class="detail-value">${student.year}</span></div>
-                <div class="detail-row"><span class="detail-label">Role:</span><span class="detail-value">${student.role}</span></div>
-                <div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value">${student.status}</span></div>
-            `;
+            const details = document.getElementById('viewDetails');
+            if (details) {
+                details.innerHTML = `
+                    <div class="detail-row"><span class="detail-label">Name:</span><span class="detail-value">${student.name}</span></div>
+                    <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">${student.email}</span></div>
+                    <div class="detail-row"><span class="detail-label">Role:</span><span class="detail-value">${student.role}</span></div>
+                    <div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value">${student.status}</span></div>
+                `;
+            }
             openModal('viewModal');
         }
 
         function editStudent(id) {
-            currentEditId = id;
             const student = students[id];
             if (!student) return;
+            document.getElementById('editId').value = id;
             document.getElementById('editName').value = student.name;
             document.getElementById('editEmail').value = student.email;
-            document.getElementById('editRole').value = student.role;
             document.getElementById('editStatus').value = student.status;
             openModal('editModal');
         }
 
         function saveChanges() {
-            if (currentEditId === null) return;
-            const student = students[currentEditId];
-            student.name = document.getElementById('editName').value;
-            student.email = document.getElementById('editEmail').value;
-            student.role = document.getElementById('editRole').value;
-            student.status = document.getElementById('editStatus').value;
-
-            const row = document.querySelector(`#row-${currentEditId}`);
-            if (row) {
-                const cells = row.querySelectorAll('td');
-                cells[0].textContent = student.name;
-                cells[1].textContent = student.email;
-                cells[2].textContent = student.role;
-                cells[3].innerHTML = `<span class="bg-${student.status === 'Active' ? 'emerald' : 'yellow'}-100 text-${student.status === 'Active' ? 'emerald' : 'yellow'}-700 px-3 py-1 rounded-full text-xs font-bold">${student.status}</span>`;
+            const id = document.getElementById('editId').value;
+            const name = document.getElementById('editName').value;
+            const email = document.getElementById('editEmail').value;
+            const status = document.getElementById('editStatus').value;
+            if (students[id]) {
+                students[id] = { ...students[id], name, email, status };
+                renderStudentTable();
+                alert('✓ Student updated successfully');
+                closeModal('editModal');
             }
-            alert('✓ Student information updated successfully!');
-            closeModal('editModal');
         }
 
         function deleteStudent(id) {
-            currentDeleteId = id;
-            deleteTarget = 'student';
-            document.getElementById('deleteStudentName').textContent = students[id].name;
-            openModal('deleteModal');
-        }
-
-        function openAddStudentModal() {
-            document.getElementById('addForm').reset();
-            openModal('addModal');
-        }
-
-        function addNewStudent() {
-            const name = document.getElementById('addName').value.trim();
-            const email = document.getElementById('addEmail').value.trim();
-            const idNumber = document.getElementById('addIdNumber').value.trim();
-            const course = document.getElementById('addCourse').value.trim();
-            const role = document.getElementById('addRole').value;
-            const status = document.getElementById('addStatus').value;
-
-            if (!name || !email || !idNumber || !course) {
-                alert('⚠️ Please fill in all required fields');
-                return;
+            if (confirm('Are you sure?')) {
+                delete students[id];
+                renderStudentTable();
+                alert('✓ Student deleted');
             }
-
-            const newId = nextStudentId++;
-            students[newId] = { name, email, idNumber, course, year: '1st Year', role, status };
-
-            const tbody = document.getElementById('studentTableBody');
-            const newRow = document.createElement('tr');
-            newRow.id = `row-${newId}`;
-            newRow.className = 'border-b border-gray-50 hover:bg-gray-50 transition-colors';
-            newRow.innerHTML = `
-                <td class="py-4 px-2 font-bold">${name}</td>
-                <td class="py-4 px-2">${email}</td>
-                <td class="py-4 px-2">${role}</td>
-                <td class="py-4 px-2"><span class="bg-${status === 'Active' ? 'emerald' : 'yellow'}-100 text-${status === 'Active' ? 'emerald' : 'yellow'}-700 px-3 py-1 rounded-full text-xs font-bold">${status}</span></td>
-                <td class="py-4 px-2">
-                    <button class="text-blue-500 hover:text-blue-700" title="View" onclick="viewStudent(${newId})">👁️</button>
-                    <button class="text-amber-500 hover:text-amber-700 ml-1" title="Edit" onclick="editStudent(${newId})">✎</button>
-                    <button class="text-red-500 hover:text-red-700 ml-1" title="Delete" onclick="deleteStudent(${newId})">🗑️</button>
-                </td>
-            `;
-            tbody.appendChild(newRow);
-            alert('✓ Student added successfully!');
-            closeModal('addModal');
         }
 
-<<<<<<< HEAD
-        // ===== COORDINATOR FUNCTIONS =====
-        let coordinators = {};
-        let coordinatorList = [];
-        let currentCoordEditId = null;
-        let currentCoordDeleteId = null;
-
-        const coordinatorSearchInput = document.getElementById('coordinatorSearchInput');
-        if (coordinatorSearchInput) {
-            coordinatorSearchInput.addEventListener('keyup', function() {
-                const filter = this.value.toUpperCase();
-                const tbody = document.getElementById('coordinatorTableBody');
-                const rows = tbody.getElementsByTagName('tr');
-                Array.from(rows).forEach(row => {
-                    const text = row.textContent.toUpperCase();
-                    row.style.display = text.includes(filter) ? '' : 'none';
-                });
-            });
-        }
-
+        // ===== COORDINATOR MANAGEMENT =====
         async function loadCoordinators() {
             try {
                 const response = await fetch('/api/admin/dashboard/coordinators/', {
@@ -828,30 +772,21 @@
                         'Authorization': `Token ${localStorage.getItem('auth_token')}`
                     }
                 });
-
-                if (!response.ok) {
-                    console.error('Failed to load coordinators:', response.status);
-                    return;
-                }
-
+                if (!response.ok) return;
                 const data = await response.json();
-                coordinatorList = data.map(item => ({
-                    id: item.id,
-                    name: `${item.first_name} ${item.last_name}`.trim(),
-                    email: item.email,
-                    empId: item.username || 'N/A',
-                    department: 'N/A',
-                    status: item.is_active ? 'Active' : 'Inactive',
-                    approval_status: item.approval_status || 'pending'
-                }));
-
-                coordinators = {};
-                coordinatorList.forEach(item => {
-                    coordinators[item.id] = item;
+                coordinatorList = data;
+                data.forEach(item => {
+                    coordinators[item.id] = {
+                        id: item.id,
+                        name: item.user?.first_name && item.user?.last_name ? `${item.user.first_name} ${item.user.last_name}` : item.user?.username || 'Unknown',
+                        email: item.user?.email || 'N/A',
+                        empId: item.employee_id || 'N/A',
+                        department: item.department || 'N/A',
+                        status: item.status || 'Active',
+                        approval_status: item.approval_status || 'approved'
+                    };
                 });
-
                 renderCoordinatorTable();
-                renderApprovalTable();
             } catch (error) {
                 console.error('Error loading coordinators:', error);
             }
@@ -859,33 +794,29 @@
 
         function renderCoordinatorTable() {
             const tbody = document.getElementById('coordinatorTableBody');
+            if (!tbody) return;
             tbody.innerHTML = '';
-
-            if (!coordinatorList.length) {
-                tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-gray-400">No OJT coordinators found</td></tr>';
+            if (Object.keys(coordinators).length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-gray-400">No coordinators found</td></tr>';
                 return;
             }
-
-            coordinatorList.forEach(item => {
-                const statusClass = item.status === 'Active' ? 'emerald' : 'yellow';
+            Object.values(coordinators).forEach(coord => {
+                const statusClass = coord.status === 'Active' ? 'emerald' : 'yellow';
                 const row = document.createElement('tr');
-                row.id = `coordinator-row-${item.id}`;
-                row.className = 'border-b border-gray-50 hover:bg-gray-50 transition-colors';
+                row.className = 'border-b border-gray-50 hover:bg-gray-50';
                 row.innerHTML = `
-                    <td class="py-4 px-2 font-bold">${item.name}</td>
-                    <td class="py-4 px-2">${item.email}</td>
-                    <td class="py-4 px-2">${item.empId}</td>
+                    <td class="py-4 px-2 font-bold">${coord.name}</td>
+                    <td class="py-4 px-2">${coord.email}</td>
+                    <td class="py-4 px-2">${coord.department}</td>
+                    <td class="py-4 px-2"><span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold">${coord.status}</span></td>
                     <td class="py-4 px-2">
-                        <span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold">${item.status}</span>
-                    </td>
-                    <td class="py-4 px-2">
-                        <button class="text-blue-500 hover:text-blue-700 p-2" title="View" onclick="viewCoordinator('${item.id}')">
+                        <button class="text-blue-500 hover:text-blue-700 p-2" title="View" onclick="viewCoordinator(${coord.id})">
                             <i class="fa-regular fa-eye text-lg"></i>
                         </button>
-                        <button class="text-amber-500 hover:text-amber-700 p-2" title="Edit" onclick="editCoordinator('${item.id}')">
+                        <button class="text-amber-500 hover:text-amber-700 p-2" title="Edit" onclick="editCoordinator(${coord.id})">
                             <i class="fa-regular fa-pen-to-square text-lg"></i>
                         </button>
-                        <button class="text-red-500 hover:text-red-700 p-2" title="Delete" onclick="deleteCoordinator('${item.id}')">
+                        <button class="text-red-500 hover:text-red-700 p-2" title="Delete" onclick="deleteCoordinator(${coord.id})">
                             <i class="fa-regular fa-trash-can text-lg"></i>
                         </button>
                     </td>
@@ -895,194 +826,55 @@
         }
 
         function viewCoordinator(id) {
-            const coordinator = coordinators[id];
-            if (!coordinator) return;
-            const detailsHtml = `
-                <div class="detail-row"><span class="detail-label">Name:</span><span class="detail-value">${coordinator.name}</span></div>
-                <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">${coordinator.email}</span></div>
-                <div class="detail-row"><span class="detail-label">Employee ID:</span><span class="detail-value">${coordinator.empId}</span></div>
-                <div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value">${coordinator.status}</span></div>
-=======
-        // ===== COORDINATOR ACCOUNTS FUNCTIONS =====
-        function viewCoordinator(id) {
             const coord = coordinators[id];
             if (!coord) return;
-            document.getElementById('viewModalTitle').textContent = "Coordinator Details";
-            document.getElementById('viewDetails').innerHTML = `
-                <div class="detail-row"><span class="detail-label">Name:</span><span class="detail-value">${coord.name}</span></div>
-                <div class="detail-row"><span class="detail-label">Employee ID:</span><span class="detail-value">${coord.idNo}</span></div>
-                <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">${coord.email}</span></div>
-                <div class="detail-row"><span class="detail-label">Department:</span><span class="detail-value">${coord.dept}</span></div>
-                <div class="detail-row"><span class="detail-label">Role:</span><span class="detail-value">OJT Coordinator</span></div>
-                <div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value">${coord.status}</span></div>
->>>>>>> e21b11f3adca8fcdf71f2d8ca78ecc264fdc3af8
-            `;
-            openModal('viewModal');
+            const details = document.getElementById('coordViewDetails');
+            if (details) {
+                details.innerHTML = `
+                    <div class="detail-row"><span class="detail-label">Name:</span><span class="detail-value">${coord.name}</span></div>
+                    <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">${coord.email}</span></div>
+                    <div class="detail-row"><span class="detail-label">Department:</span><span class="detail-value">${coord.department}</span></div>
+                    <div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value">${coord.status}</span></div>
+                `;
+            }
+            openModal('coordViewModal');
         }
 
-        // BAGONG DAGDAG: Pagbukas at pag-populate ng Edit Coordinator Form
         function editCoordinator(id) {
-<<<<<<< HEAD
-            currentCoordEditId = id;
-            const coordinator = coordinators[id];
-            if (!coordinator) return;
-            document.getElementById('coordEditName').value = coordinator.name;
-            document.getElementById('coordEditEmail').value = coordinator.email;
-            document.getElementById('coordEditStatus').value = coordinator.status;
-            openModal('coordEditModal');
-=======
-            currentEditCoordId = id;
             const coord = coordinators[id];
             if (!coord) return;
-
+            document.getElementById('editCoordId').value = id;
             document.getElementById('editCoordName').value = coord.name;
             document.getElementById('editCoordEmail').value = coord.email;
-            document.getElementById('editCoordDept').value = coord.dept;
+            document.getElementById('editCoordDept').value = coord.department;
             document.getElementById('editCoordStatus').value = coord.status;
-
             openModal('editCoordinatorModal');
->>>>>>> e21b11f3adca8fcdf71f2d8ca78ecc264fdc3af8
         }
 
-        // BAGONG DAGDAG: Pag-save ng mga binagong detalye ng Coordinator sa table row
         function saveCoordinatorChanges() {
-<<<<<<< HEAD
-            if (currentCoordEditId === null) return;
-            const coordinator = coordinators[currentCoordEditId];
-            coordinator.name = document.getElementById('coordEditName').value;
-            coordinator.email = document.getElementById('coordEditEmail').value;
-            coordinator.status = document.getElementById('coordEditStatus').value;
-            renderCoordinatorTable();
-            renderApprovalTable();
-            alert('Coordinator information updated successfully.');
-            closeModal('coordEditModal');
-=======
-            if (currentEditCoordId === null) return;
-            
-            const coord = coordinators[currentEditCoordId];
-            coord.name = document.getElementById('editCoordName').value.trim();
-            coord.email = document.getElementById('editCoordEmail').value.trim();
-            coord.dept = document.getElementById('editCoordDept').value.trim();
-            coord.status = document.getElementById('editCoordStatus').value;
-
-            const row = document.querySelector(`#coord-row-${currentEditCoordId}`);
-            if (row) {
-                const cells = row.querySelectorAll('td');
-                cells[0].textContent = coord.name;
-                cells[1].textContent = coord.email;
-                cells[2].textContent = coord.dept;
-                cells[3].innerHTML = `<span class="bg-${coord.status === 'Active' ? 'emerald' : 'yellow'}-100 text-${coord.status === 'Active' ? 'emerald' : 'yellow'}-700 px-3 py-1 rounded-full text-xs font-bold">${coord.status}</span>`;
+            const id = document.getElementById('editCoordId').value;
+            const name = document.getElementById('editCoordName').value;
+            const email = document.getElementById('editCoordEmail').value;
+            const dept = document.getElementById('editCoordDept').value;
+            const status = document.getElementById('editCoordStatus').value;
+            if (coordinators[id]) {
+                coordinators[id] = { ...coordinators[id], name, email, department: dept, status };
+                renderCoordinatorTable();
+                alert('✓ Coordinator updated successfully');
+                closeModal('editCoordinatorModal');
             }
-            alert('✓ Coordinator information updated successfully!');
-            closeModal('editCoordinatorModal');
->>>>>>> e21b11f3adca8fcdf71f2d8ca78ecc264fdc3af8
         }
 
         function deleteCoordinator(id) {
-            currentDeleteId = id;
-            deleteTarget = 'coordinator';
-            document.getElementById('deleteStudentName').textContent = coordinators[id].name;
-            openModal('deleteModal');
-        }
-
-<<<<<<< HEAD
-        function confirmCoordinatorDelete() {
-            if (currentCoordDeleteId === null) return;
-            delete coordinators[currentCoordDeleteId];
-            coordinatorList = coordinatorList.filter(item => item.id !== currentCoordDeleteId);
-            renderCoordinatorTable();
-            renderApprovalTable();
-            alert('Coordinator deleted successfully.');
-            closeModal('coordDeleteModal');
-        }
-
-        function openAddCoordinatorModal() {
-            document.getElementById('coordAddForm').reset();
-            openModal('coordAddModal');
-        }
-
-        function addNewCoordinator() {
-            const name = document.getElementById('coordAddName').value.trim();
-            const email = document.getElementById('coordAddEmail').value.trim();
-            const status = document.getElementById('coordAddStatus').value;
-
-            if (!name || !email) {
-                alert('Please fill in all required fields.');
-                return;
+            if (confirm('Are you sure?')) {
+                delete coordinators[id];
+                coordinatorList = coordinatorList.filter(c => c.id !== id);
+                renderCoordinatorTable();
+                alert('✓ Coordinator deleted');
             }
-
-            for (let id in coordinators) {
-                if (coordinators[id].email === email) {
-                    alert('Email already exists in database.');
-                    return;
-=======
-        // Shared Global Delete Confirmation handler
-        function confirmDelete() {
-            if (currentDeleteId === null) return;
-
-            if (deleteTarget === 'student') {
-                const row = document.querySelector(`#row-${currentDeleteId}`);
-                if (row) {
-                    row.remove();
-                    delete students[currentDeleteId];
-                }
-            } else if (deleteTarget === 'coordinator') {
-                const row = document.querySelector(`#coord-row-${currentDeleteId}`);
-                if (row) {
-                    row.remove();
-                    delete coordinators[currentDeleteId];
->>>>>>> e21b11f3adca8fcdf71f2d8ca78ecc264fdc3af8
-                }
-            }
-            alert('✓ Deleted successfully!');
-            closeModal('deleteModal');
         }
 
         // ===== COORDINATOR APPROVAL FUNCTIONS =====
-        function approveCoordinator(id, name, email, dept) {
-            const appRow = document.getElementById(`approve-row-${id}`);
-            if (appRow) appRow.remove();
-
-<<<<<<< HEAD
-            const newCoordinator = { 
-                id: `local-${Date.now()}`, 
-                name, 
-                email, 
-                empId: 'N/A',
-                department: 'N/A',
-                status, 
-                approval_status: 'pending' 
-            };
-            coordinators[newCoordinator.id] = newCoordinator;
-            coordinatorList.unshift(newCoordinator);
-            renderCoordinatorTable();
-            renderApprovalTable();
-            alert('New coordinator added successfully.');
-            closeModal('coordAddModal');
-        }
-
-        // ===== APPROVAL FUNCTIONS =====
-        let approvals = {};
-        let approvalList = [];
-
-        const approvalSearchInput = document.getElementById('approvalSearchInput');
-        if (approvalSearchInput) {
-            approvalSearchInput.addEventListener('keyup', function() {
-                const filter = this.value.toUpperCase();
-                const tbody = document.getElementById('approvalTableBody');
-                const rows = tbody.getElementsByTagName('tr');
-                Array.from(rows).forEach(row => {
-                    const text = row.textContent.toUpperCase();
-                    row.style.display = text.includes(filter) ? '' : 'none';
-                });
-            });
-        }
-
-        const approvalFilterSelect = document.getElementById('approvalFilterSelect');
-        if (approvalFilterSelect) {
-            approvalFilterSelect.addEventListener('change', renderApprovalTable);
-        }
-
         async function loadCoordinatorApprovals() {
             try {
                 const response = await fetch('/api/admin/dashboard/coordinator-approvals/', {
@@ -1093,59 +885,47 @@
                         'Authorization': `Token ${localStorage.getItem('auth_token')}`
                     }
                 });
-
-                if (!response.ok) {
-                    console.error('Failed to load coordinator approvals:', response.status);
-                    return;
-                }
-
+                if (!response.ok) return;
                 const data = await response.json();
-                approvalList = data.map(item => ({
-                    id: item.id,
-                    name: `${item.first_name} ${item.last_name}`.trim(),
-                    email: item.email,
-                    empId: item.username || 'N/A',
-                    status: item.approval_status || 'pending'
-                }));
-
-                approvals = {};
-                approvalList.forEach(item => {
-                    approvals[item.id] = item;
+                approvalList = data;
+                data.forEach(item => {
+                    approvals[item.id] = {
+                        id: item.id,
+                        name: item.first_name && item.last_name ? `${item.first_name} ${item.last_name}` : item.username || 'Unknown',
+                        email: item.email || 'N/A',
+                        empId: item.username || 'N/A',
+                        status: item.approval_status || 'pending'
+                    };
                 });
-
                 renderApprovalTable();
             } catch (error) {
-                console.error('Error loading coordinator approvals:', error);
+                console.error('Error loading approvals:', error);
             }
         }
 
         function renderApprovalTable() {
             const tbody = document.getElementById('approvalTableBody');
+            if (!tbody) return;
             tbody.innerHTML = '';
-            const filter = document.getElementById('approvalFilterSelect').value;
-
-            let filteredList = approvalList;
+            const filter = document.getElementById('approvalFilterSelect')?.value || 'all';
+            let filtered = approvalList;
             if (filter !== 'all') {
-                filteredList = approvalList.filter(item => item.status === filter);
+                filtered = approvalList.filter(item => (item.approval_status || 'pending') === filter);
             }
-
-            if (!filteredList.length) {
-                tbody.innerHTML = `<tr><td colspan="5" class="py-8 px-4 text-center text-gray-400">No ${filter === 'all' ? '' : filter} coordinator approvals found</td></tr>`;
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-gray-400">No approval requests found</td></tr>';
                 return;
             }
-
-            filteredList.forEach(item => {
-                const statusClass = item.status === 'pending' ? 'yellow' : item.status === 'approved' ? 'emerald' : 'red';
+            filtered.forEach(item => {
+                const status = item.approval_status || 'pending';
+                const statusClass = status === 'pending' ? 'yellow' : status === 'approved' ? 'emerald' : 'red';
                 const row = document.createElement('tr');
-                row.id = `row-${item.id}`;
-                row.className = 'border-b border-gray-50 hover:bg-gray-50 transition-colors';
+                row.className = 'border-b border-gray-50 hover:bg-gray-50';
                 row.innerHTML = `
-                    <td class="py-4 px-2 font-bold">${item.name}</td>
+                    <td class="py-4 px-2 font-bold">${item.first_name} ${item.last_name}</td>
                     <td class="py-4 px-2">${item.email}</td>
-                    <td class="py-4 px-2">${item.empId}</td>
-                    <td class="py-4 px-2">
-                        <span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold capitalize">${item.status}</span>
-                    </td>
+                    <td class="py-4 px-2">${item.username}</td>
+                    <td class="py-4 px-2"><span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold capitalize">${status}</span></td>
                     <td class="py-4 px-2">
                         <button class="text-emerald-500 hover:text-emerald-700 p-2" title="Approve" onclick="confirmApprove(${item.id})">
                             <i class="fa-regular fa-circle-check text-lg"></i>
@@ -1168,8 +948,8 @@
         }
 
         function saveApprovalChange() {
-            const approverId = document.getElementById('approverId').value;
-            updateApprovalStatus(approverId, 'approved');
+            const id = document.getElementById('approverId').value;
+            updateApprovalStatus(id, 'approved');
         }
 
         function confirmReject(id) {
@@ -1202,74 +982,103 @@
                     },
                     body: JSON.stringify({ approval_status: statusValue })
                 });
-
                 if (!response.ok) {
-                    console.error('Failed to update approval status:', response.status);
-                    alert('Failed to update approval status.');
+                    alert('Failed to update approval status');
                     return;
                 }
-
-                alert(`Coordinator ${statusValue} successfully.`);
+                alert(`✓ Coordinator ${statusValue} successfully`);
                 closeModal('approveModal');
                 closeModal('rejectModal');
                 loadCoordinatorApprovals();
             } catch (error) {
                 console.error('Error updating approval status:', error);
-                alert('An error occurred while updating approval status.');
+                alert('An error occurred');
             }
         }
 
-        // LOGOUT LOGIC MECHANICS
+        // ===== LOGOUT MECHANICS =====
         function openLogoutModal() {
-            document.getElementById('logoutModal').classList.remove('hidden');
-=======
-            const newId = nextCoordId++;
-            coordinators[newId] = { name, email, dept, status: 'Active', idNo: 'COORD-' + Math.floor(1000 + Math.random() * 9000) };
-
-            const tbody = document.getElementById('coordinatorTableBody');
-            const newRow = document.createElement('tr');
-            newRow.id = `coord-row-${newId}`;
-            newRow.className = 'border-b border-gray-50 hover:bg-gray-50 transition-colors';
-            newRow.innerHTML = `
-                <td class="py-4 px-2 font-bold">${name}</td>
-                <td class="py-4 px-2">${email}</td>
-                <td class="py-4 px-2">${dept}</td>
-                <td class="py-4 px-2"><span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">Active</span></td>
-                <td class="py-4 px-2">
-                    <button class="text-blue-500 hover:text-blue-700" title="View" onclick="viewCoordinator(${newId})">👁️</button>
-                    <button class="text-amber-500 hover:text-amber-700 ml-2" title="Edit" onclick="editCoordinator(${newId})">✎</button>
-                    <button class="text-red-500 hover:text-red-700 ml-2" title="Delete" onclick="deleteCoordinator(${newId})">🗑️</button>
-                </td>
-            `;
-            tbody.appendChild(newRow);
-            alert(`✓ ${name} has been approved and registered as OJT Coordinator.`);
-        }
-
-        function rejectCoordinator(id) {
-            if(confirm("Are you sure you want to reject this registration application?")) {
-                const appRow = document.getElementById(`approve-row-${id}`);
-                if (appRow) appRow.remove();
-                alert("✓ Registration request declined.");
-            }
->>>>>>> e21b11f3adca8fcdf71f2d8ca78ecc264fdc3af8
+            const modal = document.getElementById('logoutModal');
+            if (modal) modal.classList.remove('hidden');
         }
 
         function closeLogoutModal() {
-            document.getElementById('logoutModal').classList.add('hidden');
+            const modal = document.getElementById('logoutModal');
+            if (modal) modal.classList.add('hidden');
         }
 
-        document.getElementById('logoutModal').addEventListener('click', (e) => {
+        document.getElementById('logoutModal')?.addEventListener('click', (e) => {
             if (e.target === document.getElementById('logoutModal')) {
                 closeLogoutModal();
             }
         });
 
-        document.getElementById('btnCancelLogout').addEventListener('click', closeLogoutModal);
+        document.getElementById('btnCancelLogout')?.addEventListener('click', closeLogoutModal);
 
-        document.getElementById('btnConfirmLogout').addEventListener('click', () => {
+        document.getElementById('btnConfirmLogout')?.addEventListener('click', () => {
             document.getElementById('btnConfirmLogout').innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Exiting...';
             document.getElementById('btnConfirmLogout').disabled = true;
             setTimeout(() => { window.location.href = "/auth/logout/"; }, 800);
+        });
+
+        // ===== MODAL CLOSE ON BACKGROUND CLICK =====
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal(modal.id);
+            });
+        });
+
+        // ===== MOBILE MENU =====
+        document.getElementById('mobileMenuBtn')?.addEventListener('click', () => {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.toggle('-translate-x-full');
+        });
+
+        document.getElementById('closeMobileMenuBtn')?.addEventListener('click', () => {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.add('-translate-x-full');
+        });
+
+        // ===== FILTER BUTTON EVENT LISTENERS =====
+        document.getElementById('approvalFilterSelect')?.addEventListener('change', renderApprovalTable);
+
+        // ===== SEARCH INPUTS =====
+        document.getElementById('studentSearchInput')?.addEventListener('keyup', function() {
+            const filter = this.value.toUpperCase();
+            const tbody = document.getElementById('studentTableBody');
+            if (tbody) {
+                Array.from(tbody.getElementsByTagName('tr')).forEach(row => {
+                    row.style.display = row.textContent.toUpperCase().includes(filter) ? '' : 'none';
+                });
+            }
+        });
+
+        document.getElementById('coordinatorSearchInput')?.addEventListener('keyup', function() {
+            const filter = this.value.toUpperCase();
+            const tbody = document.getElementById('coordinatorTableBody');
+            if (tbody) {
+                Array.from(tbody.getElementsByTagName('tr')).forEach(row => {
+                    row.style.display = row.textContent.toUpperCase().includes(filter) ? '' : 'none';
+                });
+            }
+        });
+
+        document.getElementById('approvalSearchInput')?.addEventListener('keyup', function() {
+            const filter = this.value.toUpperCase();
+            const tbody = document.getElementById('approvalTableBody');
+            if (tbody) {
+                Array.from(tbody.getElementsByTagName('tr')).forEach(row => {
+                    row.style.display = row.textContent.toUpperCase().includes(filter) ? '' : 'none';
+                });
+            }
+        });
+
+        // ===== INITIAL LOAD =====
+        window.addEventListener('DOMContentLoaded', () => {
+            loadStudents();
+            loadCoordinators();
+            loadCoordinatorApprovals();
+            switchSection('students');
         });
     </script>
 </body>
