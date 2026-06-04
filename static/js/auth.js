@@ -81,7 +81,12 @@ async function apiRequest(endpoint, method = 'GET', data = null) {
         const responseData = await response.json();
 
         if (!response.ok) {
-            throw new Error(responseData.detail || JSON.stringify(responseData));
+            const message = responseData.detail
+                || (responseData.non_field_errors && responseData.non_field_errors[0])
+                || (responseData.email && responseData.email[0])
+                || (responseData.password && responseData.password[0])
+                || JSON.stringify(responseData);
+            throw new Error(message);
         }
 
         return responseData;

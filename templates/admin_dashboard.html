@@ -102,7 +102,10 @@
             <div id="studentsSection" class="section-container flex flex-col h-full">
                 <div class="flex-1 flex flex-col px-4 py-6 md:px-8 md:py-8 gap-6">
                     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
-                        <input type="text" id="studentSearchInput" placeholder="Search student by name or email..." class="border-2 border-slate-200 rounded-lg px-4 py-2 w-full sm:w-72 text-sm focus:outline-none focus:border-[#11693A] bg-white">
+                        <div class="relative w-full sm:w-72">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            <input type="text" id="studentSearchInput" placeholder="Search student by name or email..." class="border-2 border-slate-200 rounded-lg pl-9 pr-4 py-2 w-full text-sm focus:outline-none focus:border-[#11693A] bg-white">
+                        </div>
                         <div class="flex flex-wrap gap-2">
                             <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-sm" onclick="filterStudentsByStatus('active')">Active</button>
                             <button class="bg-orange-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-orange-700 transition-all shadow-sm" onclick="filterStudentsByStatus('inactive')">Inactive</button>
@@ -134,7 +137,10 @@
             <div id="coordinatorsSection" class="section-container hidden flex flex-col h-full">
                 <div class="flex-1 flex flex-col px-4 py-6 md:px-8 md:py-8 gap-6">
                     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
-                        <input type="text" id="coordinatorSearchInput" placeholder="Search coordinator by name or email..." class="border-2 border-slate-200 rounded-lg px-4 py-2 w-full sm:w-72 text-sm focus:outline-none focus:border-[#11693A] bg-white">
+                        <div class="relative w-full sm:w-72">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            <input type="text" id="coordinatorSearchInput" placeholder="Search coordinator by name or email..." class="border-2 border-slate-200 rounded-lg pl-9 pr-4 py-2 w-full text-sm focus:outline-none focus:border-[#11693A] bg-white">
+                        </div>
                         <div class="flex flex-wrap gap-2">
                             <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-sm" onclick="filterCoordinatorsByStatus('active')">Active</button>
                             <button class="bg-orange-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-orange-700 transition-all shadow-sm" onclick="filterCoordinatorsByStatus('inactive')">Inactive</button>
@@ -166,7 +172,10 @@
             <div id="approvalsSection" class="section-container hidden flex flex-col h-full">
                 <div class="flex-1 flex flex-col px-4 py-6 md:px-8 md:py-8 gap-6">
                     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
-                        <input type="text" id="approvalSearchInput" placeholder="Search by name or email..." class="border-2 border-slate-200 rounded-lg px-4 py-2 w-full sm:w-72 text-sm focus:outline-none focus:border-[#11693A] bg-white">
+                        <div class="relative w-full sm:w-72">
+                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            <input type="text" id="approvalSearchInput" placeholder="Search by name or email..." class="border-2 border-slate-200 rounded-lg pl-9 pr-4 py-2 w-full text-sm focus:outline-none focus:border-[#11693A] bg-white">
+                        </div>
                         <div class="flex flex-wrap gap-2">
                             <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-sm" onclick="filterApprovalsByStatus('pending')">Pending</button>
                             <button class="bg-green-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-green-700 transition-all shadow-sm" onclick="filterApprovalsByStatus('approved')">Approved</button>
@@ -215,6 +224,7 @@
                 <button class="close-btn" onclick="closeModal('editModal')">&times;</button>
             </div>
             <form id="editForm">
+                <input type="hidden" id="editId" value="">
                 <div class="form-group">
                     <label>Full Name</label>
                     <input type="text" id="editName" required>
@@ -252,6 +262,7 @@
                 <button class="close-btn" onclick="closeModal('editCoordinatorModal')">&times;</button>
             </div>
             <form id="editCoordinatorForm">
+                <input type="hidden" id="editCoordId" value="">
                 <div class="form-group">
                     <label>Full Name</label>
                     <input type="text" id="editCoordName" required>
@@ -349,15 +360,19 @@
     <div id="deleteModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Delete Entry</h2>
+                <h2>Delete Student</h2>
                 <button class="close-btn" onclick="closeModal('deleteModal')">&times;</button>
             </div>
             <p style="color: #666; margin-bottom: 20px; font-size: 16px;">
                 Are you sure you want to delete <strong id="deleteStudentName"></strong>? This action cannot be undone.
             </p>
+            <div class="form-group">
+                <label>Type "<span id="deleteStudentNameConfirm"></span>" to confirm</label>
+                <input type="text" id="deleteStudentConfirmInput" placeholder="Type the name to confirm...">
+            </div>
             <div class="modal-buttons">
                 <button class="btn-cancel" onclick="closeModal('deleteModal')">Cancel</button>
-                <button id="confirmDeleteBtn" class="btn-save" style="background: #dc2626;" onclick="confirmDelete()">Delete Permanently</button>
+                <button id="confirmDeleteBtn" class="btn-save" style="background: #dc2626;" onclick="confirmDelete()" disabled>Delete Permanently</button>
             </div>
         </div>
     </div>
@@ -461,9 +476,13 @@
             <p style="color: #666; margin-bottom: 20px; font-size: 16px;">
                 Are you sure you want to delete <strong id="coordDeleteName"></strong>? This action cannot be undone.
             </p>
+            <div class="form-group">
+                <label>Type "<span id="coordDeleteNameConfirm"></span>" to confirm</label>
+                <input type="text" id="coordDeleteConfirmInput" placeholder="Type the name to confirm...">
+            </div>
             <div class="modal-buttons">
                 <button class="btn-cancel" onclick="closeModal('coordDeleteModal')">Cancel</button>
-                <button class="btn-save" style="background: #dc2626;" onclick="confirmCoordinatorDelete()" onmouseover="this.style.background='#b91c1c'" onmouseout="this.style.background='#dc2626'">Delete Permanently</button>
+                <button id="confirmCoordDeleteBtn" class="btn-save" style="background: #dc2626;" onclick="confirmCoordinatorDelete()" disabled>Delete Permanently</button>
             </div>
         </div>
     </div>
@@ -644,7 +663,7 @@
             if (!tbody) return;
             const rows = tbody.getElementsByTagName('tr');
             Array.from(rows).forEach(row => {
-                const statusCell = row.querySelector('td:nth-child(4)');
+                const statusCell = row.querySelector('td:nth-child(5)');
                 if (statusCell) {
                     const rowStatus = statusCell.textContent.trim().toLowerCase();
                     row.style.display = status === 'all' || rowStatus === status ? '' : 'none';
@@ -668,10 +687,10 @@
                 data.forEach(item => {
                     students[item.id] = {
                         id: item.id,
-                        name: item.user?.first_name && item.user?.last_name ? `${item.user.first_name} ${item.user.last_name}` : item.user?.username || 'Unknown',
-                        email: item.user?.email || 'N/A',
+                        name: item.first_name && item.last_name ? `${item.first_name} ${item.last_name}` : item.username || 'Unknown',
+                        email: item.email || 'N/A',
                         role: item.role || 'Student',
-                        status: item.status || 'Active',
+                        status: item.is_active ? 'Active' : 'Inactive',
                         course: item.course || 'N/A',
                         year: item.year || 'N/A'
                     };
@@ -700,13 +719,13 @@
                     <td class="py-4 px-2">${student.role}</td>
                     <td class="py-4 px-2"><span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold">${student.status}</span></td>
                     <td class="py-4 px-2">
-                        <button class="text-blue-500 hover:text-blue-700 p-2" title="View" onclick="viewStudent(${student.id})">
+                        <button class="text-blue-500 hover:text-blue-700 p-2" title="View" onclick="viewStudent('${student.id}')">
                             <i class="fa-regular fa-eye text-lg"></i>
                         </button>
-                        <button class="text-amber-500 hover:text-amber-700 p-2" title="Edit" onclick="editStudent(${student.id})">
+                        <button class="text-amber-500 hover:text-amber-700 p-2" title="Edit" onclick="editStudent('${student.id}')">
                             <i class="fa-regular fa-pen-to-square text-lg"></i>
                         </button>
-                        <button class="text-red-500 hover:text-red-700 p-2" title="Delete" onclick="deleteStudent(${student.id})">
+                        <button class="text-red-500 hover:text-red-700 p-2" title="Delete" onclick="deleteStudent('${student.id}')">
                             <i class="fa-regular fa-trash-can text-lg"></i>
                         </button>
                     </td>
@@ -740,24 +759,94 @@
             openModal('editModal');
         }
 
-        function saveChanges() {
+        async function saveChanges() {
             const id = document.getElementById('editId').value;
-            const name = document.getElementById('editName').value;
-            const email = document.getElementById('editEmail').value;
+            const name = document.getElementById('editName').value.trim();
+            const email = document.getElementById('editEmail').value.trim();
             const status = document.getElementById('editStatus').value;
-            if (students[id]) {
-                students[id] = { ...students[id], name, email, status };
+            const nameParts = name.split(' ');
+            const firstName = nameParts[0] || '';
+            const lastName = nameParts.slice(1).join(' ') || '';
+            try {
+                const response = await fetch(`/api/admin/users/${id}/`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    },
+                    body: JSON.stringify({
+                        first_name: firstName,
+                        last_name: lastName,
+                        email: email,
+                        is_active: status === 'Active'
+                    })
+                });
+                if (!response.ok) {
+                    const err = await response.json();
+                    alert('Failed to update: ' + (err.detail || JSON.stringify(err)));
+                    return;
+                }
+                const updated = await response.json();
+                students[id] = {
+                    id: updated.id,
+                    name: updated.first_name && updated.last_name ? `${updated.first_name} ${updated.last_name}` : updated.username,
+                    email: updated.email,
+                    role: updated.role,
+                    status: updated.is_active ? 'Active' : 'Inactive'
+                };
                 renderStudentTable();
                 alert('✓ Student updated successfully');
                 closeModal('editModal');
+            } catch (error) {
+                console.error('Error updating student:', error);
+                alert('An error occurred while updating');
             }
         }
 
+        let pendingDeleteId = null;
+        let pendingDeleteName = '';
+
         function deleteStudent(id) {
-            if (confirm('Are you sure?')) {
+            const student = students[id];
+            if (!student) return;
+            pendingDeleteId = id;
+            pendingDeleteName = student.name;
+            document.getElementById('deleteStudentName').textContent = student.name;
+            document.getElementById('deleteStudentNameConfirm').textContent = student.name;
+            document.getElementById('deleteStudentConfirmInput').value = '';
+            document.getElementById('confirmDeleteBtn').disabled = true;
+            openModal('deleteModal');
+        }
+
+        document.getElementById('deleteStudentConfirmInput')?.addEventListener('keyup', function() {
+            const btn = document.getElementById('confirmDeleteBtn');
+            btn.disabled = this.value.trim() !== pendingDeleteName;
+        });
+
+        async function confirmDelete() {
+            const id = pendingDeleteId;
+            if (!id) return;
+            try {
+                const response = await fetch(`/api/admin/users/${id}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    }
+                });
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    alert('Failed to delete: ' + (err.detail || 'Unknown error'));
+                    return;
+                }
                 delete students[id];
+                pendingDeleteId = null;
+                pendingDeleteName = '';
                 renderStudentTable();
-                alert('✓ Student deleted');
+                closeModal('deleteModal');
+                alert('✓ Student deactivated successfully');
+            } catch (error) {
+                console.error('Error deleting student:', error);
+                alert('An error occurred while deleting');
             }
         }
 
@@ -778,11 +867,10 @@
                 data.forEach(item => {
                     coordinators[item.id] = {
                         id: item.id,
-                        name: item.user?.first_name && item.user?.last_name ? `${item.user.first_name} ${item.user.last_name}` : item.user?.username || 'Unknown',
-                        email: item.user?.email || 'N/A',
-                        empId: item.employee_id || 'N/A',
-                        department: item.department || 'N/A',
-                        status: item.status || 'Active',
+                        name: item.first_name && item.last_name ? `${item.first_name} ${item.last_name}` : item.username || 'Unknown',
+                        email: item.email || 'N/A',
+                        username: item.username || 'N/A',
+                        status: item.is_active ? 'Active' : 'Inactive',
                         approval_status: item.approval_status || 'approved'
                     };
                 });
@@ -807,16 +895,16 @@
                 row.innerHTML = `
                     <td class="py-4 px-2 font-bold">${coord.name}</td>
                     <td class="py-4 px-2">${coord.email}</td>
-                    <td class="py-4 px-2">${coord.department}</td>
+                    <td class="py-4 px-2">${coord.username}</td>
                     <td class="py-4 px-2"><span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold">${coord.status}</span></td>
                     <td class="py-4 px-2">
-                        <button class="text-blue-500 hover:text-blue-700 p-2" title="View" onclick="viewCoordinator(${coord.id})">
+                        <button class="text-blue-500 hover:text-blue-700 p-2" title="View" onclick="viewCoordinator('${coord.id}')">
                             <i class="fa-regular fa-eye text-lg"></i>
                         </button>
-                        <button class="text-amber-500 hover:text-amber-700 p-2" title="Edit" onclick="editCoordinator(${coord.id})">
+                        <button class="text-amber-500 hover:text-amber-700 p-2" title="Edit" onclick="editCoordinator('${coord.id}')">
                             <i class="fa-regular fa-pen-to-square text-lg"></i>
                         </button>
-                        <button class="text-red-500 hover:text-red-700 p-2" title="Delete" onclick="deleteCoordinator(${coord.id})">
+                        <button class="text-red-500 hover:text-red-700 p-2" title="Delete" onclick="deleteCoordinator('${coord.id}')">
                             <i class="fa-regular fa-trash-can text-lg"></i>
                         </button>
                     </td>
@@ -851,26 +939,96 @@
             openModal('editCoordinatorModal');
         }
 
-        function saveCoordinatorChanges() {
+        async function saveCoordinatorChanges() {
             const id = document.getElementById('editCoordId').value;
-            const name = document.getElementById('editCoordName').value;
-            const email = document.getElementById('editCoordEmail').value;
-            const dept = document.getElementById('editCoordDept').value;
+            const name = document.getElementById('editCoordName').value.trim();
+            const email = document.getElementById('editCoordEmail').value.trim();
+            const dept = document.getElementById('editCoordDept').value.trim();
             const status = document.getElementById('editCoordStatus').value;
-            if (coordinators[id]) {
-                coordinators[id] = { ...coordinators[id], name, email, department: dept, status };
+            const nameParts = name.split(' ');
+            const firstName = nameParts[0] || '';
+            const lastName = nameParts.slice(1).join(' ') || '';
+            try {
+                const response = await fetch(`/api/admin/users/${id}/`, {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    },
+                    body: JSON.stringify({
+                        first_name: firstName,
+                        last_name: lastName,
+                        email: email,
+                        is_active: status === 'Active'
+                    })
+                });
+                if (!response.ok) {
+                    const err = await response.json();
+                    alert('Failed to update: ' + (err.detail || JSON.stringify(err)));
+                    return;
+                }
+                const updated = await response.json();
+                coordinators[id] = {
+                    id: updated.id,
+                    name: updated.first_name && updated.last_name ? `${updated.first_name} ${updated.last_name}` : updated.username,
+                    email: updated.email,
+                    department: dept,
+                    status: updated.is_active ? 'Active' : 'Inactive'
+                };
                 renderCoordinatorTable();
                 alert('✓ Coordinator updated successfully');
                 closeModal('editCoordinatorModal');
+            } catch (error) {
+                console.error('Error updating coordinator:', error);
+                alert('An error occurred while updating');
             }
         }
 
+        let pendingCoordDeleteId = null;
+        let pendingCoordDeleteName = '';
+
         function deleteCoordinator(id) {
-            if (confirm('Are you sure?')) {
+            const coord = coordinators[id];
+            if (!coord) return;
+            pendingCoordDeleteId = id;
+            pendingCoordDeleteName = coord.name;
+            document.getElementById('coordDeleteName').textContent = coord.name;
+            document.getElementById('coordDeleteNameConfirm').textContent = coord.name;
+            document.getElementById('coordDeleteConfirmInput').value = '';
+            document.getElementById('confirmCoordDeleteBtn').disabled = true;
+            openModal('coordDeleteModal');
+        }
+
+        document.getElementById('coordDeleteConfirmInput')?.addEventListener('keyup', function() {
+            const btn = document.getElementById('confirmCoordDeleteBtn');
+            btn.disabled = this.value.trim() !== pendingCoordDeleteName;
+        });
+
+        async function confirmCoordinatorDelete() {
+            const id = pendingCoordDeleteId;
+            if (!id) return;
+            try {
+                const response = await fetch(`/api/admin/users/${id}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    }
+                });
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    alert('Failed to delete: ' + (err.detail || 'Unknown error'));
+                    return;
+                }
                 delete coordinators[id];
                 coordinatorList = coordinatorList.filter(c => c.id !== id);
+                pendingCoordDeleteId = null;
+                pendingCoordDeleteName = '';
                 renderCoordinatorTable();
-                alert('✓ Coordinator deleted');
+                closeModal('coordDeleteModal');
+                alert('✓ Coordinator deactivated successfully');
+            } catch (error) {
+                console.error('Error deleting coordinator:', error);
+                alert('An error occurred while deleting');
             }
         }
 
@@ -913,24 +1071,26 @@
                 filtered = approvalList.filter(item => (item.approval_status || 'pending') === filter);
             }
             if (filtered.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-gray-400">No approval requests found</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-gray-400">No approval requests found</td></tr>';
                 return;
             }
             filtered.forEach(item => {
                 const status = item.approval_status || 'pending';
                 const statusClass = status === 'pending' ? 'yellow' : status === 'approved' ? 'emerald' : 'red';
+                const dateApplied = item.created_at ? new Date(item.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
                 const row = document.createElement('tr');
                 row.className = 'border-b border-gray-50 hover:bg-gray-50';
                 row.innerHTML = `
                     <td class="py-4 px-2 font-bold">${item.first_name} ${item.last_name}</td>
                     <td class="py-4 px-2">${item.email}</td>
                     <td class="py-4 px-2">${item.username}</td>
+                    <td class="py-4 px-2">${dateApplied}</td>
                     <td class="py-4 px-2"><span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold capitalize">${status}</span></td>
                     <td class="py-4 px-2">
-                        <button class="text-emerald-500 hover:text-emerald-700 p-2" title="Approve" onclick="confirmApprove(${item.id})">
+                        <button class="text-emerald-500 hover:text-emerald-700 p-2" title="Approve" onclick="confirmApprove('${item.id}')">
                             <i class="fa-regular fa-circle-check text-lg"></i>
                         </button>
-                        <button class="text-red-500 hover:text-red-700 p-2" title="Reject" onclick="confirmReject(${item.id})">
+                        <button class="text-red-500 hover:text-red-700 p-2" title="Reject" onclick="confirmReject('${item.id}')">
                             <i class="fa-regular fa-circle-xmark text-lg"></i>
                         </button>
                     </td>

@@ -3,6 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
+from apps.core.models import User
 from .models import OJTProgram, OJTApplication, Attendance, NarrativeReport
 from .serializers import OJTProgramSerializer, OJTApplicationSerializer, AttendanceSerializer, NarrativeReportSerializer
 
@@ -106,7 +107,7 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
     """ViewSet for coordinator dashboard operations."""
     permission_classes = [IsCoordinator]
     
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=['get'], url_path='my-students')
     def my_students(self, request):
         """Get all students in coordinator's programs."""
         coordinator = request.user
@@ -133,7 +134,23 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         
         return Response(students_data)
     
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['get'], url_path='student-accounts')
+    def student_accounts(self, request):
+        """Get all student accounts (role='student')."""
+        students = User.objects.filter(role='student').order_by('-created_at')
+        students_data = []
+        for student in students:
+            students_data.append({
+                'id': student.id,
+                'name': student.get_full_name(),
+                'email': student.email,
+                'username': student.username,
+                'is_active': student.is_active,
+                'created_at': student.created_at,
+            })
+        return Response(students_data)
+
+    @action(detail=False, methods=['post'], url_path='approve-student')
     def approve_student(self, request):
         """Approve a student application."""
         app_id = request.data.get('app_id')
@@ -145,7 +162,7 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         
         return Response({'message': 'Student approved successfully'}, status=status.HTTP_200_OK)
     
-    @action(detail=False, methods=['post'])
+    @action(detail=False, methods=['post'], url_path='reject-student')
     def reject_student(self, request):
         """Reject a student application."""
         app_id = request.data.get('app_id')

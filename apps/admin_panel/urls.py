@@ -3,9 +3,10 @@ from rest_framework.routers import DefaultRouter
 from .views import AdminDashboardViewSet, UserManagementViewSet
 
 router = DefaultRouter()
-router.register(r'dashboard', AdminDashboardViewSet, basename='admin-dashboard')
-router.register(r'users', UserManagementViewSet, basename='user-management')
+router.register(r"dashboard", AdminDashboardViewSet, basename="admin-dashboard")
+router.register(r"users", UserManagementViewSet, basename="user-management")
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path("dashboard/coordinators/<uuid:pk>/set-coordinator-approval/", AdminDashboardViewSet.as_view({"post": "set_coordinator_approval"}), name="set-coordinator-approval"),
+    path("", include(router.urls)),
 ]
