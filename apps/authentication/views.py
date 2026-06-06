@@ -27,6 +27,8 @@ class AuthenticationViewSet(viewsets.ViewSet):
             user = serializer.save()
             # Create token for the new user
             token, created = Token.objects.get_or_create(user=user)
+            # Create session for Django @login_required views
+            login(request, user)
             return Response({
                 'message': 'User registered successfully',
                 'user': UserSerializer(user).data,

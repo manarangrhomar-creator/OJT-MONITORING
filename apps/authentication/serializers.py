@@ -31,15 +31,41 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
 class UserLoginSerializer(serializers.Serializer):
     """Serializer for user login."""
-    username = serializers.CharField()
+    identifier = serializers.CharField()
     password = serializers.CharField(write_only=True)
     
     def validate(self, attrs):
-        user = authenticate(username=attrs['username'], password=attrs['password'])
-        if not user:
-            raise serializers.ValidationError("Invalid credentials.")
-        attrs['user'] = user
-        return attrs
+        identifier = attrs['identifier']
+        password = attrs['password']
+
+        found_user = None
+
+        user = authenticate(username=identifier, password=password)
+        if user:
+            attrs['user'] = user
+            return attrs
+
+        try:
+            found_user = User.objects.get(email=identifier)
+        except User.DoesNotExist:
+            pass
+
+        if not found_user:
+            try:
+                from apps.student.models import StudentProfile
+                profile = StudentProfile.objects.get(student_id=identifier)
+                found_user = profile.user
+            except (ImportError, Exception):
+                pass
+
+        if found_user:
+            user = authenticate(username=found_user.username, password=password)
+            if user:
+                attrs['user'] = user
+                return attrs
+            raise serializers.ValidationError("Invalid password.")
+
+        raise serializers.ValidationError("No account found with that email or ID.")
 
 
 class UserSerializer(serializers.ModelSerializer):

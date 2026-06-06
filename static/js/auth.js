@@ -115,13 +115,12 @@ function getCookie(name) {
 }
 
 /**
- * Login user with username and password
+ * Login user with email/ID and password
  */
-async function login(username, password) {
+async function login(identifier, password) {
     try {
-        // Clear any stale token before attempting login
         clearAuthData();
-        const response = await apiRequest('/login/', 'POST', { username, password });
+        const response = await apiRequest('/login/', 'POST', { identifier, password });
         
         if (response.token && response.user) {
             storeAuthToken(response.token, response.user);

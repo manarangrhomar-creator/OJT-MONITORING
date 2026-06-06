@@ -1,3 +1,4 @@
+import logging
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -6,6 +7,9 @@ from apps.coordinator.models import OJTApplication, Attendance
 from apps.coordinator.serializers import OJTApplicationSerializer, AttendanceSerializer
 from .models import StudentProfile, FacialRecognition
 from .serializers import StudentProfileSerializer, FacialRecognitionSerializer
+from .face_utils import detect_face, encode_face, verify_faces
+
+logger = logging.getLogger(__name__)
 
 
 class IsStudent(permissions.BasePermission):
@@ -99,39 +103,71 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
         """Enroll facial data for student."""
         student = request.user
         facial_image = request.FILES.get('image')
-        
+
         if not facial_image:
             return Response({'error': 'Image is required'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Process facial data (placeholder for actual face encoding)
+
+        image_bytes = facial_image.read()
+        face_roi, coords = detect_face(image_bytes)
+
+        if face_roi is None:
+            return Response({'error': 'No face detected in the image. Please ensure your face is clearly visible.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        encoding = encode_face(face_roi)
+
         facial_data, created = FacialRecognition.objects.get_or_create(
             student=student,
             defaults={
-                'facial_encoding': b'placeholder',  # In production, use face_recognition library
-                'is_verified': False
+                'facial_encoding': encoding,
+                'is_verified': True,
+                'verification_date': timezone.now()
             }
         )
-        
+
+        if not created:
+            facial_data.facial_encoding = encoding
+            facial_data.is_verified = True
+            facial_data.verification_date = timezone.now()
+            facial_data.save()
+
         serializer = self.get_serializer(facial_data)
         return Response(serializer.data, status=status.HTTP_200_OK if not created else status.HTTP_201_CREATED)
-    
+
     @action(detail=False, methods=['post'])
     def verify_face(self, request):
         """Verify student using facial recognition."""
         student = request.user
         facial_image = request.FILES.get('image')
-        
+
         if not facial_image:
             return Response({'error': 'Image is required'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         try:
             facial_data = FacialRecognition.objects.get(student=student)
-            # In production, compare facial encodings here
+        except FacialRecognition.DoesNotExist:
+            return Response({'error': 'Facial data not enrolled. Please enroll your face first.'}, status=status.HTTP_404_NOT_FOUND)
+
+        image_bytes = facial_image.read()
+        new_face_roi, coords = detect_face(image_bytes)
+
+        if new_face_roi is None:
+            return Response({'error': 'No face detected in the image. Please ensure your face is clearly visible.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        is_match, confidence = verify_faces(facial_data.facial_encoding, new_face_roi)
+
+        if is_match:
             facial_data.is_verified = True
             facial_data.verification_date = timezone.now()
             facial_data.save()
-            
-            serializer = self.get_serializer(facial_data)
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        except FacialRecognition.DoesNotExist:
-            return Response({'error': 'Facial data not enrolled'}, status=status.HTTP_404_NOT_FOUND)
+
+            return Response({
+                'verified': True,
+                'confidence': float(confidence),
+                'message': 'Face verified successfully'
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({
+                'verified': False,
+                'confidence': float(confidence),
+                'message': 'Face does not match enrolled record'
+            }, status=status.HTTP_200_OK)

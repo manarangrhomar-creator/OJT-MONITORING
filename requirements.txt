@@ -10,3 +10,4 @@ whitenoise==6.6.0
 celery==5.3.4
 redis==5.0.1
 drf-spectacular==0.26.5
+opencv-contrib-python==4.13.0.92

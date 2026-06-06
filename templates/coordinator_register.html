@@ -6,6 +6,7 @@
     <title>OJT Coordinator Register - ISU</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght=600;700&family=Inter:wght=400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .custom-heading { font-family: 'Fredoka', sans-serif; }
         .custom-btn { font-family: 'Inter', sans-serif; }
@@ -228,7 +229,21 @@
             }
         }
 
-        function handleFormSubmit(event) {
+        function parseFullName(fullName) {
+            const parts = fullName.split(',').map(s => s.trim());
+            let lastName = '', firstName = '';
+            if (parts.length >= 2) {
+                lastName = parts[0];
+                firstName = parts[1].split(' ')[0];
+            } else {
+                const sp = fullName.split(' ');
+                firstName = sp[0] || '';
+                lastName = sp.slice(1).join(' ') || '';
+            }
+            return { firstName, lastName };
+        }
+
+        async function handleFormSubmit(event) {
             event.preventDefault(); 
             
             const pass = document.getElementById('password').value;
@@ -240,8 +255,48 @@
                 return;
             }
 
-            alert('Coordinator Account Created Successfully! Pending for validation.');
-            window.location.href = '/';
+            const fullName = document.getElementById('fullName').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const contact = document.getElementById('contact').value.trim();
+
+            const { firstName, lastName } = parseFullName(fullName);
+            const submitBtn = document.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Registering...';
+
+            try {
+                const response = await fetch('/api/auth/register/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: email,
+                        email: email,
+                        first_name: firstName,
+                        last_name: lastName,
+                        password: pass,
+                        password2: confirmPass,
+                        role: 'coordinator',
+                        phone_number: contact
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    localStorage.setItem('auth_token', data.token);
+                    localStorage.setItem('user_data', JSON.stringify(data.user));
+                    alert('Coordinator account created successfully! Pending admin approval.');
+                    window.location.href = '/auth/coordinator/login/';
+                } else {
+                    const errMsg = typeof data === 'object' ? Object.values(data).flat().join('\n') : 'Registration failed';
+                    alert(errMsg);
+                }
+            } catch (err) {
+                alert('Connection error. Please try again.');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = 'Register';
+            }
         }
     </script>
 

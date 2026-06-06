@@ -109,8 +109,8 @@
                 
                 <form id="studentLoginForm" class="space-y-6">
                     <div>
-                        <label class="custom-heading text-[#11693A] text-xl block mb-2">Username</label>
-                        <input type="text" id="studentUsername" required class="w-full border-4 border-[#11693A] rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
+                        <label class="custom-heading text-[#11693A] text-xl block mb-2">Email / Student ID</label>
+                        <input type="text" id="studentIdentifier" required class="w-full border-4 border-[#11693A] rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
                     </div>
 
                     <div>
@@ -142,7 +142,7 @@
         </div>
     </div>
 
-    <script src="/static/js/auth.js?v=2"></script>
+    <script src="/static/js/auth.js?v=3"></script>
     <script>
         function togglePasswordVisibility(inputId, iconId) {
             const passwordInput = document.getElementById(inputId);
@@ -188,14 +188,14 @@
         document.getElementById('studentLoginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const username = document.getElementById('studentUsername').value;
+            const identifier = document.getElementById('studentIdentifier').value;
             const password = document.getElementById('studentPassword').value;
             const loadingDiv = document.getElementById('studentLoadingMessage');
 
             loadingDiv.classList.remove('hidden');
 
             try {
-                const response = await login(username, password);
+                const response = await login(identifier, password);
                 
                 if (response.user.role !== 'student') {
                     throw new Error('Access Denied: This page is for students only.');

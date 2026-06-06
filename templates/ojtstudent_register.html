@@ -6,6 +6,7 @@
     <title>OJT Student Register - ISU</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght=600;700&family=Inter:wght=400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
          .custom-heading { font-family: 'Fredoka', sans-serif; }
         .custom-btn { font-family: 'Inter', sans-serif; }
@@ -46,11 +47,11 @@
             <div class="max-w-md mx-auto w-full mt-6 md:mt-0">
                 <h1 class="custom-heading text-[#11693A] text-4xl font-bold text-center mb-6 leading-tight">OJT Student</h1>
                 
-                <form class="space-y-4" onsubmit="event.preventDefault(); window.location.href='/student/facial/';">
+                <form class="space-y-4" id="regForm">
                     
                     <div>
                         <label class="custom-heading text-[#11693A] text-lg block mb-1">Full Name</label>
-                        <input type="text" placeholder="Last Name, First Name, M.I., Suffix" required 
+                        <input type="text" id="fullName" placeholder="Last Name, First Name, M.I., Suffix" required 
                             pattern="[A-Za-z\s,.]+" title="Full name should only contain letters, spaces, commas, and periods" oninput="this.value = this.value.replace(/[^A-Za-z\s,.]/g, '')"
                             class="w-full border-4 border-[#11693A] rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-gray-700 font-medium">
                     </div>
@@ -58,12 +59,12 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
                             <label class="custom-heading text-[#11693A] text-lg block mb-1">Student ID</label>
-                            <input type="text" placeholder="Enter Student ID" required 
+                            <input type="text" id="studentId" placeholder="Enter Student ID" required 
                                 class="w-full border-4 border-[#11693A] rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-gray-700 font-medium">
                         </div>
                         <div>
                             <label class="custom-heading text-[#11693A] text-lg block mb-1">Email Address</label>
-                            <input type="email" placeholder="name@gmail.com" required 
+                            <input type="email" id="email" placeholder="name@gmail.com" required 
                                 class="w-full border-4 border-[#11693A] rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-gray-700 font-medium">
                         </div>
                     </div>  
@@ -97,7 +98,7 @@
                     <div>
                         <label class="custom-heading text-[#11693A] text-lg block mb-1">Course / Program</label>
                         <div class="relative">
-                            <select required class="w-full border-4 border-[#11693A] rounded-xl p-2 pr-10 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all bg-white text-[#11693A] font-semibold">
+                            <select id="course" required class="w-full border-4 border-[#11693A] rounded-xl p-2 pr-10 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all bg-white text-[#11693A] font-semibold">
                                 <option value="" disabled selected>Select Course</option>
                                 <option>BS Information Technology (BSIT)</option>
                                 <option>BS Computer Science (BSCS)</option>
@@ -128,7 +129,7 @@
                         </div>
                     </div>
 
-                    <button type="submit" class="w-full max-w-[250px] mx-auto block bg-[#11693A] text-white py-3 rounded-full text-2xl font-bold custom-heading hover:bg-[#0d522d] transition-all transform hover:scale-[1.02] active:scale-95 shadow-md mt-6">
+                    <button type="submit" id="regBtn" class="w-full max-w-[250px] mx-auto block bg-[#11693A] text-white py-3 rounded-full text-2xl font-bold custom-heading hover:bg-[#0d522d] transition-all transform hover:scale-[1.02] active:scale-95 shadow-md mt-6">
                         Next
                     </button>
                 </form>
@@ -137,23 +138,87 @@
     </div>
 
     <script>
+        const regForm = document.getElementById('regForm');
+        const regBtn = document.getElementById('regBtn');
+
         function togglePassword(inputId, iconId) {
             const passwordInput = document.getElementById(inputId);
             const eyeIcon = document.getElementById(iconId);
 
             if (passwordInput.type === "password") {
                 passwordInput.type = "text";
-                eyeIcon.innerHTML = `
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                `;
+                eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
             } else {
                 passwordInput.type = "password";
-                eyeIcon.innerHTML = `
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                `;
+                eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />';
             }
         }
+
+        function parseFullName(fullName) {
+            const parts = fullName.split(',').map(s => s.trim());
+            let lastName = '', firstName = '';
+            if (parts.length >= 2) {
+                lastName = parts[0];
+                firstName = parts[1].split(' ')[0];
+            } else {
+                const sp = fullName.split(' ');
+                firstName = sp[0] || '';
+                lastName = sp.slice(1).join(' ') || '';
+            }
+            return { firstName, lastName };
+        }
+
+        regForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const fullName = document.getElementById('fullName').value.trim();
+            const studentId = document.getElementById('studentId').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const course = document.getElementById('course').value;
+
+            if (password !== confirmPassword) {
+                alert('Passwords do not match!');
+                return;
+            }
+
+            const { firstName, lastName } = parseFullName(fullName);
+
+            regBtn.disabled = true;
+            regBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Registering...';
+
+            try {
+                const response = await fetch('/api/auth/register/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        username: email,
+                        email: email,
+                        first_name: firstName,
+                        last_name: lastName,
+                        password: password,
+                        password2: confirmPassword,
+                        role: 'student'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Account created! Please wait for coordinator approval before you can log in.');
+                    window.location.href = '/auth/student/login/';
+                } else {
+                    const errMsg = typeof data === 'object' ? Object.values(data).flat().join('\n') : 'Registration failed';
+                    alert(errMsg);
+                }
+            } catch (err) {
+                alert('Connection error. Please try again.');
+            } finally {
+                regBtn.disabled = false;
+                regBtn.innerHTML = 'Next';
+            }
+        });
     </script>
 </body>
 </html>

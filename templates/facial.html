@@ -6,6 +6,7 @@
 <title>Facial Recognition Attendance</title>
 
 <script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
 body{
@@ -22,10 +23,20 @@ body{
 
 /* CAMERA MOCKUP EFFECT */
 .camera-frame{
-    background: linear-gradient(135deg, #e5e7eb, #f3f4f6);
+    background: #000;
     border: 4px solid #166534;
     position: relative;
     overflow: hidden;
+}
+
+.flash-effect{
+    animation: flash 0.2s ease-out;
+}
+
+@keyframes flash{
+    0%{ opacity: 1; }
+    50%{ opacity: 0.3; }
+    100%{ opacity: 1; }
 }
 
 /* scanning line animation */
@@ -118,37 +129,20 @@ aside > div{
                     <span class="text-xs text-gray-700 font-semibold">LIVE</span>
                 </div>
 
-                <svg xmlns="http://www.w3.org/2000/svg"
-                     class="w-16 h-16 text-gray-600 relative z-10"
-                     fill="none"
-                     viewBox="0 0 24 24"
-                     stroke="currentColor">
-
-                    <path stroke-linecap="round"
-                          stroke-linejoin="round"
-                          stroke-width="2"
-                          d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 6h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2z"/>
-                </svg>
-
-                <h2 class="mt-2 text-xl font-semibold text-gray-700 relative z-10">
-                    Live Camera Feed
-                </h2>
-
-                <p class="text-gray-500 text-xs mt-1 relative z-10">
-                    Webcam preview (Demo Mode)
-                </p>
+                <video id="webcam" autoplay playsinline class="absolute inset-0 w-full h-full object-cover"></video>
+                <canvas id="photoCanvas" class="hidden"></canvas>
 
             </div>
 
             <div class="mt-2 flex items-center gap-2">
                 <div class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
-                <span class="text-sm font-medium text-green-700">
+                <span class="face-status text-sm font-medium text-green-700">
                     Face Detection Ready
                 </span>
             </div>
 
             <button class="attendance-btn mt-2 bg-green-700 hover:bg-green-800 text-white px-5 py-2 rounded-lg font-semibold text-sm w-fit">
-                📸 Verify Attendance
+                <i class="fa-solid fa-camera mr-2"></i> Verify Attendance
             </button>
 
         </section>
@@ -160,7 +154,7 @@ aside > div{
             <div class="bg-green-800 rounded-xl p-3 text-white shadow flex flex-col gap-2">
 
                 <h2 class="text-sm font-bold">
-                    Student Information
+                    <i class="fa-regular fa-address-card mr-1.5"></i>Student Information
                 </h2>
 
                 <input class="w-full px-2 py-1 rounded text-black text-xs bg-gray-100"
@@ -189,10 +183,10 @@ aside > div{
             <div class="bg-white border rounded-xl p-3 shadow-sm">
 
                 <h3 class="font-bold text-gray-700 text-xs mb-1">
-                    Attendance Status
+                    <i class="fa-regular fa-circle-check mr-1.5"></i>Attendance Status
                 </h3>
 
-                <div class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold">
+                <div class="attendance-status-value bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-semibold">
                     Ready
                 </div>
 
@@ -206,29 +200,29 @@ aside > div{
             <div class="bg-gradient-to-b from-white to-gray-50 border border-gray-200 rounded-xl p-3 shadow-sm flex-1">
 
                 <h3 class="text-xs font-bold text-gray-800 mb-2 flex items-center justify-between">
-                    <span>System Overview</span>
+                    <span><i class="fa-solid fa-circle-nodes mr-1.5"></i>System Overview</span>
                     <span class="text-[10px] text-green-600 font-semibold">ONLINE</span>
                 </h3>
 
                 <div class="space-y-2 text-[11px]">
 
                     <div class="flex items-center justify-between bg-gray-100 px-2 py-1 rounded">
-                        <span class="text-gray-600">Facial Recognition</span>
+                        <span class="text-gray-600"><i class="fa-regular fa-face-smile mr-1.5"></i>Facial Recognition</span>
                         <span class="text-green-600 font-semibold">Active</span>
                     </div>
 
                     <div class="flex items-center justify-between bg-gray-100 px-2 py-1 rounded">
-                        <span class="text-gray-600">Time Tracking</span>
+                        <span class="text-gray-600"><i class="fa-regular fa-clock mr-1.5"></i>Time Tracking</span>
                         <span class="text-green-600 font-semibold">Running</span>
                     </div>
 
                     <div class="flex items-center justify-between bg-gray-100 px-2 py-1 rounded">
-                        <span class="text-gray-600">Database Sync</span>
+                        <span class="text-gray-600"><i class="fa-solid fa-database mr-1.5"></i>Database Sync</span>
                         <span class="text-green-600 font-semibold">Stable</span>
                     </div>
 
                     <div class="flex items-center justify-between bg-gray-100 px-2 py-1 rounded">
-                        <span class="text-gray-600">Security Layer</span>
+                        <span class="text-gray-600"><i class="fa-solid fa-shield-halved mr-1.5"></i>Security Layer</span>
                         <span class="text-green-600 font-semibold">Protected</span>
                     </div>
 
@@ -246,5 +240,131 @@ aside > div{
 
 </div>
 
+<script>
+    const video = document.getElementById('webcam');
+    const canvas = document.getElementById('photoCanvas');
+    const wrapper = document.querySelector('.camera-frame');
+    const verifyBtn = document.querySelector('.attendance-btn');
+    const statusEl = document.querySelector('.attendance-status-value');
+    const studentIdInput = document.querySelector('input[value="Student ID: auto detected"]');
+    const studentNameInput = document.querySelector('input[value="Name: scanning..."]');
+    const studentCourseInput = document.querySelector('input[value="Course: loading..."]');
+    const studentTimeInput = document.querySelector('input[value="Time: waiting..."]');
+    const faceStatusEl = document.querySelector('.face-status');
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    async function initCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
+            video.srcObject = stream;
+        } catch (err) {
+            console.error('Camera error:', err);
+        }
+    }
+
+    function captureBlob() {
+        return new Promise((resolve) => {
+            const w = video.videoWidth || 640;
+            const h = video.videoHeight || 480;
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(video, 0, 0, w, h);
+            canvas.toBlob(resolve, 'image/jpeg', 0.92);
+        });
+    }
+
+    function setStatus(text, type) {
+        statusEl.textContent = text;
+        const styles = {
+            success: 'bg-green-100 text-green-700',
+            error: 'bg-red-100 text-red-700',
+            warning: 'bg-yellow-100 text-yellow-700',
+            info: 'bg-blue-100 text-blue-700'
+        };
+        statusEl.className = (styles[type] || styles.info) + ' px-2 py-1 rounded text-xs font-semibold';
+    }
+
+    async function checkEnrollment() {
+        try {
+            const response = await fetch('/api/student/facial/', {
+                headers: {
+                    'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                }
+            });
+            const data = await response.json();
+            const enrolled = Array.isArray(data) ? data.length > 0 : !!data.id;
+            if (enrolled) {
+                setStatus('Face Enrolled — Ready', 'success');
+            } else {
+                setStatus('Not Enrolled — Go to /student/facial/', 'warning');
+            }
+            return enrolled;
+        } catch {
+            setStatus('Checking...', 'info');
+            return false;
+        }
+    }
+
+    verifyBtn.addEventListener('click', async function () {
+        wrapper.classList.add('flash-effect');
+        setTimeout(() => wrapper.classList.remove('flash-effect'), 200);
+
+        verifyBtn.disabled = true;
+        verifyBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Verifying...';
+
+        try {
+            const blob = await captureBlob();
+            const formData = new FormData();
+            formData.append('image', blob, 'face.jpg');
+
+            const response = await fetch('/api/student/facial/verify_face/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                },
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (response.status === 404) {
+                setStatus('Not Enrolled — Enroll at /student/facial/', 'warning');
+            } else if (data.verified) {
+                setStatus('Verified', 'success');
+                const now = new Date();
+                studentTimeInput.value = `Time: ${now.toLocaleTimeString()}`;
+            } else if (data.error) {
+                setStatus(data.error, 'error');
+            } else {
+                setStatus('No Match (confidence: ' + Math.round(data.confidence) + ')', 'error');
+            }
+        } catch (err) {
+            console.error('Verification error:', err);
+            setStatus('Connection Error', 'error');
+        } finally {
+            verifyBtn.disabled = false;
+            verifyBtn.innerHTML = '<i class="fa-solid fa-camera mr-2"></i> Verify Attendance';
+        }
+    });
+
+    checkEnrollment();
+    initCamera();
+</script>
 </body>
 </html>

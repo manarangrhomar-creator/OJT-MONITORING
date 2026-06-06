@@ -6,6 +6,7 @@
     <title>Facial Verification - ISU</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .custom-heading { font-family: 'Fredoka', sans-serif; }
         .custom-text { font-family: 'Inter', sans-serif; }
@@ -59,7 +60,7 @@
             </div>
 
             <button id="regBtn" disabled class="w-full max-w-[250px] bg-gray-400 text-white py-3 rounded-full text-2xl font-bold custom-heading transition-all shadow-md cursor-not-allowed">
-                Register
+                <i class="fa-solid fa-user-plus mr-2"></i> Register
             </button>
         </div>
     </div>
@@ -86,10 +87,26 @@
         const wrapper = document.getElementById('cameraWrapper');
 
         let isCaptured = false;
+        let capturedBlob = null;
+
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
 
         async function initCamera() {
             try {
-                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
                 video.srcObject = stream;
             } catch (err) {
                 alert("Camera access denied. Please enable your webcam.");
@@ -97,27 +114,21 @@
         }
 
         function captureImage() {
-            // Flash effect
             wrapper.classList.add('flash-effect');
             setTimeout(() => wrapper.classList.remove('flash-effect'), 200);
 
-            // Canvas settings
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
             const ctx = canvas.getContext('2d');
-
-            // Mirror capture
             ctx.translate(canvas.width, 0);
             ctx.scale(-1, 1);
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            // Result
-            const dataUrl = canvas.toDataURL('image/png');
-            console.log("Captured Image Data:", dataUrl);
-            
-            isCaptured = true;
-            alert("Face Captured Successfully!");
-            checkRequirements();
+            canvas.toBlob(function(blob) {
+                capturedBlob = blob;
+                isCaptured = true;
+                checkRequirements();
+            }, 'image/jpeg', 0.92);
         }
 
         function toggleModal() {
@@ -137,6 +148,46 @@
                 regBtn.classList.remove('transform', 'hover:scale-[1.02]');
             }
         }
+
+        regBtn.addEventListener('click', async function() {
+            if (!capturedBlob) {
+                alert('Please capture your face first');
+                return;
+            }
+
+            regBtn.disabled = true;
+            regBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Enrolling...';
+
+            try {
+                const formData = new FormData();
+                formData.append('image', capturedBlob, 'face.jpg');
+
+                const response = await fetch('/api/student/facial/enroll_face/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    },
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Face enrolled successfully!');
+                    window.location.href = '/dashboard/student/';
+                } else {
+                    alert(data.error || 'Failed to enroll face. Please try again.');
+                }
+            } catch (err) {
+                console.error('Enrollment error:', err);
+                alert('An error occurred during enrollment');
+            } finally {
+                regBtn.disabled = false;
+                regBtn.innerHTML = '<i class="fa-solid fa-user-plus mr-2"></i> Register';
+                checkRequirements();
+            }
+        });
 
         checkbox.addEventListener('change', checkRequirements);
         initCamera();

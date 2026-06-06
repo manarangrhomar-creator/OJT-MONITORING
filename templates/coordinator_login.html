@@ -109,8 +109,8 @@
                 
                 <form id="coordinatorLoginForm" class="space-y-6">
                     <div>
-                        <label class="custom-heading text-[#11693A] text-xl block mb-2">Username</label>
-                        <input type="text" id="coordinatorUsername" required class="w-full border-4 border-[#11693A] rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
+                        <label class="custom-heading text-[#11693A] text-xl block mb-2">Email / Employee ID</label>
+                        <input type="text" id="coordinatorIdentifier" required class="w-full border-4 border-[#11693A] rounded-xl p-3 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
                     </div>
 
                     <div>
@@ -140,7 +140,7 @@
         </div>
     </div>
 
-    <script src="/static/js/auth.js?v=2"></script>
+    <script src="/static/js/auth.js?v=3"></script>
     <script>
         function togglePasswordVisibility(inputId, iconId) {
             const passwordInput = document.getElementById(inputId);
@@ -186,14 +186,14 @@
         document.getElementById('coordinatorLoginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const username = document.getElementById('coordinatorUsername').value;
+            const identifier = document.getElementById('coordinatorIdentifier').value;
             const password = document.getElementById('coordinatorPassword').value;
             const loadingDiv = document.getElementById('loadingMessage');
 
             loadingDiv.classList.remove('hidden');
 
             try {
-                const response = await login(username, password);
+                const response = await login(identifier, password);
                 
                 if (response.user.role !== 'coordinator') {
                     throw new Error('Access Denied: This page is for coordinators only.');
