@@ -65,8 +65,10 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="custom-heading text-[#11693A] text-lg block mb-1">Age</label>
-                                <input type="number" id="age" required min="21" max="75" placeholder="Age" class="w-full border-4 border-[#11693A] rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
+                                <label class="custom-heading text-[#11693A] text-lg block mb-1">Faculty ID Upload</label>
+                                <div class="relative">
+                                    <input type="file" id="facultyId" accept="image/*,.pdf" class="w-full border-4 border-[#11693A] rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:bg-[#11693A] file:text-white file:font-semibold hover:file:bg-[#0d522d] text-gray-600">
+                                </div>
                             </div>
                         </div>
 
@@ -83,9 +85,9 @@
 
                         <div>
                             <label class="custom-heading text-[#11693A] text-lg block mb-1">Course / Program</label>
-                            <div class="relative">
-                                <select id="course" required class="w-full border-4 border-[#11693A] rounded-xl p-2 pr-10 appearance-none focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all bg-white text-[#11693A] font-semibold">
-                                    <option value="" disabled selected hidden>Select Course</option>
+                            <div class="relative" id="courseDropdownContainer">
+                                <select id="course" required style="display:none">
+                                    <option value="" disabled selected>Select Course</option>
                                     <option>BS Information Technology (BSIT)</option>
                                     <option>BS Computer Science (BSCS)</option>
                                     <option>Bachelor of Entertainment and Multimedia Computing (BEMC)</option> 
@@ -107,11 +109,14 @@
                                     <option>BS Food Technology</option>
                                     <option>BS Criminology</option>
                                 </select>
+                                <input type="text" id="courseSearch" placeholder="Search course..." autocomplete="off" readonly
+                                    class="w-full border-4 border-[#11693A] rounded-xl p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all bg-white text-[#11693A] font-semibold cursor-pointer">
                                 <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#11693A]">
-                                    <svg class="fill-current h-6 w-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                                    <svg class="fill-current h-6 w-6 transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
                                         <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
                                     </svg>
                                 </div>
+                                <div id="courseDropdownList" class="hidden fixed z-50 bg-white border-2 border-[#11693A] rounded-xl max-h-48 overflow-y-auto shadow-lg"></div>
                             </div>
                         </div>
 
@@ -163,6 +168,159 @@
     <script>
         let currentStep = 1;
 
+        const COURSES = [
+            "BS Information Technology (BSIT)",
+            "BS Computer Science (BSCS)",
+            "Bachelor of Entertainment and Multimedia Computing (BEMC)",
+            "Bachelor of Elementary Education (BEED)",
+            "Bachelor of Secondary Education (BSED)",
+            "Bachelor of Physical Education (BPED)",
+            "BS Business Administration",
+            "BS Entrepreneurship",
+            "BS Management Accounting",
+            "BS Accounting Information System",
+            "BS Hospitality Management",
+            "BS Tourism Management",
+            "BA Political Science",
+            "BA English Language Studies",
+            "BS Psychology",
+            "BS Legal Management",
+            "BS Agriculture",
+            "Bachelor of Agricultural Technology",
+            "BS Food Technology",
+            "BS Criminology"
+        ];
+
+        let selectedCourse = '';
+
+        function initCourseDropdown() {
+            const searchInput = document.getElementById('courseSearch');
+            const dropdownList = document.getElementById('courseDropdownList');
+            const hiddenSelect = document.getElementById('course');
+
+            function buildDropdown(filter) {
+                dropdownList.innerHTML = '';
+                const filtered = filter
+                    ? COURSES.filter(c => c.toLowerCase().includes(filter.toLowerCase()))
+                    : COURSES;
+
+                if (filtered.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'p-3 text-gray-400 text-center';
+                    empty.textContent = 'No courses found';
+                    dropdownList.appendChild(empty);
+                    return;
+                }
+
+                filtered.forEach(course => {
+                    const item = document.createElement('div');
+                    item.className = 'p-3 hover:bg-emerald-100 cursor-pointer text-[#11693A] font-semibold border-b border-gray-100 last:border-b-0 transition-colors';
+                    item.textContent = course;
+                    item.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        selectCourse(course);
+                    });
+                    dropdownList.appendChild(item);
+                });
+            }
+
+            function selectCourse(course) {
+                searchInput.value = course;
+                selectedCourse = course;
+                hiddenSelect.value = course;
+                dropdownList.classList.add('hidden');
+                searchInput.setAttribute('readonly', true);
+                searchInput.classList.remove('border-red-500');
+            }
+
+            function positionDropdown() {
+                const rect = searchInput.getBoundingClientRect();
+                dropdownList.style.top = (rect.bottom + 4) + 'px';
+                dropdownList.style.left = rect.left + 'px';
+                dropdownList.style.width = rect.width + 'px';
+            }
+
+            function openDropdown() {
+                positionDropdown();
+                dropdownList.classList.remove('hidden');
+            }
+
+            function closeDropdown() {
+                dropdownList.classList.add('hidden');
+            }
+
+            searchInput.addEventListener('focus', function() {
+                searchInput.removeAttribute('readonly');
+                buildDropdown(searchInput.value);
+                openDropdown();
+            });
+
+            searchInput.addEventListener('input', function() {
+                buildDropdown(this.value);
+                openDropdown();
+            });
+
+            window.addEventListener('scroll', function() {
+                if (!dropdownList.classList.contains('hidden')) {
+                    positionDropdown();
+                }
+            }, true);
+
+            window.addEventListener('resize', function() {
+                if (!dropdownList.classList.contains('hidden')) {
+                    positionDropdown();
+                }
+            });
+
+            searchInput.addEventListener('blur', function() {
+                setTimeout(function() {
+                    closeDropdown();
+                    if (!selectedCourse) {
+                        searchInput.setAttribute('readonly', true);
+                    }
+                }, 200);
+            });
+
+            document.addEventListener('click', function(e) {
+                const container = document.getElementById('courseDropdownContainer');
+                if (!container.contains(e.target)) {
+                    closeDropdown();
+                    if (!selectedCourse) {
+                        searchInput.setAttribute('readonly', true);
+                    }
+                }
+            });
+
+            searchInput.addEventListener('keydown', function(e) {
+                const items = dropdownList.querySelectorAll('div:not(.text-gray-400)');
+                if (items.length === 0) return;
+
+                const active = dropdownList.querySelector('.bg-emerald-200');
+                let idx = active ? Array.from(items).indexOf(active) : -1;
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    if (active) active.classList.remove('bg-emerald-200');
+                    idx = Math.min(idx + 1, items.length - 1);
+                    items[idx].classList.add('bg-emerald-200');
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    if (active) active.classList.remove('bg-emerald-200');
+                    idx = Math.max(idx - 1, 0);
+                    items[idx].classList.add('bg-emerald-200');
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (active) {
+                        selectCourse(active.textContent);
+                    }
+                } else if (e.key === 'Escape') {
+                    closeDropdown();
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', initCourseDropdown);
+
         function togglePasswordVisibility(inputId, iconId) {
             const passwordInput = document.getElementById(inputId);
             const eyeIcon = document.getElementById(iconId);
@@ -186,10 +344,8 @@
             const step1Inputs = [
                 document.getElementById('fullName'),
                 document.getElementById('gender'),
-                document.getElementById('age'),
                 document.getElementById('contact'),
-                document.getElementById('email'),
-                document.getElementById('course')
+                document.getElementById('email')
             ];
 
             let isStep1Valid = true;
@@ -198,6 +354,14 @@
                     isStep1Valid = false;
                 }
             });
+
+            const courseSearch = document.getElementById('courseSearch');
+            if (!courseSearch.value) {
+                isStep1Valid = false;
+                courseSearch.classList.add('border-red-500');
+            } else {
+                courseSearch.classList.remove('border-red-500');
+            }
 
             if (!isStep1Valid) {
                 form.reportValidity();
@@ -258,6 +422,7 @@
             const fullName = document.getElementById('fullName').value.trim();
             const email = document.getElementById('email').value.trim();
             const contact = document.getElementById('contact').value.trim();
+            const facultyIdFile = document.getElementById('facultyId').files[0];
 
             const { firstName, lastName } = parseFullName(fullName);
             const submitBtn = document.querySelector('button[type="submit"]');
@@ -265,19 +430,23 @@
             submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Registering...';
 
             try {
+                const formData = new FormData();
+                formData.append('username', email);
+                formData.append('email', email);
+                formData.append('first_name', firstName);
+                formData.append('last_name', lastName);
+                formData.append('password', pass);
+                formData.append('password2', confirmPass);
+                formData.append('role', 'coordinator');
+                formData.append('phone_number', contact);
+                formData.append('course', selectedCourse);
+                if (facultyIdFile) {
+                    formData.append('faculty_id', facultyIdFile);
+                }
+
                 const response = await fetch('/api/auth/register/', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        username: email,
-                        email: email,
-                        first_name: firstName,
-                        last_name: lastName,
-                        password: pass,
-                        password2: confirmPass,
-                        role: 'coordinator',
-                        phone_number: contact
-                    })
+                    body: formData
                 });
 
                 const data = await response.json();

@@ -43,6 +43,9 @@
         .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
         .detail-label { font-weight: 600; color: #11693A; }
         .detail-value { color: #666; }
+        .faculty-id-row { flex-direction: column; align-items: flex-start; gap: 8px; }
+        .faculty-id-img { max-width: 100%; max-height: 300px; border-radius: 8px; border: 2px solid #e5e7eb; object-fit: contain; cursor: pointer; transition: transform 0.2s; }
+        .faculty-id-img:hover { transform: scale(1.02); }
     </style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col md:flex-row p-0 m-0 relative">
@@ -871,7 +874,9 @@
                         email: item.email || 'N/A',
                         username: item.username || 'N/A',
                         status: item.is_active ? 'Active' : 'Inactive',
-                        approval_status: item.approval_status || 'approved'
+                        approval_status: item.approval_status || 'approved',
+                        faculty_id: item.faculty_id || null,
+                        course: item.course || 'N/A'
                     };
                 });
                 renderCoordinatorTable();
@@ -918,11 +923,23 @@
             if (!coord) return;
             const details = document.getElementById('coordViewDetails');
             if (details) {
+                let facultyIdHtml = '';
+                if (coord.faculty_id) {
+                    facultyIdHtml = `
+                        <div class="detail-row faculty-id-row">
+                            <span class="detail-label">Faculty ID:</span>
+                            <span class="detail-value"><img src="${coord.faculty_id}" alt="Faculty ID" class="faculty-id-img"></span>
+                        </div>
+                    `;
+                } else {
+                    facultyIdHtml = `<div class="detail-row"><span class="detail-label">Faculty ID:</span><span class="detail-value">Not uploaded</span></div>`;
+                }
                 details.innerHTML = `
                     <div class="detail-row"><span class="detail-label">Name:</span><span class="detail-value">${coord.name}</span></div>
                     <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">${coord.email}</span></div>
-                    <div class="detail-row"><span class="detail-label">Department:</span><span class="detail-value">${coord.department}</span></div>
+                    <div class="detail-row"><span class="detail-label">Course:</span><span class="detail-value">${coord.course}</span></div>
                     <div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value">${coord.status}</span></div>
+                    ${facultyIdHtml}
                 `;
             }
             openModal('coordViewModal');

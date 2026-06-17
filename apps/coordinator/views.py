@@ -109,11 +109,17 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='my-students')
     def my_students(self, request):
-        """Get all students in coordinator's programs."""
+        """Get all students in coordinator's programs, filtered by course."""
         coordinator = request.user
         applications = OJTApplication.objects.filter(
             program__coordinator=coordinator
         ).select_related('student', 'program').order_by('-created_at')
+        
+        coordinator_course = coordinator.course
+        if coordinator_course:
+            applications = applications.filter(
+                student__student_profile__course=coordinator_course
+            )
         
         # Build student data with program info
         students_data = []

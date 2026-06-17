@@ -7,7 +7,7 @@ class AdminUserSerializer(serializers.ModelSerializer):
     """Serializer for admin user management."""
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'approval_status', 'is_active', 'created_at')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'approval_status', 'is_active', 'created_at', 'phone_number', 'course', 'faculty_id')
         read_only_fields = ('id', 'created_at')
 
 
