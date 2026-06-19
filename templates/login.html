@@ -18,6 +18,18 @@
             background-attachment: fixed;
         }
 
+        .dot-spinner {
+            --uib-size: 2.8rem;
+            --uib-speed: .9s;
+            --uib-color: white;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: var(--uib-size);
+            width: var(--uib-size);
+        }
+
         .dot-spinner__dot {
             position: absolute;
             top: 0;
@@ -170,9 +182,9 @@
                 setTimeout(() => el.remove(), 300);
             }
 
-            toast.innerHTML = '<i data-lucide="circle-alert" class="shrink-0" style="width:18px;height:18px;color:#E11D48;"></i><span class="flex-1">' + message + '</span><button onclick="dismissToast(this.parentElement)" class="text-slate-400 hover:text-slate-600 p-1 transition-colors"><i data-lucide="x" style="width:14px;height:14px;"></i></button>';
-            lucide.createIcons();
+            toast.innerHTML = '<i data-lucide="alert-circle" class="shrink-0" style="width:18px;height:18px;color:#E11D48;"></i><span class="flex-1">' + message + '</span><button onclick="dismissToast(this.parentElement)" class="text-slate-400 hover:text-slate-600 p-1 transition-colors"><i data-lucide="x" style="width:14px;height:14px;"></i></button>';
             document.body.appendChild(toast);
+            lucide.createIcons();
 
             setTimeout(() => dismissToast(toast), 3000);
         }
