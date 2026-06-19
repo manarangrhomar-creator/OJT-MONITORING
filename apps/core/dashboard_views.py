@@ -10,7 +10,7 @@ def role_required(*required_roles):
     def decorator(view_func):
         def wrapper(request, *args, **kwargs):
             if not request.user.is_authenticated:
-                return redirect('coordinator-login')
+                return redirect('login')
 
             if request.user.role not in required_roles:
                 return HttpResponseForbidden('Access Denied: You do not have permission to view this page.')
@@ -20,21 +20,21 @@ def role_required(*required_roles):
     return decorator
 
 
-@login_required(login_url='admin-login')
+@login_required(login_url='login')
 @role_required('admin')
 def admin_dashboard(request):
     """Admin dashboard view."""
     return render(request, 'admin_dashboard.html')
 
 
-@login_required(login_url='student-login')
+@login_required(login_url='login')
 @role_required('student')
 def student_dashboard(request):
     """Student dashboard view."""
     return render(request, 'student_dashboard.html')
 
 
-@login_required(login_url='coordinator-login')
+@login_required(login_url='login')
 @role_required('coordinator')
 def coordinator_dashboard(request):
     """Coordinator dashboard view."""

@@ -28,12 +28,13 @@ urlpatterns = [
     
     # Frontend Pages - MUST come before admin/
     # Authentication
-    path('auth/admin/login/', TemplateView.as_view(template_name='admin_login.html'), name='admin-login'),
-    path('auth/coordinator/login/', TemplateView.as_view(template_name='coordinator_login.html'), name='coordinator-login'),
+    path('auth/login/', TemplateView.as_view(template_name='login.html'), name='login'),
+    path('auth/admin/login/', RedirectView.as_view(pattern_name='login', permanent=True)),
+    path('auth/coordinator/login/', RedirectView.as_view(pattern_name='login', permanent=True)),
     path('auth/coordinator/register/', TemplateView.as_view(template_name='coordinator_register.html'), name='coordinator-register'),
     path('auth/forgotpassword/', TemplateView.as_view(template_name='forgot_password.html'), name='forgotpassword'),
     path('auth/coordinator/forgotpassword/', RedirectView.as_view(pattern_name='forgotpassword', permanent=False), name='coordinator-forgotpassword'),
-    path('auth/student/login/', TemplateView.as_view(template_name='ojtstudent_login.html'), name='student-login'),
+    path('auth/student/login/', RedirectView.as_view(pattern_name='login', permanent=True)),
     path('auth/student/register/', TemplateView.as_view(template_name='ojtstudent_register.html'), name='student-register'),
     path('auth/student/forgotpassword/', RedirectView.as_view(pattern_name='forgotpassword', permanent=False), name='student-forgotpassword'),
     path('auth/logout/', logout_view, name='logout'),

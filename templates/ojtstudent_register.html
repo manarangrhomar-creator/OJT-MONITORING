@@ -31,14 +31,18 @@
                      class="w-full h-full object-contain">
             </div>
             <p class="custom-text mb-4 font-medium italic opacity-90 text-sm text-center">Already have an account?</p>
-            <a href="{% url 'student-login' %}" class="w-full max-w-[200px] border-2 border-white rounded-full py-2 px-6 font-bold hover:bg-white hover:text-[#11693A] transition-all duration-300 text-center">
+            <a href="{% url 'login' %}" class="w-full max-w-[200px] border-2 border-white rounded-full py-2 px-6 font-bold hover:bg-white hover:text-[#11693A] transition-all duration-300 text-center">
                 Login
+            </a>
+            <p class="custom-text mt-4 mb-2 font-medium italic opacity-90 text-sm text-center">Register as a Coordinator instead?</p>
+            <a href="{% url 'coordinator-register' %}" class="w-full max-w-[200px] border-2 border-white rounded-full py-2 px-6 font-bold hover:bg-white hover:text-[#11693A] transition-all duration-300 text-center">
+                Coordinator
             </a>
         </div>
 
         <div class="w-full md:w-[60%] p-8 md:p-12 relative flex flex-col justify-center">
             
-            <a href="{% url 'student-login' %}" class="absolute top-8 left-8 w-10 h-10 flex items-center justify-center rounded-full border border-gray-200 hover:bg-gray-100 transition-all shadow-sm text-[#11693A]">
+            <a href="{% url 'login' %}" class="absolute top-8 left-8 w-10 h-10 flex items-center justify-center rounded-full border border-gray-200 hover:bg-gray-100 transition-all shadow-sm text-[#11693A]">
                 <i data-lucide="chevron-left" class="w-5 h-5"></i>
             </a>
             
@@ -355,7 +359,7 @@
 
                 if (response.ok) {
                     alert('Account created! Please wait for coordinator approval before you can log in.');
-                    window.location.href = '/auth/student/login/';
+                    window.location.href = '/auth/login/';
                 } else {
                     const errMsg = typeof data === 'object' ? Object.values(data).flat().join('\n') : 'Registration failed';
                     alert(errMsg);

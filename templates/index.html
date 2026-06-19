@@ -38,18 +38,12 @@
                 <h2 class="text-xl md:text-2xl font-bold mt-2 text-[#11693A]">Cauayan City, Isabela</h2>
             </div>
 
-            <div class="space-y-5 max-w-sm mx-auto w-full">
-                
-                <a href="/auth/admin/login/" class="custom-btn block w-full text-center bg-[#11693A] hover:bg-[#0d522d] text-white text-lg font-semibold py-4 rounded-full transition-all duration-300 transform hover:scale-[1.01] shadow-md">
-                    Admin
+            <div class="space-y-4 max-w-sm mx-auto w-full">
+                <a href="{% url 'login' %}" class="custom-btn block w-full text-center bg-[#11693A] hover:bg-[#0d522d] text-white text-lg font-semibold py-4 rounded-full transition-all duration-300 transform hover:scale-[1.01] shadow-md">
+                    Sign In
                 </a>
-
-                <a href="/auth/coordinator/login/" class="custom-btn block w-full text-center bg-[#11693A] hover:bg-[#0d522d] text-white text-lg font-semibold py-4 rounded-full transition-all duration-300 transform hover:scale-[1.01] shadow-md">
-                    OJT Coordinator
-                </a>
-
-                <a href="/auth/student/login/" class="custom-btn block w-full text-center bg-[#11693A] hover:bg-[#0d522d] text-white text-lg font-semibold py-4 rounded-full transition-all duration-300 transform hover:scale-[1.01] shadow-md">
-                    OJT Student
+                <a href="{% url 'student-register' %}" class="custom-btn block w-full text-center border-2 border-[#11693A] text-[#11693A] hover:bg-[#11693A] hover:text-white text-lg font-semibold py-4 rounded-full transition-all duration-300 transform hover:scale-[1.01] shadow-md">
+                    Sign Up
                 </a>
             </div>
             
