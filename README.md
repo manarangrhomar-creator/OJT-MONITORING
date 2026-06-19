@@ -1,95 +1,196 @@
-# OJT Monitoring System - Django
+<p align="center">
+  <img src="https://img.shields.io/badge/Python-3.8%2B-blue?logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/Django-4.2-green?logo=django&logoColor=white" alt="Django">
+  <img src="https://img.shields.io/badge/DRF-3.14-red?logo=django&logoColor=white" alt="DRF">
+  <img src="https://img.shields.io/badge/PostgreSQL-12%2B-blue?logo=postgresql&logoColor=white" alt="PostgreSQL">
+  <img src="https://img.shields.io/badge/License-MIT-yellow" alt="License">
+  <img src="https://img.shields.io/badge/Status-In%20Development-orange" alt="Status">
+</p>
 
-A comprehensive Django-based OJT (On-the-Job Training) Monitoring System for Isabela State University with role-based authentication for Admins, Coordinators, and Students.
+<h1 align="center">OJT Monitoring System</h1>
+<p align="center">
+  <em>A comprehensive Django-based On-the-Job Training Monitoring System for Isabela State University</em>
+</p>
 
-PS. i run mo yung setup.bat para mainstall na lahat ng requirements 
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [System Architecture](#system-architecture)
+- [Workflows](#workflows)
+  - [Student Workflow](#-student-workflow)
+  - [Coordinator Workflow](#-coordinator-workflow)
+- [Installation](#installation)
+- [API Endpoints](#api-endpoints)
+- [Database Models](#database-models)
+- [Implementation Status](#implementation-status)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
+## Overview
+
+The **OJT Monitoring System** streamlines the entire On-the-Job Training lifecycle at Isabela State University, from student registration and site assignment to daily attendance tracking, facial recognition verification, and performance evaluation. The system supports three roles: **Admin**, **Coordinator**, and **Student**, each with dedicated dashboards and workflows.
+
+> PS. Run `setup.bat` to install all requirements automatically.
+
+---
 
 ## Features
 
-- **Role-Based Authentication**: Admin, Coordinator, and Student roles with specific dashboards
-- **OJT Program Management**: Create and manage OJT programs
-- **Application Management**: Student applications with approval/rejection workflow
-- **Attendance Tracking**: Track student attendance with clock in/out functionality
-- **Facial Recognition**: Integration for facial recognition-based attendance
-- **Admin Dashboard**: System administration and user management
-- **RESTful API**: Complete API documentation with Swagger UI
-- **Database**: PostgreSQL for robust data management
-- **Security**: CORS, CSRF protection, password validation
+| Feature | Description |
+|---------|-------------|
+| :busts_in_silhouette: **Role-Based Auth** | Admin, Coordinator, and Student roles with gated dashboards |
+| :school: **OJT Program Management** | Create, manage, and monitor training programs |
+| :page_facing_up: **Application Workflow** | Student applications with approval/rejection by coordinators |
+| :clock3: **Attendance Tracking** | Clock in/out with facial recognition verification |
+| :camera: **Facial Recognition** | LBPH-based face enrollment and verification via webcam |
+| :bar_chart: **Admin Dashboard** | User management, system logs, and coordinator approvals |
+| :globe_with_meridians: **RESTful API** | Full API with Swagger/OpenAPI documentation |
+| :lock: **Security** | Token authentication, login attempt tracking, role-based permissions |
 
-## Project Structure
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| **Backend** | Python 3.8+, Django 4.2, Django REST Framework 3.14 |
+| **Database** | PostgreSQL 12+ |
+| **Face Recognition** | OpenCV (LBPH algorithm) |
+| **Frontend** | Django Templates, Tailwind CSS (CDN), Vanilla JS |
+| **Authentication** | DRF Token Authentication + Django Sessions |
+| **API Docs** | drf-spectacular (Swagger UI) |
+| **Container** | Docker, docker-compose |
+
+---
+
+## System Architecture
 
 ```
 ojt_monitoring/
 ├── manage.py
 ├── requirements.txt
 ├── .env.example
-├── .gitignore
-├── ojt_monitoring/           # Project settings
-│   ├── settings.py          # Django configuration (PostgreSQL)
-│   ├── urls.py              # Main URL routing
-│   ├── wsgi.py
-│   ├── asgi.py
-│   └── __init__.py
+├── Dockerfile / docker-compose.yml
+├── ojt_monitoring/           # Project configuration
+│   ├── settings.py           # Django configuration (PostgreSQL)
+│   ├── urls.py               # Main URL routing
+│   ├── wsgi.py / asgi.py
+│   └── middleware.py         # CSRF exemption middleware
 ├── apps/
-│   ├── core/                # Base models and user management
-│   ├── authentication/       # Login, registration, password reset
-│   ├── admin_panel/         # Admin dashboard and system logs
-│   ├── coordinator/         # OJT programs, applications, attendance
-│   └── student/             # Student profiles, facial recognition
-├── static/                  # CSS, JavaScript, images
-├── media/                   # User uploads (profile pictures, documents)
-├── templates/               # HTML templates (to be created in Phase 4)
-└── logs/                    # Application logs
+│   ├── core/                 # Base models (User), dashboard routing, utilities
+│   ├── authentication/       # Login, registration, login attempt tracking
+│   ├── admin_panel/          # Admin dashboard, user CRUD, system logs
+│   ├── coordinator/          # OJT programs, applications, attendance, reports
+│   └── student/              # Student profiles, facial recognition, dashboard
+├── static/                   # CSS, JavaScript, images
+├── media/                    # User uploads (profile pictures, documents)
+├── templates/                # Django HTML templates (Tailwind CSS)
+└── logs/                     # Application logs
 ```
+
+---
+
+## Workflows
+
+### :bust_in_silhouette: Student Workflow
+
+```
+Registration → Application → Coordinator Approval → Biometric Enrollment
+                                                         ↓
+                                              Site Assignment by Coordinator
+                                                         ↓
+┌────────────────────────────────────────────────────────────────────┐
+│                    Daily Attendance Phase                          │
+│                                                                   │
+│  Time-In (Webcam Facial Recognition)                              │
+│       ↓ (fail → retry)                                            │
+│  Submit Daily Narrative Report                                    │
+│       ↓                                                           │
+│  Time-Out (Webcam)                                                │
+└────────────────────────────────────────────────────────────────────┘
+         ↓
+┌────────────────────────────────────────────────────────────────────┐
+│  Post-Attendance Logic                                            │
+│                                                                   │
+│  Was manual time-out captured?                                    │
+│  ├── YES → Record finalized                                       │
+│  └── NO  → Automated Timeout triggered → Flagged for Review      │
+└────────────────────────────────────────────────────────────────────┘
+         ↓
+  View Progress & Time-Tracking Records
+```
+
+### :busts_in_silhouette: Coordinator Workflow
+
+```
+Login → Dashboard
+         ↓
+├── Assign Students to Sites
+├── Monitor Live/Recorded Attendance
+├── Review & Evaluate Narrative Reports
+├── Review Flagged/Automated Timeouts
+└── Review Time-Tracking Records
+```
+
+---
 
 ## Installation
 
 ### Prerequisites
+
 - Python 3.8+
 - PostgreSQL 12+
 - pip and virtualenv
 
-### Step 1: Clone the Repository
+### Quick Start
+
 ```bash
+# 1. Clone the repository
 git clone <repository-url>
 cd ojt_monitoring
-```
 
-### Step 2: Create Virtual Environment
-```bash
+# 2. Create virtual environment
 python -m venv venv
 
-# On Windows
+# Windows
 venv\Scripts\activate
 
-# On macOS/Linux
+# macOS/Linux
 source venv/bin/activate
-```
 
-### Step 3: Install Dependencies
-```bash
+# 3. Install dependencies
 pip install -r requirements.txt
-```
 
-### Step 4: Configure PostgreSQL Database
-```bash
-# Create PostgreSQL database
+# 4. Configure PostgreSQL database
 createdb ojt_monitoring_db
+createuser ojt_admin -P
 
-# Create database user
-createuser ojt_admin -P  # Enter password when prompted
-```
-
-### Step 5: Create Environment Variables
-```bash
-# Copy the example environment file
+# 5. Configure environment variables
 cp .env.example .env
+# Edit .env with your database credentials
 
-# Edit .env with your configuration
-# Update DATABASE credentials, SECRET_KEY, etc.
+# 6. Apply migrations
+python manage.py makemigrations
+python manage.py migrate
+
+# 7. Create superuser
+python manage.py createsuperuser
+
+# 8. Run development server
+python manage.py runserver
 ```
 
-**Key Environment Variables:**
+The application will be available at `http://localhost:8000`
+
+### Key Environment Variables
+
 ```
 DEBUG=True
 SECRET_KEY=your-secret-key-change-in-production
@@ -102,103 +203,169 @@ DB_PORT=5432
 ALLOWED_HOSTS=localhost,127.0.0.1
 ```
 
-### Step 6: Apply Database Migrations
-```bash
-python manage.py makemigrations
-python manage.py migrate
-```
-
-### Step 7: Create Superuser
-```bash
-python manage.py createsuperuser
-```
-
-### Step 8: Run Development Server
-```bash
-python manage.py runserver
-```
-
-The application will be available at `http://localhost:8000`
+---
 
 ## API Endpoints
 
-### Authentication
-- `POST /api/auth/register/` - Register new user
-- `POST /api/auth/login/` - User login
-- `POST /api/auth/logout/` - User logout
-- `GET /api/auth/me/` - Get current user
-- `POST /api/auth/change_password/` - Change password
+### :lock: Authentication
 
-### Admin Panel
-- `GET /api/admin/dashboard/dashboard_stats/` - Dashboard statistics
-- `GET /api/admin/dashboard/system_logs/` - System logs
-- `GET/POST /api/admin/users/` - User management
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/auth/register/` | Register new user |
+| POST | `/api/auth/login/` | User login |
+| POST | `/api/auth/logout/` | User logout |
+| GET | `/api/auth/me/` | Get current user |
+| POST | `/api/auth/change_password/` | Change password |
 
-### Coordinator
-- `GET/POST /api/coordinator/programs/` - OJT programs
-- `GET/POST /api/coordinator/applications/` - Manage applications
-- `POST /api/coordinator/applications/{id}/approve/` - Approve application
-- `POST /api/coordinator/applications/{id}/reject/` - Reject application
-- `GET/POST /api/coordinator/attendance/` - Attendance tracking
-- `POST /api/coordinator/attendance/clock_in/` - Clock in
-- `POST /api/coordinator/attendance/{id}/clock_out/` - Clock out
+### :wrench: Admin Panel
 
-### Student
-- `GET /api/student/dashboard/dashboard/` - Student dashboard
-- `GET /api/student/dashboard/my_applications/` - My applications
-- `GET /api/student/dashboard/my_attendance/` - My attendance
-- `GET/POST /api/student/profile/` - Profile management
-- `GET /api/student/profile/my_profile/` - My profile
-- `PUT/PATCH /api/student/profile/update_profile/` - Update profile
-- `GET/POST /api/student/facial/` - Facial recognition
-- `POST /api/student/facial/enroll_face/` - Enroll face
-- `POST /api/student/facial/verify_face/` - Verify face
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/admin/dashboard/dashboard_stats/` | Dashboard statistics |
+| GET | `/api/admin/dashboard/system_logs/` | System activity logs |
+| GET/POST | `/api/admin/users/` | User management |
 
-## Admin Interface
-Access the Django admin interface at `http://localhost:8000/admin/`
+### :busts_in_silhouette: Coordinator
 
-Manage:
-- Users and roles
-- OJT Programs
-- Applications
-- Attendance records
-- System logs
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET/POST | `/api/coordinator/programs/` | OJT program CRUD |
+| GET/POST | `/api/coordinator/applications/` | Manage applications |
+| POST | `/api/coordinator/applications/{id}/approve/` | Approve application |
+| POST | `/api/coordinator/applications/{id}/reject/` | Reject application |
+| POST | `/api/coordinator/attendance/clock_in/` | Clock in |
+| POST | `/api/coordinator/attendance/{id}/clock_out/` | Clock out |
+| GET | `/api/coordinator/dashboard/my-students/` | My students |
+| GET/POST | `/api/coordinator/narrative-reports/` | Narrative reports |
 
-## API Documentation
-- Swagger UI: `http://localhost:8000/api/docs/`
-- Schema: `http://localhost:8000/api/schema/`
+### :student: Student
 
-## Static Files and Media
-- Static files (CSS, JS, images): `static/`
-- User uploads: `media/`
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/student/dashboard/dashboard/` | Student dashboard |
+| GET | `/api/student/dashboard/my_applications/` | My applications |
+| GET | `/api/student/dashboard/my_attendance/` | My attendance records |
+| GET | `/api/student/profile/my_profile/` | My profile |
+| PUT | `/api/student/profile/update_profile/` | Update profile |
+| POST | `/api/student/facial/enroll_face/` | Enroll facial biometrics |
+| POST | `/api/student/facial/verify_face/` | Verify face for attendance |
 
-Collect static files for production:
-```bash
-python manage.py collectstatic --noinput
-```
+> **API Documentation:** Swagger UI at `http://localhost:8000/api/docs/` | OpenAPI Schema at `http://localhost:8000/api/schema/`
 
-## Testing
+---
 
-Run tests with:
-```bash
-python manage.py test
-```
+## Database Models
+
+### :bust_in_silhouette: Core
+
+| Model | Description |
+|-------|-------------|
+| **User** | Extended Django `AbstractUser` with role (admin/coordinator/student), approval status, phone, course, profile picture, faculty ID |
+| **BaseModel** | Abstract base with auto `created_at` / `updated_at` timestamps |
+
+### :key: Authentication
+
+| Model | Description |
+|-------|-------------|
+| **LoginAttempt** | Tracks login IP, success/failure, user agent for security auditing |
+
+### :wrench: Admin Panel
+
+| Model | Description |
+|-------|-------------|
+| **SystemLog** | Records system activities (user created/deleted, approvals, reports) |
+| **SystemSettings** | Key-value store for system-wide configuration |
+
+### :busts_in_silhouette: Coordinator
+
+| Model | Description |
+|-------|-------------|
+| **OJTProgram** | OJT program details (name, description, dates, location, max students, coordinator) |
+| **OJTApplication** | Student applications linking to programs (status: pending/approved/rejected/completed) |
+| **Attendance** | Daily attendance records (date, time-in, time-out, facial recognition flag, notes) |
+| **NarrativeReport** | Coordinator-created performance reports (rating, attendance status) |
+
+### :student: Student
+
+| Model | Description |
+|-------|-------------|
+| **StudentProfile** | Extended profile (student ID, department, course, year level, GPA) |
+| **FacialRecognition** | LBPH facial encodings with verification status and date |
+
+---
+
+## Implementation Status
+
+### :green_circle: Fully Implemented
+
+| # | Feature | Notes |
+|---|---------|-------|
+| 1 | :busts_in_silhouette: Role-based authentication | Admin, Coordinator, Student with DRF tokens |
+| 2 | :door: User registration & login | Email/ID login, token session management |
+| 3 | :key: Password change | Requires old password |
+| 4 | :bust_in_silhouette: Admin user management | CRUD for students & coordinators |
+| 5 | :white_check_mark: Admin coordinator approval | Pending/approved/rejected workflow |
+| 6 | :books: OJT Program CRUD | Create, update, manage programs |
+| 7 | :page_facing_up: OJT Application workflow | Submit & approve/reject applications |
+| 8 | :camera: Facial recognition enrollment | Webcam capture, LBPH encoding storage |
+| 9 | :camera: Facial recognition verification | Webcam-based identity verification |
+| 10 | :clock3: Attendance time-in/time-out API | Coordinator-side clock in/out |
+| 11 | :pencil: Narrative report creation | Coordinator creates performance reports |
+| 12 | :bar_chart: System activity logging | Login attempts, admin actions |
+| 13 | :globe_with_meridians: Swagger API docs | Auto-generated OpenAPI documentation |
+| 14 | :whale: Docker support | Dockerfile + docker-compose.yml |
+
+### :yellow_circle: Partially Implemented
+
+| # | Feature | What's Missing |
+|---|---------|----------------|
+| 1 | :bar_chart: **Student Dashboard** | UI mockup with hardcoded hours — not connected to real API data |
+| 2 | :memo: **Student Narrative Submission** | Frontend form exists but no backend API or database model |
+| 3 | :file_cabinet: **Student Narrative Archive** | Archive section uses hardcoded mock data |
+| 4 | :chart_with_upwards_trend: **Progress Tracking** | Hours displayed are hardcoded (120.5/480); `/my_attendance` API not wired to UI |
+| 5 | :eyes: **Coordinator Attendance Monitoring** | API exists but dashboard integration is incomplete |
+| 6 | :link: **Site Assignment** | Students apply to programs, but no dedicated "map to site" UI for coordinators |
+| 7 | :unlock: **Forgot Password** | 3-step frontend UI (email → OTP → new password) but no backend API |
+
+### :red_circle: Not Implemented
+
+| # | Feature | Description |
+|---|---------|-------------|
+| 1 | :camera: **Student Webcam Time-Out** | No student-facing clock-out flow via webcam |
+| 2 | :alarm_clock: **Automated Timeout** | No auto-clockout logic when manual time-out is missed |
+| 3 | :triangular_flag_on_post: **Flagged Records System** | No model or logic to flag exceptions for manual review |
+| 4 | :memo: **Student Daily Narrative Backend** | No model or API for student-submitted daily reports |
+| 5 | :framed_picture: **Photo Upload for Reports** | 4 photo slots in UI but no model field or upload API |
+| 6 | :round_pushpin: **Geolocation Verification** | No GPS/IP-based location check during attendance |
+| 7 | :bell: **Notification System** | No email, SMS, or in-app notifications |
+| 8 | :chart_with_upwards_trend: **Reporting & Analytics** | No charts, PDF/CSV exports, or data visualizations |
+| 9 | :arrows_counterclockwise: **Celery/Redis Task Queue** | Dependencies in `requirements.txt` but no tasks defined |
+| 10 | :stopwatch: **Rate Limiting** | No brute-force protection on login endpoints |
+| 11 | :e-mail: **Email Verification** | No email confirmation on registration |
+| 12 | :test_tube: **Test Coverage** | Test files are auto-generated placeholders only |
+
+---
+
+
 
 ## Deployment
 
 ### Using Gunicorn
+
 ```bash
 pip install gunicorn
 gunicorn ojt_monitoring.wsgi:application --bind 0.0.0.0:8000
 ```
 
 ### Using Docker
+
 ```bash
 docker build -t ojt-monitoring .
 docker run -p 8000:8000 ojt-monitoring
 ```
 
 ### Production Checklist
+
 1. Set `DEBUG=False`
 2. Generate a strong `SECRET_KEY`
 3. Configure `ALLOWED_HOSTS`
@@ -208,56 +375,7 @@ docker run -p 8000:8000 ojt-monitoring
 7. Configure static files serving (WhiteNoise or separate web server)
 8. Set up logging and monitoring
 
-## Database Models
-
-### Core
-- **User**: Extended Django user with role-based access
-- **BaseModel**: Abstract base model with timestamps
-
-### Authentication
-- **LoginAttempt**: Track login attempts for security
-
-### Admin Panel
-- **SystemLog**: Log system activities
-- **SystemSettings**: Store system-wide settings
-
-### Coordinator
-- **OJTProgram**: OJT program information
-- **OJTApplication**: Student applications
-- **Attendance**: Attendance tracking records
-
-### Student
-- **StudentProfile**: Extended student profile
-- **FacialRecognition**: Facial recognition data
-
-## Next Phases
-
-### Phase 2: Database & Models ✓
-Database schema and models created with relationships
-
-### Phase 3: Authentication & Authorization
-- JWT token authentication
-- Advanced permission system
-- Facial recognition integration
-
-### Phase 4: Frontend Templates
-- Convert HTML templates to Django templates
-- Implement Tailwind CSS styling
-- Interactive forms and dashboards
-
-### Phase 5: Views & URLs
-- Complete REST API endpoints
-- OJT program management
-- Attendance & approval workflow
-
-### Phase 6: Frontend Integration
-- Tailwind CSS setup
-- JavaScript integration
-- Real-time updates
-
-### Phase 7: Testing & Deployment
-- Unit and integration tests
-- Production deployment configuration
+---
 
 ## Contributing
 
@@ -266,21 +384,24 @@ Database schema and models created with relationships
 3. Push to the branch (`git push origin feature/AmazingFeature`)
 4. Open a Pull Request
 
+---
+
 ## License
 
 This project is licensed under the MIT License.
 
-## Support
-
-For issues and support, please contact the development team or create an issue in the repository.
+---
 
 ## Acknowledgments
 
-- Isabela State University
-- Django Framework
-- Django REST Framework
-- PostgreSQL
+- **Isabela State University** — Project sponsor and stakeholder
+- **Django Framework** & **Django REST Framework** — Backend framework
+- **OpenCV** — Computer vision library for facial recognition
 
 ---
 
-**Last Updated**: May 26, 2026
+<p align="center">
+  <sub>Built with :heart: for Isabela State University</sub>
+  <br>
+  <sub>Last Updated: June 2026</sub>
+</p>
