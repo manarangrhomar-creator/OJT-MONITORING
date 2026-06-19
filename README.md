@@ -314,18 +314,18 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 | 12 | :bar_chart: System activity logging | Login attempts, admin actions |
 | 13 | :globe_with_meridians: Swagger API docs | Auto-generated OpenAPI documentation |
 | 14 | :whale: Docker support | Dockerfile + docker-compose.yml |
+| 15 | :bar_chart: **Student Dashboard** | Live API data, dynamic hours display, attendance history table |
+| 16 | :chart_with_upwards_trend: **Progress Tracking** | Rendered/remaining hours calculated from real attendance data |
 
 ### :yellow_circle: Partially Implemented
 
 | # | Feature | What's Missing |
 |---|---------|----------------|
-| 1 | :bar_chart: **Student Dashboard** | UI mockup with hardcoded hours — not connected to real API data |
-| 2 | :memo: **Student Narrative Submission** | Frontend form exists but no backend API or database model |
-| 3 | :file_cabinet: **Student Narrative Archive** | Archive section uses hardcoded mock data |
-| 4 | :chart_with_upwards_trend: **Progress Tracking** | Hours displayed are hardcoded (120.5/480); `/my_attendance` API not wired to UI |
-| 5 | :eyes: **Coordinator Attendance Monitoring** | API exists but dashboard integration is incomplete |
-| 6 | :link: **Site Assignment** | Students apply to programs, but no dedicated "map to site" UI for coordinators |
-| 7 | :unlock: **Forgot Password** | 3-step frontend UI (email → OTP → new password) but no backend API |
+| 1 | :memo: **Student Narrative Submission** | Frontend form exists but no backend API or database model |
+| 2 | :file_cabinet: **Student Narrative Archive** | Archive section uses hardcoded mock data |
+| 3 | :eyes: **Coordinator Attendance Monitoring** | API exists but dashboard integration is incomplete |
+| 4 | :link: **Site Assignment** | Students apply to programs, but no dedicated "map to site" UI for coordinators |
+| 5 | :unlock: **Forgot Password** | 3-step frontend UI (email → OTP → new password) but no backend API |
 
 ### :red_circle: Not Implemented
 

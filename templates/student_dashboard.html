@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="/static/js/auth.js"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #eaf4ec; }
         .isu-header-font { font-weight: 900; color: #11693A; }
@@ -61,7 +62,7 @@
         
         <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center pl-4 pr-6 pt-4 md:pl-6 md:pr-8 md:pt-6 pb-4 gap-3 shrink-0">
             <div>
-                <h1 class="text-2xl md:text-4xl isu-header-font tracking-tight">Welcome, User!</h1>
+                <h1 id="welcomeHeading" class="text-2xl md:text-4xl isu-header-font tracking-tight">Welcome, User!</h1>
                 <p id="pageSubtitle" class="text-[11px] md:text-xs text-slate-500 font-bold mt-0.5 uppercase tracking-wider">Dashboard Overview Session</p>
             </div>
             <button id="btnLogout" class="bg-[#11693A] hover:bg-[#0e5630] text-white text-xs font-bold px-5 py-2 md:px-6 md:py-2.5 transition shadow-sm flex items-center gap-2 rounded-lg self-end sm:self-auto">
@@ -90,12 +91,20 @@
                     <div class="w-10 h-10 md:w-12 md:h-12 bg-amber-500 rounded-xl flex items-center justify-center text-white shadow-sm"><i class="fa-solid fa-hourglass-half text-lg md:text-xl"></i></div>
                     <div>
                         <p class="text-[10px] font-bold text-amber-700 uppercase tracking-wider">Remaining Balance</p>
-                        <h3 class="text-lg md:text-xl font-black text-slate-800">359.5 <span class="text-xs font-normal">hrs</span></h3>
+                        <h3 class="text-lg md:text-xl font-black text-slate-800"><span id="remaining-hours">359.5</span> <span class="text-xs font-normal">hrs</span></h3>
                     </div>
                 </div>
             </div>
 
             <div id="sectionDashboard" class="space-y-6">
+                <div class="bg-slate-50 p-4 md:p-6 rounded-[25px] border border-slate-200">
+                    <div class="flex items-center gap-3 mb-4">
+                        <i class="fa-solid fa-clock-rotate-left text-[#11693A]"></i>
+                        <h3 class="font-black text-sm text-[#11693A] uppercase">Attendance History</h3>
+                    </div>
+                    <div id="attendanceHistory" class="text-xs text-slate-500">Loading attendance records...</div>
+                </div>
+
                 <div class="bg-slate-50 p-4 md:p-6 rounded-[25px] border border-slate-200">
                     
                     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3 mb-6">
@@ -284,7 +293,12 @@
     </div>
 
     <script>
-        // MOBILE HAMBURGER MECHANICS
+        // ===== AUTH GUARD =====
+        if (!protectDashboard('student')) { throw new Error('Access denied'); }
+
+        const token = getAuthToken();
+
+        // ===== MOBILE HAMBURGER MECHANICS =====
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const closeMobileMenuBtn = document.getElementById('closeMobileMenuBtn');
         const sidebar = document.getElementById('sidebar');
@@ -299,7 +313,7 @@
         closeMobileMenuBtn.addEventListener('click', toggleMobileMenu);
         sidebarOverlay.addEventListener('click', toggleMobileMenu);
 
-        // NAVIGATION TABS ENGINE
+        // ===== NAVIGATION TABS ENGINE =====
         const tabDashboardBtn = document.getElementById('tabDashboardBtn');
         const tabArchivesBtn = document.getElementById('tabArchivesBtn');
         const sectionDashboard = document.getElementById('sectionDashboard');
@@ -313,7 +327,6 @@
             sectionDashboard.classList.remove('hidden');
             sectionArchives.classList.add('hidden');
             pageSubtitle.innerText = "Dashboard Overview Session";
-            
             if (!sidebar.classList.contains('-translate-x-full') && window.innerWidth < 768) toggleMobileMenu();
         }
 
@@ -323,7 +336,6 @@
             sectionArchives.classList.remove('hidden');
             sectionDashboard.classList.add('hidden');
             pageSubtitle.innerText = "Historical Report Archives";
-            
             if (!sidebar.classList.contains('-translate-x-full') && window.innerWidth < 768) toggleMobileMenu();
         }
 
@@ -331,7 +343,7 @@
         tabArchivesBtn.addEventListener('click', switchToArchives);
         goToArchivesPillBtn.addEventListener('click', switchToArchives);
 
-        // ARCHIVES EDIT MODAL OVERLAY ENGINE
+        // ===== ARCHIVES EDIT MODAL OVERLAY ENGINE =====
         const archiveEditFormCard = document.getElementById('archiveEditFormCard');
         const archEditDate = document.getElementById('archEditDate');
         const archEditTopic = document.getElementById('archEditTopic');
@@ -343,7 +355,6 @@
             archEditDate.value = date;
             archEditTopic.value = topic;
             archEditContent.value = content;
-            
             scrollContainer.scrollTo({ top: archiveEditFormCard.offsetTop - 20, behavior: 'smooth' });
         }
 
@@ -362,9 +373,69 @@
             alert("✅ Form submitted safely. Today's narrative report has been logged.");
         });
 
-        // ==========================================
-        // LOGOUT LOGIC MECHANICS
-        // ==========================================
+        // ===== API HELPER =====
+        async function apiFetch(url) {
+            const res = await fetch(url, {
+                headers: {
+                    'Authorization': `Token ${token}`,
+                    'Content-Type': 'application/json',
+                }
+            });
+            if (!res.ok) throw new Error(`API error: ${res.status}`);
+            return res.json();
+        }
+
+        // ===== LOAD DASHBOARD DATA =====
+        async function loadDashboard() {
+            try {
+                const data = await apiFetch('/api/student/dashboard/dashboard/');
+                document.getElementById('welcomeHeading').innerText = `Welcome, ${data.student_name || 'Student'}!`;
+                const rendered = parseFloat(data.total_hours) || 0;
+                document.getElementById('rendered-hours').innerText = rendered.toFixed(1);
+                const required = 480;
+                const remaining = Math.max(0, required - rendered);
+                document.getElementById('remaining-hours').innerText = remaining.toFixed(1);
+            } catch (err) {
+                console.error('Failed to load dashboard:', err);
+            }
+        }
+
+        // ===== LOAD ATTENDANCE HISTORY =====
+        async function loadAttendanceHistory() {
+            const container = document.getElementById('attendanceHistory');
+            try {
+                const records = await apiFetch('/api/student/dashboard/my_attendance/');
+                if (!records || records.length === 0) {
+                    container.innerHTML = '<p class="text-slate-400 text-center py-4">No attendance records found.</p>';
+                    return;
+                }
+                let html = '<div class="overflow-x-auto"><table class="w-full text-left border-collapse"><thead><tr class="text-[10px] font-bold text-[#11693A] uppercase border-b border-slate-200"><th class="p-2">Date</th><th class="p-2">Time In</th><th class="p-2">Time Out</th><th class="p-2">Status</th></tr></thead><tbody>';
+                records.forEach(r => {
+                    const date = r.date || '—';
+                    const timeIn = r.time_in ? r.time_in.slice(0, 5) : '—';
+                    const timeOut = r.time_out ? r.time_out.slice(0, 5) : '—';
+                    const status = r.time_out ? 'Completed' : 'Pending';
+                    const statusClass = r.time_out ? 'text-emerald-600 bg-emerald-100' : 'text-amber-600 bg-amber-100';
+                    html += `<tr class="border-b border-slate-100 text-xs">
+                        <td class="p-2 font-medium">${date}</td>
+                        <td class="p-2">${timeIn}</td>
+                        <td class="p-2">${timeOut}</td>
+                        <td class="p-2"><span class="px-2 py-0.5 rounded-full font-bold text-[9px] uppercase ${statusClass}">${status}</span></td>
+                    </tr>`;
+                });
+                html += '</tbody></table></div>';
+                container.innerHTML = html;
+            } catch (err) {
+                container.innerHTML = '<p class="text-red-500 text-center py-4">Failed to load attendance records.</p>';
+                console.error('Failed to load attendance:', err);
+            }
+        }
+
+        // ===== INIT =====
+        loadDashboard();
+        loadAttendanceHistory();
+
+        // ===== LOGOUT LOGIC =====
         const btnLogout = document.getElementById('btnLogout');
         const logoutModal = document.getElementById('logoutModal');
         const btnCancelLogout = document.getElementById('btnCancelLogout');
@@ -380,7 +451,7 @@
         btnConfirmLogout.addEventListener('click', () => {
             btnConfirmLogout.innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Exiting...';
             btnConfirmLogout.disabled = true;
-            setTimeout(() => { window.location.href = "/"; }, 800);
+            logout();
         });
     </script>
 </body>
