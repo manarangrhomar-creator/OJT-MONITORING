@@ -78,6 +78,26 @@ class Attendance(BaseModel):
         return f"{self.student.username} - {self.date}"
 
 
+class SiteAssignment(BaseModel):
+    """Student site/placement assignment by coordinator."""
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='site_assignments', limit_choices_to={'role': 'student'})
+    program = models.ForeignKey(OJTProgram, on_delete=models.CASCADE, related_name='site_assignments')
+    assigned_date = models.DateField(auto_now_add=True)
+    site_location = models.CharField(max_length=255)
+    supervisor_name = models.CharField(max_length=255, blank=True)
+    supervisor_contact = models.CharField(max_length=50, blank=True)
+    notes = models.TextField(blank=True)
+
+    class Meta:
+        verbose_name = 'Site Assignment'
+        verbose_name_plural = 'Site Assignments'
+        unique_together = ('student', 'program')
+        ordering = ['-assigned_date']
+
+    def __str__(self):
+        return f"{self.student.username} -> {self.site_location}"
+
+
 class NarrativeReport(BaseModel):
     """Coordinator narrative reports about student performance."""
     PERFORMANCE_RATING_CHOICES = [

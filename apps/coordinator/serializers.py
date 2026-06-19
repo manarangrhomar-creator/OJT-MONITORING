@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import OJTProgram, OJTApplication, Attendance, NarrativeReport
+from .models import OJTProgram, OJTApplication, Attendance, NarrativeReport, SiteAssignment
 
 
 class OJTProgramSerializer(serializers.ModelSerializer):
@@ -41,8 +41,19 @@ class NarrativeReportSerializer(serializers.ModelSerializer):
     """Serializer for Narrative Report."""
     student_name = serializers.CharField(source='student.get_full_name', read_only=True)
     program_name = serializers.CharField(source='program.name', read_only=True)
-    
+
     class Meta:
         model = NarrativeReport
         fields = ('id', 'student', 'student_name', 'program', 'program_name', 'report_date', 'narrative_text', 'performance_rating', 'attendance_status', 'created_at', 'updated_at')
         read_only_fields = ('id', 'created_at', 'updated_at')
+
+
+class SiteAssignmentSerializer(serializers.ModelSerializer):
+    """Serializer for Site Assignment."""
+    student_name = serializers.CharField(source='student.get_full_name', read_only=True)
+    program_name = serializers.CharField(source='program.name', read_only=True)
+
+    class Meta:
+        model = SiteAssignment
+        fields = ('id', 'student', 'student_name', 'program', 'program_name', 'assigned_date', 'site_location', 'supervisor_name', 'supervisor_contact', 'notes', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'created_at', 'updated_at', 'assigned_date')

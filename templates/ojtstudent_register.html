@@ -6,7 +6,7 @@
     <title>OJT Student Register - ISU</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght=600;700&family=Inter:wght=400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/lucide@0.344.0"></script>
     <style>
          .custom-heading { font-family: 'Fredoka', sans-serif; }
         .custom-btn { font-family: 'Inter', sans-serif; }
@@ -39,9 +39,7 @@
         <div class="w-full md:w-[60%] p-8 md:p-12 relative flex flex-col justify-center">
             
             <a href="{% url 'student-login' %}" class="absolute top-8 left-8 w-10 h-10 flex items-center justify-center rounded-full border border-gray-200 hover:bg-gray-100 transition-all shadow-sm text-[#11693A]">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                </svg>
+                <i data-lucide="chevron-left" class="w-5 h-5"></i>
             </a>
             
             <div class="max-w-md mx-auto w-full mt-6 md:mt-0">
@@ -75,9 +73,7 @@
                             <input type="password" id="password" placeholder="••••••••" required 
                                 class="w-full border-4 border-[#11693A] rounded-xl p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-gray-700 font-medium">
                             <button type="button" onclick="togglePassword('password', 'eyeIcon1')" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#11693A]">
-                                <svg id="eyeIcon1" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                                </svg>
+                                <i id="eyeIcon1" data-lucide="eye-off" class="h-6 w-6"></i>
                             </button>
                         </div>
                     </div>
@@ -88,9 +84,7 @@
                             <input type="password" id="confirmPassword" placeholder="••••••••" required 
                                 class="w-full border-4 border-[#11693A] rounded-xl p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-gray-700 font-medium">
                             <button type="button" onclick="togglePassword('confirmPassword', 'eyeIcon2')" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#11693A]">
-                                <svg id="eyeIcon2" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
-                                </svg>
+                                <i id="eyeIcon2" data-lucide="eye-off" class="h-6 w-6"></i>
                             </button>
                         </div>
                     </div>
@@ -124,9 +118,7 @@
                             <input type="text" id="courseSearch" placeholder="Search course..." autocomplete="off" readonly
                                 class="w-full border-4 border-[#11693A] rounded-xl p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all bg-white text-[#11693A] font-semibold cursor-pointer">
                             <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#11693A]">
-                                <svg class="fill-current h-6 w-6 transition-transform" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/>
-                                </svg>
+                                <i data-lucide="chevron-down" class="h-6 w-6 transition-transform"></i>
                             </div>
                             <div id="courseDropdownList" class="hidden fixed z-50 bg-white border-2 border-[#11693A] rounded-xl max-h-48 overflow-y-auto shadow-lg"></div>
                         </div>
@@ -147,14 +139,14 @@
         function togglePassword(inputId, iconId) {
             const passwordInput = document.getElementById(inputId);
             const eyeIcon = document.getElementById(iconId);
-
             if (passwordInput.type === "password") {
                 passwordInput.type = "text";
-                eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />';
+                eyeIcon.setAttribute('data-lucide', 'eye');
             } else {
                 passwordInput.type = "password";
-                eyeIcon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />';
+                eyeIcon.setAttribute('data-lucide', 'eye-off');
             }
+            lucide.createIcons();
         }
 
         const COURSES = [
@@ -341,7 +333,8 @@
             const { firstName, lastName } = parseFullName(fullName);
 
             regBtn.disabled = true;
-            regBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Registering...';
+            regBtn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin mr-2" style="width:16px;height:16px;"></i> Registering...';
+            lucide.createIcons();
 
             try {
                 const response = await fetch('/api/auth/register/', {
@@ -374,6 +367,7 @@
                 regBtn.innerHTML = 'Next';
             }
         });
-    </script>
+    lucide.createIcons();
+</script>
 </body>
 </html>

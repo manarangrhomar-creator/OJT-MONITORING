@@ -2,6 +2,7 @@ from rest_framework import serializers
 from apps.core.models import User
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
+from .models import PasswordResetOTP
 
 
 class UserRegisterSerializer(serializers.ModelSerializer):
@@ -81,3 +82,58 @@ class UserSerializer(serializers.ModelSerializer):
     
     def get_full_name(self, obj):
         return obj.get_full_name()
+
+
+class SendOTPSerializer(serializers.Serializer):
+    """Serializer for sending OTP."""
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        if not User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("No account found with this email.")
+        return value
+
+
+class VerifyOTPSerializer(serializers.Serializer):
+    """Serializer for verifying OTP."""
+    email = serializers.EmailField()
+    otp = serializers.CharField(max_length=6)
+
+    def validate(self, attrs):
+        try:
+            otp_record = PasswordResetOTP.objects.filter(
+                email=attrs['email'],
+                otp=attrs['otp'],
+                is_used=False
+            ).latest('created_at')
+        except PasswordResetOTP.DoesNotExist:
+            raise serializers.ValidationError("Invalid or expired OTP.")
+
+        if not otp_record.is_valid():
+            raise serializers.ValidationError("OTP has expired.")
+        attrs['otp_record'] = otp_record
+        return attrs
+
+
+class ResetPasswordSerializer(serializers.Serializer):
+    """Serializer for resetting password."""
+    email = serializers.EmailField()
+    otp = serializers.CharField(max_length=6)
+    new_password = serializers.CharField(write_only=True, validators=[validate_password])
+    confirm_password = serializers.CharField(write_only=True)
+
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['confirm_password']:
+            raise serializers.ValidationError({"confirm_password": "Passwords do not match."})
+        try:
+            otp_record = PasswordResetOTP.objects.filter(
+                email=attrs['email'],
+                otp=attrs['otp'],
+                is_used=False
+            ).latest('created_at')
+        except PasswordResetOTP.DoesNotExist:
+            raise serializers.ValidationError("Invalid or expired OTP.")
+        if not otp_record.is_valid():
+            raise serializers.ValidationError("OTP has expired.")
+        attrs['otp_record'] = otp_record
+        return attrs

@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/lucide@0.344.0"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #eaf4ec; }
         .isu-header-font { font-weight: 900; color: #11693A; }
@@ -53,13 +53,13 @@
             <span class="font-black text-sm tracking-wide uppercase">ISU-CC OJT</span>
         </div>
         <button id="mobileMenuBtn" class="text-white text-xl p-2 focus:outline-none">
-            <i class="fa-solid fa-bars"></i>
+            <i data-lucide="menu"></i>
         </button>
     </div>
 
     <div id="sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full md:translate-x-0 md:relative w-[260px] bg-[#11693A] text-white flex flex-col pt-10 pb-6 items-center shrink-0 transition-transform duration-300 ease-in-out z-50 shadow-2xl md:shadow-none">
         <button id="closeMobileMenuBtn" class="absolute top-4 right-4 text-white text-xl md:hidden p-2">
-            <i class="fa-solid fa-xmark"></i>
+            <i data-lucide="x"></i>
         </button>
 
         <div class="bg-white p-2 w-28 h-28 md:w-32 md:h-32 flex items-center justify-center shadow-md mb-8 md:mb-12">
@@ -68,13 +68,19 @@
 
         <div class="w-full space-y-2 px-2">
             <button id="btn-students" class="w-full h-12 bg-white rounded-xl flex items-center gap-3 px-5 text-[#11693A] font-bold text-sm shadow-sm transition-all" onclick="switchSection('students')">
-                <i class="fa-solid fa-users text-base"></i> Student Approval
+                <i data-lucide="users" class="text-base"></i> Student Approval
             </button>
             <button id="btn-accounts" class="w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center gap-3 px-5 text-emerald-100 font-medium text-sm transition-all" onclick="switchSection('accounts')">
-                <i class="fa-solid fa-address-book text-base"></i> Student Accounts
+                <i data-lucide="contact" class="text-base"></i> Student Accounts
             </button>
             <button id="btn-reports" class="w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center gap-3 px-5 text-emerald-100 font-medium text-sm transition-all" onclick="switchSection('reports')">
-                <i class="fa-solid fa-file-lines text-base"></i> Narrative Reports
+                <i data-lucide="file-text" class="text-base"></i> Narrative Reports
+            </button>
+            <button id="btn-attendance" class="w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center gap-3 px-5 text-emerald-100 font-medium text-sm transition-all" onclick="switchSection('attendance')">
+                <i data-lucide="clock" class="text-base"></i> Attendance
+            </button>
+            <button id="btn-sites" class="w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center gap-3 px-5 text-emerald-100 font-medium text-sm transition-all" onclick="switchSection('sites')">
+                <i data-lucide="map-pin" class="text-base"></i> Site Assignments
             </button>
         </div>
 
@@ -94,7 +100,7 @@
                 <p id="pageSubtitle" class="text-[11px] md:text-xs text-slate-500 font-bold mt-0.5 uppercase tracking-wider">Student Approval</p>
             </div>
             <a href="#" onclick="event.preventDefault(); openLogoutModal();" class="bg-[#11693A] hover:bg-[#0e5630] text-white text-xs font-bold px-5 py-2 md:px-6 md:py-2.5 transition shadow-sm flex items-center gap-2 rounded-lg self-end sm:self-auto">
-                <i class="fa-solid fa-right-from-bracket"></i> Logout
+                <i data-lucide="log-out"></i> Logout
             </a>
         </div>
 
@@ -105,7 +111,7 @@
                 <div class="flex-1 flex flex-col px-4 py-6 md:px-8 md:py-8 gap-6">
                     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
                         <div class="relative w-full sm:w-72">
-                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style="width:14px;height:14px;"></i>
                             <input type="text" id="studentSearchInput" placeholder="Search student by name or email..." class="border-2 border-slate-200 rounded-lg pl-9 pr-4 py-2 w-full text-sm focus:outline-none focus:border-[#11693A] bg-white">
                         </div>
                         <div class="flex flex-wrap gap-2">
@@ -138,7 +144,7 @@
                 <div class="flex-1 flex flex-col px-4 py-6 md:px-8 md:py-8 gap-6">
                     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
                         <div class="relative w-full sm:w-72">
-                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style="width:14px;height:14px;"></i>
                             <input type="text" id="accountSearchInput" placeholder="Search student by name or email..." class="border-2 border-slate-200 rounded-lg pl-9 pr-4 py-2 w-full text-sm focus:outline-none focus:border-[#11693A] bg-white">
                         </div>
 
@@ -166,7 +172,7 @@
                 <div class="flex-1 flex flex-col px-4 py-6 md:px-8 md:py-8 gap-6">
                     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
                         <div class="relative w-full sm:w-72">
-                            <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style="width:14px;height:14px;"></i>
                             <input type="text" id="reportSearchInput" placeholder="Search by student name..." class="border-2 border-slate-200 rounded-lg pl-9 pr-4 py-2 w-full text-sm focus:outline-none focus:border-[#11693A] bg-white">
                         </div>
                         <div class="flex flex-wrap gap-2">
@@ -191,6 +197,151 @@
                                 </tr>
                             </thead>
                             <tbody class="text-xs font-medium text-slate-600 divide-y divide-slate-100 bg-white" id="reportTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SITE ASSIGNMENTS SECTION -->
+            <div id="sitesSection" class="section-container hidden flex flex-col h-full">
+                <div class="flex-1 flex flex-col px-4 py-6 md:px-8 md:py-8 gap-6">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+                        <div>
+                            <button class="bg-[#11693A] text-white px-5 py-2.5 rounded-lg text-xs font-bold hover:bg-[#0e5630] transition-all shadow-sm flex items-center gap-2" onclick="openAddSiteModal()">
+                                <i data-lucide="plus"></i> New Assignment
+                            </button>
+                        </div>
+                        <div class="relative w-full sm:w-72">
+                            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style="width:14px;height:14px;"></i>
+                            <input type="text" id="siteSearchInput" placeholder="Search by student or site..." class="border-2 border-slate-200 rounded-lg pl-9 pr-4 py-2 w-full text-sm focus:outline-none focus:border-[#11693A] bg-white">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-slate-100 shadow-inner bg-white">
+                        <table class="w-full text-left border-collapse min-w-[750px]">
+                            <thead class="text-[10px] font-bold text-[#11693A] uppercase border-b border-emerald-100 bg-emerald-50">
+                                <tr>
+                                    <th class="p-4">Student</th>
+                                    <th class="p-4">Program</th>
+                                    <th class="p-4">Site Location</th>
+                                    <th class="p-4">Supervisor</th>
+                                    <th class="p-4">Assigned Date</th>
+                                    <th class="p-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-xs font-medium text-slate-600 divide-y divide-slate-100 bg-white" id="siteTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Add Site Assignment Modal -->
+            <div id="addSiteModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>New Site Assignment</h2>
+                        <button class="close-btn" onclick="closeModal('addSiteModal')">&times;</button>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="form-group">
+                            <label>Student</label>
+                            <select id="siteStudentSelect" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Site Location</label>
+                            <input type="text" id="siteLocation" required placeholder="e.g. Barangay Hall, Municipal Office" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]">
+                        </div>
+                        <div class="form-group">
+                            <label>Supervisor Name</label>
+                            <input type="text" id="siteSupervisorName" placeholder="Full name of on-site supervisor" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]">
+                        </div>
+                        <div class="form-group">
+                            <label>Supervisor Contact</label>
+                            <input type="text" id="siteSupervisorContact" placeholder="Phone number" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]">
+                        </div>
+                        <div class="form-group">
+                            <label>Notes</label>
+                            <textarea id="siteNotes" rows="3" placeholder="Additional notes..." class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-buttons">
+                        <button class="btn-cancel" onclick="closeModal('addSiteModal')">Cancel</button>
+                        <button class="btn-save" onclick="submitSiteAssignment()">Save Assignment</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Edit Site Assignment Modal -->
+            <div id="editSiteModal" class="modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2>Edit Site Assignment</h2>
+                        <button class="close-btn" onclick="closeModal('editSiteModal')">&times;</button>
+                    </div>
+                    <input type="hidden" id="editSiteId" value="">
+                    <div class="space-y-3">
+                        <div class="form-group">
+                            <label>Student</label>
+                            <p id="editSiteStudentName" class="p-2.5 border-2 border-gray-200 rounded-lg bg-gray-50 text-sm font-bold text-slate-700"></p>
+                        </div>
+                        <div class="form-group">
+                            <label>Site Location</label>
+                            <input type="text" id="editSiteLocation" required class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]">
+                        </div>
+                        <div class="form-group">
+                            <label>Supervisor Name</label>
+                            <input type="text" id="editSiteSupervisorName" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]">
+                        </div>
+                        <div class="form-group">
+                            <label>Supervisor Contact</label>
+                            <input type="text" id="editSiteSupervisorContact" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]">
+                        </div>
+                        <div class="form-group">
+                            <label>Notes</label>
+                            <textarea id="editSiteNotes" rows="3" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-buttons">
+                        <button class="btn-cancel" onclick="closeModal('editSiteModal')">Cancel</button>
+                        <button class="btn-save" onclick="updateSiteAssignment()">Update Assignment</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ATTENDANCE SECTION -->
+            <div id="attendanceSection" class="section-container hidden flex flex-col h-full">
+                <div class="flex-1 flex flex-col px-4 py-6 md:px-8 md:py-8 gap-6">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+                        <div class="relative w-full sm:w-72">
+                            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style="width:14px;height:14px;"></i>
+                            <input type="text" id="attendanceSearchInput" placeholder="Search by student name..." class="border-2 border-slate-200 rounded-lg pl-9 pr-4 py-2 w-full text-sm focus:outline-none focus:border-[#11693A] bg-white">
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <input type="date" id="attendanceDateFrom" class="border-2 border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#11693A]">
+                            <span class="text-xs text-slate-400 self-center">to</span>
+                            <input type="date" id="attendanceDateTo" class="border-2 border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#11693A]">
+                            <select id="attendanceProgramFilter" class="border-2 border-slate-200 rounded-lg px-3 py-2 text-xs focus:outline-none focus:border-[#11693A] bg-white">
+                                <option value="">All Programs</option>
+                            </select>
+                            <button class="bg-[#11693A] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-[#0e5630] transition-all shadow-sm" onclick="loadAttendance()">
+                                <i data-lucide="filter"></i> Filter
+                            </button>
+                            <button class="bg-slate-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-600 transition-all shadow-sm" onclick="clearAttendanceFilters()">Clear</button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-slate-100 shadow-inner bg-white">
+                        <table class="w-full text-left border-collapse min-w-[750px]">
+                            <thead class="text-[10px] font-bold text-[#11693A] uppercase border-b border-emerald-100 bg-emerald-50">
+                                <tr>
+                                    <th class="p-4">Student</th>
+                                    <th class="p-4">Program</th>
+                                    <th class="p-4">Date</th>
+                                    <th class="p-4">Time In</th>
+                                    <th class="p-4">Time Out</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4">Face Scan</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-xs font-medium text-slate-600 divide-y divide-slate-100 bg-white" id="attendanceTableBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -336,7 +487,7 @@
     <div id="logoutModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-100 transform scale-95 transition-all">
             <div class="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                <i data-lucide="log-out"></i>
             </div>
             <h3 class="text-lg font-black text-slate-800 mb-1">Confirm Logout</h3>
             <p class="text-xs text-slate-500 mb-6">Are you sure you want to exit the OJT Coordinator Portal? Any unsaved changes will be discarded.</p>
@@ -401,28 +552,36 @@
             document.querySelectorAll('.section-container').forEach(el => el.classList.add('hidden'));
             document.getElementById(section + 'Section').classList.remove('hidden');
 
+            const resetBtnStyle = (btnId) => {
+                const btn = document.getElementById(btnId);
+                btn.classList.add('bg-transparent', 'text-emerald-100');
+                btn.classList.remove('bg-white', 'text-[#11693A]');
+            };
+            ['btn-students', 'btn-accounts', 'btn-reports', 'btn-attendance', 'btn-sites'].forEach(resetBtnStyle);
+
+            const activateBtn = (btnId) => {
+                const btn = document.getElementById(btnId);
+                btn.classList.add('bg-white', 'text-[#11693A]');
+                btn.classList.remove('bg-transparent', 'text-emerald-100');
+            };
+
             if (section === 'students') {
                 document.getElementById('pageSubtitle').textContent = 'Student Approval';
-                document.getElementById('btn-students').classList.add('bg-white', 'text-[#11693A]');
-                document.getElementById('btn-students').classList.remove('bg-transparent', 'text-emerald-100');
-                document.getElementById('btn-reports').classList.add('bg-transparent', 'text-emerald-100');
-                document.getElementById('btn-reports').classList.remove('bg-white', 'text-[#11693A]');
+                activateBtn('btn-students');
             } else if (section === 'accounts') {
                 document.getElementById('pageSubtitle').textContent = 'Student Accounts';
-                document.getElementById('btn-accounts').classList.add('bg-white', 'text-[#11693A]');
-                document.getElementById('btn-accounts').classList.remove('bg-transparent', 'text-emerald-100');
-                document.getElementById('btn-students').classList.add('bg-transparent', 'text-emerald-100');
-                document.getElementById('btn-students').classList.remove('bg-white', 'text-[#11693A]');
-                document.getElementById('btn-reports').classList.add('bg-transparent', 'text-emerald-100');
-                document.getElementById('btn-reports').classList.remove('bg-white', 'text-[#11693A]');
+                activateBtn('btn-accounts');
             } else if (section === 'reports') {
                 document.getElementById('pageSubtitle').textContent = 'Narrative Reports';
-                document.getElementById('btn-reports').classList.add('bg-white', 'text-[#11693A]');
-                document.getElementById('btn-reports').classList.remove('bg-transparent', 'text-emerald-100');
-                document.getElementById('btn-students').classList.add('bg-transparent', 'text-emerald-100');
-                document.getElementById('btn-students').classList.remove('bg-white', 'text-[#11693A]');
-                document.getElementById('btn-accounts').classList.add('bg-transparent', 'text-emerald-100');
-                document.getElementById('btn-accounts').classList.remove('bg-white', 'text-[#11693A]');
+                activateBtn('btn-reports');
+            } else if (section === 'attendance') {
+                document.getElementById('pageSubtitle').textContent = 'Attendance Monitoring';
+                activateBtn('btn-attendance');
+                loadAttendance();
+            } else if (section === 'sites') {
+                document.getElementById('pageSubtitle').textContent = 'Site Assignments';
+                activateBtn('btn-sites');
+                loadSiteAssignments();
             }
         }
 
@@ -482,20 +641,21 @@
                     <td class="p-4 text-center">
                         ${student.status === 'pending' ? `
                             <button class="text-emerald-500 hover:text-emerald-700 p-2" title="Approve" onclick="requestApproveStudent('${student.app_id}', '${student.name}')">
-                                <i class="fa-regular fa-circle-check text-lg"></i>
+                                <i data-lucide="check-circle" class="text-lg"></i>
                             </button>
                             <button class="text-red-500 hover:text-red-700 p-2" title="Reject" onclick="requestRejectStudent('${student.app_id}', '${student.name}')">
-                                <i class="fa-regular fa-circle-xmark text-lg"></i>
+                                <i data-lucide="x-circle" class="text-lg"></i>
                             </button>
                         ` : `
                             <button class="text-gray-400 p-2 cursor-not-allowed" title="Already ${student.status}">
-                                <i class="fa-regular fa-lock text-lg"></i>
+                                <i data-lucide="lock" class="text-lg"></i>
                             </button>
                         `}
                     </td>
                 `;
                 tbody.appendChild(row);
             });
+            lucide.createIcons();
         }
 
         function filterStudentsByStatus(status) {
@@ -635,12 +795,13 @@
                     </td>
                     <td class="p-4">
                         <button class="text-blue-500 hover:text-blue-700 p-2" title="View" onclick="viewAccount('${student.id}')">
-                            <i class="fa-regular fa-eye text-lg"></i>
+                            <i data-lucide="eye" class="text-lg"></i>
                         </button>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
+            lucide.createIcons();
         }
 
         function filterAccountsByStatus(status) {
@@ -723,15 +884,16 @@
                     </td>
                     <td class="p-4 text-center">
                         <button class="text-blue-500 hover:text-blue-700 p-2" title="View" onclick="viewReport('${report.id}')">
-                            <i class="fa-regular fa-eye text-lg"></i>
+                            <i data-lucide="eye" class="text-lg"></i>
                         </button>
                         <button class="text-amber-500 hover:text-amber-700 p-2" title="Edit" onclick="editReport('${report.id}')">
-                            <i class="fa-regular fa-pen-to-square text-lg"></i>
+                            <i data-lucide="pencil" class="text-lg"></i>
                         </button>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
+            lucide.createIcons();
         }
 
         function filterReportsByRating(rating) {
@@ -848,11 +1010,281 @@
             }
         }
 
+        // ===== ATTENDANCE FUNCTIONS =====
+        async function loadAttendance() {
+            const params = new URLSearchParams();
+            const dateFrom = document.getElementById('attendanceDateFrom').value;
+            const dateTo = document.getElementById('attendanceDateTo').value;
+            const programId = document.getElementById('attendanceProgramFilter').value;
+            if (dateFrom) params.append('date_from', dateFrom);
+            if (dateTo) params.append('date_to', dateTo);
+            if (programId) params.append('program_id', programId);
+
+            const tbody = document.getElementById('attendanceTableBody');
+            tbody.innerHTML = '<tr><td colspan="7" class="py-8 px-4 text-center text-slate-400"><i data-lucide="loader-circle" class="animate-spin"></i> Loading...</td></tr>';
+            lucide.createIcons();
+
+            try {
+                const response = await fetch(`/api/coordinator/dashboard/attendance-records/?${params.toString()}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="py-8 px-4 text-center text-red-500">Failed to load attendance</td></tr>';
+                    return;
+                }
+
+                const records = await response.json();
+                tbody.innerHTML = '';
+
+                if (!records.length) {
+                    tbody.innerHTML = '<tr><td colspan="7" class="py-8 px-4 text-center text-slate-400">No attendance records found</td></tr>';
+                    return;
+                }
+
+                records.forEach(r => {
+                    const statusClass = r.status === 'Completed' ? 'emerald' : 'amber';
+                    const faceIcon = r.facial_recognition_used
+                        ? '<span class="text-emerald-600" title="Face scan used"><i data-lucide="smile"></i></span>'
+                        : '<span class="text-slate-400" title="No face scan"><i data-lucide="meh"></i></span>';
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-slate-100 hover:bg-slate-50 transition-colors';
+                    row.innerHTML = `
+                        <td class="p-4 font-bold text-slate-900">${r.student_name}</td>
+                        <td class="p-4 text-slate-600">${r.program_name}</td>
+                        <td class="p-4 text-slate-600">${new Date(r.date).toLocaleDateString()}</td>
+                        <td class="p-4 font-bold text-slate-700">${r.time_in}</td>
+                        <td class="p-4 font-bold text-slate-700">${r.time_out}</td>
+                        <td class="p-4">
+                            <span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold capitalize">${r.status}</span>
+                        </td>
+                        <td class="p-4 text-center">${faceIcon}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                lucide.createIcons();
+            } catch (error) {
+                console.error('Error loading attendance:', error);
+                tbody.innerHTML = '<tr><td colspan="7" class="py-8 px-4 text-center text-red-500">Error loading attendance</td></tr>';
+            }
+        }
+
+        async function loadProgramsForFilter() {
+            try {
+                const response = await fetch('/api/coordinator/programs/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    }
+                });
+                if (!response.ok) return;
+                const programs = await response.json();
+                const select = document.getElementById('attendanceProgramFilter');
+                programs.forEach(p => {
+                    const option = document.createElement('option');
+                    option.value = p.id;
+                    option.textContent = p.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading programs:', error);
+            }
+        }
+
+        function clearAttendanceFilters() {
+            document.getElementById('attendanceDateFrom').value = '';
+            document.getElementById('attendanceDateTo').value = '';
+            document.getElementById('attendanceProgramFilter').value = '';
+            loadAttendance();
+        }
+
+        // ===== SITE ASSIGNMENT FUNCTIONS =====
+        let siteList = [];
+        let approvedStudentsForSite = [];
+
+        async function loadSiteAssignments() {
+            const tbody = document.getElementById('siteTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-slate-400"><i data-lucide="loader-circle" class="animate-spin"></i> Loading...</td></tr>';
+            lucide.createIcons();
+            try {
+                const response = await fetch('/api/coordinator/site-assignments/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    }
+                });
+                if (!response.ok) { tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-red-500">Failed to load</td></tr>'; return; }
+                siteList = await response.json();
+                renderSiteTable();
+            } catch (error) {
+                console.error('Error loading sites:', error);
+                tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-red-500">Error loading</td></tr>';
+            }
+        }
+
+        function renderSiteTable() {
+            const tbody = document.getElementById('siteTableBody');
+            tbody.innerHTML = '';
+            if (!siteList.length) {
+                tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-slate-400">No site assignments yet</td></tr>';
+                return;
+            }
+            siteList.forEach(s => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-slate-100 hover:bg-slate-50 transition-colors';
+                row.innerHTML = `
+                    <td class="p-4 font-bold text-slate-900">${s.student_name}</td>
+                    <td class="p-4 text-slate-600">${s.program_name}</td>
+                    <td class="p-4 text-slate-600">${s.site_location}</td>
+                    <td class="p-4">${s.supervisor_name || '<span class="text-slate-400">—</span>'}</td>
+                    <td class="p-4 text-slate-600">${new Date(s.assigned_date).toLocaleDateString()}</td>
+                    <td class="p-4 text-center">
+                        <button class="text-blue-500 hover:text-blue-700 p-2" title="Edit" onclick='openEditSiteModal("${s.id}")'>
+                            <i data-lucide="pencil" class="text-lg"></i>
+                        </button>
+                        <button class="text-red-500 hover:text-red-700 p-2" title="Delete" onclick='deleteSiteAssignment("${s.id}")'>
+                            <i data-lucide="trash-2" class="text-lg"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            lucide.createIcons();
+        }
+
+        async function openAddSiteModal() {
+            const select = document.getElementById('siteStudentSelect');
+            select.innerHTML = '<option value="">Loading students...</option>';
+            try {
+                const response = await fetch('/api/coordinator/dashboard/my-students/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    }
+                });
+                if (!response.ok) return;
+                const students = await response.json();
+                const approved = students.filter(s => s.status === 'approved');
+                approvedStudentsForSite = approved;
+                select.innerHTML = '<option value="">Select a student...</option>';
+                approved.forEach(s => {
+                    const option = document.createElement('option');
+                    option.value = JSON.stringify({student_id: s.id, program_id: s.program_id});
+                    option.textContent = `${s.name} (${s.program})`;
+                    select.appendChild(option);
+                });
+                if (!approved.length) {
+                    select.innerHTML = '<option value="">No approved students available</option>';
+                }
+            } catch (error) {
+                console.error('Error loading students:', error);
+                select.innerHTML = '<option value="">Error loading</option>';
+            }
+            document.getElementById('siteLocation').value = '';
+            document.getElementById('siteSupervisorName').value = '';
+            document.getElementById('siteSupervisorContact').value = '';
+            document.getElementById('siteNotes').value = '';
+            openModal('addSiteModal');
+        }
+
+        async function submitSiteAssignment() {
+            const studentData = document.getElementById('siteStudentSelect').value;
+            if (!studentData) { alert('Please select a student'); return; }
+            const {student_id, program_id} = JSON.parse(studentData);
+            const site_location = document.getElementById('siteLocation').value.trim();
+            if (!site_location) { alert('Please enter a site location'); return; }
+            try {
+                const response = await fetch('/api/coordinator/site-assignments/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    },
+                    body: JSON.stringify({
+                        student: student_id,
+                        program: program_id,
+                        site_location: site_location,
+                        supervisor_name: document.getElementById('siteSupervisorName').value.trim(),
+                        supervisor_contact: document.getElementById('siteSupervisorContact').value.trim(),
+                        notes: document.getElementById('siteNotes').value.trim()
+                    })
+                });
+                if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
+                alert('Site assignment created successfully');
+                closeModal('addSiteModal');
+                loadSiteAssignments();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function openEditSiteModal(id) {
+            const assignment = siteList.find(s => s.id === id);
+            if (!assignment) return;
+            document.getElementById('editSiteId').value = id;
+            document.getElementById('editSiteStudentName').textContent = assignment.student_name;
+            document.getElementById('editSiteLocation').value = assignment.site_location;
+            document.getElementById('editSiteSupervisorName').value = assignment.supervisor_name || '';
+            document.getElementById('editSiteSupervisorContact').value = assignment.supervisor_contact || '';
+            document.getElementById('editSiteNotes').value = assignment.notes || '';
+            openModal('editSiteModal');
+        }
+
+        async function updateSiteAssignment() {
+            const id = document.getElementById('editSiteId').value;
+            try {
+                const response = await fetch(`/api/coordinator/site-assignments/${id}/`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    },
+                    body: JSON.stringify({
+                        site_location: document.getElementById('editSiteLocation').value.trim(),
+                        supervisor_name: document.getElementById('editSiteSupervisorName').value.trim(),
+                        supervisor_contact: document.getElementById('editSiteSupervisorContact').value.trim(),
+                        notes: document.getElementById('editSiteNotes').value.trim()
+                    })
+                });
+                if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
+                alert('Site assignment updated successfully');
+                closeModal('editSiteModal');
+                loadSiteAssignments();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function deleteSiteAssignment(id) {
+            if (!confirm('Are you sure you want to delete this site assignment?')) return;
+            try {
+                const response = await fetch(`/api/coordinator/site-assignments/${id}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    }
+                });
+                if (!response.ok) throw new Error('Failed to delete');
+                alert('Site assignment deleted');
+                loadSiteAssignments();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
         // Initialize on page load
         document.addEventListener('DOMContentLoaded', function() {
             loadStudents();
             loadStudentAccounts();
             loadNarrativeReports();
+            loadProgramsForFilter();
             switchSection('students');
         });
 
@@ -881,6 +1313,22 @@
             });
         });
 
+        document.getElementById('attendanceSearchInput').addEventListener('keyup', function() {
+            const filter = this.value.toUpperCase();
+            document.querySelectorAll('#attendanceTableBody tr').forEach(row => {
+                const text = row.textContent.toUpperCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        });
+
+        document.getElementById('siteSearchInput').addEventListener('keyup', function() {
+            const filter = this.value.toUpperCase();
+            document.querySelectorAll('#siteTableBody tr').forEach(row => {
+                const text = row.textContent.toUpperCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        });
+
         // LOGOUT LOGIC MECHANICS
         function openLogoutModal() {
             document.getElementById('logoutModal').classList.remove('hidden');
@@ -899,10 +1347,11 @@
         document.getElementById('btnCancelLogout').addEventListener('click', closeLogoutModal);
 
         document.getElementById('btnConfirmLogout').addEventListener('click', () => {
-            document.getElementById('btnConfirmLogout').innerHTML = '<i class="fa-solid fa-spinner animate-spin"></i> Exiting...';
+            document.getElementById('btnConfirmLogout').innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Exiting...';
             document.getElementById('btnConfirmLogout').disabled = true;
             setTimeout(() => { window.location.href = "/auth/logout/"; }, 800);
         });
-    </script>
+    lucide.createIcons();
+</script>
 </body>
 </html>

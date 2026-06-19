@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://unpkg.com/lucide@0.344.0"></script>
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #eaf4ec; }
         .isu-header-font { font-weight: 900; color: #11693A; }
@@ -53,13 +53,13 @@
             <span class="font-black text-sm tracking-wide uppercase">ISU-CC OJT</span>
         </div>
         <button id="mobileMenuBtn" class="text-white text-xl p-2 focus:outline-none">
-            <i class="fa-solid fa-bars"></i>
+            <i data-lucide="menu"></i>
         </button>
     </div>
 
     <div id="sidebar" class="fixed inset-y-0 left-0 transform -translate-x-full md:translate-x-0 md:relative w-[260px] bg-[#11693A] text-white flex flex-col pt-10 pb-6 items-center shrink-0 transition-transform duration-300 ease-in-out z-50 shadow-2xl md:shadow-none">
         <button id="closeMobileMenuBtn" class="absolute top-4 right-4 text-white text-xl md:hidden p-2">
-            <i class="fa-solid fa-xmark"></i>
+            <i data-lucide="x"></i>
         </button>
 
         <div class="bg-white p-2 w-28 h-28 md:w-32 md:h-32 flex items-center justify-center shadow-md mb-8 md:mb-12">
@@ -68,13 +68,13 @@
 
         <div class="w-full space-y-2 px-2">
             <button id="btn-students" class="w-full h-12 bg-white rounded-xl flex items-center gap-3 px-5 text-[#11693A] font-bold text-sm shadow-sm transition-all" onclick="switchSection('students')">
-                <i class="fa-solid fa-users text-base"></i> Student Accounts
+                <i data-lucide="users" class="text-base"></i> Student Accounts
             </button>
             <button id="btn-coordinators" class="w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center gap-3 px-5 text-emerald-100 font-medium text-sm transition-all" onclick="switchSection('coordinators')">
-                <i class="fa-solid fa-user-tie text-base"></i> Coordinator Accounts
+                <i data-lucide="user-cog" class="text-base"></i> Coordinator Accounts
             </button>
             <button id="btn-approvals" class="w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center gap-3 px-5 text-emerald-100 font-medium text-sm transition-all" onclick="switchSection('approvals')">
-                <i class="fa-solid fa-clipboard-check text-base"></i> Coordinator Approval
+                <i data-lucide="clipboard-check" class="text-base"></i> Coordinator Approval
             </button>
         </div>
 
@@ -94,7 +94,7 @@
                 <p id="pageSubtitle" class="text-[11px] md:text-xs text-slate-500 font-bold mt-0.5 uppercase tracking-wider">Student Accounts</p>
             </div>
             <a href="#" onclick="event.preventDefault(); openLogoutModal();" class="bg-[#11693A] hover:bg-[#0e5630] text-white text-xs font-bold px-5 py-2 md:px-6 md:py-2.5 transition shadow-sm flex items-center gap-2 rounded-lg self-end sm:self-auto">
-                <i class="fa-solid fa-right-from-bracket"></i> Logout
+                <i data-lucide="log-out"></i> Logout
             </a>
         </div>
 
@@ -106,7 +106,7 @@
                     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
                         <input type="text" id="studentSearchInput" placeholder="Search student by name or email..." class="border-2 border-slate-200 rounded-lg px-4 py-2 w-full sm:w-72 text-sm focus:outline-none focus:border-[#11693A] bg-white">
                         <button class="bg-violet-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-violet-700 transition-all" onclick="openAddStudentModal()">
-                            <i class="fa-solid fa-plus mr-2"></i> Add Student
+                            <i data-lucide="plus" class="mr-2"></i> Add Student
                         </button>
                     </div>
 
@@ -133,7 +133,7 @@
                     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
                         <input type="text" id="coordinatorSearchInput" placeholder="Search coordinator by name or email..." class="border-2 border-slate-200 rounded-lg px-4 py-2 w-full sm:w-72 text-sm focus:outline-none focus:border-[#11693A] bg-white">
                         <button class="bg-violet-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-violet-700 transition-all" onclick="openAddCoordinatorModal()">
-                            <i class="fa-solid fa-plus mr-2"></i> Add Coordinator
+                            <i data-lucide="plus" class="mr-2"></i> Add Coordinator
                         </button>
                     </div>
 
@@ -159,7 +159,7 @@
                 <div class="flex-1 flex flex-col px-4 py-6 md:px-8 md:py-8 gap-6">
                     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
                         <h2 class="font-black text-sm text-[#11693A] flex items-center gap-2 uppercase">
-                            <i class="fa-solid fa-clipboard-check"></i> Pending Coordinator Registrations
+                            <i data-lucide="clipboard-check"></i> Pending Coordinator Registrations
                         </h2>
                     </div>
 
@@ -507,7 +507,7 @@
 <div id="logoutModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-100 transform scale-95 transition-all">
         <div class="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+            <i data-lucide="log-out"></i>
         </div>
         <h3 class="text-lg font-black text-slate-800 mb-1">Confirm Logout</h3>
         <p class="text-xs text-slate-500 mb-6">Are you sure you want to exit the OJT Admin Portal? Any unsaved changes will be discarded.</p>
@@ -782,14 +782,15 @@
                 <td>${student.role}</td>
                 <td>${student.status}</td>
                 <td class="text-right">
-                    <button onclick="viewStudent(${id})" class="btn-icon mr-1"><i class="fa-solid fa-eye text-blue-500"></i></button>
-                    <button onclick="editStudent(${id})" class="btn-icon mr-1"><i class="fa-solid fa-pencil text-green-500"></i></button>
-                    <button onclick="deleteStudent(${id})" class="btn-icon text-red-500"><i class="fa-solid fa-trash"></i></button>
+                    <button onclick="viewStudent(${id})" class="btn-icon mr-1"><i data-lucide="eye" class="text-blue-500"></i></button>
+                    <button onclick="editStudent(${id})" class="btn-icon mr-1"><i data-lucide="pencil" class="text-green-500"></i></button>
+                    <button onclick="deleteStudent(${id})" class="btn-icon text-red-500"><i data-lucide="trash-2"></i></button>
                 </td>
             `;
             tableBody.appendChild(row);
         });
     }
+        lucide.createIcons();
 
     function updateCoordinatorTable() {
         const tableBody = document.getElementById('coordinatorTableBody');
@@ -804,13 +805,14 @@
                 <td>${coordinator.dept || 'N/A'}</td>
                 <td>${coordinator.status}</td>
                 <td class="text-right">
-                    <button onclick="viewCoordinator(${id})" class="btn-icon mr-1"><i class="fa-solid fa-eye text-blue-500"></i></button>
-                    <button onclick="editCoordinator(${id})" class="btn-icon mr-1"><i class="fa-solid fa-pencil text-green-500"></i></button>
+                    <button onclick="viewCoordinator(${id})" class="btn-icon mr-1"><i data-lucide="eye" class="text-blue-500"></i></button>
+                    <button onclick="editCoordinator(${id})" class="btn-icon mr-1"><i data-lucide="pencil" class="text-green-500"></i></button>
                 </td>
             `;
             tableBody.appendChild(row);
         });
     }
+        lucide.createIcons();
 
     function loadCoordinators() {
         try {
@@ -893,6 +895,8 @@
         modal.style.display = 'block';
         document.body.style.overflow = 'hidden';
     }
-</script>
+
+        lucide.createIcons();
+    </script>
 </body>
 </html>

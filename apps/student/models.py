@@ -2,6 +2,28 @@ from django.db import models
 from apps.core.models import BaseModel, User
 
 
+class StudentNarrativeReport(BaseModel):
+    """Student-submitted daily accomplishment/narrative report."""
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='student_narrative_reports', limit_choices_to={'role': 'student'})
+    program = models.ForeignKey('coordinator.OJTProgram', on_delete=models.CASCADE, related_name='student_narratives', null=True, blank=True)
+    log_date = models.DateField()
+    topic = models.CharField(max_length=255)
+    content = models.TextField()
+    photo_1 = models.ImageField(upload_to='narratives/', blank=True, null=True)
+    photo_2 = models.ImageField(upload_to='narratives/', blank=True, null=True)
+    photo_3 = models.ImageField(upload_to='narratives/', blank=True, null=True)
+    photo_4 = models.ImageField(upload_to='narratives/', blank=True, null=True)
+
+    class Meta:
+        verbose_name = 'Student Narrative Report'
+        verbose_name_plural = 'Student Narrative Reports'
+        unique_together = ('student', 'log_date')
+        ordering = ['-log_date']
+
+    def __str__(self):
+        return f"{self.student.username} - {self.log_date}"
+
+
 class StudentProfile(BaseModel):
     """Extended profile for student users."""
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile', limit_choices_to={'role': 'student'})

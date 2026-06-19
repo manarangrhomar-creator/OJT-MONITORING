@@ -1,6 +1,17 @@
 from rest_framework import serializers
 from apps.core.models import User
-from .models import StudentProfile, FacialRecognition
+from .models import StudentProfile, FacialRecognition, StudentNarrativeReport
+
+
+class StudentNarrativeReportSerializer(serializers.ModelSerializer):
+    """Serializer for Student Narrative Report."""
+    student_name = serializers.CharField(source='student.get_full_name', read_only=True)
+    program_name = serializers.CharField(source='program.name', read_only=True)
+
+    class Meta:
+        model = StudentNarrativeReport
+        fields = ('id', 'student', 'student_name', 'program', 'program_name', 'log_date', 'topic', 'content', 'photo_1', 'photo_2', 'photo_3', 'photo_4', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'created_at', 'updated_at')
 
 
 class StudentProfileSerializer(serializers.ModelSerializer):

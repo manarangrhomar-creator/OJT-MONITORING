@@ -4,8 +4,8 @@ from rest_framework.response import Response
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from apps.core.models import User
-from .models import OJTProgram, OJTApplication, Attendance, NarrativeReport
-from .serializers import OJTProgramSerializer, OJTApplicationSerializer, AttendanceSerializer, NarrativeReportSerializer
+from .models import OJTProgram, OJTApplication, Attendance, NarrativeReport, SiteAssignment
+from .serializers import OJTProgramSerializer, OJTApplicationSerializer, AttendanceSerializer, NarrativeReportSerializer, SiteAssignmentSerializer
 
 
 class IsCoordinator(permissions.BasePermission):
@@ -181,6 +181,48 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         
         return Response({'message': 'Student rejected'}, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['get'], url_path='attendance-records')
+    def attendance_records(self, request):
+        """Get attendance records for coordinator's students."""
+        coordinator = request.user
+        program_id = request.query_params.get('program_id')
+        student_id = request.query_params.get('student_id')
+        date_from = request.query_params.get('date_from')
+        date_to = request.query_params.get('date_to')
+
+        programs = OJTProgram.objects.filter(coordinator=coordinator)
+        if program_id:
+            programs = programs.filter(id=program_id)
+
+        attendances = Attendance.objects.filter(
+            program__in=programs
+        ).select_related('student', 'program').order_by('-date', 'time_in')
+
+        if student_id:
+            attendances = attendances.filter(student_id=student_id)
+        if date_from:
+            attendances = attendances.filter(date__gte=date_from)
+        if date_to:
+            attendances = attendances.filter(date__lte=date_to)
+
+        records = []
+        for att in attendances:
+            records.append({
+                'id': att.id,
+                'student_id': att.student.id,
+                'student_name': att.student.get_full_name(),
+                'program_id': att.program.id,
+                'program_name': att.program.name,
+                'date': att.date,
+                'time_in': str(att.time_in)[:5] if att.time_in else '—',
+                'time_out': str(att.time_out)[:5] if att.time_out else '—',
+                'status': 'Completed' if att.time_out else 'Pending',
+                'facial_recognition_used': att.facial_recognition_used,
+                'notes': att.notes,
+            })
+
+        return Response(records)
+
 
 class NarrativeReportViewSet(viewsets.ModelViewSet):
     """ViewSet for Narrative Report management."""
@@ -210,3 +252,28 @@ class NarrativeReportViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(reports, many=True)
         return Response(serializer.data)
+
+
+class SiteAssignmentViewSet(viewsets.ModelViewSet):
+    """ViewSet for Site Assignment management."""
+    serializer_class = SiteAssignmentSerializer
+    permission_classes = [IsCoordinator]
+
+    def get_queryset(self):
+        coordinator = self.request.user
+        return SiteAssignment.objects.filter(
+            program__coordinator=coordinator
+        ).select_related('student', 'program')
+
+    @action(detail=False, methods=['get'], url_path='by-student')
+    def by_student(self, request):
+        """Get site assignment for a specific student."""
+        student_id = request.query_params.get('student_id')
+        if not student_id:
+            return Response({'error': 'student_id required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            assignment = self.get_queryset().get(student_id=student_id)
+            serializer = self.get_serializer(assignment)
+            return Response(serializer.data)
+        except SiteAssignment.DoesNotExist:
+            return Response({'error': 'No assignment found'}, status=status.HTTP_404_NOT_FOUND)

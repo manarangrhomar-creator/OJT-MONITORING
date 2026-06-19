@@ -4,12 +4,14 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login, logout
+from django.core.mail import send_mail
+from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_http_methods
 from apps.core.models import User
-from .serializers import UserRegisterSerializer, UserLoginSerializer, UserSerializer
-from .models import LoginAttempt
+from .serializers import UserRegisterSerializer, UserLoginSerializer, UserSerializer, SendOTPSerializer, VerifyOTPSerializer, ResetPasswordSerializer
+from .models import LoginAttempt, PasswordResetOTP
 
 
 class AuthenticationViewSet(viewsets.ViewSet):
@@ -110,6 +112,47 @@ class AuthenticationViewSet(viewsets.ViewSet):
         user.save()
         return Response({'message': 'Password changed successfully'}, status=status.HTTP_200_OK)
     
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
+    def send_otp(self, request):
+        """Send OTP for password reset."""
+        serializer = SendOTPSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            otp_record = PasswordResetOTP.generate_otp(email)
+            send_mail(
+                subject='Your OTP for Password Reset',
+                message=f'Your OTP is: {otp_record.otp}\n\nThis code will expire in 15 minutes.',
+                from_email=settings.EMAIL_HOST_USER,
+                recipient_list=[email],
+                fail_silently=False,
+            )
+            return Response({
+                'message': 'OTP sent successfully',
+            }, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
+    def verify_otp(self, request):
+        """Verify OTP code."""
+        serializer = VerifyOTPSerializer(data=request.data)
+        if serializer.is_valid():
+            return Response({'message': 'OTP verified successfully'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
+    def reset_password(self, request):
+        """Reset password with OTP verification."""
+        serializer = ResetPasswordSerializer(data=request.data)
+        if serializer.is_valid():
+            otp_record = serializer.validated_data['otp_record']
+            user = User.objects.get(email=serializer.validated_data['email'])
+            user.set_password(serializer.validated_data['new_password'])
+            user.save()
+            otp_record.is_used = True
+            otp_record.save()
+            return Response({'message': 'Password reset successfully'}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
     @staticmethod
     def get_client_ip(request):
         """Get client IP address from request."""

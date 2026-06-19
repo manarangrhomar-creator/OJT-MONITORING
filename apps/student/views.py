@@ -3,10 +3,11 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
+from django.shortcuts import get_object_or_404
 from apps.coordinator.models import OJTApplication, Attendance
 from apps.coordinator.serializers import OJTApplicationSerializer, AttendanceSerializer
-from .models import StudentProfile, FacialRecognition
-from .serializers import StudentProfileSerializer, FacialRecognitionSerializer
+from .models import StudentProfile, FacialRecognition, StudentNarrativeReport
+from .serializers import StudentProfileSerializer, FacialRecognitionSerializer, StudentNarrativeReportSerializer
 from .face_utils import detect_face, encode_face, verify_faces
 
 logger = logging.getLogger(__name__)
@@ -90,6 +91,30 @@ class StudentDashboardViewSet(viewsets.ViewSet):
         attendances = Attendance.objects.filter(student=request.user).order_by('-date')
         serializer = AttendanceSerializer(attendances, many=True)
         return Response(serializer.data)
+
+
+class StudentNarrativeViewSet(viewsets.ModelViewSet):
+    """ViewSet for Student Narrative Report management."""
+    serializer_class = StudentNarrativeReportSerializer
+    permission_classes = [IsStudent]
+
+    def get_queryset(self):
+        return StudentNarrativeReport.objects.filter(student=self.request.user).select_related('program')
+
+    def perform_create(self, serializer):
+        serializer.save(student=self.request.user)
+
+    @action(detail=False, methods=['post'], url_path='submit-with-photos')
+    def submit_with_photos(self, request):
+        """Submit a narrative report with optional photo uploads."""
+        serializer = StudentNarrativeReportSerializer(
+            data=request.data,
+            context={'request': request}
+        )
+        if serializer.is_valid():
+            serializer.save(student=request.user)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class FacialRecognitionViewSet(viewsets.ModelViewSet):

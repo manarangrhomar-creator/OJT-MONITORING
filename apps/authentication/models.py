@@ -1,5 +1,36 @@
+import random
 from django.db import models
+from django.utils import timezone
+from datetime import timedelta
 from apps.core.models import User, BaseModel
+
+
+class PasswordResetOTP(BaseModel):
+    """Store OTP codes for password reset."""
+    email = models.EmailField()
+    otp = models.CharField(max_length=6)
+    is_used = models.BooleanField(default=False)
+    expires_at = models.DateTimeField()
+
+    class Meta:
+        verbose_name = 'Password Reset OTP'
+        verbose_name_plural = 'Password Reset OTPs'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.email} - {'Used' if self.is_used else 'Active'}"
+
+    def is_valid(self):
+        return not self.is_used and self.expires_at > timezone.now()
+
+    @classmethod
+    def generate_otp(cls, email):
+        otp_code = f"{random.randint(100000, 999999)}"
+        return cls.objects.create(
+            email=email,
+            otp=otp_code,
+            expires_at=timezone.now() + timedelta(minutes=15)
+        )
 
 
 class LoginAttempt(BaseModel):
