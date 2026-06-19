@@ -102,7 +102,13 @@ class StudentNarrativeViewSet(viewsets.ModelViewSet):
         return StudentNarrativeReport.objects.filter(student=self.request.user).select_related('program')
 
     def perform_create(self, serializer):
-        serializer.save(student=self.request.user)
+        program = OJTApplication.objects.filter(
+            student=self.request.user, status='approved'
+        ).first()
+        serializer.save(
+            student=self.request.user,
+            program=program.program if program else None
+        )
 
     @action(detail=False, methods=['post'], url_path='submit-with-photos')
     def submit_with_photos(self, request):

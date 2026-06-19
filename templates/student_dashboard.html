@@ -120,7 +120,7 @@
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div class="flex flex-col">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase mb-1">Log Date</label>
-                                <input type="date" id="reportDate" value="2026-05-24" readonly class="p-2.5 border-2 border-[#11693A] text-xs font-bold outline-none bg-slate-100 cursor-not-allowed text-slate-500 rounded-xl">
+                                <input type="date" id="reportDate" readonly class="p-2.5 border-2 border-[#11693A] text-xs font-bold outline-none bg-slate-100 cursor-not-allowed text-slate-500 rounded-xl">
                             </div>
                             <div class="flex flex-col">
                                 <label class="text-[10px] font-bold text-slate-400 uppercase mb-1">Subject Matter / Core Topic</label>
@@ -130,10 +130,10 @@
                         
                         <p class="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Attach Proof Photos (Max 4)</p>
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            <label class="aspect-square border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-slate-100"><i data-lucide="camera" class="text-slate-400 text-lg"></i><input type="file" class="hidden" accept="image/*"></label>
-                            <label class="aspect-square border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-slate-100"><i data-lucide="camera" class="text-slate-400 text-lg"></i><input type="file" class="hidden" accept="image/*"></label>
-                            <label class="aspect-square border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-slate-100"><i data-lucide="camera" class="text-slate-400 text-lg"></i><input type="file" class="hidden" accept="image/*"></label>
-                            <label class="aspect-square border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-slate-100"><i data-lucide="camera" class="text-slate-400 text-lg"></i><input type="file" class="hidden" accept="image/*"></label>
+                            <label class="photo-label aspect-square border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-slate-100 overflow-hidden relative"><i data-lucide="camera" class="text-slate-400 text-lg"></i><input type="file" class="hidden" accept="image/*"></label>
+                            <label class="photo-label aspect-square border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-slate-100 overflow-hidden relative"><i data-lucide="camera" class="text-slate-400 text-lg"></i><input type="file" class="hidden" accept="image/*"></label>
+                            <label class="photo-label aspect-square border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-slate-100 overflow-hidden relative"><i data-lucide="camera" class="text-slate-400 text-lg"></i><input type="file" class="hidden" accept="image/*"></label>
+                            <label class="photo-label aspect-square border-2 border-dashed border-slate-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-slate-100 overflow-hidden relative"><i data-lucide="camera" class="text-slate-400 text-lg"></i><input type="file" class="hidden" accept="image/*"></label>
                         </div>
 
                         <div class="flex flex-col">
@@ -141,6 +141,7 @@
                             <textarea id="reportContent" required rows="5" placeholder="Describe specific actions performed during the structural workspace shift..." class="w-full p-4 border-2 border-[#11693A] text-xs outline-none bg-white rounded-xl resize-none"></textarea>
                         </div>
 
+                        <div id="formError" class="hidden p-3 bg-red-50 border border-red-300 text-red-700 text-xs font-bold rounded-xl mb-3"></div>
                         <div class="flex justify-end">
                             <button type="submit" class="w-full sm:w-auto bg-[#11693A] hover:bg-[#0e5630] text-white font-bold text-xs px-10 py-3.5 rounded-full shadow-md uppercase tracking-wider">Submit Log</button>
                         </div>
@@ -166,10 +167,10 @@
                         
                         <p class="text-[10px] font-bold text-amber-800 uppercase tracking-widest">Update Photos</p>
                         <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                            <div class="aspect-square bg-slate-200 rounded-xl flex items-center justify-center border border-amber-300 text-slate-500 text-xs font-bold">Photo 1</div>
-                            <div class="aspect-square bg-slate-200 rounded-xl flex items-center justify-center border border-amber-300 text-slate-500 text-xs font-bold">Photo 2</div>
-                            <div class="aspect-square bg-dashed border-2 border-amber-300 bg-white rounded-xl flex items-center justify-center cursor-pointer text-amber-500"><i data-lucide="plus"></i></div>
-                            <div class="aspect-square bg-dashed border-2 border-amber-300 bg-white rounded-xl flex items-center justify-center cursor-pointer text-amber-500"><i data-lucide="plus"></i></div>
+                            <label id="archPhotoSlot1" class="arch-photo-slot aspect-square border-2 border-dashed border-amber-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-amber-50 overflow-hidden relative"><i data-lucide="plus" class="text-amber-500"></i><input type="file" class="hidden" accept="image/*"></label>
+                            <label id="archPhotoSlot2" class="arch-photo-slot aspect-square border-2 border-dashed border-amber-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-amber-50 overflow-hidden relative"><i data-lucide="plus" class="text-amber-500"></i><input type="file" class="hidden" accept="image/*"></label>
+                            <label id="archPhotoSlot3" class="arch-photo-slot aspect-square border-2 border-dashed border-amber-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-amber-50 overflow-hidden relative"><i data-lucide="plus" class="text-amber-500"></i><input type="file" class="hidden" accept="image/*"></label>
+                            <label id="archPhotoSlot4" class="arch-photo-slot aspect-square border-2 border-dashed border-amber-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-amber-50 overflow-hidden relative"><i data-lucide="plus" class="text-amber-500"></i><input type="file" class="hidden" accept="image/*"></label>
                         </div>
 
                         <textarea id="archEditContent" required rows="4" class="w-full p-4 border-2 border-amber-400 text-xs outline-none bg-white text-slate-800 rounded-xl resize-none"></textarea>
@@ -268,35 +269,22 @@
         const archEditContent = document.getElementById('archEditContent');
         const scrollContainer = document.querySelector('.custom-scroll');
 
-        function openArchiveEdit(id, date, topic, content) {
-            archiveEditFormCard.classList.remove('hidden');
-            archEditId.value = id;
-            archEditDate.value = date;
-            archEditTopic.value = topic;
-            archEditContent.value = content;
-            scrollContainer.scrollTo({ top: archiveEditFormCard.offsetTop - 20, behavior: 'smooth' });
-        }
-
-        function closeArchiveEdit() {
-            archiveEditFormCard.classList.add('hidden');
-        }
-
         document.getElementById('archiveModifyForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const id = archEditId.value;
-            const payload = {
-                log_date: archEditDate.value,
-                topic: archEditTopic.value,
-                content: archEditContent.value
-            };
+            const formData = new FormData();
+            formData.append('log_date', archEditDate.value);
+            formData.append('topic', archEditTopic.value);
+            formData.append('content', archEditContent.value);
+            for (let i = 1; i <= 4; i++) {
+                const input = document.querySelector('#archPhotoSlot' + i + ' input[type="file"]');
+                if (input && input.files[0]) formData.append('photo_' + i, input.files[0]);
+            }
             try {
                 const res = await fetch(`/api/student/narratives/${id}/`, {
                     method: 'PATCH',
-                    headers: {
-                        'Authorization': `Token ${token}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(payload)
+                    headers: { 'Authorization': `Token ${token}` },
+                    body: formData
                 });
                 if (!res.ok) { const err = await res.json(); throw new Error(JSON.stringify(err)); }
                 alert('Archive entry updated successfully.');
@@ -307,6 +295,33 @@
                 console.error(err);
             }
         });
+
+        // ===== PHOTO PREVIEW ON UPLOAD =====
+        function setupPhotoPreview(containerSelector) {
+            document.querySelectorAll(containerSelector + ' input[type="file"]').forEach(input => {
+                input.addEventListener('change', function () {
+                    const label = this.closest('label');
+                    const existingPreview = label.querySelector('img.preview');
+                    const existingIcon = label.querySelector('i[data-lucide]');
+                    if (existingPreview) existingPreview.remove();
+                    if (this.files && this.files[0]) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            if (existingIcon) existingIcon.style.display = 'none';
+                            const img = document.createElement('img');
+                            img.className = 'preview w-full h-full object-cover rounded-xl absolute inset-0';
+                            img.src = e.target.result;
+                            label.appendChild(img);
+                        };
+                        reader.readAsDataURL(this.files[0]);
+                    } else {
+                        if (existingIcon) existingIcon.style.display = '';
+                    }
+                });
+            });
+        }
+        setupPhotoPreview('#narrativeForm');
+        setupPhotoPreview('#archiveModifyForm');
 
         document.getElementById('narrativeForm').addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -329,14 +344,21 @@
                     headers: { 'Authorization': `Token ${token}` },
                     body: formData
                 });
-                if (!res.ok) { const err = await res.json(); throw new Error(JSON.stringify(err)); }
-                alert('Narrative report submitted successfully.');
+                if (!res.ok) {
+                    const err = await res.json();
+                    const errorDiv = document.getElementById('formError');
+                    const msg = err.detail || Object.values(err).flat().join(', ') || 'Unknown error';
+                    errorDiv.textContent = 'Error: ' + msg;
+                    errorDiv.classList.remove('hidden');
+                    throw new Error(msg);
+                }
+                document.getElementById('formError').classList.add('hidden');
                 document.getElementById('reportTopic').value = '';
                 document.getElementById('reportContent').value = '';
                 fileInputs.forEach(f => { f.value = ''; });
                 loadArchives();
+                alert('Narrative report submitted successfully.');
             } catch (err) {
-                alert('Failed to submit: ' + err.message);
                 console.error(err);
             }
             submitBtn.disabled = false;
@@ -401,11 +423,50 @@
             }
         }
 
+        // ===== PHOTO GALLERY HELPER =====
+        function photoGallery(r) {
+            const urls = [r.photo_1, r.photo_2, r.photo_3, r.photo_4].filter(u => u);
+            if (urls.length === 0) return '';
+            return '<div class="flex gap-1.5 mt-1.5 flex-wrap">' + urls.map(u =>
+                `<a href="${u}" target="_blank" class="block w-14 h-14 md:w-16 md:h-16 rounded-lg overflow-hidden border border-slate-200 shadow-sm hover:opacity-80 transition"><img src="${u}" class="w-full h-full object-cover"></a>`
+            ).join('') + '</div>';
+        }
+
+        // ===== OPEN ARCHIVE EDIT WITH PHOTOS =====
+        function openArchiveEdit(id, date, topic, content, photo1, photo2, photo3, photo4) {
+            archiveEditFormCard.classList.remove('hidden');
+            archEditId.value = id;
+            archEditDate.value = date;
+            archEditTopic.value = topic;
+            archEditContent.value = content;
+            const photos = [photo1, photo2, photo3, photo4];
+            for (let i = 1; i <= 4; i++) {
+                const slot = document.getElementById('archPhotoSlot' + i);
+                const url = photos[i - 1];
+                if (url) {
+                    slot.innerHTML = `<img src="${url}" class="w-full h-full object-cover rounded-xl"><input type="file" class="hidden" accept="image/*">`;
+                } else {
+                    slot.innerHTML = `<i data-lucide="plus" class="text-amber-500"></i><input type="file" class="hidden" accept="image/*">`;
+                }
+            }
+            lucide.createIcons();
+            scrollContainer.scrollTo({ top: archiveEditFormCard.offsetTop - 20, behavior: 'smooth' });
+        }
+
+        function closeArchiveEdit() {
+            archiveEditFormCard.classList.add('hidden');
+        }
+
         // ===== LOAD ARCHIVES =====
         async function loadArchives() {
             const container = document.getElementById('archiveContainer');
             try {
-                const records = await apiFetch('/api/student/narratives/');
+                const res = await fetch('/api/student/narratives/', {
+                    headers: { 'Authorization': `Token ${token}` }
+                });
+                if (!res.ok) throw new Error(`API error: ${res.status}`);
+                const data = await res.json();
+                const records = data.results || data;
                 if (!records || records.length === 0) {
                     container.innerHTML = '<p class="text-slate-400 text-center py-4">No narrative reports found.</p>';
                     return;
@@ -415,6 +476,10 @@
                 records.forEach(r => {
                     const dateStr = new Date(r.log_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
                     const contentPreview = r.content.length > 100 ? r.content.substring(0, 100) + '...' : r.content;
+                    const p1 = r.photo_1 || '';
+                    const p2 = r.photo_2 || '';
+                    const p3 = r.photo_3 || '';
+                    const p4 = r.photo_4 || '';
                     mobileHtml += `
                         <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
                             <div class="flex justify-between items-center border-b border-slate-100 pb-2">
@@ -424,22 +489,24 @@
                             <div class="space-y-1">
                                 <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Topic Header</p>
                                 <p class="text-xs font-mono font-bold text-slate-700">${r.topic}</p>
+                                ${photoGallery(r)}
                             </div>
-                            <div class="flex justify-end">
-                                <button type="button" onclick='openArchiveEdit("${r.id}", "${r.log_date}", "${r.topic.replace(/"/g, '\\"')}", "${r.content.replace(/"/g, '\\"')}")' class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 font-bold text-[10px] rounded-lg transition shadow-sm flex items-center gap-1">
-                                    <i data-lucide="pencil"></i> Open & Edit
-                                </button>
-                            </div>
+                            <button type="button" onclick='openArchiveEdit("${r.id}","${r.log_date}","${r.topic.replace(/"/g, '\\"')}","${r.content.replace(/"/g, '\\"')}","${p1}","${p2}","${p3}","${p4}")' class="w-full bg-amber-500 hover:bg-amber-600 text-white py-2 font-bold text-[10px] rounded-lg transition shadow-sm flex items-center justify-center gap-1">
+                                <i data-lucide="pencil"></i> Open & Edit
+                            </button>
                         </div>`;
                     desktopHtml += `
                         <tr class="border-b border-slate-100 hover:bg-slate-50">
                             <td class="p-4 font-bold text-slate-800">${dateStr}</td>
-                            <td class="p-4 font-mono text-slate-500">${r.topic}</td>
+                            <td class="p-4 font-mono text-slate-500">
+                                ${r.topic}
+                                ${photoGallery(r)}
+                            </td>
                             <td class="p-4 text-center">
                                 <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-600 font-bold text-[9px] uppercase">Submitted</span>
                             </td>
                             <td class="p-4 text-center">
-                                <button type="button" onclick='openArchiveEdit("${r.id}", "${r.log_date}", "${r.topic.replace(/"/g, '\\"')}", "${r.content.replace(/"/g, '\\"')}")' class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-1.5 font-bold text-[10px] rounded-lg transition shadow-sm inline-flex items-center gap-1">
+                                <button type="button" onclick='openArchiveEdit("${r.id}","${r.log_date}","${r.topic.replace(/"/g, '\\"')}","${r.content.replace(/"/g, '\\"')}","${p1}","${p2}","${p3}","${p4}")' class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-1.5 font-bold text-[10px] rounded-lg transition shadow-sm inline-flex items-center gap-1">
                                     <i data-lucide="pencil"></i> Open & Edit
                                 </button>
                             </td>
@@ -454,6 +521,9 @@
                 console.error('Failed to load archives:', err);
             }
         }
+
+        // ===== SET TODAY'S DATE =====
+        document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
 
         // ===== INIT =====
         loadDashboard();

@@ -209,3 +209,6 @@ LOGGING = {
 
 # Create logs directory if it doesn't exist
 os.makedirs(BASE_DIR / 'logs', exist_ok=True)
+
+# Create media directories if they don't exist
+os.makedirs(BASE_DIR / 'media' / 'narratives', exist_ok=True)
