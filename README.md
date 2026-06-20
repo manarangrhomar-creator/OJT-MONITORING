@@ -316,16 +316,16 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 | 14 | :whale: Docker support | Dockerfile + docker-compose.yml |
 | 15 | :bar_chart: **Student Dashboard** | Live API data, dynamic hours display, attendance history table |
 | 16 | :chart_with_upwards_trend: **Progress Tracking** | Rendered/remaining hours calculated from real attendance data |
+| 17 | :envelope: **Forgot Password** | 3-step OTP flow (email → verify → reset) with full backend API |
+| 18 | :link: **Site Assignments** | Coordinators assign students to sites with supervisor info |
+| 19 | :memo: **Student Narrative Reports** | Daily accomplishments with topic, content, and up to 4 photo uploads |
+| 20 | :file_cabinet: **Student Narrative Archives** | View, edit, manage submitted narratives with photo gallery |
 
 ### :yellow_circle: Partially Implemented
 
 | # | Feature | What's Missing |
 |---|---------|----------------|
-| 1 | :memo: **Student Narrative Submission** | Frontend form exists but no backend API or database model |
-| 2 | :file_cabinet: **Student Narrative Archive** | Archive section uses hardcoded mock data |
-| 3 | :eyes: **Coordinator Attendance Monitoring** | API exists but dashboard integration is incomplete |
-| 4 | :link: **Site Assignment** | Students apply to programs, but no dedicated "map to site" UI for coordinators |
-| 5 | :unlock: **Forgot Password** | 3-step frontend UI (email → OTP → new password) but no backend API |
+| 1 | :eyes: **Coordinator Attendance Monitoring** | API with flexible filters exists but dashboard integration is incomplete |
 
 ### :red_circle: Not Implemented
 
@@ -334,19 +334,15 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 | 1 | :camera: **Student Webcam Time-Out** | No student-facing clock-out flow via webcam |
 | 2 | :alarm_clock: **Automated Timeout** | No auto-clockout logic when manual time-out is missed |
 | 3 | :triangular_flag_on_post: **Flagged Records System** | No model or logic to flag exceptions for manual review |
-| 4 | :memo: **Student Daily Narrative Backend** | No model or API for student-submitted daily reports |
-| 5 | :framed_picture: **Photo Upload for Reports** | 4 photo slots in UI but no model field or upload API |
-| 6 | :round_pushpin: **Geolocation Verification** | No GPS/IP-based location check during attendance |
-| 7 | :bell: **Notification System** | No email, SMS, or in-app notifications |
-| 8 | :chart_with_upwards_trend: **Reporting & Analytics** | No charts, PDF/CSV exports, or data visualizations |
-| 9 | :arrows_counterclockwise: **Celery/Redis Task Queue** | Dependencies in `requirements.txt` but no tasks defined |
-| 10 | :stopwatch: **Rate Limiting** | No brute-force protection on login endpoints |
-| 11 | :e-mail: **Email Verification** | No email confirmation on registration |
-| 12 | :test_tube: **Test Coverage** | Test files are auto-generated placeholders only |
+| 4 | :round_pushpin: **Geolocation Verification** | No GPS/IP-based location check during attendance |
+| 5 | :bell: **Notification System** | No email, SMS, or in-app notifications |
+| 6 | :chart_with_upwards_trend: **Reporting & Analytics** | No charts, PDF/CSV exports, or data visualizations |
+| 7 | :arrows_counterclockwise: **Celery/Redis Task Queue** | Dependencies in `requirements.txt` but no tasks defined |
+| 8 | :stopwatch: **Rate Limiting** | No brute-force protection on login endpoints |
+| 9 | :e-mail: **Email Verification** | No email confirmation on registration |
+| 10 | :test_tube: **Test Coverage** | Test files are auto-generated placeholders only |
 
 ---
-
-
 
 ## Deployment
 
