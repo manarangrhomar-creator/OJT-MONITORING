@@ -74,7 +74,7 @@
                 <i data-lucide="contact" class="text-base"></i> Student Accounts
             </button>
             <button id="btn-reports" class="w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center gap-3 px-5 text-emerald-100 font-medium text-sm transition-all" onclick="switchSection('reports')">
-                <i data-lucide="file-text" class="text-base"></i> Narrative Reports
+                <i data-lucide="file-text" class="text-base"></i> Student Reports
             </button>
             <button id="btn-attendance" class="w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center gap-3 px-5 text-emerald-100 font-medium text-sm transition-all" onclick="switchSection('attendance')">
                 <i data-lucide="clock" class="text-base"></i> Attendance
@@ -114,12 +114,7 @@
                             <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style="width:14px;height:14px;"></i>
                             <input type="text" id="studentSearchInput" placeholder="Search student by name or email..." class="border-2 border-slate-200 rounded-lg pl-9 pr-4 py-2 w-full text-sm focus:outline-none focus:border-[#11693A] bg-white">
                         </div>
-                        <div class="flex flex-wrap gap-2">
-                            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-sm" onclick="filterStudentsByStatus('pending')">Pending</button>
-                            <button class="bg-green-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-green-700 transition-all shadow-sm" onclick="filterStudentsByStatus('approved')">Approved</button>
-                            <button class="bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-700 transition-all shadow-sm" onclick="filterStudentsByStatus('rejected')">Rejected</button>
-                            <button class="bg-slate-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-600 transition-all shadow-sm" onclick="filterStudentsByStatus('all')">All</button>
-                        </div>
+
                     </div>
 
                     <div class="overflow-x-auto rounded-xl border border-slate-100 shadow-inner bg-white">
@@ -128,7 +123,7 @@
                                 <tr>
                                     <th class="p-4">Name</th>
                                     <th class="p-4">Email</th>
-                                    <th class="p-4">Program</th>
+                                    <th class="p-4">Course</th>
                                     <th class="p-4">Status</th>
                                     <th class="p-4">Action</th>
                                 </tr>
@@ -167,21 +162,13 @@
                 </div>
             </div>
 
-            <!-- REPORTS SECTION -->
+            <!-- REPORTS SECTION (Student Narratives Only) -->
             <div id="reportsSection" class="section-container hidden flex flex-col h-full">
                 <div class="flex-1 flex flex-col px-4 py-6 md:px-8 md:py-8 gap-6">
                     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
                         <div class="relative w-full sm:w-72">
                             <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style="width:14px;height:14px;"></i>
-                            <input type="text" id="reportSearchInput" placeholder="Search by student name..." class="border-2 border-slate-200 rounded-lg pl-9 pr-4 py-2 w-full text-sm focus:outline-none focus:border-[#11693A] bg-white">
-                        </div>
-                        <div class="flex flex-wrap gap-2">
-                            <button class="bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-700 transition-all shadow-sm" onclick="filterReportsByRating('1')">Poor</button>
-                            <button class="bg-orange-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-orange-700 transition-all shadow-sm" onclick="filterReportsByRating('2')">Fair</button>
-                            <button class="bg-yellow-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-yellow-700 transition-all shadow-sm" onclick="filterReportsByRating('3')">Good</button>
-                            <button class="bg-lime-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-lime-700 transition-all shadow-sm" onclick="filterReportsByRating('4')">Very Good</button>
-                            <button class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-emerald-700 transition-all shadow-sm" onclick="filterReportsByRating('5')">Excellent</button>
-                            <button class="bg-slate-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-600 transition-all shadow-sm" onclick="filterReportsByRating('all')">All</button>
+                            <input type="text" id="reportSearchInput" placeholder="Search..." class="border-2 border-slate-200 rounded-lg pl-9 pr-4 py-2 w-full text-sm focus:outline-none focus:border-[#11693A] bg-white">
                         </div>
                     </div>
 
@@ -190,13 +177,14 @@
                             <thead class="text-[10px] font-bold text-[#11693A] uppercase border-b border-emerald-100 bg-emerald-50">
                                 <tr>
                                     <th class="p-4">Student</th>
+                                    <th class="p-4">Topic</th>
                                     <th class="p-4">Program</th>
                                     <th class="p-4">Date</th>
-                                    <th class="p-4">Rating</th>
+                                    <th class="p-4">Grade</th>
                                     <th class="p-4">Action</th>
                                 </tr>
                             </thead>
-                            <tbody class="text-xs font-medium text-slate-600 divide-y divide-slate-100 bg-white" id="reportTableBody"></tbody>
+                            <tbody class="text-xs font-medium text-slate-600 divide-y divide-slate-100 bg-white" id="studentReportsTableBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -357,9 +345,9 @@
                 <button class="close-btn" onclick="closeModal('approveStudentModal')">&times;</button>
             </div>
             <p style="color: #666; margin-bottom: 20px; font-size: 16px;">
-                Approve <strong id="approveName"></strong> for OJT Program?
+                Approve <strong id="approveName"></strong>'s account?
             </p>
-            <input type="hidden" id="approveAppId" value="">
+            <input type="hidden" id="approveStudentId" value="">
             <div class="modal-buttons">
                 <button class="btn-cancel" onclick="closeModal('approveStudentModal')">Cancel</button>
                 <button class="btn-approve" onclick="confirmApproveStudent()">Approve</button>
@@ -374,9 +362,9 @@
                 <button class="close-btn" onclick="closeModal('rejectStudentModal')">&times;</button>
             </div>
             <p style="color: #666; margin-bottom: 20px; font-size: 16px;">
-                Reject <strong id="rejectName"></strong> from OJT Program?
+                Reject <strong id="rejectName"></strong>'s account?
             </p>
-            <input type="hidden" id="rejectAppId" value="">
+            <input type="hidden" id="rejectStudentId" value="">
             <div class="form-group">
                 <label>Reason for Rejection</label>
                 <textarea id="rejectionReason" rows="3" placeholder="Enter reason..."></textarea>
@@ -388,83 +376,69 @@
         </div>
     </div>
 
-    <div id="viewReportModal" class="modal">
-        <div class="modal-content">
+
+    <div id="viewStudentReportModal" class="modal">
+        <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
-                <h2>Narrative Report</h2>
-                <button class="close-btn" onclick="closeModal('viewReportModal')">&times;</button>
+                <h2>Student Report</h2>
+                <button class="close-btn" onclick="closeModal('viewStudentReportModal')">&times;</button>
             </div>
             <div class="space-y-4">
                 <div class="detail-row">
                     <span class="detail-label">Student:</span>
-                    <span class="detail-value" id="reportViewStudent"></span>
+                    <span class="detail-value" id="srViewStudent"></span>
                 </div>
                 <div class="detail-row">
                     <span class="detail-label">Date:</span>
-                    <span class="detail-value" id="reportViewDate"></span>
+                    <span class="detail-value" id="srViewDate"></span>
                 </div>
                 <div class="detail-row">
-                    <span class="detail-label">Performance:</span>
-                    <span class="detail-value" id="reportViewRating"></span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">Attendance:</span>
-                    <span class="detail-value" id="reportViewAttendance"></span>
+                    <span class="detail-label">Topic:</span>
+                    <span class="detail-value font-bold text-slate-800" id="srViewTopic"></span>
                 </div>
                 <div style="padding: 10px 0; border-top: 1px solid #f0f0f0; margin-top: 15px;">
-                    <span class="detail-label block mb-2">Narrative</span>
-                    <p class="text-gray-600 whitespace-pre-wrap" id="reportViewNarrative"></p>
+                    <span class="detail-label block mb-2">Content</span>
+                    <p class="text-gray-600 whitespace-pre-wrap text-sm" id="srViewContent"></p>
+                </div>
+                <div id="srPhotosContainer" style="display:none; padding: 10px 0; border-top: 1px solid #f0f0f0;">
+                    <span class="detail-label block mb-2">Photos</span>
+                    <div class="flex flex-wrap gap-3" id="srPhotosGrid"></div>
                 </div>
             </div>
             <div class="modal-buttons">
-                <button class="btn-cancel" onclick="closeModal('viewReportModal')">Close</button>
-                <button class="btn-save" onclick="editCurrentReport()">Edit</button>
+                <button class="btn-cancel" onclick="closeModal('viewStudentReportModal')">Close</button>
             </div>
         </div>
     </div>
 
-    <div id="addReportModal" class="modal">
+    <div id="gradeReportModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Add Narrative Report</h2>
-                <button class="close-btn" onclick="closeModal('addReportModal')">&times;</button>
+                <h2>Grade Narrative Report</h2>
+                <button class="close-btn" onclick="closeModal('gradeReportModal')">&times;</button>
             </div>
             <div class="space-y-3">
                 <div class="form-group">
                     <label>Student</label>
-                    <select id="reportStudentSelect" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]"></select>
+                    <p class="text-slate-700 font-semibold" id="gradeStudentName"></p>
                 </div>
                 <div class="form-group">
-                    <label>Report Date</label>
-                    <input type="date" id="reportDate" required>
+                    <label>Topic</label>
+                    <p class="text-slate-600 text-sm" id="gradeTopic"></p>
                 </div>
                 <div class="form-group">
-                    <label>Performance Rating</label>
-                    <select id="performanceRating" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]">
-                        <option value="1">1 - Poor</option>
-                        <option value="2">2 - Fair</option>
-                        <option value="3" selected>3 - Good</option>
-                        <option value="4">4 - Very Good</option>
-                        <option value="5">5 - Excellent</option>
-                    </select>
+                    <label>Grade (1-100)</label>
+                    <input type="number" id="gradeInput" min="1" max="100" required>
                 </div>
                 <div class="form-group">
-                    <label>Attendance Status</label>
-                    <select id="attendanceStatus" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]">
-                        <option value="poor">Poor</option>
-                        <option value="fair">Fair</option>
-                        <option value="good" selected>Good</option>
-                        <option value="excellent">Excellent</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Narrative Report</label>
-                    <textarea id="narrativeText" rows="4" placeholder="Enter detailed feedback about the student's performance..." class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]"></textarea>
+                    <label>Feedback</label>
+                    <textarea id="feedbackInput" rows="3" placeholder="Enter feedback for the student..."></textarea>
                 </div>
             </div>
+            <input type="hidden" id="gradeNarrativeId" value="">
             <div class="modal-buttons">
-                <button class="btn-cancel" onclick="closeModal('addReportModal')">Cancel</button>
-                <button class="btn-save" onclick="submitNarrativeReport()">Save Report</button>
+                <button class="btn-cancel" onclick="closeModal('gradeReportModal')">Cancel</button>
+                <button class="btn-save" onclick="submitGrade()">Save Grade</button>
             </div>
         </div>
     </div>
@@ -572,8 +546,9 @@
                 document.getElementById('pageSubtitle').textContent = 'Student Accounts';
                 activateBtn('btn-accounts');
             } else if (section === 'reports') {
-                document.getElementById('pageSubtitle').textContent = 'Narrative Reports';
+                document.getElementById('pageSubtitle').textContent = 'Student Reports';
                 activateBtn('btn-reports');
+                loadStudentReports();
             } else if (section === 'attendance') {
                 document.getElementById('pageSubtitle').textContent = 'Attendance Monitoring';
                 activateBtn('btn-attendance');
@@ -585,15 +560,14 @@
             }
         }
 
-        // ===== STUDENT FUNCTIONS =====
-        let studentList = [];
-        let currentApproveAppId = null;
-        let currentRejectAppId = null;
-        let studentStatusFilter = 'all';
+        // ===== STUDENT ACCOUNT APPROVAL FUNCTIONS =====
+        let pendingStudentList = [];
+        let currentApproveStudentId = null;
+        let currentRejectStudentId = null;
 
         async function loadStudents() {
             try {
-                const response = await fetch('/api/coordinator/dashboard/my-students/', {
+                const response = await fetch('/api/coordinator/dashboard/pending-student-approvals/', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
@@ -607,9 +581,8 @@
                     return;
                 }
 
-                studentList = await response.json();
+                pendingStudentList = await response.json();
                 renderStudentTable();
-                populateStudentSelect();
             } catch (error) {
                 console.error('Error loading students:', error);
             }
@@ -619,38 +592,42 @@
             const tbody = document.getElementById('studentTableBody');
             tbody.innerHTML = '';
 
-            if (!studentList.length) {
-                tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-gray-400">No students in your programs</td></tr>';
+            if (!pendingStudentList.length) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="py-16 px-4 text-center">
+                            <div class="flex flex-col items-center gap-3">
+                                <div class="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center">
+                                    <i data-lucide="clipboard-check" class="text-emerald-400" style="width:28px;height:28px;"></i>
+                                </div>
+                                <span class="text-slate-400 text-sm font-medium">No pending approvals</span>
+                                <span class="text-slate-300 text-xs">All student accounts have been reviewed</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                lucide.createIcons();
                 return;
             }
 
-            studentList.forEach(student => {
-                const display = studentStatusFilter === 'all' || studentStatusFilter === student.status ? '' : 'none';
-                const statusClass = student.status === 'pending' ? 'yellow' : student.status === 'approved' ? 'emerald' : 'red';
+            pendingStudentList.forEach(student => {
                 const row = document.createElement('tr');
                 row.id = `student-row-${student.id}`;
                 row.className = 'border-b border-slate-100 hover:bg-slate-50 transition-colors';
-                row.style.display = display;
                 row.innerHTML = `
                     <td class="p-4 font-bold text-slate-900">${student.name}</td>
                     <td class="p-4 text-slate-600">${student.email}</td>
-                    <td class="p-4 text-slate-600">${student.program}</td>
+                    <td class="p-4 text-slate-600">${student.course || '—'}</td>
                     <td class="p-4">
-                        <span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold capitalize">${student.status}</span>
+                        <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-bold capitalize">Pending</span>
                     </td>
                     <td class="p-4 text-center">
-                        ${student.status === 'pending' ? `
-                            <button class="text-emerald-500 hover:text-emerald-700 p-2" title="Approve" onclick="requestApproveStudent('${student.app_id}', '${student.name}')">
-                                <i data-lucide="check-circle" class="text-lg"></i>
-                            </button>
-                            <button class="text-red-500 hover:text-red-700 p-2" title="Reject" onclick="requestRejectStudent('${student.app_id}', '${student.name}')">
-                                <i data-lucide="x-circle" class="text-lg"></i>
-                            </button>
-                        ` : `
-                            <button class="text-gray-400 p-2 cursor-not-allowed" title="Already ${student.status}">
-                                <i data-lucide="lock" class="text-lg"></i>
-                            </button>
-                        `}
+                        <button class="text-emerald-500 hover:text-emerald-700 p-2" title="Approve" onclick="requestApproveStudent('${student.id}', '${student.name.replace(/'/g, "\\'")}')">
+                            <i data-lucide="check-circle" class="text-lg"></i>
+                        </button>
+                        <button class="text-red-500 hover:text-red-700 p-2" title="Reject" onclick="requestRejectStudent('${student.id}', '${student.name.replace(/'/g, "\\'")}')">
+                            <i data-lucide="x-circle" class="text-lg"></i>
+                        </button>
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -658,54 +635,41 @@
             lucide.createIcons();
         }
 
-        function filterStudentsByStatus(status) {
-            studentStatusFilter = status;
-            const tbody = document.getElementById('studentTableBody');
-            const rows = tbody.getElementsByTagName('tr');
-            Array.from(rows).forEach(row => {
-                const statusBadge = row.querySelector('td:nth-child(4)');
-                if (statusBadge) {
-                    const rowStatus = statusBadge.textContent.trim().toLowerCase();
-                    const display = status === 'all' || rowStatus === status ? '' : 'none';
-                    row.style.display = display;
-                }
-            });
-        }
-
-        function requestApproveStudent(appId, name) {
-            currentApproveAppId = appId;
+        function requestApproveStudent(studentId, name) {
+            currentApproveStudentId = studentId;
             document.getElementById('approveName').textContent = name;
-            document.getElementById('approveAppId').value = appId;
+            document.getElementById('approveStudentId').value = studentId;
             openModal('approveStudentModal');
         }
 
-        function requestRejectStudent(appId, name) {
-            currentRejectAppId = appId;
+        function requestRejectStudent(studentId, name) {
+            currentRejectStudentId = studentId;
             document.getElementById('rejectName').textContent = name;
-            document.getElementById('rejectAppId').value = appId;
+            document.getElementById('rejectStudentId').value = studentId;
             document.getElementById('rejectionReason').value = '';
             openModal('rejectStudentModal');
         }
 
         async function confirmApproveStudent() {
-            const appId = document.getElementById('approveAppId').value;
+            const studentId = document.getElementById('approveStudentId').value;
             try {
-                const response = await fetch('/api/coordinator/dashboard/approve-student/', {
+                const response = await fetch('/api/coordinator/dashboard/approve-student-account/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRFToken': getCookie('csrftoken'),
                         'Authorization': `Token ${localStorage.getItem('auth_token')}`
                     },
-                    body: JSON.stringify({ app_id: appId })
+                    body: JSON.stringify({ student_id: studentId })
                 });
 
                 if (!response.ok) {
-                    alert('Failed to approve student');
+                    const err = await response.json();
+                    alert(err.error || 'Failed to approve student');
                     return;
                 }
 
-                alert('Student approved successfully');
+                alert('Student account approved successfully! The student can now log in.');
                 closeModal('approveStudentModal');
                 loadStudents();
             } catch (error) {
@@ -715,7 +679,7 @@
         }
 
         async function confirmRejectStudent() {
-            const appId = document.getElementById('rejectAppId').value;
+            const studentId = document.getElementById('rejectStudentId').value;
             const reason = document.getElementById('rejectionReason').value.trim();
             if (!reason) {
                 alert('Please provide a reason for rejection');
@@ -723,22 +687,23 @@
             }
 
             try {
-                const response = await fetch('/api/coordinator/dashboard/reject-student/', {
+                const response = await fetch('/api/coordinator/dashboard/reject-student-account/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRFToken': getCookie('csrftoken'),
                         'Authorization': `Token ${localStorage.getItem('auth_token')}`
                     },
-                    body: JSON.stringify({ app_id: appId, reason: reason })
+                    body: JSON.stringify({ student_id: studentId, reason: reason })
                 });
 
                 if (!response.ok) {
-                    alert('Failed to reject student');
+                    const err = await response.json();
+                    alert(err.error || 'Failed to reject student');
                     return;
                 }
 
-                alert('Student rejected successfully');
+                alert('Student account rejected');
                 closeModal('rejectStudentModal');
                 loadStudents();
             } catch (error) {
@@ -830,64 +795,65 @@
             openModal('viewAccountModal');
         }
 
-        // ===== NARRATIVE REPORT FUNCTIONS =====
-        let reportList = [];
-        let currentViewReportId = null;
-        let reportRatingFilter = 'all';
+        // ===== STUDENT REPORTS FUNCTIONS =====
+        let studentReportList = [];
 
-        async function loadNarrativeReports() {
+        async function loadStudentReports() {
+            const tbody = document.getElementById('studentReportsTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-slate-400"><i data-lucide="loader-circle" class="animate-spin"></i> Loading...</td></tr>';
+            lucide.createIcons();
+
             try {
-                const response = await fetch('/api/coordinator/narrative-reports/', {
+                const response = await fetch('/api/coordinator/dashboard/student-narratives/', {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'),
                         'Authorization': `Token ${localStorage.getItem('auth_token')}`
                     }
                 });
 
                 if (!response.ok) {
-                    console.error('Failed to load reports:', response.status);
+                    tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-red-500">Failed to load</td></tr>';
                     return;
                 }
 
-                reportList = await response.json();
-                renderReportTable();
+                studentReportList = await response.json();
+                renderStudentReports();
             } catch (error) {
-                console.error('Error loading reports:', error);
+                console.error('Error loading student reports:', error);
+                tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-red-500">Error loading</td></tr>';
             }
         }
 
-        function renderReportTable() {
-            const tbody = document.getElementById('reportTableBody');
+        function renderStudentReports() {
+            const tbody = document.getElementById('studentReportsTableBody');
             tbody.innerHTML = '';
 
-            if (!reportList.length) {
-                tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-slate-500">No narrative reports yet</td></tr>';
+            if (!studentReportList.length) {
+                tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-slate-500">No student reports found</td></tr>';
                 return;
             }
 
-            reportList.forEach(report => {
-                const display = reportRatingFilter === 'all' || reportRatingFilter === report.performance_rating.toString() ? '' : 'none';
-                const ratingColors = ['', 'red', 'orange', 'yellow', 'lime', 'emerald'];
-                const ratingLabels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
+            studentReportList.forEach(n => {
+                const isGraded = n.grade !== null && n.grade !== undefined;
                 const row = document.createElement('tr');
-                row.id = `report-row-${report.id}`;
                 row.className = 'border-b border-slate-100 hover:bg-slate-50 transition-colors';
-                row.style.display = display;
                 row.innerHTML = `
-                    <td class="p-4 font-bold text-slate-900">${report.student_name}</td>
-                    <td class="p-4 text-slate-600">${report.program_name}</td>
-                    <td class="p-4 text-slate-600">${new Date(report.report_date).toLocaleDateString()}</td>
-                    <td class="p-4">
-                        <span class="bg-${ratingColors[report.performance_rating]}-100 text-${ratingColors[report.performance_rating]}-700 px-3 py-1 rounded-full text-xs font-bold">${ratingLabels[report.performance_rating]}</span>
-                    </td>
+                    <td class="p-4 font-bold text-slate-900">${n.student_name}</td>
+                    <td class="p-4 text-slate-600">${n.topic}</td>
+                    <td class="p-4 text-slate-600">${n.program_name || '—'}</td>
+                    <td class="p-4 text-slate-600">${new Date(n.log_date).toLocaleDateString()}</td>
+                    <td class="p-4">${
+                        isGraded
+                            ? `<span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">${n.grade}/100</span>`
+                            : `<span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold">Pending</span>`
+                    }</td>
                     <td class="p-4 text-center">
-                        <button class="text-blue-500 hover:text-blue-700 p-2" title="View" onclick="viewReport('${report.id}')">
+                        <button class="text-blue-500 hover:text-blue-700 p-2" title="View" onclick="viewStudentReport('${n.id}')">
                             <i data-lucide="eye" class="text-lg"></i>
                         </button>
-                        <button class="text-amber-500 hover:text-amber-700 p-2" title="Edit" onclick="editReport('${report.id}')">
-                            <i data-lucide="pencil" class="text-lg"></i>
+                        <button class="text-emerald-500 hover:text-emerald-700 p-2" title="${isGraded ? 'Update Grade' : 'Grade'}" onclick="openGradeModal('${n.id}')">
+                            <i data-lucide="star" class="text-lg"></i>
                         </button>
                     </td>
                 `;
@@ -896,116 +862,80 @@
             lucide.createIcons();
         }
 
-        function filterReportsByRating(rating) {
-            reportRatingFilter = rating;
-            const tbody = document.getElementById('reportTableBody');
-            const rows = tbody.getElementsByTagName('tr');
-            Array.from(rows).forEach(row => {
-                const ratingBadge = row.querySelector('td:nth-child(4)');
-                if (ratingBadge) {
-                    if (rating === 'all') {
-                        row.style.display = '';
-                    } else {
-                        const ratingLabels = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'];
-                        const rowRating = ratingLabels.indexOf(ratingBadge.textContent.trim());
-                        const display = rowRating === parseInt(rating) ? '' : 'none';
-                        row.style.display = display;
-                    }
-                }
-            });
-        }
+        function viewStudentReport(id) {
+            const n = studentReportList.find(r => r.id === id);
+            if (!n) return;
 
-        function viewReport(reportId) {
-            const report = reportList.find(r => r.id === reportId);
-            if (!report) return;
+            document.getElementById('srViewStudent').textContent = n.student_name;
+            document.getElementById('srViewDate').textContent = new Date(n.log_date).toLocaleDateString();
+            document.getElementById('srViewTopic').textContent = n.topic;
+            document.getElementById('srViewContent').textContent = n.content;
 
-            document.getElementById('reportViewStudent').textContent = report.student_name;
-            document.getElementById('reportViewDate').textContent = new Date(report.report_date).toLocaleDateString();
-            document.getElementById('reportViewRating').textContent = ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][report.performance_rating];
-            document.getElementById('reportViewAttendance').textContent = report.attendance_status.charAt(0).toUpperCase() + report.attendance_status.slice(1);
-            document.getElementById('reportViewNarrative').textContent = report.narrative_text;
-            currentViewReportId = reportId;
-            openModal('viewReportModal');
-        }
+            const photosGrid = document.getElementById('srPhotosGrid');
+            const photosContainer = document.getElementById('srPhotosContainer');
+            photosGrid.innerHTML = '';
 
-        function editReport(reportId) {
-            // TODO: Implement edit functionality
-            alert('Edit functionality coming soon');
-        }
+            const photoFields = [n.photo_1, n.photo_2, n.photo_3, n.photo_4];
+            const hasPhotos = photoFields.some(p => p);
+            photosContainer.style.display = hasPhotos ? '' : 'none';
 
-        function editCurrentReport() {
-            // TODO: Implement edit functionality
-            alert('Edit functionality coming soon');
-        }
-
-        function populateStudentSelect() {
-            const select = document.getElementById('reportStudentSelect');
-            select.innerHTML = '<option value="">Select a student...</option>';
-            studentList.forEach(student => {
-                const option = document.createElement('option');
-                option.value = JSON.stringify({id: student.id, program_id: student.program_id});
-                option.textContent = `${student.name} (${student.program})`;
-                select.appendChild(option);
-            });
-        }
-
-        function openAddStudentReportModal() {
-            if (!studentList.length) {
-                alert('No students to add reports for. Approve a student first.');
-                return;
-            }
-            document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
-            openModal('addReportModal');
-        }
-
-        async function submitNarrativeReport() {
-            const studentData = document.getElementById('reportStudentSelect').value;
-            if (!studentData) {
-                alert('Please select a student');
-                return;
+            if (hasPhotos) {
+                photoFields.forEach(photo => {
+                    if (!photo) return;
+                    const img = document.createElement('img');
+                    img.src = photo;
+                    img.className = 'w-32 h-32 object-cover rounded-lg border border-slate-200 cursor-pointer hover:opacity-80 transition-opacity';
+                    img.onclick = () => window.open(photo, '_blank');
+                    photosGrid.appendChild(img);
+                });
             }
 
-            const {id: studentId, program_id: programId} = JSON.parse(studentData);
-            const reportDate = document.getElementById('reportDate').value;
-            const performanceRating = parseInt(document.getElementById('performanceRating').value);
-            const attendanceStatus = document.getElementById('attendanceStatus').value;
-            const narrativeText = document.getElementById('narrativeText').value.trim();
+            openModal('viewStudentReportModal');
+        }
 
-            if (!reportDate || !narrativeText) {
-                alert('Please fill in all required fields');
+        function openGradeModal(id) {
+            const n = studentReportList.find(r => r.id === id);
+            if (!n) return;
+            document.getElementById('gradeNarrativeId').value = id;
+            document.getElementById('gradeStudentName').textContent = n.student_name;
+            document.getElementById('gradeTopic').textContent = n.topic;
+            document.getElementById('gradeInput').value = n.grade || '';
+            document.getElementById('feedbackInput').value = n.feedback || '';
+            openModal('gradeReportModal');
+        }
+
+        async function submitGrade() {
+            const narrativeId = document.getElementById('gradeNarrativeId').value;
+            const grade = parseInt(document.getElementById('gradeInput').value);
+            const feedback = document.getElementById('feedbackInput').value.trim();
+
+            if (!grade || grade < 1 || grade > 100) {
+                alert('Please enter a grade between 1 and 100');
                 return;
             }
 
             try {
-                const response = await fetch('/api/coordinator/narrative-reports/', {
+                const response = await fetch('/api/coordinator/dashboard/grade-narrative/', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'X-CSRFToken': getCookie('csrftoken'),
                         'Authorization': `Token ${localStorage.getItem('auth_token')}`
                     },
-                    body: JSON.stringify({
-                        student: studentId,
-                        program: programId,
-                        report_date: reportDate,
-                        performance_rating: performanceRating,
-                        attendance_status: attendanceStatus,
-                        narrative_text: narrativeText
-                    })
+                    body: JSON.stringify({ narrative_id: narrativeId, grade, feedback })
                 });
 
                 if (!response.ok) {
-                    const error = await response.json();
-                    console.error('Error response:', error);
-                    alert('Failed to save report. This student may already have a report for this date.');
+                    const err = await response.json();
+                    alert(err.error || 'Failed to save grade');
                     return;
                 }
 
-                alert('Narrative report saved successfully');
-                closeModal('addReportModal');
-                loadNarrativeReports();
+                alert('Grade saved successfully');
+                closeModal('gradeReportModal');
+                loadStudentReports();
             } catch (error) {
-                console.error('Error submitting report:', error);
+                console.error('Error saving grade:', error);
                 alert('An error occurred');
             }
         }
@@ -1283,7 +1213,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadStudents();
             loadStudentAccounts();
-            loadNarrativeReports();
             loadProgramsForFilter();
             switchSection('students');
         });
@@ -1307,7 +1236,7 @@
 
         document.getElementById('reportSearchInput').addEventListener('keyup', function() {
             const filter = this.value.toUpperCase();
-            document.querySelectorAll('#reportTableBody tr').forEach(row => {
+            document.querySelectorAll('#studentReportsTableBody tr').forEach(row => {
                 const text = row.textContent.toUpperCase();
                 row.style.display = text.includes(filter) ? '' : 'none';
             });

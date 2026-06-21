@@ -45,6 +45,10 @@ class UserLoginSerializer(serializers.Serializer):
 
         user = authenticate(username=identifier, password=password)
         if user:
+            if user.role == 'coordinator' and user.approval_status != 'approved':
+                raise serializers.ValidationError("Your coordinator account is pending approval. Please wait for an admin to approve your account.")
+            if user.role == 'student' and user.approval_status != 'approved':
+                raise serializers.ValidationError("Your student account is pending approval. Please wait for your coordinator to approve your account.")
             attrs['user'] = user
             return attrs
 
@@ -64,6 +68,10 @@ class UserLoginSerializer(serializers.Serializer):
         if found_user:
             user = authenticate(username=found_user.username, password=password)
             if user:
+                if user.role == 'coordinator' and user.approval_status != 'approved':
+                    raise serializers.ValidationError("Your coordinator account is pending approval. Please wait for an admin to approve your account.")
+                if user.role == 'student' and user.approval_status != 'approved':
+                    raise serializers.ValidationError("Your student account is pending approval. Please wait for your coordinator to approve your account.")
                 attrs['user'] = user
                 return attrs
             raise serializers.ValidationError("Invalid password.")

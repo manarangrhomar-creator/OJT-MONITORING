@@ -10,8 +10,8 @@ class StudentNarrativeReportSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StudentNarrativeReport
-        fields = ('id', 'student', 'student_name', 'program', 'program_name', 'log_date', 'topic', 'content', 'photo_1', 'photo_2', 'photo_3', 'photo_4', 'created_at', 'updated_at')
-        read_only_fields = ('id', 'student', 'created_at', 'updated_at')
+        fields = ('id', 'student', 'student_name', 'program', 'program_name', 'log_date', 'topic', 'content', 'photo_1', 'photo_2', 'photo_3', 'photo_4', 'grade', 'feedback', 'graded_by', 'graded_at', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'student', 'grade', 'feedback', 'graded_by', 'graded_at', 'created_at', 'updated_at')
 
 
 class StudentProfileSerializer(serializers.ModelSerializer):

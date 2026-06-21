@@ -236,7 +236,6 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 | POST | `/api/coordinator/attendance/clock_in/` | Clock in |
 | POST | `/api/coordinator/attendance/{id}/clock_out/` | Clock out |
 | GET | `/api/coordinator/dashboard/my-students/` | My students |
-| GET/POST | `/api/coordinator/narrative-reports/` | Narrative reports |
 
 ### :student: Student
 
@@ -283,7 +282,6 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 | **OJTProgram** | OJT program details (name, description, dates, location, max students, coordinator) |
 | **OJTApplication** | Student applications linking to programs (status: pending/approved/rejected/completed) |
 | **Attendance** | Daily attendance records (date, time-in, time-out, facial recognition flag, notes) |
-| **NarrativeReport** | Coordinator-created performance reports (rating, attendance status) |
 
 ### :student: Student
 
@@ -310,7 +308,6 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 | 8 | :camera: Facial recognition enrollment | Webcam capture, LBPH encoding storage |
 | 9 | :camera: Facial recognition verification | Webcam-based identity verification |
 | 10 | :clock3: Attendance time-in/time-out API | Coordinator-side clock in/out |
-| 11 | :pencil: Narrative report creation | Coordinator creates performance reports |
 | 12 | :bar_chart: System activity logging | Login attempts, admin actions |
 | 13 | :globe_with_meridians: Swagger API docs | Auto-generated OpenAPI documentation |
 | 14 | :whale: Docker support | Dockerfile + docker-compose.yml |

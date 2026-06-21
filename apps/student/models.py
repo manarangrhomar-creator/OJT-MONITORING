@@ -13,6 +13,10 @@ class StudentNarrativeReport(BaseModel):
     photo_2 = models.ImageField(upload_to='narratives/', blank=True, null=True)
     photo_3 = models.ImageField(upload_to='narratives/', blank=True, null=True)
     photo_4 = models.ImageField(upload_to='narratives/', blank=True, null=True)
+    grade = models.IntegerField(blank=True, null=True, help_text='Coordinator grade (1-100)')
+    feedback = models.TextField(blank=True, help_text='Coordinator feedback on the report')
+    graded_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='graded_narratives')
+    graded_at = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         verbose_name = 'Student Narrative Report'

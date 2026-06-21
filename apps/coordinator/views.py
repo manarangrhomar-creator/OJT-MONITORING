@@ -4,8 +4,10 @@ from rest_framework.response import Response
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from apps.core.models import User
-from .models import OJTProgram, OJTApplication, Attendance, NarrativeReport, SiteAssignment
-from .serializers import OJTProgramSerializer, OJTApplicationSerializer, AttendanceSerializer, NarrativeReportSerializer, SiteAssignmentSerializer
+from apps.student.models import StudentNarrativeReport
+from apps.student.serializers import StudentNarrativeReportSerializer
+from .models import OJTProgram, OJTApplication, Attendance, SiteAssignment
+from .serializers import OJTProgramSerializer, OJTApplicationSerializer, AttendanceSerializer, SiteAssignmentSerializer
 
 
 class IsCoordinator(permissions.BasePermission):
@@ -223,35 +225,106 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
 
         return Response(records)
 
+    @action(detail=False, methods=['get'], url_path='student-narratives')
+    def student_narratives(self, request):
+        """Get student-submitted narratives filtered by coordinator's course."""
+        coordinator = request.user
 
-class NarrativeReportViewSet(viewsets.ModelViewSet):
-    """ViewSet for Narrative Report management."""
-    serializer_class = NarrativeReportSerializer
-    permission_classes = [IsCoordinator]
-    
-    def get_queryset(self):
-        """Filter reports by coordinator's programs."""
-        coordinator = self.request.user
-        return NarrativeReport.objects.filter(
-            program__coordinator=coordinator
+        # Get approved students in coordinator's programs
+        applications = OJTApplication.objects.filter(
+            program__coordinator=coordinator,
+            status='approved'
         ).select_related('student', 'program')
-    
-    @action(detail=False, methods=['get'])
-    def student_reports(self, request):
-        """Get all narrative reports for a specific student."""
-        student_id = request.query_params.get('student_id')
-        program_id = request.query_params.get('program_id')
-        
-        if not student_id or not program_id:
-            return Response({'error': 'student_id and program_id required'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        reports = self.get_queryset().filter(
-            student_id=student_id,
-            program_id=program_id
-        ).order_by('-report_date')
-        
-        serializer = self.get_serializer(reports, many=True)
+
+        coordinator_course = coordinator.course
+        if coordinator_course:
+            applications = applications.filter(
+                student__student_profile__course=coordinator_course
+            )
+
+        student_ids = applications.values_list('student_id', flat=True)
+
+        narratives = StudentNarrativeReport.objects.filter(
+            student_id__in=student_ids
+        ).select_related('student', 'program').order_by('-log_date')
+
+        serializer = StudentNarrativeReportSerializer(narratives, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['post'], url_path='grade-narrative')
+    def grade_narrative(self, request):
+        """Grade a student narrative report."""
+        narrative_id = request.data.get('narrative_id')
+        grade = request.data.get('grade')
+        feedback = request.data.get('feedback', '')
+
+        if not narrative_id:
+            return Response({'error': 'narrative_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if grade is None or not isinstance(grade, int) or grade < 1 or grade > 100:
+            return Response({'error': 'Grade must be an integer between 1 and 100'}, status=status.HTTP_400_BAD_REQUEST)
+
+        narrative = get_object_or_404(StudentNarrativeReport, id=narrative_id)
+        narrative.grade = grade
+        narrative.feedback = feedback
+        narrative.graded_by = request.user
+        narrative.graded_at = timezone.now()
+        narrative.save(update_fields=['grade', 'feedback', 'graded_by', 'graded_at'])
+
+        serializer = StudentNarrativeReportSerializer(narrative)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='pending-student-approvals')
+    def pending_student_approvals(self, request):
+        """Get students pending approval, filtered by coordinator's course."""
+        coordinator = request.user
+        students = User.objects.filter(
+            role='student',
+            approval_status='pending'
+        ).select_related('student_profile').order_by('-created_at')
+
+        coordinator_course = coordinator.course
+        if coordinator_course:
+            students = students.filter(student_profile__course=coordinator_course)
+
+        data = []
+        for s in students:
+            course = ''
+            try:
+                course = s.student_profile.course
+            except:
+                pass
+            data.append({
+                'id': s.id,
+                'name': s.get_full_name(),
+                'email': s.email,
+                'username': s.username,
+                'course': course,
+                'registration_date': s.created_at,
+            })
+        return Response(data)
+
+    @action(detail=False, methods=['post'], url_path='approve-student-account')
+    def approve_student_account(self, request):
+        """Approve a student account."""
+        student_id = request.data.get('student_id')
+        if not student_id:
+            return Response({'error': 'student_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        student = get_object_or_404(User, id=student_id, role='student')
+        student.approval_status = 'approved'
+        student.save(update_fields=['approval_status'])
+        return Response({'message': 'Student account approved successfully'})
+
+    @action(detail=False, methods=['post'], url_path='reject-student-account')
+    def reject_student_account(self, request):
+        """Reject a student account."""
+        student_id = request.data.get('student_id')
+        if not student_id:
+            return Response({'error': 'student_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        student = get_object_or_404(User, id=student_id, role='student')
+        student.approval_status = 'rejected'
+        student.save(update_fields=['approval_status'])
+        return Response({'message': 'Student account rejected'})
 
 
 class SiteAssignmentViewSet(viewsets.ModelViewSet):

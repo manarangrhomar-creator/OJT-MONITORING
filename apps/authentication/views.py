@@ -10,6 +10,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_http_methods
 from apps.core.models import User
+from apps.student.models import StudentProfile
 from .serializers import UserRegisterSerializer, UserLoginSerializer, UserSerializer, SendOTPSerializer, VerifyOTPSerializer, ResetPasswordSerializer
 from .models import LoginAttempt, PasswordResetOTP
 
@@ -27,9 +28,28 @@ class AuthenticationViewSet(viewsets.ViewSet):
         serializer = UserRegisterSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            # Create token for the new user
+
+            # If registering as a student, create StudentProfile
+            if user.role == 'student':
+                course = request.data.get('course', '')
+                student_id = request.data.get('student_id', '')
+                StudentProfile.objects.get_or_create(
+                    user=user,
+                    defaults={
+                        'student_id': student_id or f"TEMP-{user.username}",
+                        'department': course,
+                        'course': course,
+                        'year_level': 1,
+                    }
+                )
+                # Don't create token or login — wait for coordinator approval
+                return Response({
+                    'message': 'Student account created successfully. Please wait for your coordinator to approve your account before logging in.',
+                    'user': UserSerializer(user).data,
+                }, status=status.HTTP_201_CREATED)
+
+            # Create token for the new user (admins/coordinators get immediate access)
             token, created = Token.objects.get_or_create(user=user)
-            # Create session for Django @login_required views
             login(request, user)
             return Response({
                 'message': 'User registered successfully',
