@@ -2,9 +2,10 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
-from apps.core.models import User
+from apps.core.models import User, Course
+from apps.coordinator.models import Site
 from .models import SystemLog
-from .serializers import AdminUserSerializer, SystemLogSerializer
+from .serializers import AdminUserSerializer, CourseSerializer, SiteSerializer, SystemLogSerializer
 
 
 class IsAdminUser(permissions.BasePermission):
@@ -103,3 +104,28 @@ class UserManagementViewSet(viewsets.ModelViewSet):
         )
         
         return Response({"message": "User deactivated successfully"}, status=status.HTTP_200_OK)
+
+
+class CoursesViewSet(viewsets.ModelViewSet):
+    """ViewSet for Course management."""
+    queryset = Course.objects.all()
+    serializer_class = CourseSerializer
+    permission_classes = [IsAdminUser]
+    search_fields = ['name']
+    pagination_class = None
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+
+class SitesViewSet(viewsets.ModelViewSet):
+    """ViewSet for Site management."""
+    queryset = Site.objects.all()
+    serializer_class = SiteSerializer
+    permission_classes = [IsAdminUser]
+    pagination_class = None
+    search_fields = ['name']
+    filterset_fields = ['course', 'is_active']
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)

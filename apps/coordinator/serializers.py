@@ -42,8 +42,10 @@ class SiteAssignmentSerializer(serializers.ModelSerializer):
     """Serializer for Site Assignment."""
     student_name = serializers.CharField(source='student.get_full_name', read_only=True)
     program_name = serializers.CharField(source='program.name', read_only=True)
+    site_name = serializers.CharField(source='site.name', read_only=True, allow_null=True)
+    site_location = serializers.CharField(source='site.name', read_only=True, allow_null=True)
 
     class Meta:
         model = SiteAssignment
-        fields = ('id', 'student', 'student_name', 'program', 'program_name', 'assigned_date', 'site_location', 'supervisor_name', 'supervisor_contact', 'notes', 'created_at', 'updated_at')
+        fields = ('id', 'student', 'student_name', 'program', 'program_name', 'assigned_date', 'site', 'site_name', 'site_location', 'supervisor_name', 'supervisor_contact', 'notes', 'created_at', 'updated_at')
         read_only_fields = ('id', 'created_at', 'updated_at', 'assigned_date')

@@ -1,13 +1,34 @@
 from rest_framework import serializers
-from apps.core.models import User
+from apps.core.models import User, Course
+from apps.coordinator.models import Site
 from .models import SystemLog
 
 
 class AdminUserSerializer(serializers.ModelSerializer):
     """Serializer for admin user management."""
+    course_name = serializers.CharField(source='course.name', read_only=True, allow_null=True)
+
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'approval_status', 'is_active', 'created_at', 'phone_number', 'course', 'faculty_id')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'approval_status', 'is_active', 'created_at', 'phone_number', 'course', 'course_name', 'faculty_id')
+        read_only_fields = ('id', 'created_at')
+
+
+class CourseSerializer(serializers.ModelSerializer):
+    """Serializer for Course model."""
+    class Meta:
+        model = Course
+        fields = ('id', 'name', 'is_active', 'created_at')
+        read_only_fields = ('id', 'created_at')
+
+
+class SiteSerializer(serializers.ModelSerializer):
+    """Serializer for Site model (admin)."""
+    course_name = serializers.CharField(source='course.name', read_only=True)
+
+    class Meta:
+        model = Site
+        fields = ('id', 'name', 'course', 'course_name', 'contact_person', 'contact_number', 'is_active', 'created_at')
         read_only_fields = ('id', 'created_at')
 
 

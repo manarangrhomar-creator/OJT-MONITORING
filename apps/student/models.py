@@ -33,7 +33,7 @@ class StudentProfile(BaseModel):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='student_profile', limit_choices_to={'role': 'student'})
     student_id = models.CharField(max_length=50, unique=True)
     department = models.CharField(max_length=255)
-    course = models.CharField(max_length=255)
+    course = models.ForeignKey('core.Course', on_delete=models.SET_NULL, null=True, blank=True, related_name='students')
     year_level = models.IntegerField(choices=[(1, '1st Year'), (2, '2nd Year'), (3, '3rd Year'), (4, '4th Year')])
     gpa = models.DecimalField(max_digits=3, decimal_places=2, blank=True, null=True)
     

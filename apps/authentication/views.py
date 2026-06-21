@@ -9,7 +9,7 @@ from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_http_methods
-from apps.core.models import User
+from apps.core.models import User, Course
 from apps.student.models import StudentProfile
 from .serializers import UserRegisterSerializer, UserLoginSerializer, UserSerializer, SendOTPSerializer, VerifyOTPSerializer, ResetPasswordSerializer
 from .models import LoginAttempt, PasswordResetOTP
@@ -25,20 +25,32 @@ class AuthenticationViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
     def register(self, request):
         """Register a new user."""
-        serializer = UserRegisterSerializer(data=request.data)
+        data = request.data.copy()
+        course_name = data.get('course', '')
+
+        # Resolve course name to Course object
+        if course_name:
+            try:
+                course_obj = Course.objects.get(name=course_name, is_active=True)
+                data['course'] = course_obj.id
+            except Course.DoesNotExist:
+                data['course'] = None
+        else:
+            data['course'] = None
+
+        serializer = UserRegisterSerializer(data=data)
         if serializer.is_valid():
             user = serializer.save()
 
             # If registering as a student, create StudentProfile
             if user.role == 'student':
-                course = request.data.get('course', '')
-                student_id = request.data.get('student_id', '')
+                student_id = data.get('student_id', '')
                 StudentProfile.objects.get_or_create(
                     user=user,
                     defaults={
                         'student_id': student_id or f"TEMP-{user.username}",
-                        'department': course,
-                        'course': course,
+                        'department': '',
+                        'course': course_obj if course_name and 'course_obj' in locals() else None,
                         'year_level': 1,
                     }
                 )
@@ -132,6 +144,15 @@ class AuthenticationViewSet(viewsets.ViewSet):
         user.save()
         return Response({'message': 'Password changed successfully'}, status=status.HTTP_200_OK)
     
+    @action(detail=False, methods=['get'], permission_classes=[AllowAny], authentication_classes=[])
+    def courses(self, request):
+        """Get list of active courses for registration forms."""
+        courses = Course.objects.filter(is_active=True).order_by('name')
+        return Response([{
+            'id': str(c.id),
+            'name': c.name,
+        } for c in courses])
+
     @action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
     def send_otp(self, request):
         """Send OTP for password reset."""

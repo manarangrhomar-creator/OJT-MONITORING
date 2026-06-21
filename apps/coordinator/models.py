@@ -78,12 +78,29 @@ class Attendance(BaseModel):
         return f"{self.student.username} - {self.date}"
 
 
+class Site(BaseModel):
+    """Site/company for OJT placement, managed by admin."""
+    name = models.CharField(max_length=255)
+    course = models.ForeignKey('core.Course', on_delete=models.CASCADE, related_name='sites')
+    contact_person = models.CharField(max_length=255, blank=True)
+    contact_number = models.CharField(max_length=50, blank=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'Site'
+        verbose_name_plural = 'Sites'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
 class SiteAssignment(BaseModel):
     """Student site/placement assignment by coordinator."""
     student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='site_assignments', limit_choices_to={'role': 'student'})
     program = models.ForeignKey(OJTProgram, on_delete=models.CASCADE, related_name='site_assignments')
     assigned_date = models.DateField(auto_now_add=True)
-    site_location = models.CharField(max_length=255)
+    site = models.ForeignKey(Site, on_delete=models.SET_NULL, null=True, blank=True, related_name='assignments')
     supervisor_name = models.CharField(max_length=255, blank=True)
     supervisor_contact = models.CharField(max_length=50, blank=True)
     notes = models.TextField(blank=True)
@@ -95,6 +112,6 @@ class SiteAssignment(BaseModel):
         ordering = ['-assigned_date']
 
     def __str__(self):
-        return f"{self.student.username} -> {self.site_location}"
+        return f"{self.student.username} -> {self.site.name if self.site else 'No site'}"
 
 

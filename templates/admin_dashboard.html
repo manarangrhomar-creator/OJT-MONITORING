@@ -82,6 +82,12 @@
             <button id="btn-approvals" class="w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center gap-3 px-5 text-emerald-100 font-medium text-sm transition-all" onclick="switchSection('approvals')">
                 <i data-lucide="file-text" class="text-base"></i> Coordinator Approval
             </button>
+            <button id="btn-courses" class="w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center gap-3 px-5 text-emerald-100 font-medium text-sm transition-all" onclick="switchSection('courses')">
+                <i data-lucide="book-open" class="text-base"></i> Manage Courses
+            </button>
+            <button id="btn-sites" class="w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center gap-3 px-5 text-emerald-100 font-medium text-sm transition-all" onclick="switchSection('sites')">
+                <i data-lucide="building" class="text-base"></i> Manage Sites
+            </button>
         </div>
 
         <div class="mt-auto text-[10px] text-emerald-300/50 uppercase tracking-widest font-bold">
@@ -208,6 +214,67 @@
                 </div>
             </div>
         </div>
+
+            <!-- COURSES SECTION -->
+            <div id="coursesSection" class="section-container hidden flex flex-col h-full overflow-y-auto">
+                <div class="flex flex-col px-4 py-6 md:px-8 md:py-8 gap-6">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+                        <div class="relative w-full sm:w-72">
+                            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style="width:14px;height:14px;"></i>
+                            <input type="text" id="courseSearchInput" placeholder="Search course by name..." class="border-2 border-slate-200 rounded-lg pl-9 pr-4 py-2 w-full text-sm focus:outline-none focus:border-[#11693A] bg-white">
+                        </div>
+                        <div>
+                            <button class="bg-[#11693A] text-white px-5 py-2.5 rounded-lg text-xs font-bold hover:bg-[#0e5630] transition-all shadow-sm flex items-center gap-2" onclick="openAddCourseModal()">
+                                <i data-lucide="plus"></i> Add Course
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-slate-100 shadow-inner bg-white">
+                        <table class="w-full text-left border-collapse min-w-[600px]">
+                            <thead class="text-[10px] font-bold text-[#11693A] uppercase border-b border-emerald-100 bg-emerald-50">
+                                <tr>
+                                    <th class="p-4">Course Name</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-xs font-medium text-slate-600 divide-y divide-slate-100 bg-white" id="courseTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SITES SECTION -->
+            <div id="sitesSection" class="section-container hidden flex flex-col h-full">
+                <div class="flex-1 flex flex-col px-4 py-6 md:px-8 md:py-8 gap-6">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+                        <div class="relative w-full sm:w-72">
+                            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style="width:14px;height:14px;"></i>
+                            <input type="text" id="siteSearchInput" placeholder="Search site by name..." class="border-2 border-slate-200 rounded-lg pl-9 pr-4 py-2 w-full text-sm focus:outline-none focus:border-[#11693A] bg-white">
+                        </div>
+                        <div>
+                            <button class="bg-[#11693A] text-white px-5 py-2.5 rounded-lg text-xs font-bold hover:bg-[#0e5630] transition-all shadow-sm flex items-center gap-2" onclick="openAddSiteModal()">
+                                <i data-lucide="plus"></i> Add Site
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-slate-100 shadow-inner bg-white">
+                        <table class="w-full text-left border-collapse min-w-[800px]">
+                            <thead class="text-[10px] font-bold text-[#11693A] uppercase border-b border-emerald-100 bg-emerald-50">
+                                <tr>
+                                    <th class="p-4">Name</th>
+                                    <th class="p-4">Course</th>
+                                    <th class="p-4">Contact Person</th>
+                                    <th class="p-4">Contact #</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-xs font-medium text-slate-600 divide-y divide-slate-100 bg-white" id="siteTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
 
     <div id="viewModal" class="modal">
         <div class="modal-content">
@@ -545,6 +612,180 @@
         </div>
     </div>
 
+    <!-- Course Modals -->
+    <div id="addCourseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Course</h2>
+                <button class="close-btn" onclick="closeModal('addCourseModal')">&times;</button>
+            </div>
+            <div class="space-y-3">
+                <div class="form-group">
+                    <label>Course Name</label>
+                    <input type="text" id="courseName" required placeholder="e.g. BS Information Technology (BSIT)">
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal('addCourseModal')">Cancel</button>
+                <button class="btn-save" onclick="addNewCourse()">Save Course</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editCourseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Course</h2>
+                <button class="close-btn" onclick="closeModal('editCourseModal')">&times;</button>
+            </div>
+            <input type="hidden" id="editCourseId" value="">
+            <div class="space-y-3">
+                <div class="form-group">
+                    <label>Course Name</label>
+                    <input type="text" id="editCourseName" required>
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="editCourseStatus">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal('editCourseModal')">Cancel</button>
+                <button class="btn-save" onclick="saveCourseChanges()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteCourseModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Delete Course</h2>
+                <button class="close-btn" onclick="closeModal('deleteCourseModal')">&times;</button>
+            </div>
+            <p style="color: #666; margin-bottom: 20px; font-size: 16px;">
+                Are you sure you want to delete <strong id="deleteCourseName"></strong>?
+            </p>
+            <div class="form-group">
+                <label>Type "<span id="deleteCourseNameConfirm"></span>" to confirm</label>
+                <input type="text" id="deleteCourseConfirmInput" placeholder="Type the name to confirm...">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal('deleteCourseModal')">Cancel</button>
+                <button id="confirmDeleteCourseBtn" class="btn-save" style="background: #dc2626;" onclick="confirmCourseDelete()" disabled>Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Site Modals -->
+    <div id="addSiteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Add Site</h2>
+                <button class="close-btn" onclick="closeModal('addSiteModal')">&times;</button>
+            </div>
+            <div class="space-y-3">
+                <div class="form-group">
+                    <label>Site Name</label>
+                    <input type="text" id="siteName" required placeholder="e.g. University Library">
+                </div>
+                <div class="form-group">
+                    <label>Course</label>
+                    <input type="hidden" id="siteCourse" value="">
+                    <div class="relative">
+                        <input type="text" id="siteCourseSearch" placeholder="Search course..." autocomplete="off" readonly
+                            class="w-full border-2 border-gray-200 rounded-lg p-2 pr-10 focus:outline-none focus:border-[#11693A] transition-all bg-white cursor-pointer">
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                            <i data-lucide="chevron-down" class="h-5 w-5 transition-transform"></i>
+                        </div>
+                        <div id="siteCourseDropdown" class="hidden fixed z-[1001] bg-white border-2 border-[#11693A] rounded-xl max-h-48 overflow-y-auto shadow-lg"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Contact Person</label>
+                    <input type="text" id="siteContactPerson" placeholder="Full name of contact person">
+                </div>
+                <div class="form-group">
+                    <label>Contact Number</label>
+                    <input type="text" id="siteContactNumber" placeholder="Phone number">
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal('addSiteModal')">Cancel</button>
+                <button class="btn-save" onclick="addNewSite()">Save Site</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="editSiteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Site</h2>
+                <button class="close-btn" onclick="closeModal('editSiteModal')">&times;</button>
+            </div>
+            <input type="hidden" id="editSiteId" value="">
+            <div class="space-y-3">
+                <div class="form-group">
+                    <label>Site Name</label>
+                    <input type="text" id="editSiteName" required>
+                </div>
+                <div class="form-group">
+                    <label>Course</label>
+                    <input type="hidden" id="editSiteCourse" value="">
+                    <div class="relative">
+                        <input type="text" id="editSiteCourseSearch" placeholder="Search course..." autocomplete="off" readonly
+                            class="w-full border-2 border-gray-200 rounded-lg p-2 pr-10 focus:outline-none focus:border-[#11693A] transition-all bg-white cursor-pointer">
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                            <i data-lucide="chevron-down" class="h-5 w-5 transition-transform"></i>
+                        </div>
+                        <div id="editSiteCourseDropdown" class="hidden fixed z-[1001] bg-white border-2 border-[#11693A] rounded-xl max-h-48 overflow-y-auto shadow-lg"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Contact Person</label>
+                    <input type="text" id="editSiteContactPerson">
+                </div>
+                <div class="form-group">
+                    <label>Contact Number</label>
+                    <input type="text" id="editSiteContactNumber">
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="editSiteStatus">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal('editSiteModal')">Cancel</button>
+                <button class="btn-save" onclick="saveSiteChanges()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteSiteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Delete Site</h2>
+                <button class="close-btn" onclick="closeModal('deleteSiteModal')">&times;</button>
+            </div>
+            <p style="color: #666; margin-bottom: 20px; font-size: 16px;">
+                Are you sure you want to delete <strong id="deleteSiteName"></strong>?
+            </p>
+            <div class="form-group">
+                <label>Type "<span id="deleteSiteNameConfirm"></span>" to confirm</label>
+                <input type="text" id="deleteSiteConfirmInput" placeholder="Type the name to confirm...">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal('deleteSiteModal')">Cancel</button>
+                <button id="confirmDeleteSiteBtn" class="btn-save" style="background: #dc2626;" onclick="confirmSiteDelete()" disabled>Delete</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Logout Confirmation Modal -->
     <div id="logoutModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-100 transform scale-95 transition-all">
@@ -613,7 +854,9 @@
             const buttons = {
                 'students': document.getElementById('btn-students'),
                 'coordinators': document.getElementById('btn-coordinators'),
-                'approvals': document.getElementById('btn-approvals')
+                'approvals': document.getElementById('btn-approvals'),
+                'courses': document.getElementById('btn-courses'),
+                'sites': document.getElementById('btn-sites')
             };
 
             Object.entries(buttons).forEach(([key, btn]) => {
@@ -631,10 +874,15 @@
             const subtitles = {
                 'students': 'Student Accounts',
                 'coordinators': 'Coordinator Accounts',
-                'approvals': 'Coordinator Approval'
+                'approvals': 'Coordinator Approval',
+                'courses': 'Course Management',
+                'sites': 'Site Management'
             };
             const subtitle = document.getElementById('pageSubtitle');
             if (subtitle) subtitle.textContent = subtitles[section] || '';
+
+            if (section === 'courses') { loadCourses(); }
+            if (section === 'sites') { loadSitesAdmin(); }
         }
 
         // ===== FILTER FUNCTIONS =====
@@ -1179,6 +1427,442 @@
             }
         }
 
+        // ===== COURSE MANAGEMENT =====
+        let courseList = [];
+
+        async function loadCourses() {
+            try {
+                const response = await fetch('/api/admin/courses/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    }
+                });
+                if (!response.ok) return;
+                courseList = await response.json();
+                renderCourseTable();
+            } catch (error) {
+                console.error('Error loading courses:', error);
+            }
+        }
+
+        function renderCourseTable() {
+            const tbody = document.getElementById('courseTableBody');
+            if (!tbody) return;
+            const filter = (document.getElementById('courseSearchInput')?.value || '').toLowerCase();
+            const filtered = filter ? courseList.filter(c => c.name.toLowerCase().includes(filter)) : courseList;
+            tbody.innerHTML = '';
+            if (!filtered.length) {
+                tbody.innerHTML = '<tr><td colspan="3" class="py-8 px-4 text-center text-gray-400">No courses found</td></tr>';
+                return;
+            }
+            filtered.forEach(c => {
+                const statusClass = c.is_active ? 'emerald' : 'yellow';
+                const statusText = c.is_active ? 'Active' : 'Inactive';
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-50 hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="py-4 px-2 font-bold">${c.name}</td>
+                    <td class="py-4 px-2"><span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold">${statusText}</span></td>
+                    <td class="py-4 px-2">
+                        <button class="text-amber-500 hover:text-amber-700 p-2" title="Edit" onclick="editCourse('${c.id}')">
+                            <i data-lucide="pencil" class="text-lg"></i>
+                        </button>
+                        <button class="text-red-500 hover:text-red-700 p-2" title="Delete" onclick="deleteCourse('${c.id}')">
+                            <i data-lucide="trash-2" class="text-lg"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            lucide.createIcons();
+        }
+
+        function openAddCourseModal() {
+            document.getElementById('courseName').value = '';
+            openModal('addCourseModal');
+        }
+
+        async function addNewCourse() {
+            const name = document.getElementById('courseName').value.trim();
+            if (!name) { alert('Please enter a course name'); return; }
+            try {
+                const response = await fetch('/api/admin/courses/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    },
+                    body: JSON.stringify({ name })
+                });
+                if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
+                alert('Course added successfully');
+                closeModal('addCourseModal');
+                loadCourses();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function editCourse(id) {
+            const course = courseList.find(c => c.id === id);
+            if (!course) return;
+            document.getElementById('editCourseId').value = id;
+            document.getElementById('editCourseName').value = course.name;
+            document.getElementById('editCourseStatus').value = course.is_active ? 'true' : 'false';
+            openModal('editCourseModal');
+        }
+
+        async function saveCourseChanges() {
+            const id = document.getElementById('editCourseId').value;
+            const name = document.getElementById('editCourseName').value.trim();
+            const is_active = document.getElementById('editCourseStatus').value === 'true';
+            if (!name) { alert('Please enter a course name'); return; }
+            try {
+                const response = await fetch(`/api/admin/courses/${id}/`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    },
+                    body: JSON.stringify({ name, is_active })
+                });
+                if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
+                alert('Course updated successfully');
+                closeModal('editCourseModal');
+                loadCourses();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        let pendingCourseDeleteId = null;
+        let pendingCourseDeleteName = '';
+
+        function deleteCourse(id) {
+            const course = courseList.find(c => c.id === id);
+            if (!course) return;
+            pendingCourseDeleteId = id;
+            pendingCourseDeleteName = course.name;
+            document.getElementById('deleteCourseName').textContent = course.name;
+            document.getElementById('deleteCourseNameConfirm').textContent = course.name;
+            document.getElementById('deleteCourseConfirmInput').value = '';
+            document.getElementById('confirmDeleteCourseBtn').disabled = true;
+            openModal('deleteCourseModal');
+        }
+
+        document.getElementById('deleteCourseConfirmInput')?.addEventListener('keyup', function() {
+            const btn = document.getElementById('confirmDeleteCourseBtn');
+            btn.disabled = this.value.trim() !== pendingCourseDeleteName;
+        });
+
+        async function confirmCourseDelete() {
+            const id = pendingCourseDeleteId;
+            if (!id) return;
+            try {
+                const response = await fetch(`/api/admin/courses/${id}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    }
+                });
+                if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
+                pendingCourseDeleteId = null;
+                pendingCourseDeleteName = '';
+                alert('Course deleted successfully');
+                closeModal('deleteCourseModal');
+                loadCourses();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // ===== SITE MANAGEMENT =====
+        let siteListAdmin = [];
+
+        async function loadSitesAdmin() {
+            try {
+                const response = await fetch('/api/admin/sites/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    }
+                });
+                if (!response.ok) return;
+                siteListAdmin = await response.json();
+                renderSiteTableAdmin();
+            } catch (error) {
+                console.error('Error loading sites:', error);
+            }
+        }
+
+        function renderSiteTableAdmin() {
+            const tbody = document.getElementById('siteTableBody');
+            if (!tbody) return;
+            const filter = (document.getElementById('siteSearchInput')?.value || '').toLowerCase();
+            const filtered = filter ? siteListAdmin.filter(s => s.name.toLowerCase().includes(filter)) : siteListAdmin;
+            tbody.innerHTML = '';
+            if (!filtered.length) {
+                tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-gray-400">No sites found</td></tr>';
+                return;
+            }
+            filtered.forEach(s => {
+                const statusClass = s.is_active ? 'emerald' : 'yellow';
+                const statusText = s.is_active ? 'Active' : 'Inactive';
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-50 hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="py-4 px-2 font-bold">${s.name}</td>
+                    <td class="py-4 px-2">${s.course_name || '—'}</td>
+                    <td class="py-4 px-2">${s.contact_person || '—'}</td>
+                    <td class="py-4 px-2">${s.contact_number || '—'}</td>
+                    <td class="py-4 px-2"><span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold">${statusText}</span></td>
+                    <td class="py-4 px-2">
+                        <button class="text-amber-500 hover:text-amber-700 p-2" title="Edit" onclick="editSite('${s.id}')">
+                            <i data-lucide="pencil" class="text-lg"></i>
+                        </button>
+                        <button class="text-red-500 hover:text-red-700 p-2" title="Delete" onclick="deleteSite('${s.id}')">
+                            <i data-lucide="trash-2" class="text-lg"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            lucide.createIcons();
+        }
+
+        function initSiteCourseDropdown(searchId, dropdownId, hiddenId, courses, selectedId) {
+            const searchInput = document.getElementById(searchId);
+            const dropdownList = document.getElementById(dropdownId);
+            const hiddenInput = document.getElementById(hiddenId);
+
+            function buildDropdown(filter) {
+                dropdownList.innerHTML = '';
+                const filtered = filter
+                    ? courses.filter(c => c.name.toLowerCase().includes(filter.toLowerCase()))
+                    : courses;
+
+                if (filtered.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'p-3 text-gray-400 text-center';
+                    empty.textContent = 'No courses found';
+                    dropdownList.appendChild(empty);
+                    return;
+                }
+
+                filtered.forEach(course => {
+                    const item = document.createElement('div');
+                    item.className = 'p-3 hover:bg-emerald-100 cursor-pointer text-[#11693A] font-semibold border-b border-gray-100 last:border-b-0 transition-colors';
+                    item.textContent = course.name;
+                    item.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        searchInput.value = course.name;
+                        hiddenInput.value = course.id;
+                        dropdownList.classList.add('hidden');
+                        searchInput.setAttribute('readonly', true);
+                    });
+                    dropdownList.appendChild(item);
+                });
+            }
+
+            function positionDropdown() {
+                const rect = searchInput.getBoundingClientRect();
+                dropdownList.style.top = (rect.bottom + 4) + 'px';
+                dropdownList.style.left = rect.left + 'px';
+                dropdownList.style.width = rect.width + 'px';
+            }
+
+            function openDropdown() {
+                positionDropdown();
+                buildDropdown(searchInput.value);
+                dropdownList.classList.remove('hidden');
+            }
+
+            searchInput.addEventListener('focus', function() {
+                this.removeAttribute('readonly');
+                buildDropdown(this.value);
+                openDropdown();
+            });
+
+            searchInput.addEventListener('input', function() {
+                buildDropdown(this.value);
+                openDropdown();
+            });
+
+            searchInput.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (dropdownList.classList.contains('hidden')) {
+                    this.removeAttribute('readonly');
+                    this.value = '';
+                    hiddenInput.value = '';
+                    buildDropdown('');
+                    openDropdown();
+                }
+            });
+
+            if (selectedId && courses.length) {
+                const course = courses.find(c => c.id === selectedId);
+                if (course) {
+                    searchInput.value = course.name;
+                    hiddenInput.value = course.id;
+                    searchInput.setAttribute('readonly', true);
+                }
+            }
+        }
+
+        // Close all site course dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            document.querySelectorAll('[id$="CourseDropdown"]:not(.hidden)').forEach(dd => {
+                const searchId = dd.id.replace('CourseDropdown', 'CourseSearch');
+                const search = document.getElementById(searchId);
+                if (search && !search.contains(e.target) && !dd.contains(e.target)) {
+                    dd.classList.add('hidden');
+                }
+            });
+        });
+
+        async function openAddSiteModal() {
+            document.getElementById('siteName').value = '';
+            document.getElementById('siteContactPerson').value = '';
+            document.getElementById('siteContactNumber').value = '';
+            const hiddenInput = document.getElementById('siteCourse');
+            const searchInput = document.getElementById('siteCourseSearch');
+            hiddenInput.value = '';
+            searchInput.value = '';
+            searchInput.setAttribute('readonly', true);
+            try {
+                const response = await fetch('/api/admin/courses/', {
+                    headers: {
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    }
+                });
+                if (!response.ok) return;
+                const courses = await response.json();
+                initSiteCourseDropdown('siteCourseSearch', 'siteCourseDropdown', 'siteCourse', courses, null);
+            } catch (error) {
+                searchInput.value = 'Error loading courses';
+            }
+            openModal('addSiteModal');
+        }
+
+        async function addNewSite() {
+            const name = document.getElementById('siteName').value.trim();
+            const course = document.getElementById('siteCourse').value;
+            const contact_person = document.getElementById('siteContactPerson').value.trim();
+            const contact_number = document.getElementById('siteContactNumber').value.trim();
+            if (!name) { alert('Please enter a site name'); return; }
+            if (!course) { alert('Please select a course'); return; }
+            try {
+                const response = await fetch('/api/admin/sites/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    },
+                    body: JSON.stringify({ name, course, contact_person, contact_number })
+                });
+                if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
+                alert('Site added successfully');
+                closeModal('addSiteModal');
+                loadSitesAdmin();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function editSite(id) {
+            const site = siteListAdmin.find(s => s.id === id);
+            if (!site) return;
+            document.getElementById('editSiteId').value = id;
+            document.getElementById('editSiteName').value = site.name;
+            document.getElementById('editSiteContactPerson').value = site.contact_person || '';
+            document.getElementById('editSiteContactNumber').value = site.contact_number || '';
+            document.getElementById('editSiteStatus').value = site.is_active ? 'true' : 'false';
+            const hiddenInput = document.getElementById('editSiteCourse');
+            const searchInput = document.getElementById('editSiteCourseSearch');
+            hiddenInput.value = '';
+            searchInput.value = '';
+            searchInput.setAttribute('readonly', true);
+            fetch('/api/admin/courses/', {
+                headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` }
+            }).then(r => r.json()).then(courses => {
+                initSiteCourseDropdown('editSiteCourseSearch', 'editSiteCourseDropdown', 'editSiteCourse', courses, site.course);
+            }).catch(() => {
+                searchInput.value = 'Error loading courses';
+            });
+            openModal('editSiteModal');
+        }
+
+        async function saveSiteChanges() {
+            const id = document.getElementById('editSiteId').value;
+            const name = document.getElementById('editSiteName').value.trim();
+            const course = document.getElementById('editSiteCourse').value;
+            const contact_person = document.getElementById('editSiteContactPerson').value.trim();
+            const contact_number = document.getElementById('editSiteContactNumber').value.trim();
+            const is_active = document.getElementById('editSiteStatus').value === 'true';
+            if (!name) { alert('Please enter a site name'); return; }
+            if (!course) { alert('Please select a course'); return; }
+            try {
+                const response = await fetch(`/api/admin/sites/${id}/`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    },
+                    body: JSON.stringify({ name, course, contact_person, contact_number, is_active })
+                });
+                if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
+                alert('Site updated successfully');
+                closeModal('editSiteModal');
+                loadSitesAdmin();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        let pendingSiteDeleteId = null;
+        let pendingSiteDeleteName = '';
+
+        function deleteSite(id) {
+            const site = siteListAdmin.find(s => s.id === id);
+            if (!site) return;
+            pendingSiteDeleteId = id;
+            pendingSiteDeleteName = site.name;
+            document.getElementById('deleteSiteName').textContent = site.name;
+            document.getElementById('deleteSiteNameConfirm').textContent = site.name;
+            document.getElementById('deleteSiteConfirmInput').value = '';
+            document.getElementById('confirmDeleteSiteBtn').disabled = true;
+            openModal('deleteSiteModal');
+        }
+
+        document.getElementById('deleteSiteConfirmInput')?.addEventListener('keyup', function() {
+            const btn = document.getElementById('confirmDeleteSiteBtn');
+            btn.disabled = this.value.trim() !== pendingSiteDeleteName;
+        });
+
+        async function confirmSiteDelete() {
+            const id = pendingSiteDeleteId;
+            if (!id) return;
+            try {
+                const response = await fetch(`/api/admin/sites/${id}/`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    }
+                });
+                if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
+                pendingSiteDeleteId = null;
+                pendingSiteDeleteName = '';
+                alert('Site deleted successfully');
+                closeModal('deleteSiteModal');
+                loadSitesAdmin();
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
         // ===== LOGOUT MECHANICS =====
         function openLogoutModal() {
             const modal = document.getElementById('logoutModal');
@@ -1256,6 +1940,9 @@
                 });
             }
         });
+
+        document.getElementById('courseSearchInput')?.addEventListener('keyup', renderCourseTable);
+        document.getElementById('siteSearchInput')?.addEventListener('keyup', renderSiteTableAdmin);
 
         // ===== INITIAL LOAD =====
         window.addEventListener('DOMContentLoaded', () => {

@@ -24,7 +24,7 @@ class User(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
     approval_status = models.CharField(max_length=20, choices=APPROVAL_STATUS_CHOICES, default='pending')
     phone_number = models.CharField(max_length=20, blank=True, null=True)
-    course = models.CharField(max_length=255, blank=True, null=True, help_text="Course/Program the coordinator oversees")
+    course = models.ForeignKey('Course', on_delete=models.SET_NULL, null=True, blank=True, related_name='coordinators', help_text="Course/Program the coordinator oversees")
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
     faculty_id = models.ImageField(upload_to='faculty_ids/', blank=True, null=True, help_text="Upload faculty ID card")
     is_active = models.BooleanField(default=True)
@@ -71,3 +71,17 @@ class BaseModel(models.Model):
     class Meta:
         abstract = True
         ordering = ['-created_at']
+
+
+class Course(BaseModel):
+    """Course/Program model linking coordinators, students, and sites."""
+    name = models.CharField(max_length=255, unique=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'Course'
+        verbose_name_plural = 'Courses'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name

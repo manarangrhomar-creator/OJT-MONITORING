@@ -6,7 +6,7 @@ from django.shortcuts import get_object_or_404
 from apps.core.models import User
 from apps.student.models import StudentNarrativeReport
 from apps.student.serializers import StudentNarrativeReportSerializer
-from .models import OJTProgram, OJTApplication, Attendance, SiteAssignment
+from .models import OJTProgram, OJTApplication, Attendance, SiteAssignment, Site
 from .serializers import OJTProgramSerializer, OJTApplicationSerializer, AttendanceSerializer, SiteAssignmentSerializer
 
 
@@ -145,7 +145,7 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'], url_path='student-accounts')
     def student_accounts(self, request):
         """Get all student accounts (role='student')."""
-        students = User.objects.filter(role='student').order_by('-created_at')
+        students = User.objects.filter(role='student').exclude(approval_status='pending').order_by('-created_at')
         students_data = []
         for student in students:
             students_data.append({
@@ -291,7 +291,7 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         for s in students:
             course = ''
             try:
-                course = s.student_profile.course
+                course = s.student_profile.course.name
             except:
                 pass
             data.append({
@@ -326,17 +326,37 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         student.save(update_fields=['approval_status'])
         return Response({'message': 'Student account rejected'})
 
+    @action(detail=False, methods=['get'], url_path='available-sites')
+    def available_sites(self, request):
+        """Get sites filtered by coordinator's course."""
+        coordinator = request.user
+        if coordinator.course:
+            sites = Site.objects.filter(
+                course=coordinator.course,
+                is_active=True
+            ).order_by('name')
+        else:
+            sites = Site.objects.filter(is_active=True).order_by('name')
+        data = [{
+            'id': str(s.id),
+            'name': s.name,
+            'contact_person': s.contact_person,
+            'contact_number': s.contact_number,
+        } for s in sites]
+        return Response(data)
+
 
 class SiteAssignmentViewSet(viewsets.ModelViewSet):
     """ViewSet for Site Assignment management."""
     serializer_class = SiteAssignmentSerializer
     permission_classes = [IsCoordinator]
+    pagination_class = None
 
     def get_queryset(self):
         coordinator = self.request.user
         return SiteAssignment.objects.filter(
             program__coordinator=coordinator
-        ).select_related('student', 'program')
+        ).select_related('student', 'program', 'site')
 
     @action(detail=False, methods=['get'], url_path='by-student')
     def by_student(self, request):

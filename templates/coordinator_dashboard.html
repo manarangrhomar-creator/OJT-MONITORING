@@ -237,8 +237,10 @@
                             <select id="siteStudentSelect" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]"></select>
                         </div>
                         <div class="form-group">
-                            <label>Site Location</label>
-                            <input type="text" id="siteLocation" required placeholder="e.g. Barangay Hall, Municipal Office" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]">
+                            <label>Site</label>
+                            <select id="siteSelect" required class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]">
+                                <option value="">Select a site...</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Supervisor Name</label>
@@ -267,15 +269,17 @@
                         <h2>Edit Site Assignment</h2>
                         <button class="close-btn" onclick="closeModal('editSiteModal')">&times;</button>
                     </div>
-                    <input type="hidden" id="editSiteId" value="">
+                    <input type="hidden" id="editSiteAssignmentId" value="">
                     <div class="space-y-3">
                         <div class="form-group">
                             <label>Student</label>
                             <p id="editSiteStudentName" class="p-2.5 border-2 border-gray-200 rounded-lg bg-gray-50 text-sm font-bold text-slate-700"></p>
                         </div>
                         <div class="form-group">
-                            <label>Site Location</label>
-                            <input type="text" id="editSiteLocation" required class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]">
+                            <label>Site</label>
+                            <select id="editSiteSelect" required class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]">
+                                <option value="">Select a site...</option>
+                            </select>
                         </div>
                         <div class="form-group">
                             <label>Supervisor Name</label>
@@ -544,6 +548,7 @@
             if (section === 'students') {
                 document.getElementById('pageSubtitle').textContent = 'Student Approval';
                 activateBtn('btn-students');
+                loadStudents();
             } else if (section === 'accounts') {
                 document.getElementById('pageSubtitle').textContent = 'Student Accounts';
                 activateBtn('btn-accounts');
@@ -1096,10 +1101,7 @@
             try {
                 const response = await fetch('/api/coordinator/dashboard/my-students/', {
                     method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
-                    }
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Token ${localStorage.getItem('auth_token')}` }
                 });
                 if (!response.ok) return;
                 const students = await response.json();
@@ -1119,7 +1121,27 @@
                 console.error('Error loading students:', error);
                 select.innerHTML = '<option value="">Error loading</option>';
             }
-            document.getElementById('siteLocation').value = '';
+            // Load available sites
+            const siteSelect = document.getElementById('siteSelect');
+            siteSelect.innerHTML = '<option value="">Loading sites...</option>';
+            try {
+                const res = await fetch('/api/coordinator/dashboard/available-sites/', {
+                    headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` }
+                });
+                if (res.ok) {
+                    const sites = await res.json();
+                    siteSelect.innerHTML = '<option value="">Select a site...</option>';
+                    sites.forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s.id;
+                        opt.textContent = s.name;
+                        siteSelect.appendChild(opt);
+                    });
+                    if (!sites.length) siteSelect.innerHTML = '<option value="">No sites available for your course</option>';
+                }
+            } catch (error) {
+                siteSelect.innerHTML = '<option value="">Error loading sites</option>';
+            }
             document.getElementById('siteSupervisorName').value = '';
             document.getElementById('siteSupervisorContact').value = '';
             document.getElementById('siteNotes').value = '';
@@ -1130,8 +1152,8 @@
             const studentData = document.getElementById('siteStudentSelect').value;
             if (!studentData) { alert('Please select a student'); return; }
             const {student_id, program_id} = JSON.parse(studentData);
-            const site_location = document.getElementById('siteLocation').value.trim();
-            if (!site_location) { alert('Please enter a site location'); return; }
+            const site_id = document.getElementById('siteSelect').value;
+            if (!site_id) { alert('Please select a site'); return; }
             try {
                 const response = await fetch('/api/coordinator/site-assignments/', {
                     method: 'POST',
@@ -1142,7 +1164,7 @@
                     body: JSON.stringify({
                         student: student_id,
                         program: program_id,
-                        site_location: site_location,
+                        site: site_id,
                         supervisor_name: document.getElementById('siteSupervisorName').value.trim(),
                         supervisor_contact: document.getElementById('siteSupervisorContact').value.trim(),
                         notes: document.getElementById('siteNotes').value.trim()
@@ -1160,17 +1182,40 @@
         async function openEditSiteModal(id) {
             const assignment = siteList.find(s => s.id === id);
             if (!assignment) return;
-            document.getElementById('editSiteId').value = id;
+            document.getElementById('editSiteAssignmentId').value = id;
             document.getElementById('editSiteStudentName').textContent = assignment.student_name;
-            document.getElementById('editSiteLocation').value = assignment.site_location;
             document.getElementById('editSiteSupervisorName').value = assignment.supervisor_name || '';
             document.getElementById('editSiteSupervisorContact').value = assignment.supervisor_contact || '';
             document.getElementById('editSiteNotes').value = assignment.notes || '';
+            // Load available sites and select current
+            const siteSelect = document.getElementById('editSiteSelect');
+            siteSelect.innerHTML = '<option value="">Loading sites...</option>';
+            try {
+                const res = await fetch('/api/coordinator/dashboard/available-sites/', {
+                    headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` }
+                });
+                if (res.ok) {
+                    const sites = await res.json();
+                    siteSelect.innerHTML = '<option value="">Select a site...</option>';
+                    sites.forEach(s => {
+                        const opt = document.createElement('option');
+                        opt.value = s.id;
+                        opt.textContent = s.name;
+                        if (assignment.site === s.id) opt.selected = true;
+                        siteSelect.appendChild(opt);
+                    });
+                    if (!sites.length) siteSelect.innerHTML = '<option value="">No sites available</option>';
+                }
+            } catch (error) {
+                siteSelect.innerHTML = '<option value="">Error loading sites</option>';
+            }
             openModal('editSiteModal');
         }
 
         async function updateSiteAssignment() {
-            const id = document.getElementById('editSiteId').value;
+            const id = document.getElementById('editSiteAssignmentId').value;
+            const site_id = document.getElementById('editSiteSelect').value;
+            if (!site_id) { alert('Please select a site'); return; }
             try {
                 const response = await fetch(`/api/coordinator/site-assignments/${id}/`, {
                     method: 'PUT',
@@ -1179,7 +1224,7 @@
                         'Authorization': `Token ${localStorage.getItem('auth_token')}`
                     },
                     body: JSON.stringify({
-                        site_location: document.getElementById('editSiteLocation').value.trim(),
+                        site: site_id,
                         supervisor_name: document.getElementById('editSiteSupervisorName').value.trim(),
                         supervisor_contact: document.getElementById('editSiteSupervisorContact').value.trim(),
                         notes: document.getElementById('editSiteNotes').value.trim()

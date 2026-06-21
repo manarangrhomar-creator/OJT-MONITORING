@@ -82,10 +82,11 @@ class UserLoginSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for user data."""
     full_name = serializers.SerializerMethodField()
+    course_name = serializers.CharField(source='course.name', read_only=True, allow_null=True)
     
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'full_name', 'role', 'phone_number', 'profile_picture', 'is_active', 'created_at')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'full_name', 'role', 'phone_number', 'profile_picture', 'is_active', 'created_at', 'course', 'course_name')
         read_only_fields = ('id', 'created_at')
     
     def get_full_name(self, obj):
