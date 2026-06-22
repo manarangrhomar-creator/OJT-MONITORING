@@ -68,9 +68,26 @@
                 <h1 id="welcomeHeading" class="text-2xl md:text-4xl isu-header-font tracking-tight">Welcome, User!</h1>
                 <p id="pageSubtitle" class="text-[11px] md:text-xs text-slate-500 font-bold mt-0.5 uppercase tracking-wider">Dashboard Overview Session</p>
             </div>
-            <button id="btnLogout" class="bg-[#11693A] hover:bg-[#0e5630] text-white text-xs font-bold px-5 py-2 md:px-6 md:py-2.5 transition shadow-sm flex items-center gap-2 rounded-lg self-end sm:self-auto">
-                <i data-lucide="log-out"></i> Logout
-            </button>
+            <div class="flex items-center gap-2 self-end sm:self-auto">
+                <div class="relative">
+                    <button id="btnNotifications" class="bg-[#11693A] hover:bg-[#0e5630] text-white text-xs font-bold px-3 py-2 md:px-4 md:py-2.5 transition shadow-sm flex items-center gap-2 rounded-lg relative">
+                        <i data-lucide="bell"></i>
+                        <span id="notifBadge" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full hidden">0</span>
+                    </button>
+                    <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 md:w-96 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden">
+                        <div class="p-3 border-b border-slate-100 flex justify-between items-center">
+                            <h3 class="font-bold text-xs text-slate-700 uppercase">Notifications</h3>
+                            <button id="markAllReadBtn" class="text-[10px] font-bold text-[#11693A] hover:underline">Mark all read</button>
+                        </div>
+                        <div id="notifList" class="max-h-72 overflow-y-auto custom-scroll text-xs text-slate-500 p-4">
+                            Loading...
+                        </div>
+                    </div>
+                </div>
+                <button id="btnLogout" class="bg-[#11693A] hover:bg-[#0e5630] text-white text-xs font-bold px-5 py-2 md:px-6 md:py-2.5 transition shadow-sm flex items-center gap-2 rounded-lg">
+                    <i data-lucide="log-out"></i> Logout
+                </button>
+            </div>
         </div>
 
         <div class="flex-1 bg-white rounded-t-[30px] md:rounded-t-none md:rounded-tl-[45px] shadow-2xl border-t border-x md:border-r-0 md:border-l border-white p-4 md:p-6 md:ml-6 overflow-y-auto custom-scroll">
@@ -195,6 +212,19 @@
         </div>
     </div>
 
+    <div id="alertModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-100 transform scale-95 transition-all">
+            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i data-lucide="info"></i>
+            </div>
+            <h3 class="text-lg font-black text-slate-800 mb-1">Notice</h3>
+            <p id="alertMessage" class="text-xs text-slate-500 mb-6"></p>
+            <button type="button" id="alertOkBtn" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition uppercase shadow-sm">
+                OK
+            </button>
+        </div>
+    </div>
+
     <div id="logoutModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-100 transform scale-95 transition-all">
             <div class="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
@@ -290,11 +320,11 @@
                     body: formData
                 });
                 if (!res.ok) { const err = await res.json(); throw new Error(JSON.stringify(err)); }
-                alert('Archive entry updated successfully.');
+                showAlert('Archive entry updated successfully.');
                 closeArchiveEdit();
                 loadArchives();
             } catch (err) {
-                alert('Failed to update: ' + err.message);
+                showAlert('Failed to update: ' + err.message);
                 console.error(err);
             }
         });
@@ -360,7 +390,7 @@
                 document.getElementById('reportContent').value = '';
                 fileInputs.forEach(f => { f.value = ''; });
                 loadArchives();
-                alert('Narrative report submitted successfully.');
+                showAlert('Narrative report submitted successfully.');
             } catch (err) {
                 console.error(err);
             }
@@ -525,6 +555,22 @@
             }
         }
 
+        // ===== ALERT MODAL HELPERS =====
+        function showAlert(message) {
+            document.getElementById('alertMessage').textContent = message;
+            document.getElementById('alertModal').classList.remove('hidden');
+        }
+
+        document.getElementById('alertOkBtn').addEventListener('click', () => {
+            document.getElementById('alertModal').classList.add('hidden');
+        });
+
+        document.getElementById('alertModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('alertModal')) {
+                document.getElementById('alertModal').classList.add('hidden');
+            }
+        });
+
         // ===== SET TODAY'S DATE =====
         document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
 
@@ -551,6 +597,112 @@
             btnConfirmLogout.disabled = true;
             logout();
         });
+    // ===== NOTIFICATIONS ENGINE =====
+    const notifBtn = document.getElementById('btnNotifications');
+    const notifDropdown = document.getElementById('notifDropdown');
+    const notifBadge = document.getElementById('notifBadge');
+    const notifList = document.getElementById('notifList');
+    const markAllReadBtn = document.getElementById('markAllReadBtn');
+
+    async function loadUnreadCount() {
+        try {
+            const res = await fetch('/api/student/notifications/unread_count/', {
+                headers: { 'Authorization': `Token ${token}` }
+            });
+            const data = await res.json();
+            if (data.count > 0) {
+                notifBadge.textContent = data.count;
+                notifBadge.classList.remove('hidden');
+            } else {
+                notifBadge.classList.add('hidden');
+            }
+        } catch (err) {
+            console.error('Failed to load unread count:', err);
+        }
+    }
+
+    async function loadNotifications() {
+        try {
+            const res = await fetch('/api/student/notifications/', {
+                headers: { 'Authorization': `Token ${token}` }
+            });
+            const notifications = await res.json();
+            if (!notifications || notifications.length === 0) {
+                notifList.innerHTML = '<p class="text-center text-slate-400 py-6">No notifications yet.</p>';
+                return;
+            }
+            let html = '';
+            notifications.forEach(n => {
+                const time = new Date(n.created_at).toLocaleString('en-US', {
+                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                });
+                html += `
+                    <div class="p-3 border-b border-slate-50 hover:bg-slate-50 transition ${n.is_read ? '' : 'bg-blue-50/50'}">
+                        <div class="flex justify-between items-start gap-2">
+                            <div class="flex-1 min-w-0">
+                                <p class="font-bold text-slate-700 text-xs">${n.title}</p>
+                                <p class="text-[11px] text-slate-500 mt-0.5">${n.message}</p>
+                                <p class="text-[10px] text-slate-400 mt-1">${time}</p>
+                            </div>
+                            ${!n.is_read ? `
+                                <button onclick="markNotifRead('${n.id}')" class="shrink-0 bg-[#11693A] text-white text-[9px] font-bold px-2 py-1 rounded hover:bg-[#0e5630] transition">
+                                    Read
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            notifList.innerHTML = html;
+        } catch (err) {
+            notifList.innerHTML = '<p class="text-center text-red-500 py-6">Failed to load notifications.</p>';
+            console.error('Failed to load notifications:', err);
+        }
+    }
+
+    async function markNotifRead(id) {
+        try {
+            await fetch(`/api/student/notifications/${id}/mark-read/`, {
+                method: 'POST',
+                headers: { 'Authorization': `Token ${token}` }
+            });
+            loadNotifications();
+            loadUnreadCount();
+        } catch (err) {
+            console.error('Failed to mark notification as read:', err);
+        }
+    }
+
+    markAllReadBtn.addEventListener('click', async () => {
+        try {
+            await fetch('/api/student/notifications/mark-all-read/', {
+                method: 'POST',
+                headers: { 'Authorization': `Token ${token}` }
+            });
+            loadNotifications();
+            loadUnreadCount();
+        } catch (err) {
+            console.error('Failed to mark all as read:', err);
+        }
+    });
+
+    notifBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        notifDropdown.classList.toggle('hidden');
+        if (!notifDropdown.classList.contains('hidden')) {
+            loadNotifications();
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
+            notifDropdown.classList.add('hidden');
+        }
+    });
+
+    loadUnreadCount();
+    setInterval(loadUnreadCount, 30000);
+
     lucide.createIcons();
 </script>
 </body>

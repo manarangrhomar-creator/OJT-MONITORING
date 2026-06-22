@@ -505,6 +505,20 @@
     </div>
 </div>
 
+<!-- Alert Modal -->
+<div id="alertModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-100 transform scale-95 transition-all">
+        <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+            <i data-lucide="info"></i>
+        </div>
+        <h3 class="text-lg font-black text-slate-800 mb-1">Notice</h3>
+        <p id="alertMessage" class="text-xs text-slate-500 mb-6"></p>
+        <button type="button" id="alertOkBtn" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition uppercase shadow-sm">
+            OK
+        </button>
+    </div>
+</div>
+
 <!-- Logout Confirmation Modal -->
 <div id="logoutModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-100 transform scale-95 transition-all">
@@ -619,6 +633,23 @@
         document.body.style.overflow = 'auto';
     }
 
+    // ===== ALERT MODAL HELPERS =====
+    function showAlert(message) {
+        document.getElementById('alertMessage').textContent = message;
+        document.getElementById('alertModal').classList.add('active');
+    }
+
+    document.getElementById('alertOkBtn').addEventListener('click', () => {
+        document.getElementById('alertModal').classList.remove('active');
+    });
+
+    document.getElementById('alertModal').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('alertModal')) {
+            document.getElementById('alertModal').classList.remove('active');
+        }
+    });
+    }
+
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) closeModal(modal.id);
@@ -668,7 +699,7 @@
             const course = document.getElementById('editCourse').value.trim();
 
             if (!name || !email) {
-                alert("Please fill in all required fields.");
+                showAlert("Please fill in all required fields.");
                 return;
             }
 
@@ -704,7 +735,7 @@
         const dept = document.getElementById('coordEditDepartment').value.trim();
 
         if (!name || !email) {
-            alert("Please fill in all required fields.");
+            showAlert("Please fill in all required fields.");
             return;
         }
 
@@ -720,7 +751,7 @@
         const dept = document.getElementById('coordAddDepartment').value.trim();
 
         if (!name || !email) {
-            alert("Please fill in all required fields.");
+            showAlert("Please fill in all required fields.");
             return;
         }
 
@@ -739,7 +770,7 @@
     function saveApprovalChange() {
         const approverId = document.getElementById('approverId').value.trim();
         if (!approverId) {
-            alert("Please provide an approver ID.");
+            showAlert("Please provide an approver ID.");
             return;
         }
         // Logic to approve the coordinator
@@ -750,7 +781,7 @@
         const rejecterId = document.getElementById('rejecterId').value.trim();
         const rejectionReason = document.getElementById('rejectionReason').value.trim();
         if (!rejecterId || !rejectionReason) {
-            alert("Please provide an approver ID and a rejection reason.");
+            showAlert("Please provide an approver ID and a rejection reason.");
             return;
         }
         // Logic to reject the coordinator

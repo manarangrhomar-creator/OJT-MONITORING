@@ -136,7 +136,35 @@
         </div>
     </div>
 
+    <!-- Alert Modal -->
+    <div id="alertModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl text-center">
+            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i data-lucide="info"></i>
+            </div>
+            <h3 class="custom-heading text-xl font-bold text-[#11693A] mb-2">Notice</h3>
+            <p id="alertMessage" class="custom-text text-sm text-gray-500 mb-6"></p>
+            <button type="button" id="alertOkBtn" class="w-full bg-[#11693A] text-white py-3 rounded-xl font-bold">OK</button>
+        </div>
+    </div>
+
     <script>
+        // ===== ALERT MODAL HELPERS =====
+        function showAlert(message) {
+            document.getElementById('alertMessage').textContent = message;
+            document.getElementById('alertModal').classList.remove('hidden');
+        }
+
+        document.getElementById('alertOkBtn').addEventListener('click', () => {
+            document.getElementById('alertModal').classList.add('hidden');
+        });
+
+        document.getElementById('alertModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('alertModal')) {
+                document.getElementById('alertModal').classList.add('hidden');
+            }
+        });
+
         const regForm = document.getElementById('regForm');
         const regBtn = document.getElementById('regBtn');
 
@@ -330,7 +358,7 @@
             const course = document.getElementById('courseSearch').value;
 
             if (password !== confirmPassword) {
-                alert('Passwords do not match!');
+                showAlert('Passwords do not match!');
                 return;
             }
 
@@ -360,14 +388,14 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert('Account created! Please wait for coordinator approval before you can log in.');
+                    showAlert('Account created! Please wait for coordinator approval before you can log in.');
                     window.location.href = '/auth/login/';
                 } else {
                     const errMsg = typeof data === 'object' ? Object.values(data).flat().join('\n') : 'Registration failed';
-                    alert(errMsg);
+                    showAlert(errMsg);
                 }
             } catch (err) {
-                alert('Connection error. Please try again.');
+                showAlert('Connection error. Please try again.');
             } finally {
                 regBtn.disabled = false;
                 regBtn.innerHTML = 'Next';

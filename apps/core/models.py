@@ -73,6 +73,30 @@ class BaseModel(models.Model):
         ordering = ['-created_at']
 
 
+class Notification(BaseModel):
+    """In-app notification for users."""
+    TYPE_CHOICES = [
+        ('site_assignment', 'Site Assignment'),
+        ('application_update', 'Application Update'),
+        ('general', 'General'),
+    ]
+    recipient = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    title = models.CharField(max_length=255)
+    message = models.TextField()
+    type = models.CharField(max_length=50, choices=TYPE_CHOICES, default='site_assignment')
+    is_read = models.BooleanField(default=False)
+    related_object_id = models.UUIDField(null=True, blank=True)
+    related_object_type = models.CharField(max_length=50, blank=True)
+
+    class Meta:
+        verbose_name = 'Notification'
+        verbose_name_plural = 'Notifications'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.get_type_display()}] {self.title} -> {self.recipient.username}"
+
+
 class Course(BaseModel):
     """Course/Program model linking coordinators, students, and sites."""
     name = models.CharField(max_length=255, unique=True)

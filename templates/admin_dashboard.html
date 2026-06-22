@@ -103,9 +103,26 @@
                 <h1 class="text-2xl md:text-4xl isu-header-font tracking-tight">OJT Admin</h1>
                 <p id="pageSubtitle" class="text-[11px] md:text-xs text-slate-500 font-bold mt-0.5 uppercase tracking-wider">Student Accounts</p>
             </div>
-            <a href="#" onclick="event.preventDefault(); openLogoutModal();" class="bg-[#11693A] hover:bg-[#0e5630] text-white text-xs font-bold px-5 py-2 md:px-6 md:py-2.5 transition shadow-sm flex items-center gap-2 rounded-lg self-end sm:self-auto">
-                <i data-lucide="log-out"></i> Logout
-            </a>
+            <div class="flex items-center gap-2 self-end sm:self-auto">
+                <div class="relative">
+                    <button id="btnNotifications" class="bg-[#11693A] hover:bg-[#0e5630] text-white text-xs font-bold px-3 py-2 md:px-4 md:py-2.5 transition shadow-sm flex items-center gap-2 rounded-lg relative">
+                        <i data-lucide="bell"></i>
+                        <span id="notifBadge" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full hidden">0</span>
+                    </button>
+                    <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 md:w-96 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden">
+                        <div class="p-3 border-b border-slate-100 flex justify-between items-center">
+                            <h3 class="font-bold text-xs text-slate-700 uppercase">Notifications</h3>
+                            <button id="markAllReadBtn" class="text-[10px] font-bold text-[#11693A] hover:underline">Mark all read</button>
+                        </div>
+                        <div id="notifList" class="max-h-72 overflow-y-auto custom-scroll text-xs text-slate-500 p-4">
+                            Loading...
+                        </div>
+                    </div>
+                </div>
+                <a href="#" onclick="event.preventDefault(); openLogoutModal();" class="bg-[#11693A] hover:bg-[#0e5630] text-white text-xs font-bold px-5 py-2 md:px-6 md:py-2.5 transition shadow-sm flex items-center gap-2 rounded-lg">
+                    <i data-lucide="log-out"></i> Logout
+                </a>
+            </div>
         </div>
 
         <!-- Main Content Area -->
@@ -786,6 +803,20 @@
         </div>
     </div>
 
+    <!-- Alert Modal -->
+    <div id="alertModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-100 transform scale-95 transition-all">
+            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i data-lucide="info"></i>
+            </div>
+            <h3 class="text-lg font-black text-slate-800 mb-1">Notice</h3>
+            <p id="alertMessage" class="text-xs text-slate-500 mb-6"></p>
+            <button type="button" id="alertOkBtn" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition uppercase shadow-sm">
+                OK
+            </button>
+        </div>
+    </div>
+
     <!-- Logout Confirmation Modal -->
     <div id="logoutModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-100 transform scale-95 transition-all">
@@ -844,6 +875,22 @@
                 document.body.style.overflow = 'auto';
             }
         }
+
+        // ===== ALERT MODAL HELPERS =====
+        function showAlert(message) {
+            document.getElementById('alertMessage').textContent = message;
+            document.getElementById('alertModal').classList.remove('hidden');
+        }
+
+        document.getElementById('alertOkBtn').addEventListener('click', () => {
+            document.getElementById('alertModal').classList.add('hidden');
+        });
+
+        document.getElementById('alertModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('alertModal')) {
+                document.getElementById('alertModal').classList.add('hidden');
+            }
+        });
 
         // ===== SECTION SWITCHING =====
         function switchSection(section) {
@@ -1038,7 +1085,7 @@
                 });
                 if (!response.ok) {
                     const err = await response.json();
-                    alert('Failed to update: ' + (err.detail || JSON.stringify(err)));
+                    showAlert('Failed to update: ' + (err.detail || JSON.stringify(err)));
                     return;
                 }
                 const updated = await response.json();
@@ -1050,11 +1097,11 @@
                     status: updated.is_active ? 'Active' : 'Inactive'
                 };
                 renderStudentTable();
-                alert('✓ Student updated successfully');
+                showAlert('✓ Student updated successfully');
                 closeModal('editModal');
             } catch (error) {
                 console.error('Error updating student:', error);
-                alert('An error occurred while updating');
+                showAlert('An error occurred while updating');
             }
         }
 
@@ -1090,7 +1137,7 @@
                 });
                 if (!response.ok) {
                     const err = await response.json().catch(() => ({}));
-                    alert('Failed to delete: ' + (err.detail || 'Unknown error'));
+                    showAlert('Failed to delete: ' + (err.detail || 'Unknown error'));
                     return;
                 }
                 delete students[id];
@@ -1098,10 +1145,10 @@
                 pendingDeleteName = '';
                 renderStudentTable();
                 closeModal('deleteModal');
-                alert('✓ Student deactivated successfully');
+                showAlert('✓ Student deactivated successfully');
             } catch (error) {
                 console.error('Error deleting student:', error);
-                alert('An error occurred while deleting');
+                showAlert('An error occurred while deleting');
             }
         }
 
@@ -1234,7 +1281,7 @@
                 });
                 if (!response.ok) {
                     const err = await response.json();
-                    alert('Failed to update: ' + (err.detail || JSON.stringify(err)));
+                    showAlert('Failed to update: ' + (err.detail || JSON.stringify(err)));
                     return;
                 }
                 const updated = await response.json();
@@ -1246,11 +1293,11 @@
                     status: updated.is_active ? 'Active' : 'Inactive'
                 };
                 renderCoordinatorTable();
-                alert('✓ Coordinator updated successfully');
+                showAlert('✓ Coordinator updated successfully');
                 closeModal('editCoordinatorModal');
             } catch (error) {
                 console.error('Error updating coordinator:', error);
-                alert('An error occurred while updating');
+                showAlert('An error occurred while updating');
             }
         }
 
@@ -1286,7 +1333,7 @@
                 });
                 if (!response.ok) {
                     const err = await response.json().catch(() => ({}));
-                    alert('Failed to delete: ' + (err.detail || 'Unknown error'));
+                    showAlert('Failed to delete: ' + (err.detail || 'Unknown error'));
                     return;
                 }
                 delete coordinators[id];
@@ -1295,10 +1342,10 @@
                 pendingCoordDeleteName = '';
                 renderCoordinatorTable();
                 closeModal('coordDeleteModal');
-                alert('✓ Coordinator deactivated successfully');
+                showAlert('✓ Coordinator deactivated successfully');
             } catch (error) {
                 console.error('Error deleting coordinator:', error);
-                alert('An error occurred while deleting');
+                showAlert('An error occurred while deleting');
             }
         }
 
@@ -1396,7 +1443,7 @@
             const rejecterId = document.getElementById('rejecterId').value;
             const reason = document.getElementById('rejectionReason').value.trim();
             if (!reason) {
-                alert('Please provide a reason for rejection.');
+                showAlert('Please provide a reason for rejection.');
                 return;
             }
             updateApprovalStatus(rejecterId, 'rejected');
@@ -1414,16 +1461,16 @@
                     body: JSON.stringify({ approval_status: statusValue })
                 });
                 if (!response.ok) {
-                    alert('Failed to update approval status');
+                    showAlert('Failed to update approval status');
                     return;
                 }
-                alert(`✓ Coordinator ${statusValue} successfully`);
+                showAlert(`✓ Coordinator ${statusValue} successfully`);
                 closeModal('approveModal');
                 closeModal('rejectModal');
                 loadCoordinatorApprovals();
             } catch (error) {
                 console.error('Error updating approval status:', error);
-                alert('An error occurred');
+                showAlert('An error occurred');
             }
         }
 
@@ -1486,7 +1533,7 @@
 
         async function addNewCourse() {
             const name = document.getElementById('courseName').value.trim();
-            if (!name) { alert('Please enter a course name'); return; }
+            if (!name) { showAlert('Please enter a course name'); return; }
             try {
                 const response = await fetch('/api/admin/courses/', {
                     method: 'POST',
@@ -1497,11 +1544,11 @@
                     body: JSON.stringify({ name })
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
-                alert('Course added successfully');
+                showAlert('Course added successfully');
                 closeModal('addCourseModal');
                 loadCourses();
             } catch (error) {
-                alert('Error: ' + error.message);
+                showAlert('Error: ' + error.message);
             }
         }
 
@@ -1518,7 +1565,7 @@
             const id = document.getElementById('editCourseId').value;
             const name = document.getElementById('editCourseName').value.trim();
             const is_active = document.getElementById('editCourseStatus').value === 'true';
-            if (!name) { alert('Please enter a course name'); return; }
+            if (!name) { showAlert('Please enter a course name'); return; }
             try {
                 const response = await fetch(`/api/admin/courses/${id}/`, {
                     method: 'PUT',
@@ -1529,11 +1576,11 @@
                     body: JSON.stringify({ name, is_active })
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
-                alert('Course updated successfully');
+                showAlert('Course updated successfully');
                 closeModal('editCourseModal');
                 loadCourses();
             } catch (error) {
-                alert('Error: ' + error.message);
+                showAlert('Error: ' + error.message);
             }
         }
 
@@ -1570,11 +1617,11 @@
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
                 pendingCourseDeleteId = null;
                 pendingCourseDeleteName = '';
-                alert('Course deleted successfully');
+                showAlert('Course deleted successfully');
                 closeModal('deleteCourseModal');
                 loadCourses();
             } catch (error) {
-                alert('Error: ' + error.message);
+                showAlert('Error: ' + error.message);
             }
         }
 
@@ -1752,8 +1799,8 @@
             const course = document.getElementById('siteCourse').value;
             const contact_person = document.getElementById('siteContactPerson').value.trim();
             const contact_number = document.getElementById('siteContactNumber').value.trim();
-            if (!name) { alert('Please enter a site name'); return; }
-            if (!course) { alert('Please select a course'); return; }
+            if (!name) { showAlert('Please enter a site name'); return; }
+            if (!course) { showAlert('Please select a course'); return; }
             try {
                 const response = await fetch('/api/admin/sites/', {
                     method: 'POST',
@@ -1764,11 +1811,11 @@
                     body: JSON.stringify({ name, course, contact_person, contact_number })
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
-                alert('Site added successfully');
+                showAlert('Site added successfully');
                 closeModal('addSiteModal');
                 loadSitesAdmin();
             } catch (error) {
-                alert('Error: ' + error.message);
+                showAlert('Error: ' + error.message);
             }
         }
 
@@ -1802,8 +1849,8 @@
             const contact_person = document.getElementById('editSiteContactPerson').value.trim();
             const contact_number = document.getElementById('editSiteContactNumber').value.trim();
             const is_active = document.getElementById('editSiteStatus').value === 'true';
-            if (!name) { alert('Please enter a site name'); return; }
-            if (!course) { alert('Please select a course'); return; }
+            if (!name) { showAlert('Please enter a site name'); return; }
+            if (!course) { showAlert('Please select a course'); return; }
             try {
                 const response = await fetch(`/api/admin/sites/${id}/`, {
                     method: 'PUT',
@@ -1814,11 +1861,11 @@
                     body: JSON.stringify({ name, course, contact_person, contact_number, is_active })
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
-                alert('Site updated successfully');
+                showAlert('Site updated successfully');
                 closeModal('editSiteModal');
                 loadSitesAdmin();
             } catch (error) {
-                alert('Error: ' + error.message);
+                showAlert('Error: ' + error.message);
             }
         }
 
@@ -1855,11 +1902,11 @@
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
                 pendingSiteDeleteId = null;
                 pendingSiteDeleteName = '';
-                alert('Site deleted successfully');
+                showAlert('Site deleted successfully');
                 closeModal('deleteSiteModal');
                 loadSitesAdmin();
             } catch (error) {
-                alert('Error: ' + error.message);
+                showAlert('Error: ' + error.message);
             }
         }
 
@@ -1951,6 +1998,113 @@
             loadCoordinatorApprovals();
             switchSection('students');
         });
+
+        // ===== NOTIFICATIONS ENGINE =====
+        const notifBtn = document.getElementById('btnNotifications');
+        const notifDropdown = document.getElementById('notifDropdown');
+        const notifBadge = document.getElementById('notifBadge');
+        const notifList = document.getElementById('notifList');
+        const markAllReadBtn = document.getElementById('markAllReadBtn');
+        const notifToken = localStorage.getItem('auth_token');
+
+        async function loadUnreadCount() {
+            try {
+                const res = await fetch('/api/notifications/unread_count/', {
+                    headers: { 'Authorization': `Token ${notifToken}` }
+                });
+                const data = await res.json();
+                if (data.count > 0) {
+                    notifBadge.textContent = data.count;
+                    notifBadge.classList.remove('hidden');
+                } else {
+                    notifBadge.classList.add('hidden');
+                }
+            } catch (err) {
+                console.error('Failed to load unread count:', err);
+            }
+        }
+
+        async function loadNotifications() {
+            try {
+                const res = await fetch('/api/notifications/', {
+                    headers: { 'Authorization': `Token ${notifToken}` }
+                });
+                const notifications = await res.json();
+                if (!notifications || notifications.length === 0) {
+                    notifList.innerHTML = '<p class="text-center text-slate-400 py-6">No notifications yet.</p>';
+                    return;
+                }
+                let html = '';
+                notifications.forEach(n => {
+                    const time = new Date(n.created_at).toLocaleString('en-US', {
+                        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                    });
+                    html += `
+                        <div class="p-3 border-b border-slate-50 hover:bg-slate-50 transition ${n.is_read ? '' : 'bg-blue-50/50'}">
+                            <div class="flex justify-between items-start gap-2">
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-bold text-slate-700 text-xs">${n.title}</p>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">${n.message}</p>
+                                    <p class="text-[10px] text-slate-400 mt-1">${time}</p>
+                                </div>
+                                ${!n.is_read ? `
+                                    <button onclick="markNotifRead('${n.id}')" class="shrink-0 bg-[#11693A] text-white text-[9px] font-bold px-2 py-1 rounded hover:bg-[#0e5630] transition">
+                                        Read
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                notifList.innerHTML = html;
+            } catch (err) {
+                notifList.innerHTML = '<p class="text-center text-red-500 py-6">Failed to load notifications.</p>';
+                console.error('Failed to load notifications:', err);
+            }
+        }
+
+        async function markNotifRead(id) {
+            try {
+                await fetch(`/api/notifications/${id}/mark-read/`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Token ${notifToken}` }
+                });
+                loadNotifications();
+                loadUnreadCount();
+            } catch (err) {
+                console.error('Failed to mark notification as read:', err);
+            }
+        }
+
+        markAllReadBtn.addEventListener('click', async () => {
+            try {
+                await fetch('/api/notifications/mark-all-read/', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Token ${notifToken}` }
+                });
+                loadNotifications();
+                loadUnreadCount();
+            } catch (err) {
+                console.error('Failed to mark all as read:', err);
+            }
+        });
+
+        notifBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notifDropdown.classList.toggle('hidden');
+            if (!notifDropdown.classList.contains('hidden')) {
+                loadNotifications();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
+                notifDropdown.classList.add('hidden');
+            }
+        });
+
+        loadUnreadCount();
+        setInterval(loadUnreadCount, 30000);
     
         lucide.createIcons();
     </script>

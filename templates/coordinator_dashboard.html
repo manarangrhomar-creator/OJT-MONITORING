@@ -101,9 +101,26 @@
                 <h1 class="text-2xl md:text-4xl isu-header-font tracking-tight">OJT Coordinator</h1>
                 <p id="pageSubtitle" class="text-[11px] md:text-xs text-slate-500 font-bold mt-0.5 uppercase tracking-wider">Student Approval</p>
             </div>
-            <a href="#" onclick="event.preventDefault(); openLogoutModal();" class="bg-[#11693A] hover:bg-[#0e5630] text-white text-xs font-bold px-5 py-2 md:px-6 md:py-2.5 transition shadow-sm flex items-center gap-2 rounded-lg self-end sm:self-auto">
-                <i data-lucide="log-out"></i> Logout
-            </a>
+            <div class="flex items-center gap-2 self-end sm:self-auto">
+                <div class="relative">
+                    <button id="btnNotifications" class="bg-[#11693A] hover:bg-[#0e5630] text-white text-xs font-bold px-3 py-2 md:px-4 md:py-2.5 transition shadow-sm flex items-center gap-2 rounded-lg relative">
+                        <i data-lucide="bell"></i>
+                        <span id="notifBadge" class="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-bold w-4 h-4 flex items-center justify-center rounded-full hidden">0</span>
+                    </button>
+                    <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 md:w-96 bg-white rounded-xl shadow-2xl border border-slate-200 z-50 overflow-hidden">
+                        <div class="p-3 border-b border-slate-100 flex justify-between items-center">
+                            <h3 class="font-bold text-xs text-slate-700 uppercase">Notifications</h3>
+                            <button id="markAllReadBtn" class="text-[10px] font-bold text-[#11693A] hover:underline">Mark all read</button>
+                        </div>
+                        <div id="notifList" class="max-h-72 overflow-y-auto custom-scroll text-xs text-slate-500 p-4">
+                            Loading...
+                        </div>
+                    </div>
+                </div>
+                <a href="#" onclick="event.preventDefault(); openLogoutModal();" class="bg-[#11693A] hover:bg-[#0e5630] text-white text-xs font-bold px-5 py-2 md:px-6 md:py-2.5 transition shadow-sm flex items-center gap-2 rounded-lg">
+                    <i data-lucide="log-out"></i> Logout
+                </a>
+            </div>
         </div>
 
         <!-- Main Content Area -->
@@ -250,10 +267,6 @@
                             <label>Supervisor Contact</label>
                             <input type="text" id="siteSupervisorContact" placeholder="Phone number" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]">
                         </div>
-                        <div class="form-group">
-                            <label>Notes</label>
-                            <textarea id="siteNotes" rows="3" placeholder="Additional notes..." class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]"></textarea>
-                        </div>
                     </div>
                     <div class="modal-buttons">
                         <button class="btn-cancel" onclick="closeModal('addSiteModal')">Cancel</button>
@@ -288,10 +301,6 @@
                         <div class="form-group">
                             <label>Supervisor Contact</label>
                             <input type="text" id="editSiteSupervisorContact" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]">
-                        </div>
-                        <div class="form-group">
-                            <label>Notes</label>
-                            <textarea id="editSiteNotes" rows="3" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]"></textarea>
                         </div>
                     </div>
                     <div class="modal-buttons">
@@ -463,6 +472,39 @@
         </div>
     </div>
 
+    <!-- Alert Modal -->
+    <div id="alertModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Notice</h2>
+                <button class="close-btn" onclick="closeModal('alertModal')">&times;</button>
+            </div>
+            <p id="alertMessage" class="text-gray-600 text-sm mb-4"></p>
+            <div class="modal-buttons">
+                <button class="btn-save" id="alertOkBtn">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Modal -->
+    <div id="confirmModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-100 transform scale-95 transition-all">
+            <div class="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i data-lucide="alert-triangle"></i>
+            </div>
+            <h3 class="text-lg font-black text-slate-800 mb-1">Confirm</h3>
+            <p id="confirmMessage" class="text-xs text-slate-500 mb-6"></p>
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" id="confirmCancelBtn" class="py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition uppercase">
+                    Cancel
+                </button>
+                <button type="button" id="confirmOkBtn" class="py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition uppercase shadow-sm">
+                    Yes, Confirm
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Logout Confirmation Modal -->
     <div id="logoutModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-100 transform scale-95 transition-all">
@@ -511,6 +553,45 @@
         function closeModal(modalId) {
             document.getElementById(modalId).classList.remove('active');
         }
+
+        // ===== ALERT / CONFIRM MODAL HELPERS =====
+        function showAlert(message) {
+            document.getElementById('alertMessage').textContent = message;
+            openModal('alertModal');
+        }
+
+        function showConfirm(message, onConfirm) {
+            document.getElementById('confirmMessage').textContent = message;
+            window._confirmCallback = onConfirm;
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+
+        document.getElementById('alertOkBtn').addEventListener('click', () => {
+            closeModal('alertModal');
+        });
+
+        document.getElementById('alertModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('alertModal')) {
+                closeModal('alertModal');
+            }
+        });
+
+        document.getElementById('confirmCancelBtn').addEventListener('click', () => {
+            document.getElementById('confirmModal').classList.add('hidden');
+        });
+
+        document.getElementById('confirmOkBtn').addEventListener('click', () => {
+            document.getElementById('confirmModal').classList.add('hidden');
+            if (typeof window._confirmCallback === 'function') {
+                window._confirmCallback();
+            }
+        });
+
+        document.getElementById('confirmModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('confirmModal')) {
+                document.getElementById('confirmModal').classList.add('hidden');
+            }
+        });
 
         function getCookie(name) {
             let cookieValue = null;
@@ -672,16 +753,16 @@
 
                 if (!response.ok) {
                     const err = await response.json();
-                    alert(err.error || 'Failed to approve student');
+                    showAlert(err.error || 'Failed to approve student');
                     return;
                 }
 
-                alert('Student account approved successfully! The student can now log in.');
+                showAlert('Student account approved successfully! The student can now log in.');
                 closeModal('approveStudentModal');
                 loadStudents();
             } catch (error) {
                 console.error('Error approving student:', error);
-                alert('An error occurred');
+                showAlert('An error occurred');
             }
         }
 
@@ -689,7 +770,7 @@
             const studentId = document.getElementById('rejectStudentId').value;
             const reason = document.getElementById('rejectionReason').value.trim();
             if (!reason) {
-                alert('Please provide a reason for rejection');
+                showAlert('Please provide a reason for rejection');
                 return;
             }
 
@@ -706,16 +787,16 @@
 
                 if (!response.ok) {
                     const err = await response.json();
-                    alert(err.error || 'Failed to reject student');
+                    showAlert(err.error || 'Failed to reject student');
                     return;
                 }
 
-                alert('Student account rejected');
+                showAlert('Student account rejected');
                 closeModal('rejectStudentModal');
                 loadStudents();
             } catch (error) {
                 console.error('Error rejecting student:', error);
-                alert('An error occurred');
+                showAlert('An error occurred');
             }
         }
 
@@ -917,7 +998,7 @@
             const feedback = document.getElementById('feedbackInput').value.trim();
 
             if (!grade || grade < 1 || grade > 100) {
-                alert('Please enter a grade between 1 and 100');
+                showAlert('Please enter a grade between 1 and 100');
                 return;
             }
 
@@ -934,16 +1015,16 @@
 
                 if (!response.ok) {
                     const err = await response.json();
-                    alert(err.error || 'Failed to save grade');
+                    showAlert(err.error || 'Failed to save grade');
                     return;
                 }
 
-                alert('Grade saved successfully');
+                showAlert('Grade saved successfully');
                 closeModal('gradeReportModal');
                 loadStudentReports();
             } catch (error) {
                 console.error('Error saving grade:', error);
-                alert('An error occurred');
+                showAlert('An error occurred');
             }
         }
 
@@ -1144,16 +1225,15 @@
             }
             document.getElementById('siteSupervisorName').value = '';
             document.getElementById('siteSupervisorContact').value = '';
-            document.getElementById('siteNotes').value = '';
             openModal('addSiteModal');
         }
 
         async function submitSiteAssignment() {
             const studentData = document.getElementById('siteStudentSelect').value;
-            if (!studentData) { alert('Please select a student'); return; }
+            if (!studentData) { showAlert('Please select a student'); return; }
             const {student_id, program_id} = JSON.parse(studentData);
             const site_id = document.getElementById('siteSelect').value;
-            if (!site_id) { alert('Please select a site'); return; }
+            if (!site_id) { showAlert('Please select a site'); return; }
             try {
                 const response = await fetch('/api/coordinator/site-assignments/', {
                     method: 'POST',
@@ -1166,16 +1246,20 @@
                         program: program_id,
                         site: site_id,
                         supervisor_name: document.getElementById('siteSupervisorName').value.trim(),
-                        supervisor_contact: document.getElementById('siteSupervisorContact').value.trim(),
-                        notes: document.getElementById('siteNotes').value.trim()
+                        supervisor_contact: document.getElementById('siteSupervisorContact').value.trim()
                     })
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
-                alert('Site assignment created successfully');
                 closeModal('addSiteModal');
+                showAlert('Site assignment created successfully');
                 loadSiteAssignments();
             } catch (error) {
-                alert('Error: ' + error.message);
+                closeModal('addSiteModal');
+                let message = error.message;
+                if (message.includes('must make a unique set')) {
+                    message = 'This student is already assigned to a site for this program. Edit their existing assignment instead.';
+                }
+                showAlert(message);
             }
         }
 
@@ -1186,7 +1270,6 @@
             document.getElementById('editSiteStudentName').textContent = assignment.student_name;
             document.getElementById('editSiteSupervisorName').value = assignment.supervisor_name || '';
             document.getElementById('editSiteSupervisorContact').value = assignment.supervisor_contact || '';
-            document.getElementById('editSiteNotes').value = assignment.notes || '';
             // Load available sites and select current
             const siteSelect = document.getElementById('editSiteSelect');
             siteSelect.innerHTML = '<option value="">Loading sites...</option>';
@@ -1215,7 +1298,7 @@
         async function updateSiteAssignment() {
             const id = document.getElementById('editSiteAssignmentId').value;
             const site_id = document.getElementById('editSiteSelect').value;
-            if (!site_id) { alert('Please select a site'); return; }
+            if (!site_id) { showAlert('Please select a site'); return; }
             try {
                 const response = await fetch(`/api/coordinator/site-assignments/${id}/`, {
                     method: 'PUT',
@@ -1226,34 +1309,34 @@
                     body: JSON.stringify({
                         site: site_id,
                         supervisor_name: document.getElementById('editSiteSupervisorName').value.trim(),
-                        supervisor_contact: document.getElementById('editSiteSupervisorContact').value.trim(),
-                        notes: document.getElementById('editSiteNotes').value.trim()
+                        supervisor_contact: document.getElementById('editSiteSupervisorContact').value.trim()
                     })
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
-                alert('Site assignment updated successfully');
+                showAlert('Site assignment updated successfully');
                 closeModal('editSiteModal');
                 loadSiteAssignments();
             } catch (error) {
-                alert('Error: ' + error.message);
+                showAlert('Error: ' + error.message);
             }
         }
 
         async function deleteSiteAssignment(id) {
-            if (!confirm('Are you sure you want to delete this site assignment?')) return;
-            try {
-                const response = await fetch(`/api/coordinator/site-assignments/${id}/`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
-                    }
-                });
-                if (!response.ok) throw new Error('Failed to delete');
-                alert('Site assignment deleted');
-                loadSiteAssignments();
-            } catch (error) {
-                alert('Error: ' + error.message);
-            }
+            showConfirm('Are you sure you want to delete this site assignment?', async () => {
+                try {
+                    const response = await fetch(`/api/coordinator/site-assignments/${id}/`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                        }
+                    });
+                    if (!response.ok) throw new Error('Failed to delete');
+                    showAlert('Site assignment deleted');
+                    loadSiteAssignments();
+                } catch (error) {
+                    showAlert('Error: ' + error.message);
+                }
+            });
         }
 
         // Initialize on page load
@@ -1327,6 +1410,113 @@
             document.getElementById('btnConfirmLogout').disabled = true;
             setTimeout(() => { window.location.href = "/auth/logout/"; }, 800);
         });
+
+        // ===== NOTIFICATIONS ENGINE =====
+        const notifBtn = document.getElementById('btnNotifications');
+        const notifDropdown = document.getElementById('notifDropdown');
+        const notifBadge = document.getElementById('notifBadge');
+        const notifList = document.getElementById('notifList');
+        const markAllReadBtn = document.getElementById('markAllReadBtn');
+        const notifToken = localStorage.getItem('auth_token');
+
+        async function loadUnreadCount() {
+            try {
+                const res = await fetch('/api/notifications/unread_count/', {
+                    headers: { 'Authorization': `Token ${notifToken}` }
+                });
+                const data = await res.json();
+                if (data.count > 0) {
+                    notifBadge.textContent = data.count;
+                    notifBadge.classList.remove('hidden');
+                } else {
+                    notifBadge.classList.add('hidden');
+                }
+            } catch (err) {
+                console.error('Failed to load unread count:', err);
+            }
+        }
+
+        async function loadNotifications() {
+            try {
+                const res = await fetch('/api/notifications/', {
+                    headers: { 'Authorization': `Token ${notifToken}` }
+                });
+                const notifications = await res.json();
+                if (!notifications || notifications.length === 0) {
+                    notifList.innerHTML = '<p class="text-center text-slate-400 py-6">No notifications yet.</p>';
+                    return;
+                }
+                let html = '';
+                notifications.forEach(n => {
+                    const time = new Date(n.created_at).toLocaleString('en-US', {
+                        month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
+                    });
+                    html += `
+                        <div class="p-3 border-b border-slate-50 hover:bg-slate-50 transition ${n.is_read ? '' : 'bg-blue-50/50'}">
+                            <div class="flex justify-between items-start gap-2">
+                                <div class="flex-1 min-w-0">
+                                    <p class="font-bold text-slate-700 text-xs">${n.title}</p>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">${n.message}</p>
+                                    <p class="text-[10px] text-slate-400 mt-1">${time}</p>
+                                </div>
+                                ${!n.is_read ? `
+                                    <button onclick="markNotifRead('${n.id}')" class="shrink-0 bg-[#11693A] text-white text-[9px] font-bold px-2 py-1 rounded hover:bg-[#0e5630] transition">
+                                        Read
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                notifList.innerHTML = html;
+            } catch (err) {
+                notifList.innerHTML = '<p class="text-center text-red-500 py-6">Failed to load notifications.</p>';
+                console.error('Failed to load notifications:', err);
+            }
+        }
+
+        async function markNotifRead(id) {
+            try {
+                await fetch(`/api/notifications/${id}/mark-read/`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Token ${notifToken}` }
+                });
+                loadNotifications();
+                loadUnreadCount();
+            } catch (err) {
+                console.error('Failed to mark notification as read:', err);
+            }
+        }
+
+        markAllReadBtn.addEventListener('click', async () => {
+            try {
+                await fetch('/api/notifications/mark-all-read/', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Token ${notifToken}` }
+                });
+                loadNotifications();
+                loadUnreadCount();
+            } catch (err) {
+                console.error('Failed to mark all as read:', err);
+            }
+        });
+
+        notifBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notifDropdown.classList.toggle('hidden');
+            if (!notifDropdown.classList.contains('hidden')) {
+                loadNotifications();
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
+                notifDropdown.classList.add('hidden');
+            }
+        });
+
+        loadUnreadCount();
+        setInterval(loadUnreadCount, 30000);
     lucide.createIcons();
 </script>
 </body>

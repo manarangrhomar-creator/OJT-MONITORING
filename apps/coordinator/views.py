@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from apps.core.models import User
+from apps.core.utils import create_notification, send_notification_email
 from apps.student.models import StudentNarrativeReport
 from apps.student.serializers import StudentNarrativeReportSerializer
 from .models import OJTProgram, OJTApplication, Attendance, SiteAssignment, Site
@@ -58,6 +59,14 @@ class OJTApplicationViewSet(viewsets.ModelViewSet):
         application.status = 'approved'
         application.approved_date = timezone.now()
         application.save()
+        create_notification(
+            recipient=application.student,
+            title='Application Approved',
+            message=f'Your OJT application for {application.program.name} has been approved.',
+            type='application_update',
+            related_object=application,
+            related_object_type='OJTApplication',
+        )
         return Response({'message': 'Application approved'}, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['post'])
@@ -67,6 +76,15 @@ class OJTApplicationViewSet(viewsets.ModelViewSet):
         application.status = 'rejected'
         application.rejection_reason = request.data.get('reason', '')
         application.save()
+        reason = request.data.get('reason', 'No reason provided')
+        create_notification(
+            recipient=application.student,
+            title='Application Rejected',
+            message=f'Your OJT application for {application.program.name} has been rejected. Reason: {reason}',
+            type='application_update',
+            related_object=application,
+            related_object_type='OJTApplication',
+        )
         return Response({'message': 'Application rejected'}, status=status.HTTP_200_OK)
 
 
@@ -271,6 +289,15 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         narrative.graded_at = timezone.now()
         narrative.save(update_fields=['grade', 'feedback', 'graded_by', 'graded_at'])
 
+        create_notification(
+            recipient=narrative.student,
+            title='Report Graded',
+            message=f'Your narrative report for {narrative.log_date} has been graded: {grade}/100.',
+            type='general',
+            related_object=narrative,
+            related_object_type='StudentNarrativeReport',
+        )
+
         serializer = StudentNarrativeReportSerializer(narrative)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -313,6 +340,12 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         student = get_object_or_404(User, id=student_id, role='student')
         student.approval_status = 'approved'
         student.save(update_fields=['approval_status'])
+        create_notification(
+            recipient=student,
+            title='Account Approved',
+            message='Your OJT student account has been approved. You can now log in.',
+            type='general',
+        )
         return Response({'message': 'Student account approved successfully'})
 
     @action(detail=False, methods=['post'], url_path='reject-student-account')
@@ -324,6 +357,14 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         student = get_object_or_404(User, id=student_id, role='student')
         student.approval_status = 'rejected'
         student.save(update_fields=['approval_status'])
+        send_notification_email(
+            recipient=student,
+            subject='OJT Account Rejected',
+            message=f'Dear {student.get_full_name() or student.username},\n\n'
+                    f'Your OJT student account has been rejected. '
+                    f'Please contact your coordinator for further information.\n\n'
+                    f'Best regards,\nISU OJT Monitoring System',
+        )
         return Response({'message': 'Student account rejected'})
 
     @action(detail=False, methods=['get'], url_path='available-sites')

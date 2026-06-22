@@ -64,6 +64,17 @@
         </div>
     </div>
 
+    <div id="alertModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl text-center">
+            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i data-lucide="info"></i>
+            </div>
+            <h3 class="custom-heading text-xl font-bold text-[#11693A] mb-2">Notice</h3>
+            <p id="alertMessage" class="custom-text text-sm text-gray-500 mb-6"></p>
+            <button type="button" id="alertOkBtn" class="w-full bg-[#11693A] text-white py-3 rounded-xl font-bold">OK</button>
+        </div>
+    </div>
+
     <div id="termsModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
         <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
             <div class="bg-[#11693A] p-6 text-white flex justify-between items-center">
@@ -108,7 +119,7 @@
                 const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
                 video.srcObject = stream;
             } catch (err) {
-                alert("Camera access denied. Please enable your webcam.");
+                showAlert("Camera access denied. Please enable your webcam.");
             }
         }
 
@@ -130,6 +141,22 @@
             }, 'image/jpeg', 0.92);
         }
 
+        // ===== ALERT MODAL HELPERS =====
+        function showAlert(message) {
+            document.getElementById('alertMessage').textContent = message;
+            document.getElementById('alertModal').classList.remove('hidden');
+        }
+
+        document.getElementById('alertOkBtn').addEventListener('click', () => {
+            document.getElementById('alertModal').classList.add('hidden');
+        });
+
+        document.getElementById('alertModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('alertModal')) {
+                document.getElementById('alertModal').classList.add('hidden');
+            }
+        });
+
         function toggleModal() {
             modal.classList.toggle('hidden');
             document.body.classList.toggle('modal-active');
@@ -150,7 +177,7 @@
 
         regBtn.addEventListener('click', async function() {
             if (!capturedBlob) {
-                alert('Please capture your face first');
+                showAlert('Please capture your face first');
                 return;
             }
 
@@ -174,14 +201,14 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert('Face enrolled successfully!');
+                    showAlert('Face enrolled successfully!');
                     window.location.href = '/dashboard/student/';
                 } else {
-                    alert(data.error || 'Failed to enroll face. Please try again.');
+                    showAlert(data.error || 'Failed to enroll face. Please try again.');
                 }
             } catch (err) {
                 console.error('Enrollment error:', err);
-                alert('An error occurred during enrollment');
+                showAlert('An error occurred during enrollment');
             } finally {
                 regBtn.disabled = false;
                 regBtn.innerHTML = '<i data-lucide="user-plus" class="mr-2" style="width:20px;height:20px;"></i> Register';

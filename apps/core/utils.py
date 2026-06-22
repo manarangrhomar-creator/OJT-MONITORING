@@ -2,6 +2,9 @@
 Utils for the application
 """
 from datetime import datetime, timedelta
+from django.core.mail import send_mail
+from django.conf import settings
+from .models import Notification
 
 
 def get_week_range(date=None):
@@ -26,3 +29,25 @@ def get_month_range(date=None):
     
     start = date.replace(day=1)
     return start, end
+
+
+def create_notification(recipient, title, message, type='general', related_object=None, related_object_type=''):
+    Notification.objects.create(
+        recipient=recipient,
+        title=title,
+        message=message,
+        type=type,
+        related_object_id=related_object.id if related_object else None,
+        related_object_type=related_object_type,
+    )
+
+
+def send_notification_email(recipient, subject, message):
+    if recipient.email:
+        send_mail(
+            subject=subject,
+            message=message,
+            from_email=settings.EMAIL_HOST_USER,
+            recipient_list=[recipient.email],
+            fail_silently=True,
+        )

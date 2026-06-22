@@ -6,6 +6,8 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from apps.coordinator.models import OJTApplication, Attendance
 from apps.coordinator.serializers import OJTApplicationSerializer, AttendanceSerializer
+from apps.core.models import Notification
+from apps.core.utils import create_notification
 from .models import StudentProfile, FacialRecognition, StudentNarrativeReport
 from .serializers import StudentProfileSerializer, FacialRecognitionSerializer, StudentNarrativeReportSerializer
 from .face_utils import detect_face, encode_face, verify_faces
@@ -105,10 +107,19 @@ class StudentNarrativeViewSet(viewsets.ModelViewSet):
         program = OJTApplication.objects.filter(
             student=self.request.user, status='approved'
         ).first()
-        serializer.save(
+        instance = serializer.save(
             student=self.request.user,
             program=program.program if program else None
         )
+        if instance.program and instance.program.coordinator:
+            create_notification(
+                recipient=instance.program.coordinator,
+                title='New Narrative Report',
+                message=f'{self.request.user.get_full_name() or self.request.user.username} has submitted a new narrative report for {instance.log_date}.',
+                type='general',
+                related_object=instance,
+                related_object_type='StudentNarrativeReport',
+            )
 
     @action(detail=False, methods=['post'], url_path='submit-with-photos')
     def submit_with_photos(self, request):
@@ -118,7 +129,16 @@ class StudentNarrativeViewSet(viewsets.ModelViewSet):
             context={'request': request}
         )
         if serializer.is_valid():
-            serializer.save(student=request.user)
+            instance = serializer.save(student=request.user)
+            if instance.program and instance.program.coordinator:
+                create_notification(
+                    recipient=instance.program.coordinator,
+                    title='New Narrative Report',
+                    message=f'{request.user.get_full_name() or request.user.username} has submitted a new narrative report for {instance.log_date}.',
+                    type='general',
+                    related_object=instance,
+                    related_object_type='StudentNarrativeReport',
+                )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -202,3 +222,46 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
                 'confidence': float(confidence),
                 'message': 'Face does not match enrolled record'
             }, status=status.HTTP_200_OK)
+
+
+class StudentNotificationViewSet(viewsets.ViewSet):
+    """ViewSet for student notifications."""
+    permission_classes = [IsStudent]
+
+    def list(self, request):
+        """Get all notifications for the current student."""
+        notifications = Notification.objects.filter(recipient=request.user)
+        data = [{
+            'id': str(n.id),
+            'title': n.title,
+            'message': n.message,
+            'type': n.type,
+            'is_read': n.is_read,
+            'created_at': n.created_at.isoformat(),
+            'related_object_id': str(n.related_object_id) if n.related_object_id else None,
+            'related_object_type': n.related_object_type,
+        } for n in notifications]
+        return Response(data)
+
+    @action(detail=False, methods=['get'])
+    def unread_count(self, request):
+        """Get unread notification count."""
+        count = Notification.objects.filter(recipient=request.user, is_read=False).count()
+        return Response({'count': count})
+
+    @action(detail=True, methods=['post'], url_path='mark-read')
+    def mark_read(self, request, pk=None):
+        """Mark a single notification as read."""
+        try:
+            notification = Notification.objects.get(id=pk, recipient=request.user)
+            notification.is_read = True
+            notification.save()
+            return Response({'message': 'Notification marked as read'})
+        except Notification.DoesNotExist:
+            return Response({'error': 'Notification not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    @action(detail=False, methods=['post'], url_path='mark-all-read')
+    def mark_all_read(self, request):
+        """Mark all notifications as read."""
+        Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+        return Response({'message': 'All notifications marked as read'})
