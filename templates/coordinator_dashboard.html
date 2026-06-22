@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coordinator Dashboard | OJT Monitoring System</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
@@ -16,7 +18,7 @@
         .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #11693A; border-radius: 10px; }
 
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); animation: fadeIn 0.3s ease; }
+        .modal { display: none; position: fixed; z-index: 60; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); animation: fadeIn 0.3s ease; }
         .modal.active { display: flex; justify-content: center; align-items: center; }
         .modal-content { background-color: #fefefe; padding: 30px; border-radius: 15px; width: 90%; max-width: 500px; box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3); animation: slideUp 0.3s ease; overflow-y: auto; max-height: 90vh; }
 
@@ -43,6 +45,9 @@
         .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
         .detail-label { font-weight: 600; color: #11693A; }
         .detail-value { color: #666; }
+
+        .swal2-container { z-index: 1100 !important; }
+        .swal2-container.swal2-backdrop-show { background: rgba(0, 0, 0, 0.4) !important; }
     </style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col md:flex-row p-0 m-0 relative">
@@ -117,9 +122,9 @@
                         </div>
                     </div>
                 </div>
-                <a href="#" onclick="event.preventDefault(); openLogoutModal();" class="bg-[#11693A] hover:bg-[#0e5630] text-white text-xs font-bold px-5 py-2 md:px-6 md:py-2.5 transition shadow-sm flex items-center gap-2 rounded-lg">
+                <button id="btnLogout" class="bg-[#11693A] hover:bg-[#0e5630] text-white text-xs font-bold px-5 py-2 md:px-6 md:py-2.5 transition shadow-sm flex items-center gap-2 rounded-lg">
                     <i data-lucide="log-out"></i> Logout
-                </a>
+                </button>
             </div>
         </div>
 
@@ -472,57 +477,23 @@
         </div>
     </div>
 
-    <!-- Alert Modal -->
-    <div id="alertModal" class="modal">
-        <div class="modal-content">
+    <!-- Confirm Logout Modal -->
+    <div id="confirmLogoutModal" class="modal">
+        <div class="modal-content" style="max-width:400px;">
             <div class="modal-header">
-                <h2>Notice</h2>
-                <button class="close-btn" onclick="closeModal('alertModal')">&times;</button>
+                <h2>Confirm Logout</h2>
+                <button class="close-btn" onclick="closeModal('confirmLogoutModal')">&times;</button>
             </div>
-            <p id="alertMessage" class="text-gray-600 text-sm mb-4"></p>
+            <p style="color:#666; margin-bottom:20px; font-size:15px;">
+                Are you sure you want to exit the OJT Coordinator Portal? Any unsaved changes will be discarded.
+            </p>
             <div class="modal-buttons">
-                <button class="btn-save" id="alertOkBtn">OK</button>
+                <button class="btn-cancel" onclick="closeModal('confirmLogoutModal')">Cancel</button>
+                <button class="btn-reject" onclick="confirmLogout()">Yes, Logout</button>
             </div>
         </div>
     </div>
 
-    <!-- Confirm Modal -->
-    <div id="confirmModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-100 transform scale-95 transition-all">
-            <div class="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                <i data-lucide="alert-triangle"></i>
-            </div>
-            <h3 class="text-lg font-black text-slate-800 mb-1">Confirm</h3>
-            <p id="confirmMessage" class="text-xs text-slate-500 mb-6"></p>
-            <div class="grid grid-cols-2 gap-3">
-                <button type="button" id="confirmCancelBtn" class="py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition uppercase">
-                    Cancel
-                </button>
-                <button type="button" id="confirmOkBtn" class="py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition uppercase shadow-sm">
-                    Yes, Confirm
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Logout Confirmation Modal -->
-    <div id="logoutModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-100 transform scale-95 transition-all">
-            <div class="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                <i data-lucide="log-out"></i>
-            </div>
-            <h3 class="text-lg font-black text-slate-800 mb-1">Confirm Logout</h3>
-            <p class="text-xs text-slate-500 mb-6">Are you sure you want to exit the OJT Coordinator Portal? Any unsaved changes will be discarded.</p>
-            <div class="grid grid-cols-2 gap-3">
-                <button type="button" id="btnCancelLogout" class="py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition uppercase">
-                    Cancel
-                </button>
-                <button type="button" id="btnConfirmLogout" class="py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition uppercase shadow-sm">
-                    Yes, Logout
-                </button>
-            </div>
-        </div>
-    </div>
 
     <script>
         // MOBILE MENU MECHANICS
@@ -554,44 +525,31 @@
             document.getElementById(modalId).classList.remove('active');
         }
 
-        // ===== ALERT / CONFIRM MODAL HELPERS =====
+        // ===== ALERT / CONFIRM HELPERS =====
         function showAlert(message) {
-            document.getElementById('alertMessage').textContent = message;
-            openModal('alertModal');
+            return Swal.fire({
+                icon: 'info',
+                text: message,
+                confirmButtonColor: '#11693A',
+                confirmButtonText: 'OK',
+            });
         }
 
         function showConfirm(message, onConfirm) {
-            document.getElementById('confirmMessage').textContent = message;
-            window._confirmCallback = onConfirm;
-            document.getElementById('confirmModal').classList.remove('hidden');
+            Swal.fire({
+                icon: 'warning',
+                text: message,
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#e5e7eb',
+                confirmButtonText: 'Yes, Confirm',
+                cancelButtonText: 'Cancel',
+            }).then((result) => {
+                if (result.isConfirmed && typeof onConfirm === 'function') {
+                    onConfirm();
+                }
+            });
         }
-
-        document.getElementById('alertOkBtn').addEventListener('click', () => {
-            closeModal('alertModal');
-        });
-
-        document.getElementById('alertModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('alertModal')) {
-                closeModal('alertModal');
-            }
-        });
-
-        document.getElementById('confirmCancelBtn').addEventListener('click', () => {
-            document.getElementById('confirmModal').classList.add('hidden');
-        });
-
-        document.getElementById('confirmOkBtn').addEventListener('click', () => {
-            document.getElementById('confirmModal').classList.add('hidden');
-            if (typeof window._confirmCallback === 'function') {
-                window._confirmCallback();
-            }
-        });
-
-        document.getElementById('confirmModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('confirmModal')) {
-                document.getElementById('confirmModal').classList.add('hidden');
-            }
-        });
 
         function getCookie(name) {
             let cookieValue = null;
@@ -1388,27 +1346,14 @@
             });
         });
 
-        // LOGOUT LOGIC MECHANICS
-        function openLogoutModal() {
-            document.getElementById('logoutModal').classList.remove('hidden');
+        // LOGOUT
+        function confirmLogout() {
+            closeModal('confirmLogoutModal');
+            window.location.href = "/auth/logout/";
         }
 
-        function closeLogoutModal() {
-            document.getElementById('logoutModal').classList.add('hidden');
-        }
-
-        document.getElementById('logoutModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('logoutModal')) {
-                closeLogoutModal();
-            }
-        });
-
-        document.getElementById('btnCancelLogout').addEventListener('click', closeLogoutModal);
-
-        document.getElementById('btnConfirmLogout').addEventListener('click', () => {
-            document.getElementById('btnConfirmLogout').innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Exiting...';
-            document.getElementById('btnConfirmLogout').disabled = true;
-            setTimeout(() => { window.location.href = "/auth/logout/"; }, 800);
+        document.getElementById('btnLogout').addEventListener('click', () => {
+            openModal('confirmLogoutModal');
         });
 
         // ===== NOTIFICATIONS ENGINE =====

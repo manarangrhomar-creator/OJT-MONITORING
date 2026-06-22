@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign In - ISU OJT Portal</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/lucide@0.344.0"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
@@ -73,10 +75,7 @@
             50% { transform: scale(1); opacity: 1; }
         }
 
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateX(100px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
+
     </style>
 </head>
 <body class="bg-emerald-50/50 min-h-screen flex items-center justify-center p-4">
@@ -164,29 +163,16 @@
         }
 
         function showToast(message) {
-            try {
-                const parsed = JSON.parse(message);
-                if (parsed.non_field_errors) message = parsed.non_field_errors[0];
-                else if (parsed.detail) message = parsed.detail;
-            } catch (_) {}
-
-            const existing = document.querySelector('.toast-error');
-            if (existing) existing.remove();
-
-            const toast = document.createElement('div');
-            toast.className = 'toast-error fixed bottom-6 right-6 z-[100] flex items-center gap-3 bg-[#FEF2F2] border border-[#FEE2E2] text-[#1E293B] px-4 py-3 rounded-md shadow-[0_4px_12px_rgba(0,0,0,0.05)] text-sm w-[380px] animate-[slideIn_0.3s_ease-out]';
-            function dismissToast(el) {
-                el.style.transition = 'all 0.3s ease-out';
-                el.style.opacity = '0';
-                el.style.transform = 'translateX(100px)';
-                setTimeout(() => el.remove(), 300);
-            }
-
-            toast.innerHTML = '<i data-lucide="alert-circle" class="shrink-0" style="width:18px;height:18px;color:#E11D48;"></i><span class="flex-1">' + message + '</span><button onclick="dismissToast(this.parentElement)" class="text-slate-400 hover:text-slate-600 p-1 transition-colors"><i data-lucide="x" style="width:14px;height:14px;"></i></button>';
-            document.body.appendChild(toast);
-            lucide.createIcons();
-
-            setTimeout(() => dismissToast(toast), 3000);
+            Swal.fire({
+                icon: 'error',
+                title: message,
+                toast: true,
+                position: 'bottom-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+                customClass: { popup: 'rounded-xl' }
+            });
         }
 
         document.getElementById('loginForm').addEventListener('submit', async (e) => {

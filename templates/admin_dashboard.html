@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard | OJT Monitoring System</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
@@ -16,7 +18,7 @@
         .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #11693A; border-radius: 10px; }
 
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); animation: fadeIn 0.3s ease; }
+        .modal { display: none; position: fixed; z-index: 60; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); animation: fadeIn 0.3s ease; }
         .modal.active { display: flex; justify-content: center; align-items: center; }
         .modal-content { background-color: #fefefe; padding: 30px; border-radius: 15px; width: 90%; max-width: 500px; box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3); animation: slideUp 0.3s ease; overflow-y: auto; max-height: 90vh; }
 
@@ -46,6 +48,9 @@
         .faculty-id-row { flex-direction: column; align-items: flex-start; gap: 8px; }
         .faculty-id-img { max-width: 100%; max-height: 300px; border-radius: 8px; border: 2px solid #e5e7eb; object-fit: contain; cursor: pointer; transition: transform 0.2s; }
         .faculty-id-img:hover { transform: scale(1.02); }
+
+        .swal2-container { z-index: 1100 !important; }
+        .swal2-container.swal2-backdrop-show { background: rgba(0, 0, 0, 0.4) !important; }
     </style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col md:flex-row p-0 m-0 relative">
@@ -119,9 +124,9 @@
                         </div>
                     </div>
                 </div>
-                <a href="#" onclick="event.preventDefault(); openLogoutModal();" class="bg-[#11693A] hover:bg-[#0e5630] text-white text-xs font-bold px-5 py-2 md:px-6 md:py-2.5 transition shadow-sm flex items-center gap-2 rounded-lg">
+                <button id="btnLogout" class="bg-[#11693A] hover:bg-[#0e5630] text-white text-xs font-bold px-5 py-2 md:px-6 md:py-2.5 transition shadow-sm flex items-center gap-2 rounded-lg">
                     <i data-lucide="log-out"></i> Logout
-                </a>
+                </button>
             </div>
         </div>
 
@@ -139,9 +144,6 @@
                             <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-sm" onclick="filterStudentsByStatus('active')">Active</button>
                             <button class="bg-orange-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-orange-700 transition-all shadow-sm" onclick="filterStudentsByStatus('inactive')">Inactive</button>
                             <button class="bg-slate-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-600 transition-all shadow-sm" onclick="filterStudentsByStatus('all')">All</button>
-                            <button class="bg-[#11693A] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-[#0e5630] transition-all shadow-sm" onclick="openAddStudentModal()">
-                                <i data-lucide="plus" class="mr-2"></i> Add Student
-                            </button>
                         </div>
                     </div>
 
@@ -174,9 +176,6 @@
                             <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-sm" onclick="filterCoordinatorsByStatus('active')">Active</button>
                             <button class="bg-orange-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-orange-700 transition-all shadow-sm" onclick="filterCoordinatorsByStatus('inactive')">Inactive</button>
                             <button class="bg-slate-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-600 transition-all shadow-sm" onclick="filterCoordinatorsByStatus('all')">All</button>
-                            <button class="bg-[#11693A] text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-[#0e5630] transition-all shadow-sm" onclick="openAddCoordinatorModal()">
-                                <i data-lucide="plus" class="mr-2"></i> Add Coordinator
-                            </button>
                         </div>
                     </div>
 
@@ -380,72 +379,7 @@
         </div>
     </div>
 
-    <div id="addModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add New Student</h2>
-                <button class="close-btn" onclick="closeModal('addModal')">&times;</button>
-            </div>
-            <form id="addForm">
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" id="addName" required>
-                </div>
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="addEmail" required>
-                </div>
-                <div class="form-group">
-                    <label>ID Number</label>
-                    <input type="text" id="addIdNumber" required>
-                </div>
-                <div class="form-group">
-                    <label>Course / Program</label>
-                    <select id="addCourse" required>
-                        <option value="">Select Course</option>
-                        <option>BS Information Technology (BSIT)</option>
-                        <option>BS Computer Science (BSCS)</option>
-                        <option>Bachelor of Entertainment and Multimedia Computing (BEMC)</option>
-                        <option>Bachelor of Elementary Education (BEED)</option>
-                        <option>Bachelor of Secondary Education (BSED)</option>
-                        <option>Bachelor of Physical Education (BPED)</option>
-                        <option>BS Business Administration</option>
-                        <option>BS Entrepreneurship</option>
-                        <option>BS Management Accounting</option>
-                        <option>BS Accounting Information System</option>
-                        <option>BS Hospitality Management</option>
-                        <option>BS Tourism Management</option>
-                        <option>BA Political Science</option>
-                        <option>BA English Language Studies</option>
-                        <option>BS Psychology</option>
-                        <option>BS Legal Management</option>
-                        <option>BS Agriculture</option>
-                        <option>Bachelor of Agricultural Technology</option>
-                        <option>BS Food Technology</option>
-                        <option>BS Criminology</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Role</label>
-                    <select id="addRole">
-                        <option>OJT Student</option>
-                        <option>OJT Coordinator</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <select id="addStatus">
-                        <option>Active</option>
-                        <option>Inactive</option>
-                    </select>
-                </div>
-                <div class="modal-buttons">
-                    <button type="button" class="btn-cancel" onclick="closeModal('addModal')">Cancel</button>
-                    <button type="button" class="btn-save" onclick="addNewStudent()">Add Student</button>
-                </div>
-            </form>
-        </div>
-    </div>
+
 
     <div id="deleteModal" class="modal">
         <div class="modal-content">
@@ -519,43 +453,7 @@
         </div>
     </div>
 
-    <div id="coordAddModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Add New Coordinator</h2>
-                <button class="close-btn" onclick="closeModal('coordAddModal')">&times;</button>
-            </div>
-            <form id="coordAddForm">
-                <div class="form-group">
-                    <label>Full Name</label>
-                    <input type="text" id="coordAddName" required>
-                </div>
-                <div class="form-group">
-                    <label>Email</label>
-                    <input type="email" id="coordAddEmail" required>
-                </div>
-                <div class="form-group">
-                    <label>Employee ID</label>
-                    <input type="text" id="coordAddEmpId" required>
-                </div>
-                <div class="form-group">
-                    <label>Department</label>
-                    <input type="text" id="coordAddDepartment" required>
-                </div>
-                <div class="form-group">
-                    <label>Status</label>
-                    <select id="coordAddStatus">
-                        <option>Active</option>
-                        <option>Inactive</option>
-                    </select>
-                </div>
-                <div class="modal-buttons">
-                    <button type="button" class="btn-cancel" onclick="closeModal('coordAddModal')">Cancel</button>
-                    <button type="button" class="btn-save" onclick="addNewCoordinator()">Add Coordinator</button>
-                </div>
-            </form>
-        </div>
-    </div>
+
 
     <div id="coordDeleteModal" class="modal">
         <div class="modal-content">
@@ -696,8 +594,22 @@
         </div>
     </div>
 
-    <!-- Site Modals -->
-    <div id="addSiteModal" class="modal">
+<!-- Confirm Logout Modal -->
+<div id="confirmLogoutModal" class="modal">
+    <div class="modal-content" style="max-width:400px;">
+        <div class="modal-header">
+            <h2>Confirm Logout</h2>
+            <button class="close-btn" onclick="closeModal('confirmLogoutModal')">&times;</button>
+        </div>
+        <p style="color:#666; margin-bottom:20px; font-size:15px;">
+            Are you sure you want to exit the OJT Admin Portal? Any unsaved changes will be discarded.
+        </p>
+        <div class="modal-buttons">
+            <button class="btn-cancel" onclick="closeModal('confirmLogoutModal')">Cancel</button>
+            <button class="btn-reject" onclick="confirmLogout()">Yes, Logout</button>
+        </div>
+    </div>
+</div>
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Add Site</h2>
@@ -717,7 +629,7 @@
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
                             <i data-lucide="chevron-down" class="h-5 w-5 transition-transform"></i>
                         </div>
-                        <div id="siteCourseDropdown" class="hidden fixed z-[1001] bg-white border-2 border-[#11693A] rounded-xl max-h-48 overflow-y-auto shadow-lg"></div>
+                        <div id="siteCourseDropdown" class="hidden fixed z-[70] bg-white border-2 border-[#11693A] rounded-xl max-h-48 overflow-y-auto shadow-lg"></div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -757,7 +669,7 @@
                         <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
                             <i data-lucide="chevron-down" class="h-5 w-5 transition-transform"></i>
                         </div>
-                        <div id="editSiteCourseDropdown" class="hidden fixed z-[1001] bg-white border-2 border-[#11693A] rounded-xl max-h-48 overflow-y-auto shadow-lg"></div>
+                        <div id="editSiteCourseDropdown" class="hidden fixed z-[70] bg-white border-2 border-[#11693A] rounded-xl max-h-48 overflow-y-auto shadow-lg"></div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -803,38 +715,7 @@
         </div>
     </div>
 
-    <!-- Alert Modal -->
-    <div id="alertModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-100 transform scale-95 transition-all">
-            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                <i data-lucide="info"></i>
-            </div>
-            <h3 class="text-lg font-black text-slate-800 mb-1">Notice</h3>
-            <p id="alertMessage" class="text-xs text-slate-500 mb-6"></p>
-            <button type="button" id="alertOkBtn" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition uppercase shadow-sm">
-                OK
-            </button>
-        </div>
-    </div>
 
-    <!-- Logout Confirmation Modal -->
-    <div id="logoutModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-100 transform scale-95 transition-all">
-            <div class="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                <i data-lucide="log-out"></i>
-            </div>
-            <h3 class="text-lg font-black text-slate-800 mb-1">Confirm Logout</h3>
-            <p class="text-xs text-slate-500 mb-6">Are you sure you want to exit the OJT Admin Portal? Any unsaved changes will be discarded.</p>
-            <div class="grid grid-cols-2 gap-3">
-                <button type="button" id="btnCancelLogout" class="py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition uppercase">
-                    Cancel
-                </button>
-                <button type="button" id="btnConfirmLogout" class="py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition uppercase shadow-sm">
-                    Yes, Logout
-                </button>
-            </div>
-        </div>
-    </div>
 
     <script>
         // ===== INITIALIZATION DATA =====
@@ -876,21 +757,15 @@
             }
         }
 
-        // ===== ALERT MODAL HELPERS =====
+        // ===== ALERT HELPER =====
         function showAlert(message) {
-            document.getElementById('alertMessage').textContent = message;
-            document.getElementById('alertModal').classList.remove('hidden');
+            return Swal.fire({
+                icon: 'info',
+                text: message,
+                confirmButtonColor: '#11693A',
+                confirmButtonText: 'OK',
+            });
         }
-
-        document.getElementById('alertOkBtn').addEventListener('click', () => {
-            document.getElementById('alertModal').classList.add('hidden');
-        });
-
-        document.getElementById('alertModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('alertModal')) {
-                document.getElementById('alertModal').classList.add('hidden');
-            }
-        });
 
         // ===== SECTION SWITCHING =====
         function switchSection(section) {
@@ -1382,7 +1257,7 @@
             const tbody = document.getElementById('approvalTableBody');
             if (!tbody) return;
             tbody.innerHTML = '';
-            const filter = document.getElementById('approvalFilterSelect')?.value || 'all';
+            const filter = document.getElementById('approvalFilterSelect')?.value || 'pending';
             let filtered = approvalList;
             if (filter !== 'all') {
                 filtered = approvalList.filter(item => (item.approval_status || 'pending') === filter);
@@ -1691,7 +1566,19 @@
                     ? courses.filter(c => c.name.toLowerCase().includes(filter.toLowerCase()))
                     : courses;
 
-                if (filtered.length === 0) {
+                const allItem = document.createElement('div');
+                allItem.className = 'p-3 hover:bg-emerald-100 cursor-pointer text-[#11693A] font-semibold border-b border-gray-100 last:border-b-0 transition-colors';
+                allItem.textContent = 'All Courses';
+                allItem.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    searchInput.value = 'All Courses';
+                    hiddenInput.value = '';
+                    dropdownList.classList.add('hidden');
+                    searchInput.setAttribute('readonly', true);
+                });
+                dropdownList.appendChild(allItem);
+
+                if (filtered.length === 0 && filter && filter.toLowerCase() !== 'all courses') {
                     const empty = document.createElement('div');
                     empty.className = 'p-3 text-gray-400 text-center';
                     empty.textContent = 'No courses found';
@@ -1800,7 +1687,6 @@
             const contact_person = document.getElementById('siteContactPerson').value.trim();
             const contact_number = document.getElementById('siteContactNumber').value.trim();
             if (!name) { showAlert('Please enter a site name'); return; }
-            if (!course) { showAlert('Please select a course'); return; }
             try {
                 const response = await fetch('/api/admin/sites/', {
                     method: 'POST',
@@ -1808,7 +1694,7 @@
                         'Content-Type': 'application/json',
                         'Authorization': `Token ${localStorage.getItem('auth_token')}`
                     },
-                    body: JSON.stringify({ name, course, contact_person, contact_number })
+                    body: JSON.stringify({ name, course: course || null, contact_person, contact_number })
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
                 showAlert('Site added successfully');
@@ -1835,6 +1721,11 @@
             fetch('/api/admin/courses/', {
                 headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` }
             }).then(r => r.json()).then(courses => {
+                if (!site.course) {
+                    searchInput.value = 'All Courses';
+                    hiddenInput.value = '';
+                    searchInput.setAttribute('readonly', true);
+                }
                 initSiteCourseDropdown('editSiteCourseSearch', 'editSiteCourseDropdown', 'editSiteCourse', courses, site.course);
             }).catch(() => {
                 searchInput.value = 'Error loading courses';
@@ -1850,7 +1741,6 @@
             const contact_number = document.getElementById('editSiteContactNumber').value.trim();
             const is_active = document.getElementById('editSiteStatus').value === 'true';
             if (!name) { showAlert('Please enter a site name'); return; }
-            if (!course) { showAlert('Please select a course'); return; }
             try {
                 const response = await fetch(`/api/admin/sites/${id}/`, {
                     method: 'PUT',
@@ -1858,7 +1748,7 @@
                         'Content-Type': 'application/json',
                         'Authorization': `Token ${localStorage.getItem('auth_token')}`
                     },
-                    body: JSON.stringify({ name, course, contact_person, contact_number, is_active })
+                    body: JSON.stringify({ name, course: course || null, contact_person, contact_number, is_active })
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
                 showAlert('Site updated successfully');
@@ -1910,30 +1800,14 @@
             }
         }
 
-        // ===== LOGOUT MECHANICS =====
-        function openLogoutModal() {
-            const modal = document.getElementById('logoutModal');
-            if (modal) modal.classList.remove('hidden');
+        // ===== LOGOUT =====
+        function confirmLogout() {
+            closeModal('confirmLogoutModal');
+            window.location.href = "/auth/logout/";
         }
 
-        function closeLogoutModal() {
-            const modal = document.getElementById('logoutModal');
-            if (modal) modal.classList.add('hidden');
-        }
-
-        document.getElementById('logoutModal')?.addEventListener('click', (e) => {
-            if (e.target === document.getElementById('logoutModal')) {
-                closeLogoutModal();
-            }
-        });
-
-        document.getElementById('btnCancelLogout')?.addEventListener('click', closeLogoutModal);
-
-        document.getElementById('btnConfirmLogout')?.addEventListener('click', () => {
-            document.getElementById('btnConfirmLogout').innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Exiting...';
-            lucide.createIcons();
-            document.getElementById('btnConfirmLogout').disabled = true;
-            setTimeout(() => { window.location.href = "/auth/logout/"; }, 800);
+        document.getElementById('btnLogout').addEventListener('click', () => {
+            openModal('confirmLogoutModal');
         });
 
         // ===== MODAL CLOSE ON BACKGROUND CLICK =====

@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.db import models
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from apps.core.models import User
@@ -373,7 +374,7 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         coordinator = request.user
         if coordinator.course:
             sites = Site.objects.filter(
-                course=coordinator.course,
+                models.Q(course=coordinator.course) | models.Q(course__isnull=True),
                 is_active=True
             ).order_by('name')
         else:

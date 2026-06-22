@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Facial Verification - ISU</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@0.344.0"></script>
     <style>
@@ -64,16 +66,7 @@
         </div>
     </div>
 
-    <div id="alertModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-sm rounded-2xl p-6 shadow-2xl text-center">
-            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                <i data-lucide="info"></i>
-            </div>
-            <h3 class="custom-heading text-xl font-bold text-[#11693A] mb-2">Notice</h3>
-            <p id="alertMessage" class="custom-text text-sm text-gray-500 mb-6"></p>
-            <button type="button" id="alertOkBtn" class="w-full bg-[#11693A] text-white py-3 rounded-xl font-bold">OK</button>
-        </div>
-    </div>
+
 
     <div id="termsModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
         <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden">
@@ -141,21 +134,15 @@
             }, 'image/jpeg', 0.92);
         }
 
-        // ===== ALERT MODAL HELPERS =====
+        // ===== ALERT HELPER =====
         function showAlert(message) {
-            document.getElementById('alertMessage').textContent = message;
-            document.getElementById('alertModal').classList.remove('hidden');
+            return Swal.fire({
+                icon: 'info',
+                text: message,
+                confirmButtonColor: '#11693A',
+                confirmButtonText: 'OK',
+            });
         }
-
-        document.getElementById('alertOkBtn').addEventListener('click', () => {
-            document.getElementById('alertModal').classList.add('hidden');
-        });
-
-        document.getElementById('alertModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('alertModal')) {
-                document.getElementById('alertModal').classList.add('hidden');
-            }
-        });
 
         function toggleModal() {
             modal.classList.toggle('hidden');

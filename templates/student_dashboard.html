@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ISU Portal - OJT Student Dashboard & Archives</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
@@ -16,6 +18,9 @@
         .custom-scroll::-webkit-scrollbar { width: 6px; }
         .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #11693A; border-radius: 10px; }
+
+        .swal2-container { z-index: 1100 !important; }
+        .swal2-container.swal2-backdrop-show { background: rgba(0, 0, 0, 0.4) !important; }
     </style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col md:flex-row p-0 m-0 relative">
@@ -212,36 +217,7 @@
         </div>
     </div>
 
-    <div id="alertModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-100 transform scale-95 transition-all">
-            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                <i data-lucide="info"></i>
-            </div>
-            <h3 class="text-lg font-black text-slate-800 mb-1">Notice</h3>
-            <p id="alertMessage" class="text-xs text-slate-500 mb-6"></p>
-            <button type="button" id="alertOkBtn" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition uppercase shadow-sm">
-                OK
-            </button>
-        </div>
-    </div>
 
-    <div id="logoutModal" class="hidden fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-100 transform scale-95 transition-all">
-            <div class="w-16 h-16 bg-red-50 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                <i data-lucide="log-out"></i>
-            </div>
-            <h3 class="text-lg font-black text-slate-800 mb-1">Confirm Logout</h3>
-            <p class="text-xs text-slate-500 mb-6">Are you sure you want to exit the OJT Student Portal? Any unsaved form progress will be discarded.</p>
-            <div class="grid grid-cols-2 gap-3">
-                <button type="button" id="btnCancelLogout" class="py-2.5 border border-slate-200 text-slate-600 rounded-xl text-xs font-bold hover:bg-slate-50 transition uppercase">
-                    Cancel
-                </button>
-                <button type="button" id="btnConfirmLogout" class="py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition uppercase shadow-sm">
-                    Yes, Logout
-                </button>
-            </div>
-        </div>
-    </div>
 
     <script>
         // ===== AUTH GUARD =====
@@ -555,21 +531,15 @@
             }
         }
 
-        // ===== ALERT MODAL HELPERS =====
+        // ===== ALERT HELPER =====
         function showAlert(message) {
-            document.getElementById('alertMessage').textContent = message;
-            document.getElementById('alertModal').classList.remove('hidden');
+            return Swal.fire({
+                icon: 'info',
+                text: message,
+                confirmButtonColor: '#11693A',
+                confirmButtonText: 'OK',
+            });
         }
-
-        document.getElementById('alertOkBtn').addEventListener('click', () => {
-            document.getElementById('alertModal').classList.add('hidden');
-        });
-
-        document.getElementById('alertModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('alertModal')) {
-                document.getElementById('alertModal').classList.add('hidden');
-            }
-        });
 
         // ===== SET TODAY'S DATE =====
         document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
@@ -579,23 +549,23 @@
         loadAttendanceHistory();
         loadArchives();
 
-        // ===== LOGOUT LOGIC =====
-        const btnLogout = document.getElementById('btnLogout');
-        const logoutModal = document.getElementById('logoutModal');
-        const btnCancelLogout = document.getElementById('btnCancelLogout');
-        const btnConfirmLogout = document.getElementById('btnConfirmLogout');
-
-        btnLogout.addEventListener('click', () => { logoutModal.classList.remove('hidden'); });
-        btnCancelLogout.addEventListener('click', () => { logoutModal.classList.add('hidden'); });
-
-        logoutModal.addEventListener('click', (e) => {
-            if (e.target === logoutModal) logoutModal.classList.add('hidden');
-        });
-
-        btnConfirmLogout.addEventListener('click', () => {
-            btnConfirmLogout.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Exiting...';
-            btnConfirmLogout.disabled = true;
-            logout();
+        // ===== LOGOUT =====
+        document.getElementById('btnLogout').addEventListener('click', () => {
+            Swal.fire({
+                title: 'Confirm Logout',
+                text: 'Are you sure you want to exit the OJT Student Portal? Any unsaved form progress will be discarded.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#e5e7eb',
+                confirmButtonText: 'Yes, Logout',
+                cancelButtonText: 'Cancel',
+                backdrop: 'rgba(0, 0, 0, 0.4)',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    logout();
+                }
+            });
         });
     // ===== NOTIFICATIONS ENGINE =====
     const notifBtn = document.getElementById('btnNotifications');

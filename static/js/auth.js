@@ -194,35 +194,13 @@ function hasRole(role) {
     return getUserRole() === role;
 }
 
-/**
- * Show a custom alert modal (self-contained, creates DOM on first call)
- */
-let _alertModalCreated = false;
 function showAlert(message) {
-    if (!_alertModalCreated) {
-        const overlay = document.createElement('div');
-        overlay.id = 'auth-alert-modal';
-        overlay.className = 'hidden fixed inset-0 bg-black/50 z-[9999] flex items-center justify-center p-4';
-        overlay.innerHTML = `
-            <div class="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl text-center border border-slate-100 transform scale-95 transition-all">
-                <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                </div>
-                <h3 class="text-lg font-black text-slate-800 mb-1">Notice</h3>
-                <p id="auth-alert-message" class="text-xs text-slate-500 mb-6">${message}</p>
-                <button type="button" id="auth-alert-ok" class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition uppercase shadow-sm">OK</button>
-            </div>`;
-        document.body.appendChild(overlay);
-        document.getElementById('auth-alert-ok').addEventListener('click', () => {
-            document.getElementById('auth-alert-modal').classList.add('hidden');
-        });
-        overlay.addEventListener('click', (e) => {
-            if (e.target === overlay) overlay.classList.add('hidden');
-        });
-        _alertModalCreated = true;
-    }
-    document.getElementById('auth-alert-message').textContent = message;
-    document.getElementById('auth-alert-modal').classList.remove('hidden');
+    return Swal.fire({
+        icon: 'info',
+        text: message,
+        confirmButtonColor: '#11693A',
+        confirmButtonText: 'OK',
+    });
 }
 
 /**
