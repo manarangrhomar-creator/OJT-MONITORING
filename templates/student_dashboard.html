@@ -19,8 +19,19 @@
         .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
         .custom-scroll::-webkit-scrollbar-thumb { background: #11693A; border-radius: 10px; }
 
-        .swal2-container { z-index: 1100 !important; }
-        .swal2-container.swal2-backdrop-show { background: rgba(0, 0, 0, 0.4) !important; }
+        .modal { display: none; position: fixed; z-index: 60; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); animation: fadeIn 0.3s ease; }
+        .modal.active { display: flex; justify-content: center; align-items: center; }
+        .modal-content { background-color: #fefefe; padding: 30px; border-radius: 15px; width: 90%; max-width: 500px; box-shadow: 0 5px 25px rgba(0, 0, 0, 0.3); animation: slideUp 0.3s ease; overflow-y: auto; max-height: 90vh; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; padding-bottom: 15px; }
+        .modal-header h2 { font-family: 'Inter', sans-serif; color: #11693A; font-size: 24px; font-weight: 800; }
+        .close-btn { background: none; border: none; font-size: 28px; cursor: pointer; color: #999; transition: color 0.2s; }
+        .close-btn:hover { color: #333; }
+        .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 25px; }
+        .btn-cancel, .btn-save, .btn-approve, .btn-reject { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+        .btn-cancel { background: #e5e7eb; color: #333; }
+        .btn-reject { background: #dc2626; color: white; }
     </style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col md:flex-row p-0 m-0 relative">
@@ -550,22 +561,13 @@
         loadArchives();
 
         // ===== LOGOUT =====
+        function confirmLogout() {
+            closeModal('confirmLogoutModal');
+            logout();
+        }
+
         document.getElementById('btnLogout').addEventListener('click', () => {
-            Swal.fire({
-                title: 'Confirm Logout',
-                text: 'Are you sure you want to exit the OJT Student Portal? Any unsaved form progress will be discarded.',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#dc2626',
-                cancelButtonColor: '#e5e7eb',
-                confirmButtonText: 'Yes, Logout',
-                cancelButtonText: 'Cancel',
-                backdrop: 'rgba(0, 0, 0, 0.4)',
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    logout();
-                }
-            });
+            openModal('confirmLogoutModal');
         });
     // ===== NOTIFICATIONS ENGINE =====
     const notifBtn = document.getElementById('btnNotifications');
@@ -674,6 +676,33 @@
     setInterval(loadUnreadCount, 30000);
 
     lucide.createIcons();
+</script>
+
+<!-- Confirm Logout Modal -->
+<div id="confirmLogoutModal" class="modal">
+    <div class="modal-content" style="max-width:400px;">
+        <div class="modal-header">
+            <h2>Confirm Logout</h2>
+            <button class="close-btn" onclick="closeModal('confirmLogoutModal')">&times;</button>
+        </div>
+        <p style="color:#666; margin-bottom:20px; font-size:15px;">
+            Are you sure you want to exit the OJT Student Portal? Any unsaved form progress will be discarded.
+        </p>
+        <div class="modal-buttons">
+            <button class="btn-cancel" onclick="closeModal('confirmLogoutModal')">Cancel</button>
+            <button class="btn-reject" onclick="confirmLogout()">Yes, Logout</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ===== MODAL HELPERS =====
+    function openModal(id) {
+        document.getElementById(id).classList.add('active');
+    }
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('active');
+    }
 </script>
 </body>
 </html>

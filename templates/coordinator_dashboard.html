@@ -46,8 +46,12 @@
         .detail-label { font-weight: 600; color: #11693A; }
         .detail-value { color: #666; }
 
-        .swal2-container { z-index: 1100 !important; }
-        .swal2-container.swal2-backdrop-show { background: rgba(0, 0, 0, 0.4) !important; }
+        .swal2-container { z-index: 9999 !important; }
+        .swal2-container.swal2-backdrop-show { background: rgba(0, 0, 0, 0.85) !important; }
+        .swal2-popup { background: #11693A !important; border-radius: 16px !important; }
+        .swal2-title { color: #fff !important; }
+        .swal2-html-container { color: #eaf4ec !important; }
+        .swal2-icon { border-color: #fff !important; color: #fff !important; background: transparent !important; }
     </style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col md:flex-row p-0 m-0 relative">
@@ -493,7 +497,6 @@
             </div>
         </div>
     </div>
-
 
     <script>
         // MOBILE MENU MECHANICS
