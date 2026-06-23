@@ -32,6 +32,9 @@
         .btn-cancel, .btn-save, .btn-approve, .btn-reject { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
         .btn-cancel { background: #e5e7eb; color: #333; }
         .btn-reject { background: #dc2626; color: white; }
+        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+        .detail-label { font-weight: 600; color: #11693A; }
+        .detail-value { color: #666; }
     </style>
 </head>
 <body class="h-screen overflow-hidden flex flex-col md:flex-row p-0 m-0 relative">
@@ -487,6 +490,7 @@
                 if (!res.ok) throw new Error(`API error: ${res.status}`);
                 const data = await res.json();
                 const records = data.results || data;
+                window.studentReportList = records;
                 if (!records || records.length === 0) {
                     container.innerHTML = '<p class="text-slate-400 text-center py-4">No narrative reports found.</p>';
                     return;
@@ -500,20 +504,35 @@
                     const p2 = r.photo_2 || '';
                     const p3 = r.photo_3 || '';
                     const p4 = r.photo_4 || '';
+                    const isGraded = r.grade !== null && r.grade !== undefined;
+                    const statusBadge = isGraded
+                        ? `<span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600 font-bold text-[9px] uppercase">Graded ${r.grade}/100</span>`
+                        : `<span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-600 font-bold text-[9px] uppercase">Submitted</span>`;
+                    const feedbackHtml = isGraded && r.feedback
+                        ? `<div onclick="openViewFeedback('${r.id}')" class="mt-2 pl-3 border-l-2 border-emerald-300 cursor-pointer hover:border-emerald-500 transition-colors">
+                            <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Feedback</p>
+                            <p class="text-xs text-slate-600 mt-0.5 leading-relaxed">${r.feedback.length > 80 ? r.feedback.substring(0, 80) + '...' : r.feedback}</p>
+                           </div>`
+                        : '';
                     mobileHtml += `
                         <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
                             <div class="flex justify-between items-center border-b border-slate-100 pb-2">
                                 <span class="text-[11px] font-bold text-slate-400">${dateStr}</span>
-                                <span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600 font-bold text-[9px] uppercase">Submitted</span>
+                                ${statusBadge}
                             </div>
                             <div class="space-y-1">
                                 <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Topic Header</p>
                                 <p class="text-xs font-mono font-bold text-slate-700">${r.topic}</p>
+                                ${feedbackHtml}
                                 ${photoGallery(r)}
                             </div>
-                            <button type="button" onclick='openArchiveEdit("${r.id}","${r.log_date}","${r.topic.replace(/"/g, '\\"')}","${r.content.replace(/"/g, '\\"')}","${p1}","${p2}","${p3}","${p4}")' class="w-full bg-amber-500 hover:bg-amber-600 text-white py-2 font-bold text-[10px] rounded-lg transition shadow-sm flex items-center justify-center gap-1">
-                                <i data-lucide="pencil"></i> Open & Edit
-                            </button>
+                            ${isGraded
+                                ? `<button type="button" onclick="openViewNarrative('${r.id}')" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-2 font-bold text-[10px] rounded-lg transition shadow-sm flex items-center justify-center gap-1">
+                                    <i data-lucide="eye"></i> View Report
+                                </button>`
+                                : `<button type="button" onclick='openArchiveEdit("${r.id}","${r.log_date}","${r.topic.replace(/"/g, '\\"')}","${r.content.replace(/"/g, '\\"')}","${p1}","${p2}","${p3}","${p4}")' class="w-full bg-amber-500 hover:bg-amber-600 text-white py-2 font-bold text-[10px] rounded-lg transition shadow-sm flex items-center justify-center gap-1">
+                                    <i data-lucide="pencil"></i> Open & Edit
+                                </button>`}
                         </div>`;
                     desktopHtml += `
                         <tr class="border-b border-slate-100 hover:bg-slate-50">
@@ -523,12 +542,16 @@
                                 ${photoGallery(r)}
                             </td>
                             <td class="p-4 text-center">
-                                <span class="px-3 py-1 rounded-full bg-emerald-100 text-emerald-600 font-bold text-[9px] uppercase">Submitted</span>
+                                ${statusBadge}
                             </td>
                             <td class="p-4 text-center">
-                                <button type="button" onclick='openArchiveEdit("${r.id}","${r.log_date}","${r.topic.replace(/"/g, '\\"')}","${r.content.replace(/"/g, '\\"')}","${p1}","${p2}","${p3}","${p4}")' class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-1.5 font-bold text-[10px] rounded-lg transition shadow-sm inline-flex items-center gap-1">
-                                    <i data-lucide="pencil"></i> Open & Edit
-                                </button>
+                                ${isGraded
+                                    ? `<button type="button" onclick="openViewNarrative('${r.id}')" class="text-emerald-600 hover:text-emerald-800 p-1.5 inline-flex items-center justify-center rounded-md hover:bg-emerald-50 transition-colors" title="View Report">
+                                        <i data-lucide="eye" class="w-4 h-4"></i>
+                                       </button>`
+                                    : `<button type="button" onclick='openArchiveEdit("${r.id}","${r.log_date}","${r.topic.replace(/"/g, '\\"')}","${r.content.replace(/"/g, '\\"')}","${p1}","${p2}","${p3}","${p4}")' class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-1.5 font-bold text-[10px] rounded-lg transition shadow-sm inline-flex items-center gap-1">
+                                        <i data-lucide="pencil"></i> Open & Edit
+                                    </button>`}
                             </td>
                         </tr>`;
                 });
@@ -675,8 +698,128 @@
     loadUnreadCount();
     setInterval(loadUnreadCount, 30000);
 
+    // ===== VIEW NARRATIVE REPORT =====
+    function openViewNarrative(id) {
+        const r = window.studentReportList ? window.studentReportList.find(n => n.id === id) : null;
+        if (!r) return;
+        document.getElementById('vnViewDate').textContent = new Date(r.log_date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('vnViewTopic').textContent = r.topic;
+        document.getElementById('vnViewContent').textContent = r.content;
+        const isGraded = r.grade !== null && r.grade !== undefined;
+        const gradeRow = document.getElementById('vnGradeRow');
+        if (isGraded) {
+            gradeRow.style.display = '';
+            document.getElementById('vnViewGrade').innerHTML = `<span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">${r.grade}/100</span>`;
+        } else {
+            gradeRow.style.display = 'none';
+        }
+        const feedbackRow = document.getElementById('vnFeedbackRow');
+        if (isGraded && r.feedback) {
+            feedbackRow.style.display = '';
+            document.getElementById('vnViewFeedback').textContent = r.feedback;
+        } else {
+            feedbackRow.style.display = 'none';
+        }
+        const photosGrid = document.getElementById('vnPhotosGrid');
+        const photosContainer = document.getElementById('vnPhotosContainer');
+        photosGrid.innerHTML = '';
+        const photoFields = ['photo_1', 'photo_2', 'photo_3', 'photo_4'];
+        let hasPhotos = false;
+        photoFields.forEach(key => {
+            if (r[key]) {
+                hasPhotos = true;
+                const img = document.createElement('img');
+                img.src = r[key];
+                img.className = 'w-24 h-24 object-cover rounded-lg border border-slate-200';
+                photosGrid.appendChild(img);
+            }
+        });
+        photosContainer.style.display = hasPhotos ? '' : 'none';
+        lucide.createIcons();
+        openModal('viewNarrativeModal');
+    }
+
+    // ===== VIEW FEEDBACK =====
+    function openViewFeedback(id) {
+        const r = window.studentReportList ? window.studentReportList.find(n => n.id === id) : null;
+        if (!r || !r.feedback) return;
+        document.getElementById('vfViewFeedback').textContent = r.feedback;
+        const gradedDate = r.graded_at ? new Date(r.graded_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '';
+        document.getElementById('vfMeta').textContent = `Graded ${r.grade}/100${gradedDate ? ' \u2022 ' + gradedDate : ''}`;
+        lucide.createIcons();
+        openModal('viewFeedbackModal');
+    }
+
     lucide.createIcons();
 </script>
+
+<!-- View Narrative Report Modal -->
+<div id="viewNarrativeModal" class="modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h2>Narrative Report</h2>
+            <button class="close-btn" onclick="closeModal('viewNarrativeModal')">&times;</button>
+        </div>
+        <div class="space-y-4">
+            <div class="detail-row">
+                <span class="detail-label">Date:</span>
+                <span class="detail-value" id="vnViewDate"></span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Topic:</span>
+                <span class="detail-value font-bold text-slate-800" id="vnViewTopic"></span>
+            </div>
+            <div id="vnGradeRow" class="detail-row" style="display:none;">
+                <span class="detail-label">Grade:</span>
+                <span class="detail-value" id="vnViewGrade"></span>
+            </div>
+            <div style="padding: 10px 0; border-top: 1px solid #f0f0f0;">
+                <span class="detail-label block mb-2">Content</span>
+                <p class="text-gray-600 whitespace-pre-wrap text-sm" id="vnViewContent"></p>
+            </div>
+            <div id="vnPhotosContainer" style="display:none; padding: 10px 0; border-top: 1px solid #f0f0f0;">
+                <span class="detail-label block mb-2">Photos</span>
+                <div class="flex flex-wrap gap-3" id="vnPhotosGrid"></div>
+            </div>
+            <div id="vnFeedbackRow" style="display:none; padding: 10px 0; border-top: 1px solid #f0f0f0;">
+                <span class="detail-label block mb-2">Feedback</span>
+                <div class="bg-emerald-50 border-l-4 border-emerald-400 p-4 rounded-r-lg">
+                    <p class="text-xs text-emerald-800 leading-relaxed" id="vnViewFeedback"></p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-buttons">
+            <button class="btn-cancel" onclick="closeModal('viewNarrativeModal')">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- View Feedback Modal -->
+<div id="viewFeedbackModal" class="modal">
+    <div class="modal-content" style="max-width: 500px;">
+        <div class="modal-header">
+            <h2>Coordinator's Feedback</h2>
+            <button class="close-btn" onclick="closeModal('viewFeedbackModal')">&times;</button>
+        </div>
+        <div class="space-y-4">
+            <div class="flex items-center gap-3 pb-3 border-b border-slate-100">
+                <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                    <i data-lucide="message-circle" class="w-5 h-5 text-emerald-600"></i>
+                </div>
+                <div>
+                    <p class="text-xs font-bold text-emerald-700">Coordinator's Feedback</p>
+                    <p class="text-[10px] text-slate-400" id="vfMeta"></p>
+                </div>
+            </div>
+            <div class="bg-slate-50 p-5 rounded-xl">
+                <p class="text-sm text-slate-700 leading-relaxed" id="vfViewFeedback"></p>
+            </div>
+        </div>
+        <div class="modal-buttons">
+            <button class="btn-cancel" onclick="closeModal('viewFeedbackModal')">Close</button>
+        </div>
+    </div>
+</div>
 
 <!-- Confirm Logout Modal -->
 <div id="confirmLogoutModal" class="modal">

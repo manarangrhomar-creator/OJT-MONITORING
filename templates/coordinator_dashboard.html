@@ -202,6 +202,14 @@
 
                     <div class="overflow-x-auto rounded-xl border border-slate-100 shadow-inner bg-white">
                         <table class="w-full text-left border-collapse min-w-[750px]">
+                            <colgroup>
+                                <col class="w-[22%]">
+                                <col class="w-[28%]">
+                                <col class="w-[18%]">
+                                <col class="w-[14%]">
+                                <col class="w-[10%]">
+                                <col class="w-[8%]">
+                            </colgroup>
                             <thead class="text-[10px] font-bold text-[#11693A] uppercase border-b border-emerald-100 bg-emerald-50">
                                 <tr>
                                     <th class="p-4">Student</th>
@@ -209,7 +217,7 @@
                                     <th class="p-4">Program</th>
                                     <th class="p-4">Date</th>
                                     <th class="p-4">Grade</th>
-                                    <th class="p-4">Action</th>
+                                    <th class="p-4 text-center">Action</th>
                                 </tr>
                             </thead>
                             <tbody class="text-xs font-medium text-slate-600 divide-y divide-slate-100 bg-white" id="studentReportsTableBody"></tbody>
@@ -897,12 +905,12 @@
                             ? `<span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">${n.grade}/100</span>`
                             : `<span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold">Pending</span>`
                     }</td>
-                    <td class="p-4 text-center">
-                        <button class="text-blue-500 hover:text-blue-700 p-2" title="View" onclick="viewStudentReport('${n.id}')">
-                            <i data-lucide="eye" class="text-lg"></i>
+                    <td class="p-4 text-center whitespace-nowrap">
+                        <button class="inline-flex items-center justify-center text-blue-600 hover:text-blue-800 p-1.5 rounded-md hover:bg-blue-50" title="View" onclick="viewStudentReport('${n.id}')">
+                            <i data-lucide="eye" class="w-5 h-5"></i>
                         </button>
-                        <button class="text-emerald-500 hover:text-emerald-700 p-2" title="${isGraded ? 'Update Grade' : 'Grade'}" onclick="openGradeModal('${n.id}')">
-                            <i data-lucide="star" class="text-lg"></i>
+                        <button class="inline-flex items-center justify-center text-emerald-600 hover:text-emerald-800 p-1.5 rounded-md hover:bg-emerald-50" title="${isGraded ? 'Update Grade' : 'Grade'}" onclick="openGradeModal('${n.id}')">
+                            <i data-lucide="star" class="w-5 h-5"></i>
                         </button>
                     </td>
                 `;

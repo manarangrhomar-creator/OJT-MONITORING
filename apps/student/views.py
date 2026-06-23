@@ -1,5 +1,6 @@
 import logging
 from rest_framework import viewsets, status, permissions
+from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
@@ -120,6 +121,11 @@ class StudentNarrativeViewSet(viewsets.ModelViewSet):
                 related_object=instance,
                 related_object_type='StudentNarrativeReport',
             )
+
+    def perform_update(self, serializer):
+        if serializer.instance.grade is not None:
+            raise ValidationError({'error': 'Cannot edit a report that has already been graded.'})
+        serializer.save()
 
     @action(detail=False, methods=['post'], url_path='submit-with-photos')
     def submit_with_photos(self, request):
