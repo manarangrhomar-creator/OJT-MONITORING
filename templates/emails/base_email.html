@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ subject }}</title>
+</head>
+<body style="margin:0; padding:0; background-color:#eaf4ec; font-family:'Inter',Arial,Helvetica,sans-serif;">
+    <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%; background-color:#eaf4ec;">
+        <tr>
+            <td align="center" style="padding:30px 15px;">
+                <table role="presentation" cellpadding="0" cellspacing="0" style="max-width:600px; width:100%;">
+
+                    <!-- Header -->
+                    <tr>
+                        <td align="center" style="background-color:#11693A; padding:30px 20px; border-radius:16px 16px 0 0;">
+                            <img src="https://www.eduopinions.com/wp-content/uploads/2023/09/ISU-SEAL-DOWNSCALE-350x345.png"
+                                 alt="ISU Logo"
+                                 style="width:80px; height:auto; display:block; margin:0 auto 12px;">
+                            <h1 style="margin:0; font-family:'Fredoka',Arial,Helvetica,sans-serif; font-size:22px; color:#ffffff; font-weight:700;">
+                                Isabela State University
+                            </h1>
+                            <p style="margin:4px 0 0; font-size:14px; color:#a7d4b0; font-weight:500;">
+                                Cauayan City, Isabela
+                            </p>
+                            <p style="margin:8px 0 0; font-size:13px; color:#d1e7d6; letter-spacing:1px; font-weight:500;">
+                                OJT MONITORING SYSTEM
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="background-color:#ffffff; padding:35px 30px; border-left:1px solid #d1e7d6; border-right:1px solid #d1e7d6;">
+                            {% block content %}{% endblock %}
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color:#11693A; padding:20px 30px; border-radius:0 0 16px 16px; text-align:center;">
+                            <p style="margin:0; font-size:12px; color:#a7d4b0;">
+                                &copy; 2026 Isabela State University &mdash; Cauayan Campus
+                            </p>
+                            <p style="margin:4px 0 0; font-size:11px; color:#7bb88a;">
+                                OJT Monitoring System &bull; All Rights Reserved
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

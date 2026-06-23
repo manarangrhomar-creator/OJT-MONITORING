@@ -342,7 +342,7 @@
                 </div>
                 <div class="modal-buttons">
                     <button type="button" class="btn-cancel" onclick="closeModal('editModal')">Cancel</button>
-                    <button type="button" class="btn-save" onclick="saveChanges()">Save Changes</button>
+                    <button id="saveStudentBtn" type="button" class="btn-save" onclick="saveChanges()">Save Changes</button>
                 </div>
             </form>
         </div>
@@ -505,7 +505,7 @@
             <input type="hidden" id="approverId" value="">
             <div class="modal-buttons">
                 <button class="btn-cancel" onclick="closeModal('approveModal')">Cancel</button>
-                <button class="btn-approve" onclick="saveApprovalChange()">Approve</button>
+                    <button id="saveApprovalBtn" class="btn-approve" onclick="saveApprovalChange()">Approve</button>
             </div>
         </div>
     </div>
@@ -526,7 +526,7 @@
             </div>
             <div class="modal-buttons">
                 <button class="btn-cancel" onclick="closeModal('rejectModal')">Cancel</button>
-                <button class="btn-reject" onclick="saveRejectionChange()">Reject</button>
+                <button id="saveRejectionBtn" class="btn-reject" onclick="saveRejectionChange()">Reject</button>
             </div>
         </div>
     </div>
@@ -546,7 +546,7 @@
             </div>
             <div class="modal-buttons">
                 <button class="btn-cancel" onclick="closeModal('addCourseModal')">Cancel</button>
-                <button class="btn-save" onclick="addNewCourse()">Save Course</button>
+                <button id="addCourseBtn" class="btn-save" onclick="addNewCourse()">Save Course</button>
             </div>
         </div>
     </div>
@@ -573,7 +573,7 @@
             </div>
             <div class="modal-buttons">
                 <button class="btn-cancel" onclick="closeModal('editCourseModal')">Cancel</button>
-                <button class="btn-save" onclick="saveCourseChanges()">Save Changes</button>
+                <button id="saveCourseBtn" class="btn-save" onclick="saveCourseChanges()">Save Changes</button>
             </div>
         </div>
     </div>
@@ -649,7 +649,7 @@
             </div>
             <div class="modal-buttons">
                 <button class="btn-cancel" onclick="closeModal('addSiteModal')">Cancel</button>
-                <button class="btn-save" onclick="addNewSite()">Save Site</button>
+                <button id="addSiteBtn" class="btn-save" onclick="addNewSite()">Save Site</button>
             </div>
         </div>
     </div>
@@ -696,7 +696,7 @@
             </div>
             <div class="modal-buttons">
                 <button class="btn-cancel" onclick="closeModal('editSiteModal')">Cancel</button>
-                <button class="btn-save" onclick="saveSiteChanges()">Save Changes</button>
+                <button id="saveSiteBtn" class="btn-save" onclick="saveSiteChanges()">Save Changes</button>
             </div>
         </div>
     </div>
@@ -855,6 +855,11 @@
 
         // ===== STUDENT MANAGEMENT =====
         async function loadStudents() {
+            const tbody = document.getElementById('studentTableBody');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-slate-400"><i data-lucide="loader-circle" class="animate-spin"></i> Loading...</td></tr>';
+                lucide.createIcons();
+            }
             try {
                 const response = await fetch('/api/admin/dashboard/students/', {
                     method: 'GET',
@@ -864,7 +869,10 @@
                         'Authorization': `Token ${localStorage.getItem('auth_token')}`
                     }
                 });
-                if (!response.ok) return;
+                if (!response.ok) {
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-red-500">Failed to load</td></tr>';
+                    return;
+                }
                 const data = await response.json();
                 data.forEach(item => {
                     students[item.id] = {
@@ -879,6 +887,7 @@
                 });
                 renderStudentTable();
             } catch (error) {
+                if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-red-500">Error loading</td></tr>';
                 console.error('Error loading students:', error);
             }
         }
@@ -943,6 +952,11 @@
         }
 
         async function saveChanges() {
+            const btn = document.getElementById('saveStudentBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Saving...';
+            lucide.createIcons();
             const id = document.getElementById('editId').value;
             const name = document.getElementById('editName').value.trim();
             const email = document.getElementById('editEmail').value.trim();
@@ -983,6 +997,9 @@
             } catch (error) {
                 console.error('Error updating student:', error);
                 showAlert('An error occurred while updating');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
         }
 
@@ -1009,6 +1026,11 @@
         async function confirmDelete() {
             const id = pendingDeleteId;
             if (!id) return;
+            const btn = document.getElementById('confirmDeleteBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Deleting...';
+            lucide.createIcons();
             try {
                 const response = await fetch(`/api/admin/users/${id}/`, {
                     method: 'DELETE',
@@ -1030,11 +1052,19 @@
             } catch (error) {
                 console.error('Error deleting student:', error);
                 showAlert('An error occurred while deleting');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
         }
 
         // ===== COORDINATOR MANAGEMENT =====
         async function loadCoordinators() {
+            const tbody = document.getElementById('coordinatorTableBody');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-slate-400"><i data-lucide="loader-circle" class="animate-spin"></i> Loading...</td></tr>';
+                lucide.createIcons();
+            }
             try {
                 const response = await fetch('/api/admin/dashboard/coordinators/', {
                     method: 'GET',
@@ -1044,7 +1074,10 @@
                         'Authorization': `Token ${localStorage.getItem('auth_token')}`
                     }
                 });
-                if (!response.ok) return;
+                if (!response.ok) {
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-red-500">Failed to load</td></tr>';
+                    return;
+                }
                 const data = await response.json();
                 coordinatorList = data;
                 data.forEach(item => {
@@ -1061,6 +1094,7 @@
                 });
                 renderCoordinatorTable();
             } catch (error) {
+                if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-red-500">Error loading</td></tr>';
                 console.error('Error loading coordinators:', error);
             }
         }
@@ -1138,6 +1172,14 @@
         }
 
         async function saveCoordinatorChanges() {
+            const activeModal = document.querySelector('.modal.active');
+            const btn = activeModal ? activeModal.querySelector('.btn-save') : null;
+            if (btn) {
+                btn.dataset.originalText = btn.textContent;
+                btn.disabled = true;
+                btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Saving...';
+                lucide.createIcons();
+            }
             const id = document.getElementById('editCoordId').value;
             const name = document.getElementById('editCoordName').value.trim();
             const email = document.getElementById('editCoordEmail').value.trim();
@@ -1179,6 +1221,11 @@
             } catch (error) {
                 console.error('Error updating coordinator:', error);
                 showAlert('An error occurred while updating');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = btn.dataset.originalText || 'Save Changes';
+                }
             }
         }
 
@@ -1205,6 +1252,11 @@
         async function confirmCoordinatorDelete() {
             const id = pendingCoordDeleteId;
             if (!id) return;
+            const btn = document.getElementById('confirmCoordDeleteBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Deleting...';
+            lucide.createIcons();
             try {
                 const response = await fetch(`/api/admin/users/${id}/`, {
                     method: 'DELETE',
@@ -1227,11 +1279,19 @@
             } catch (error) {
                 console.error('Error deleting coordinator:', error);
                 showAlert('An error occurred while deleting');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
         }
 
         // ===== COORDINATOR APPROVAL FUNCTIONS =====
         async function loadCoordinatorApprovals() {
+            const tbody = document.getElementById('approvalTableBody');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-slate-400"><i data-lucide="loader-circle" class="animate-spin"></i> Loading...</td></tr>';
+                lucide.createIcons();
+            }
             try {
                 const response = await fetch('/api/admin/dashboard/coordinator-approvals/', {
                     method: 'GET',
@@ -1241,7 +1301,10 @@
                         'Authorization': `Token ${localStorage.getItem('auth_token')}`
                     }
                 });
-                if (!response.ok) return;
+                if (!response.ok) {
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-red-500">Failed to load</td></tr>';
+                    return;
+                }
                 const data = await response.json();
                 approvalList = data;
                 data.forEach(item => {
@@ -1255,6 +1318,7 @@
                 });
                 renderApprovalTable();
             } catch (error) {
+                if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-red-500">Error loading</td></tr>';
                 console.error('Error loading approvals:', error);
             }
         }
@@ -1308,7 +1372,12 @@
 
         function saveApprovalChange() {
             const id = document.getElementById('approverId').value;
-            updateApprovalStatus(id, 'approved');
+            const btn = document.getElementById('saveApprovalBtn');
+            btn.dataset.originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Processing...';
+            lucide.createIcons();
+            updateApprovalStatus(id, 'approved', btn);
         }
 
         function confirmReject(id) {
@@ -1327,10 +1396,15 @@
                 showAlert('Please provide a reason for rejection.');
                 return;
             }
-            updateApprovalStatus(rejecterId, 'rejected');
+            const btn = document.getElementById('saveRejectionBtn');
+            btn.dataset.originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Processing...';
+            lucide.createIcons();
+            updateApprovalStatus(rejecterId, 'rejected', btn);
         }
 
-        async function updateApprovalStatus(coordinatorId, statusValue) {
+        async function updateApprovalStatus(coordinatorId, statusValue, btn) {
             try {
                 const response = await fetch(`/api/admin/dashboard/coordinators/${coordinatorId}/set-coordinator-approval/`, {
                     method: 'POST',
@@ -1352,6 +1426,11 @@
             } catch (error) {
                 console.error('Error updating approval status:', error);
                 showAlert('An error occurred');
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = btn.dataset.originalText || 'Approve';
+                }
             }
         }
 
@@ -1359,6 +1438,11 @@
         let courseList = [];
 
         async function loadCourses() {
+            const tbody = document.getElementById('courseTableBody');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="3" class="py-8 px-4 text-center text-slate-400"><i data-lucide="loader-circle" class="animate-spin"></i> Loading...</td></tr>';
+                lucide.createIcons();
+            }
             try {
                 const response = await fetch('/api/admin/courses/', {
                     method: 'GET',
@@ -1367,10 +1451,14 @@
                         'Authorization': `Token ${localStorage.getItem('auth_token')}`
                     }
                 });
-                if (!response.ok) return;
+                if (!response.ok) {
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="3" class="py-8 px-4 text-center text-red-500">Failed to load</td></tr>';
+                    return;
+                }
                 courseList = await response.json();
                 renderCourseTable();
             } catch (error) {
+                if (tbody) tbody.innerHTML = '<tr><td colspan="3" class="py-8 px-4 text-center text-red-500">Error loading</td></tr>';
                 console.error('Error loading courses:', error);
             }
         }
@@ -1415,6 +1503,11 @@
         async function addNewCourse() {
             const name = document.getElementById('courseName').value.trim();
             if (!name) { showAlert('Please enter a course name'); return; }
+            const btn = document.getElementById('addCourseBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Saving...';
+            lucide.createIcons();
             try {
                 const response = await fetch('/api/admin/courses/', {
                     method: 'POST',
@@ -1430,6 +1523,9 @@
                 loadCourses();
             } catch (error) {
                 showAlert('Error: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
         }
 
@@ -1447,6 +1543,11 @@
             const name = document.getElementById('editCourseName').value.trim();
             const is_active = document.getElementById('editCourseStatus').value === 'true';
             if (!name) { showAlert('Please enter a course name'); return; }
+            const btn = document.getElementById('saveCourseBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Saving...';
+            lucide.createIcons();
             try {
                 const response = await fetch(`/api/admin/courses/${id}/`, {
                     method: 'PUT',
@@ -1462,6 +1563,9 @@
                 loadCourses();
             } catch (error) {
                 showAlert('Error: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
         }
 
@@ -1488,6 +1592,11 @@
         async function confirmCourseDelete() {
             const id = pendingCourseDeleteId;
             if (!id) return;
+            const btn = document.getElementById('confirmDeleteCourseBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Deleting...';
+            lucide.createIcons();
             try {
                 const response = await fetch(`/api/admin/courses/${id}/`, {
                     method: 'DELETE',
@@ -1503,6 +1612,9 @@
                 loadCourses();
             } catch (error) {
                 showAlert('Error: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
         }
 
@@ -1510,6 +1622,11 @@
         let siteListAdmin = [];
 
         async function loadSitesAdmin() {
+            const tbody = document.getElementById('siteTableBody');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-slate-400"><i data-lucide="loader-circle" class="animate-spin"></i> Loading...</td></tr>';
+                lucide.createIcons();
+            }
             try {
                 const response = await fetch('/api/admin/sites/', {
                     method: 'GET',
@@ -1518,10 +1635,14 @@
                         'Authorization': `Token ${localStorage.getItem('auth_token')}`
                     }
                 });
-                if (!response.ok) return;
+                if (!response.ok) {
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-red-500">Failed to load</td></tr>';
+                    return;
+                }
                 siteListAdmin = await response.json();
                 renderSiteTableAdmin();
             } catch (error) {
+                if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-red-500">Error loading</td></tr>';
                 console.error('Error loading sites:', error);
             }
         }
@@ -1693,6 +1814,11 @@
             const contact_person = document.getElementById('siteContactPerson').value.trim();
             const contact_number = document.getElementById('siteContactNumber').value.trim();
             if (!name) { showAlert('Please enter a site name'); return; }
+            const btn = document.getElementById('addSiteBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Saving...';
+            lucide.createIcons();
             try {
                 const response = await fetch('/api/admin/sites/', {
                     method: 'POST',
@@ -1708,6 +1834,9 @@
                 loadSitesAdmin();
             } catch (error) {
                 showAlert('Error: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
         }
 
@@ -1747,6 +1876,11 @@
             const contact_number = document.getElementById('editSiteContactNumber').value.trim();
             const is_active = document.getElementById('editSiteStatus').value === 'true';
             if (!name) { showAlert('Please enter a site name'); return; }
+            const btn = document.getElementById('saveSiteBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Saving...';
+            lucide.createIcons();
             try {
                 const response = await fetch(`/api/admin/sites/${id}/`, {
                     method: 'PUT',
@@ -1762,6 +1896,9 @@
                 loadSitesAdmin();
             } catch (error) {
                 showAlert('Error: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
         }
 
@@ -1788,6 +1925,11 @@
         async function confirmSiteDelete() {
             const id = pendingSiteDeleteId;
             if (!id) return;
+            const btn = document.getElementById('confirmDeleteSiteBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Deleting...';
+            lucide.createIcons();
             try {
                 const response = await fetch(`/api/admin/sites/${id}/`, {
                     method: 'DELETE',
@@ -1803,6 +1945,9 @@
                 loadSitesAdmin();
             } catch (error) {
                 showAlert('Error: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
             }
         }
 
@@ -1905,6 +2050,8 @@
         }
 
         async function loadNotifications() {
+            notifList.innerHTML = '<p class="text-center text-slate-400 py-6"><i data-lucide="loader-circle" class="animate-spin"></i> Loading...</p>';
+            lucide.createIcons();
             try {
                 const res = await fetch('/api/notifications/', {
                     headers: { 'Authorization': `Token ${notifToken}` }

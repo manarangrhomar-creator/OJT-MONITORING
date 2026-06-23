@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from apps.core.models import User, Course
-from apps.core.utils import create_notification, send_notification_email
+from apps.core.utils import create_notification, create_and_send_notification, send_notification_email
 from apps.coordinator.models import Site
 from .models import SystemLog
 from .serializers import AdminUserSerializer, CourseSerializer, SiteSerializer, SystemLogSerializer
@@ -73,20 +73,24 @@ class AdminDashboardViewSet(viewsets.ViewSet):
         )
 
         if status_value == 'approved':
-            create_notification(
+            create_and_send_notification(
                 recipient=coordinator,
                 title='Account Approved',
                 message='Your OJT coordinator account has been approved. You can now log in.',
                 type='general',
+                email_subject='OJT Coordinator Account Approved',
             )
         elif status_value == 'rejected':
+            create_notification(
+                recipient=coordinator,
+                title='Account Rejected',
+                message='Your OJT coordinator account has been rejected. Please contact the administrator.',
+                type='general',
+            )
             send_notification_email(
                 recipient=coordinator,
                 subject='OJT Coordinator Account Rejected',
-                message=f'Dear {coordinator.get_full_name() or coordinator.username},\n\n'
-                        f'Your OJT coordinator account has been rejected. '
-                        f'Please contact the administrator for further information.\n\n'
-                        f'Best regards,\nISU OJT Monitoring System',
+                message=f'Your OJT coordinator account has been rejected. Please contact the administrator for further information.',
             )
 
         serializer = AdminUserSerializer(coordinator)

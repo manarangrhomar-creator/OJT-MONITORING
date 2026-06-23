@@ -8,7 +8,7 @@ from django.shortcuts import get_object_or_404
 from apps.coordinator.models import OJTApplication, Attendance
 from apps.coordinator.serializers import OJTApplicationSerializer, AttendanceSerializer
 from apps.core.models import Notification
-from apps.core.utils import create_notification
+from apps.core.utils import create_and_send_notification
 from .models import StudentProfile, FacialRecognition, StudentNarrativeReport
 from .serializers import StudentProfileSerializer, FacialRecognitionSerializer, StudentNarrativeReportSerializer
 from .face_utils import detect_face, encode_face, verify_faces
@@ -113,13 +113,14 @@ class StudentNarrativeViewSet(viewsets.ModelViewSet):
             program=program.program if program else None
         )
         if instance.program and instance.program.coordinator:
-            create_notification(
+            create_and_send_notification(
                 recipient=instance.program.coordinator,
                 title='New Narrative Report',
                 message=f'{self.request.user.get_full_name() or self.request.user.username} has submitted a new narrative report for {instance.log_date}.',
                 type='general',
                 related_object=instance,
                 related_object_type='StudentNarrativeReport',
+                email_subject='New Narrative Report Submitted',
             )
 
     def perform_update(self, serializer):
@@ -137,13 +138,14 @@ class StudentNarrativeViewSet(viewsets.ModelViewSet):
         if serializer.is_valid():
             instance = serializer.save(student=request.user)
             if instance.program and instance.program.coordinator:
-                create_notification(
+                create_and_send_notification(
                     recipient=instance.program.coordinator,
                     title='New Narrative Report',
                     message=f'{request.user.get_full_name() or request.user.username} has submitted a new narrative report for {instance.log_date}.',
                     type='general',
                     related_object=instance,
                     related_object_type='StudentNarrativeReport',
+                    email_subject='New Narrative Report Submitted',
                 )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

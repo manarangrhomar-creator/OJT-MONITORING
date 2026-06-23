@@ -1,0 +1,26 @@
+{% extends "emails/base_email.html" %}
+
+{% block content %}
+    <p style="margin:0 0 6px; font-size:15px; color:#374151;">
+        Dear <strong style="color:#11693A;">{{ recipient_name }}</strong>,
+    </p>
+
+    <div style="background-color:#f0fdf4; border-left:4px solid #11693A; padding:16px 18px; margin:18px 0; border-radius:8px;">
+        <h2 style="margin:0 0 8px; font-family:'Fredoka',Arial,Helvetica,sans-serif; font-size:18px; color:#11693A; font-weight:600;">
+            {{ title }}
+        </h2>
+        <p style="margin:0; font-size:14px; color:#374151; line-height:1.6;">
+            {{ message }}
+        </p>
+    </div>
+
+    <p style="margin:18px 0 0; font-size:14px; color:#6b7280; line-height:1.5;">
+        You can view this and other notifications by logging into the
+        <a href="{{ site_url }}" style="color:#11693A; font-weight:600; text-decoration:underline;">OJT Portal</a>.
+    </p>
+
+    <p style="margin:20px 0 0; font-size:14px; color:#374151;">
+        Best regards,<br>
+        <strong style="color:#11693A;">ISU OJT Monitoring System</strong>
+    </p>
+{% endblock %}

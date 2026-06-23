@@ -31,6 +31,8 @@ EMAIL_USE_TLS = config('EMAIL_USE_TLS', cast=bool)
 EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 
+SITE_URL = config('SITE_URL', default='http://localhost:8000')
+
 ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver', '*']
 
 # Application definition

@@ -2,10 +2,11 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import models
+from django.db.models import Exists, OuterRef
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from apps.core.models import User
-from apps.core.utils import create_notification, send_notification_email
+from apps.core.utils import create_notification, create_and_send_notification, send_notification_email
 from apps.student.models import StudentNarrativeReport
 from apps.student.serializers import StudentNarrativeReportSerializer
 from .models import OJTProgram, OJTApplication, Attendance, SiteAssignment, Site
@@ -60,13 +61,14 @@ class OJTApplicationViewSet(viewsets.ModelViewSet):
         application.status = 'approved'
         application.approved_date = timezone.now()
         application.save()
-        create_notification(
+        create_and_send_notification(
             recipient=application.student,
             title='Application Approved',
             message=f'Your OJT application for {application.program.name} has been approved.',
             type='application_update',
             related_object=application,
             related_object_type='OJTApplication',
+            email_subject='OJT Application Approved',
         )
         return Response({'message': 'Application approved'}, status=status.HTTP_200_OK)
     
@@ -78,13 +80,14 @@ class OJTApplicationViewSet(viewsets.ModelViewSet):
         application.rejection_reason = request.data.get('reason', '')
         application.save()
         reason = request.data.get('reason', 'No reason provided')
-        create_notification(
+        create_and_send_notification(
             recipient=application.student,
             title='Application Rejected',
             message=f'Your OJT application for {application.program.name} has been rejected. Reason: {reason}',
             type='application_update',
             related_object=application,
             related_object_type='OJTApplication',
+            email_subject='OJT Application Rejected',
         )
         return Response({'message': 'Application rejected'}, status=status.HTTP_200_OK)
 
@@ -130,33 +133,38 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='my-students')
     def my_students(self, request):
-        """Get all students in coordinator's programs, filtered by course."""
+        """Get all approved students for this coordinator's course."""
         coordinator = request.user
-        applications = OJTApplication.objects.filter(
-            program__coordinator=coordinator
-        ).select_related('student', 'program').order_by('-created_at')
+        students = User.objects.filter(
+            role='student',
+            approval_status='approved'
+        ).select_related('student_profile').order_by('-created_at')
         
         coordinator_course = coordinator.course
         if coordinator_course:
-            applications = applications.filter(
-                student__student_profile__course=coordinator_course
+            students = students.filter(
+                student_profile__course=coordinator_course
             )
+
+        exclude_assigned = request.query_params.get('exclude_assigned') == 'true'
+        if exclude_assigned:
+            students = students.annotate(
+                has_assignment=Exists(
+                    SiteAssignment.objects.filter(
+                        student=OuterRef('pk')
+                    )
+                )
+            ).filter(has_assignment=False)
         
-        # Build student data with program info
         students_data = []
-        for app in applications:
-            student = app.student
+        for student in students:
             students_data.append({
                 'id': student.id,
-                'app_id': app.id,
                 'name': student.get_full_name(),
                 'email': student.email,
                 'username': student.username,
-                'program': app.program.name,
-                'program_id': app.program.id,
-                'status': app.status,
-                'application_date': app.created_at,
-                'approval_date': app.approved_date,
+                'course': student.student_profile.course.name if hasattr(student, 'student_profile') and student.student_profile and student.student_profile.course else None,
+                'student_id': student.student_profile.student_id if hasattr(student, 'student_profile') and student.student_profile else None,
             })
         
         return Response(students_data)
@@ -290,13 +298,14 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         narrative.graded_at = timezone.now()
         narrative.save(update_fields=['grade', 'feedback', 'graded_by', 'graded_at'])
 
-        create_notification(
+        create_and_send_notification(
             recipient=narrative.student,
             title='Report Graded',
             message=f'Your narrative report for {narrative.log_date} has been graded: {grade}/100.',
             type='general',
             related_object=narrative,
             related_object_type='StudentNarrativeReport',
+            email_subject='Narrative Report Graded',
         )
 
         serializer = StudentNarrativeReportSerializer(narrative)
@@ -341,11 +350,12 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         student = get_object_or_404(User, id=student_id, role='student')
         student.approval_status = 'approved'
         student.save(update_fields=['approval_status'])
-        create_notification(
+        create_and_send_notification(
             recipient=student,
             title='Account Approved',
             message='Your OJT student account has been approved. You can now log in.',
             type='general',
+            email_subject='OJT Student Account Approved',
         )
         return Response({'message': 'Student account approved successfully'})
 
@@ -358,13 +368,16 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         student = get_object_or_404(User, id=student_id, role='student')
         student.approval_status = 'rejected'
         student.save(update_fields=['approval_status'])
+        create_notification(
+            recipient=student,
+            title='Account Rejected',
+            message='Your OJT student account has been rejected. Please contact your coordinator.',
+            type='general',
+        )
         send_notification_email(
             recipient=student,
-            subject='OJT Account Rejected',
-            message=f'Dear {student.get_full_name() or student.username},\n\n'
-                    f'Your OJT student account has been rejected. '
-                    f'Please contact your coordinator for further information.\n\n'
-                    f'Best regards,\nISU OJT Monitoring System',
+            subject='OJT Student Account Rejected',
+            message=f'Your OJT student account has been rejected. Please contact your coordinator for further information.',
         )
         return Response({'message': 'Student account rejected'})
 
