@@ -11,6 +11,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.http import require_http_methods
 from apps.core.models import User, Course
 from apps.student.models import StudentProfile
+from apps.core.utils import create_notification
 from .serializers import UserRegisterSerializer, UserLoginSerializer, UserSerializer, SendOTPSerializer, VerifyOTPSerializer, ResetPasswordSerializer
 from .models import LoginAttempt, PasswordResetOTP
 
@@ -26,6 +27,9 @@ class AuthenticationViewSet(viewsets.ViewSet):
     def register(self, request):
         """Register a new user."""
         data = request.data.copy()
+        # Ensure file uploads are included in the data dict
+        for key in request.FILES:
+            data[key] = request.FILES[key]
         course_name = data.get('course', '')
 
         # Resolve course name to Course object
@@ -41,6 +45,24 @@ class AuthenticationViewSet(viewsets.ViewSet):
         serializer = UserRegisterSerializer(data=data)
         if serializer.is_valid():
             user = serializer.save()
+
+            # Notify admins when a new coordinator registers
+            if user.role == 'coordinator':
+                try:
+                    admins = User.objects.filter(role='admin', is_active=True)
+                    for admin in admins:
+                        create_notification(
+                            recipient=admin,
+                            title='New Coordinator Registration',
+                            message=f'A new coordinator ({user.get_full_name() or user.email}) has registered and is pending approval.',
+                            type='general',
+                            related_object=user,
+                            related_object_type='coordinator_registration',
+                        )
+                except Exception as e:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Failed to create admin notification for new coordinator: {e}")
 
             # If registering as a student, create StudentProfile
             if user.role == 'student':

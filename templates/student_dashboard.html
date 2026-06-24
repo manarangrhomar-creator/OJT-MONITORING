@@ -794,22 +794,37 @@
     const notifList = document.getElementById('notifList');
     const markAllReadBtn = document.getElementById('markAllReadBtn');
 
-    async function loadUnreadCount() {
-        try {
-            const res = await fetch('/api/student/notifications/unread_count/', {
-                headers: { 'Authorization': `Token ${token}` }
-            });
-            const data = await res.json();
-            if (data.count > 0) {
-                notifBadge.textContent = data.count;
-                notifBadge.classList.remove('hidden');
-            } else {
-                notifBadge.classList.add('hidden');
-            }
-        } catch (err) {
-            console.error('Failed to load unread count:', err);
+    function updateBadge(count) {
+        if (count > 0) {
+            notifBadge.textContent = count;
+            notifBadge.classList.remove('hidden');
+        } else {
+            notifBadge.classList.add('hidden');
         }
     }
+
+    let notifSocket = null;
+    function connectNotifSocket() {
+        const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const url = `${proto}//${window.location.host}/ws/notifications/?token=${token}`;
+        notifSocket = new WebSocket(url);
+
+        notifSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            if (data.type === 'unread_count' || data.type === 'notification_message') {
+                updateBadge(data.count);
+            }
+        };
+
+        notifSocket.onclose = function() {
+            setTimeout(connectNotifSocket, 5000);
+        };
+
+        notifSocket.onerror = function() {
+            notifSocket.close();
+        };
+    }
+    connectNotifSocket();
 
     async function loadNotifications() {
         try {
@@ -857,7 +872,6 @@
                 headers: { 'Authorization': `Token ${token}` }
             });
             loadNotifications();
-            loadUnreadCount();
         } catch (err) {
             console.error('Failed to mark notification as read:', err);
         }
@@ -870,7 +884,6 @@
                 headers: { 'Authorization': `Token ${token}` }
             });
             loadNotifications();
-            loadUnreadCount();
         } catch (err) {
             console.error('Failed to mark all as read:', err);
         }
@@ -889,9 +902,6 @@
             notifDropdown.classList.add('hidden');
         }
     });
-
-    loadUnreadCount();
-    setInterval(loadUnreadCount, 30000);
 
     // ===== VIEW NARRATIVE REPORT =====
     function openViewNarrative(id) {

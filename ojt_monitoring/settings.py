@@ -37,6 +37,8 @@ ALLOWED_HOSTS = ['localhost', '127.0.0.1', 'testserver', '*']
 
 # Application definition
 INSTALLED_APPS = [
+    'daphne',
+    'channels',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -92,6 +94,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'ojt_monitoring.wsgi.application'
 ASGI_APPLICATION = 'ojt_monitoring.asgi.application'
+
+# Channels configuration
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            'hosts': [('127.0.0.1', 6379)],
+        },
+    },
+}
 
 # Database Configuration - SQLite for development
 DATABASES = {

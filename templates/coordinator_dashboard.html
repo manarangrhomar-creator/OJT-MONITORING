@@ -102,6 +102,25 @@
 
     <div id="sidebarOverlay" class="hidden fixed inset-0 bg-black/50 z-40 md:hidden"></div>
 
+    <!-- No Program Overlay -->
+    <div id="noProgramOverlay" class="hidden fixed inset-0 z-[70] bg-[#11693A] flex items-center justify-center">
+        <div class="text-center px-6 max-w-lg">
+            <div class="w-28 h-28 mx-auto mb-8 flex items-center justify-center">
+                <img src="https://www.eduopinions.com/wp-content/uploads/2023/09/ISU-SEAL-DOWNSCALE-350x345.png"
+                         alt="ISU Logo" 
+                         class="w-full h-full object-contain">
+            </div>
+            <h1 class="text-3xl font-black text-white mb-3">Welcome, Coordinator!</h1>
+            <p class="text-emerald-100 text-sm leading-relaxed mb-8">
+                You need to create an OJT program before you can manage your dashboard. 
+                Students can only apply once you have an active program.
+            </p>
+            <button onclick="openCreateProgramModal()" class="bg-white text-[#11693A] font-bold px-8 py-3.5 rounded-xl text-sm hover:bg-emerald-50 transition-all shadow-lg flex items-center gap-2 mx-auto">
+                <i data-lucide="plus-circle"></i> Create Program
+            </button>
+        </div>
+    </div>
+
     <div class="hidden md:block w-[3px] bg-[#6366f1] h-full shrink-0"></div>
 
     <div class="flex-1 flex flex-col relative overflow-hidden w-full">
@@ -520,7 +539,61 @@
         </div>
     </div>
 
+    <!-- Create Program Modal -->
+    <div id="createProgramModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Create OJT Program</h2>
+                <button class="close-btn" onclick="closeModal('createProgramModal')">&times;</button>
+            </div>
+            <div class="space-y-3">
+                <div class="form-group">
+                    <label>Program Name <span class="text-red-500">*</span></label>
+                    <input type="text" id="progName" placeholder="e.g. BSIT OJT Program 2026" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="progDescription" rows="3" placeholder="Brief description of the program..."></textarea>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="form-group">
+                        <label>Start Date <span class="text-red-500">*</span></label>
+                        <input type="date" id="progStartDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label>End Date <span class="text-red-500">*</span></label>
+                        <input type="date" id="progEndDate" required>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div class="form-group">
+                        <label>Max Students</label>
+                        <input type="number" id="progMaxStudents" value="50" min="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="progStatus">
+                            <option value="active" selected>Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Location</label>
+                    <input type="text" id="progLocation" placeholder="e.g. ISU-CC Main Campus">
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal('createProgramModal')">Cancel</button>
+                <button id="createProgramBtn" class="btn-save" onclick="createProgram()">Create Program</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        let hasPrograms = false;
+
         // MOBILE MENU MECHANICS
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const closeMobileMenuBtn = document.getElementById('closeMobileMenuBtn');
@@ -591,8 +664,108 @@
             return cookieValue;
         }
 
+        // ===== PROGRAM CHECK & CREATION =====
+        async function checkCoordinatorPrograms() {
+            try {
+                const response = await fetch('/api/coordinator/programs/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    }
+                });
+                if (!response.ok) return true;
+                const programs = await response.json();
+                hasPrograms = programs.length > 0;
+                if (!hasPrograms) {
+                    document.getElementById('noProgramOverlay').classList.remove('hidden');
+                }
+                return hasPrograms;
+            } catch (error) {
+                console.error('Error checking programs:', error);
+                return true;
+            }
+        }
+
+        async function createProgram() {
+            const name = document.getElementById('progName').value.trim();
+            const description = document.getElementById('progDescription').value.trim();
+            const startDate = document.getElementById('progStartDate').value;
+            const endDate = document.getElementById('progEndDate').value;
+            const maxStudents = parseInt(document.getElementById('progMaxStudents').value) || 50;
+            const location = document.getElementById('progLocation').value.trim();
+            const status = document.getElementById('progStatus').value;
+
+            if (!name) { showAlert('Please enter a program name'); return; }
+            if (!startDate) { showAlert('Please select a start date'); return; }
+            if (!endDate) { showAlert('Please select an end date'); return; }
+
+            const btn = document.getElementById('createProgramBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Creating...';
+            lucide.createIcons();
+
+            try {
+                const response = await fetch('/api/coordinator/programs/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        description: description,
+                        start_date: startDate,
+                        end_date: endDate,
+                        max_students: maxStudents,
+                        location: location,
+                        status: status
+                    })
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    const msg = Object.values(err).flat().join(', ');
+                    showAlert(msg || 'Failed to create program');
+                    return;
+                }
+
+                showAlert('Program created successfully! You can now manage your dashboard.');
+                closeModal('createProgramModal');
+                document.getElementById('noProgramOverlay').classList.add('hidden');
+                hasPrograms = true;
+                loadStudents();
+                loadStudentAccounts();
+                loadProgramsForFilter();
+                switchSection('students');
+            } catch (error) {
+                console.error('Error creating program:', error);
+                showAlert('An error occurred while creating the program');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        function openCreateProgramModal() {
+            document.getElementById('progName').value = '';
+            document.getElementById('progDescription').value = '';
+            document.getElementById('progStartDate').value = '';
+            document.getElementById('progEndDate').value = '';
+            document.getElementById('progMaxStudents').value = '50';
+            document.getElementById('progLocation').value = '';
+            document.getElementById('progStatus').value = 'active';
+            openModal('createProgramModal');
+        }
+
         // SECTION SWITCHING
         function switchSection(section) {
+            if (!hasPrograms) {
+                showAlert('Please create an OJT program first before accessing the dashboard.');
+                return;
+            }
             document.querySelectorAll('.section-container').forEach(el => el.classList.add('hidden'));
             document.getElementById(section + 'Section').classList.remove('hidden');
 
@@ -1393,11 +1566,14 @@
         }
 
         // Initialize on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            loadStudents();
-            loadStudentAccounts();
-            loadProgramsForFilter();
-            switchSection('students');
+        document.addEventListener('DOMContentLoaded', async function() {
+            const hasProgs = await checkCoordinatorPrograms();
+            if (hasProgs) {
+                loadStudents();
+                loadStudentAccounts();
+                loadProgramsForFilter();
+                switchSection('students');
+            }
         });
 
         // Search functionality
@@ -1459,22 +1635,37 @@
         const markAllReadBtn = document.getElementById('markAllReadBtn');
         const notifToken = localStorage.getItem('auth_token');
 
-        async function loadUnreadCount() {
-            try {
-                const res = await fetch('/api/notifications/unread_count/', {
-                    headers: { 'Authorization': `Token ${notifToken}` }
-                });
-                const data = await res.json();
-                if (data.count > 0) {
-                    notifBadge.textContent = data.count;
-                    notifBadge.classList.remove('hidden');
-                } else {
-                    notifBadge.classList.add('hidden');
-                }
-            } catch (err) {
-                console.error('Failed to load unread count:', err);
+        function updateBadge(count) {
+            if (count > 0) {
+                notifBadge.textContent = count;
+                notifBadge.classList.remove('hidden');
+            } else {
+                notifBadge.classList.add('hidden');
             }
         }
+
+        let notifSocket = null;
+        function connectNotifSocket() {
+            const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const url = `${proto}//${window.location.host}/ws/notifications/?token=${notifToken}`;
+            notifSocket = new WebSocket(url);
+
+            notifSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                if (data.type === 'unread_count' || data.type === 'notification_message') {
+                    updateBadge(data.count);
+                }
+            };
+
+            notifSocket.onclose = function() {
+                setTimeout(connectNotifSocket, 5000);
+            };
+
+            notifSocket.onerror = function() {
+                notifSocket.close();
+            };
+        }
+        connectNotifSocket();
 
         async function loadNotifications() {
             notifList.innerHTML = '<p class="text-center text-slate-400 py-6"><i data-lucide="loader-circle" class="animate-spin"></i> Loading...</p>';
@@ -1524,7 +1715,6 @@
                     headers: { 'Authorization': `Token ${notifToken}` }
                 });
                 loadNotifications();
-                loadUnreadCount();
             } catch (err) {
                 console.error('Failed to mark notification as read:', err);
             }
@@ -1537,7 +1727,6 @@
                     headers: { 'Authorization': `Token ${notifToken}` }
                 });
                 loadNotifications();
-                loadUnreadCount();
             } catch (err) {
                 console.error('Failed to mark all as read:', err);
             }
@@ -1556,9 +1745,6 @@
                 notifDropdown.classList.add('hidden');
             }
         });
-
-        loadUnreadCount();
-        setInterval(loadUnreadCount, 30000);
     lucide.createIcons();
 </script>
 </body>

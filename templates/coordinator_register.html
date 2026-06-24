@@ -71,9 +71,9 @@
                             <div>
                                 <label class="custom-heading text-[#11693A] text-lg block mb-1">Faculty ID Upload</label>
                                 <div class="relative flex items-center gap-3 border-4 border-[#11693A] rounded-xl p-2">
-                                    <input type="file" id="facultyId" accept="image/*,.pdf" onchange="updateFileName(this)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                                    <input type="file" id="facultyId" accept="image/*" onchange="validateFacultyFile(this)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
                                     <span class="bg-[#11693A] text-white text-xs font-bold py-1.5 px-4 rounded-full whitespace-nowrap">Choose File</span>
-                                    <span id="facultyFileName" class="text-sm text-gray-500">No file chosen</span>
+                                    <span id="facultyFileName" class="text-sm text-gray-500 truncate min-w-0 max-w-[140px]">No file chosen</span>
                                 </div>
                             </div>
                         </div>
@@ -130,11 +130,6 @@
                     </div>
 
                     <div id="step2" class="space-y-4 hidden">
-                        <div>
-                            <label class="custom-heading text-[#11693A] text-lg block mb-1">Employee ID</label>
-                            <input type="text" id="empId" placeholder="Enter ID Number" class="w-full border-4 border-[#11693A] rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all">
-                        </div>
-
                         <div>
                             <label class="custom-heading text-[#11693A] text-lg block mb-1">Password</label>
                             <div class="relative flex items-center">
@@ -380,7 +375,6 @@
             document.getElementById('step1').classList.add('hidden');
             document.getElementById('step2').classList.remove('hidden');
             
-            document.getElementById('empId').required = true;
             document.getElementById('password').required = true;
             document.getElementById('confirmPassword').required = true;
             
@@ -392,7 +386,6 @@
                 document.getElementById('step2').classList.add('hidden');
                 document.getElementById('step1').classList.remove('hidden');
                 
-                document.getElementById('empId').required = false;
                 document.getElementById('password').required = false;
                 document.getElementById('confirmPassword').required = false;
                 
@@ -416,9 +409,27 @@
             return { firstName, lastName };
         }
 
-        function updateFileName(input) {
+        function validateFacultyFile(input) {
             const fileName = document.getElementById('facultyFileName');
-            fileName.textContent = input.files[0] ? input.files[0].name : 'No file chosen';
+            const file = input.files[0];
+            if (!file) {
+                fileName.textContent = 'No file chosen';
+                return;
+            }
+            const maxSize = 5 * 1024 * 1024;
+            if (file.size > maxSize) {
+                showAlert('File is too large. Maximum size is 5MB.');
+                input.value = '';
+                fileName.textContent = 'No file chosen';
+                return;
+            }
+            if (!file.type.startsWith('image/')) {
+                showAlert('Please select an image file (JPEG, PNG, etc.).');
+                input.value = '';
+                fileName.textContent = 'No file chosen';
+                return;
+            }
+            fileName.textContent = file.name;
         }
 
         async function handleFormSubmit(event) {
@@ -467,8 +478,6 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    localStorage.setItem('auth_token', data.token);
-                    localStorage.setItem('user_data', JSON.stringify(data.user));
                     showAlert('Coordinator account created successfully! Pending admin approval.');
                     window.location.href = '/auth/login/';
                 } else {

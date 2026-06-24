@@ -2032,22 +2032,37 @@
         const markAllReadBtn = document.getElementById('markAllReadBtn');
         const notifToken = localStorage.getItem('auth_token');
 
-        async function loadUnreadCount() {
-            try {
-                const res = await fetch('/api/notifications/unread_count/', {
-                    headers: { 'Authorization': `Token ${notifToken}` }
-                });
-                const data = await res.json();
-                if (data.count > 0) {
-                    notifBadge.textContent = data.count;
-                    notifBadge.classList.remove('hidden');
-                } else {
-                    notifBadge.classList.add('hidden');
-                }
-            } catch (err) {
-                console.error('Failed to load unread count:', err);
+        function updateBadge(count) {
+            if (count > 0) {
+                notifBadge.textContent = count;
+                notifBadge.classList.remove('hidden');
+            } else {
+                notifBadge.classList.add('hidden');
             }
         }
+
+        let notifSocket = null;
+        function connectNotifSocket() {
+            const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const url = `${proto}//${window.location.host}/ws/notifications/?token=${notifToken}`;
+            notifSocket = new WebSocket(url);
+
+            notifSocket.onmessage = function(e) {
+                const data = JSON.parse(e.data);
+                if (data.type === 'unread_count' || data.type === 'notification_message') {
+                    updateBadge(data.count);
+                }
+            };
+
+            notifSocket.onclose = function() {
+                setTimeout(connectNotifSocket, 5000);
+            };
+
+            notifSocket.onerror = function() {
+                notifSocket.close();
+            };
+        }
+        connectNotifSocket();
 
         async function loadNotifications() {
             notifList.innerHTML = '<p class="text-center text-slate-400 py-6"><i data-lucide="loader-circle" class="animate-spin"></i> Loading...</p>';
@@ -2056,6 +2071,11 @@
                 const res = await fetch('/api/notifications/', {
                     headers: { 'Authorization': `Token ${notifToken}` }
                 });
+                if (!res.ok) {
+                    notifList.innerHTML = '<p class="text-center text-red-500 py-6">Failed to load notifications.</p>';
+                    console.warn('Failed to load notifications:', res.status, res.statusText);
+                    return;
+                }
                 const notifications = await res.json();
                 if (!notifications || notifications.length === 0) {
                     notifList.innerHTML = '<p class="text-center text-slate-400 py-6">No notifications yet.</p>';
@@ -2097,7 +2117,9 @@
                     headers: { 'Authorization': `Token ${notifToken}` }
                 });
                 loadNotifications();
-                loadUnreadCount();
+                if (notifSocket && notifSocket.readyState === WebSocket.OPEN) {
+                    notifSocket.send(JSON.stringify({ type: 'mark_read', id }));
+                }
             } catch (err) {
                 console.error('Failed to mark notification as read:', err);
             }
@@ -2110,7 +2132,6 @@
                     headers: { 'Authorization': `Token ${notifToken}` }
                 });
                 loadNotifications();
-                loadUnreadCount();
             } catch (err) {
                 console.error('Failed to mark all as read:', err);
             }
@@ -2129,9 +2150,6 @@
                 notifDropdown.classList.add('hidden');
             }
         });
-
-        loadUnreadCount();
-        setInterval(loadUnreadCount, 30000);
     
         lucide.createIcons();
     </script>

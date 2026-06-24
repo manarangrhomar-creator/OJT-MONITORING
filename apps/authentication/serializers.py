@@ -86,7 +86,7 @@ class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'full_name', 'role', 'phone_number', 'profile_picture', 'is_active', 'created_at', 'course', 'course_name')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'full_name', 'role', 'phone_number', 'profile_picture', 'faculty_id', 'is_active', 'created_at', 'course', 'course_name')
         read_only_fields = ('id', 'created_at')
     
     def get_full_name(self, obj):

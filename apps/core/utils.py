@@ -2,6 +2,9 @@
 Utils for the application
 """
 from datetime import datetime, timedelta
+
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -33,7 +36,7 @@ def get_month_range(date=None):
 
 
 def create_notification(recipient, title, message, type='general', related_object=None, related_object_type=''):
-    Notification.objects.create(
+    notification = Notification.objects.create(
         recipient=recipient,
         title=title,
         message=message,
@@ -41,6 +44,30 @@ def create_notification(recipient, title, message, type='general', related_objec
         related_object_id=related_object.id if related_object else None,
         related_object_type=related_object_type,
     )
+    _send_websocket_notification(recipient, notification)
+
+
+def _send_websocket_notification(recipient, notification):
+    try:
+        channel_layer = get_channel_layer()
+        unread_count = Notification.objects.filter(recipient=recipient, is_read=False).count()
+        async_to_sync(channel_layer.group_send)(
+            f'notifications_{recipient.id}',
+            {
+                'type': 'notification_message',
+                'count': unread_count,
+                'notification': {
+                    'id': str(notification.id),
+                    'title': notification.title,
+                    'message': notification.message,
+                    'type': notification.type,
+                    'is_read': notification.is_read,
+                    'created_at': notification.created_at.isoformat(),
+                },
+            }
+        )
+    except Exception:
+        pass
 
 
 def send_notification_email(recipient, subject, message, title='', site_url=None):
