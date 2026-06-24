@@ -62,7 +62,7 @@
             </div>
 
 
-        <div class="w-full space-y-2 px-3">
+        <div id="sidebarTabs" class="w-full space-y-2 px-3">
             <button id="tabDashboardBtn" class="w-full h-12 bg-white rounded-xl flex items-center pl-6 gap-3 text-[#11693A] font-bold text-sm shadow-sm transition-all">
                 <i data-lucide="pie-chart" class="text-base"></i> Dashboard Overview
             </button>
@@ -111,7 +111,7 @@
 
         <div class="flex-1 bg-white rounded-t-[30px] md:rounded-t-none md:rounded-tl-[45px] shadow-2xl border-t border-x md:border-r-0 md:border-l border-white p-4 md:p-6 md:ml-6 overflow-y-auto custom-scroll">
             
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
+            <div id="statCardsGrid" class="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
                 <div class="bg-emerald-50 p-4 rounded-2xl border border-emerald-100 flex items-center gap-4">
                     <div class="w-10 h-10 md:w-12 md:h-12 bg-[#11693A] rounded-xl flex items-center justify-center text-white shadow-sm"><i data-lucide="flag" class="text-lg md:text-xl"></i></div>
                     <div>
@@ -133,6 +133,38 @@
                         <h3 class="text-lg md:text-xl font-black text-slate-800"><span id="remaining-hours">359.5</span> <span class="text-xs font-normal">hrs</span></h3>
                     </div>
                 </div>
+            </div>
+
+            <div id="sectionApply" class="hidden space-y-6">
+                <div class="bg-white p-6 md:p-8 rounded-[25px] border border-emerald-200 shadow-sm text-center max-w-2xl mx-auto">
+                    <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i data-lucide="briefcase" class="text-emerald-600 w-8 h-8"></i>
+                    </div>
+                    <h2 class="text-xl md:text-2xl font-black text-[#11693A] mb-2">Choose Your OJT Program</h2>
+                    <p class="text-xs text-slate-500 mb-6 max-w-md mx-auto">Select an OJT program available for your course to begin your internship journey.</p>
+                </div>
+
+                <div id="programsLoading" class="text-center py-12">
+                    <i data-lucide="loader-circle" class="animate-spin text-emerald-600 w-8 h-8 mx-auto"></i>
+                    <p class="text-xs text-slate-400 mt-3">Loading available programs...</p>
+                </div>
+
+                <div id="programsError" class="hidden text-center py-8">
+                    <p class="text-red-500 text-xs font-bold">Failed to load programs.</p>
+                </div>
+
+                <div id="noProgramsMsg" class="hidden text-center py-12 bg-slate-50 rounded-[25px] border border-slate-200">
+                    <i data-lucide="frown" class="text-slate-300 w-10 h-10 mx-auto"></i>
+                    <p class="text-sm font-bold text-slate-500 mt-3">No programs available for your course at this time.</p>
+                    <p class="text-xs text-slate-400 mt-1">Please check back later or contact your coordinator.</p>
+                </div>
+
+                <div class="relative">
+                    <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></i>
+                    <input type="text" id="programSearch" oninput="filterPrograms()" placeholder="Search programs by name..." class="w-full pl-10 pr-4 py-2.5 border-2 border-slate-200 rounded-xl text-sm outline-none focus:border-[#11693A] transition bg-white">
+                </div>
+
+                <div id="programsGrid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
             </div>
 
             <div id="sectionDashboard" class="space-y-6">
@@ -578,10 +610,173 @@
         // ===== SET TODAY'S DATE =====
         document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
 
+        // ===== APPLY GATE =====
+        let allPrograms = [];
+
+        function renderProgramCards(programs) {
+            const grid = document.getElementById('programsGrid');
+            const noMsg = document.getElementById('noProgramsMsg');
+            if (!programs || programs.length === 0) {
+                grid.classList.add('hidden');
+                noMsg.classList.remove('hidden');
+                return;
+            }
+            noMsg.classList.add('hidden');
+            grid.innerHTML = programs.map(p => {
+                const slotsLeft = p.max_students - p.student_count;
+                const slotsColor = slotsLeft <= 3 ? 'text-red-600 bg-red-50 border-red-200' : 'text-emerald-600 bg-emerald-50 border-emerald-200';
+                return `
+                    <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all hover:border-emerald-300 flex flex-col">
+                        <div class="flex-1">
+                            <h4 class="font-black text-sm text-slate-800 mb-1">${p.name}</h4>
+                            <p class="text-[10px] text-slate-400 leading-relaxed mb-3 line-clamp-3">${p.description || 'No description provided.'}</p>
+                            <div class="space-y-1.5 text-[10px] text-slate-500">
+                                <div class="flex items-center gap-1.5">
+                                    <i data-lucide="user" class="w-3 h-3"></i>
+                                    <span>Coordinator: <strong>${p.coordinator_name || 'N/A'}</strong></span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <i data-lucide="calendar" class="w-3 h-3"></i>
+                                    <span>${p.start_date} — ${p.end_date}</span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <i data-lucide="map-pin" class="w-3 h-3"></i>
+                                    <span>${p.location || 'N/A'}</span>
+                                </div>
+                                <div class="flex items-center gap-1.5">
+                                    <i data-lucide="users" class="w-3 h-3"></i>
+                                    <span class="${slotsColor} px-2 py-0.5 rounded-full font-bold border text-[9px]">${slotsLeft} slot${slotsLeft !== 1 ? 's' : ''} left</span>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" onclick='openApplyModal("${p.id}", "${p.name.replace(/"/g, '&quot;')}")' class="mt-4 w-full bg-[#11693A] hover:bg-[#0e5630] text-white font-bold text-[10px] py-2.5 rounded-xl uppercase tracking-wider transition shadow-sm flex items-center justify-center gap-1.5">
+                            <i data-lucide="file-plus"></i> Apply Now
+                        </button>
+                    </div>
+                `;
+            }).join('');
+            grid.classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function filterPrograms() {
+            const query = document.getElementById('programSearch').value.toLowerCase();
+            const filtered = allPrograms.filter(p => p.name.toLowerCase().includes(query));
+            renderProgramCards(filtered);
+        }
+
+        async function loadAvailablePrograms() {
+            const loading = document.getElementById('programsLoading');
+            const error = document.getElementById('programsError');
+            const noMsg = document.getElementById('noProgramsMsg');
+            const grid = document.getElementById('programsGrid');
+            try {
+                loading.classList.remove('hidden');
+                grid.classList.add('hidden');
+                error.classList.add('hidden');
+                noMsg.classList.add('hidden');
+
+                allPrograms = await apiFetch('/api/student/dashboard/available_programs/');
+
+                loading.classList.add('hidden');
+                renderProgramCards(allPrograms);
+            } catch (err) {
+                loading.classList.add('hidden');
+                error.classList.remove('hidden');
+                console.error('Failed to load programs:', err);
+            }
+        }
+
+        function showDashboardContent() {
+            document.getElementById('sidebarTabs').classList.remove('hidden');
+            document.getElementById('sectionApply').classList.add('hidden');
+            document.getElementById('statCardsGrid').style.display = '';
+            document.getElementById('sectionDashboard').classList.remove('hidden');
+            document.getElementById('sectionArchives').classList.add('hidden');
+            tabDashboardBtn.className = "w-full h-12 bg-white rounded-xl flex items-center pl-6 gap-3 text-[#11693A] font-bold text-sm shadow-sm transition-all";
+            tabArchivesBtn.className = "w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center pl-6 gap-3 text-emerald-100 font-medium text-sm transition-all";
+            pageSubtitle.innerText = "Dashboard Overview Session";
+            loadDashboard();
+            loadAttendanceHistory();
+            loadArchives();
+        }
+
+        function showApplySection() {
+            document.getElementById('sidebarTabs').classList.add('hidden');
+            document.getElementById('sectionApply').classList.remove('hidden');
+            document.getElementById('statCardsGrid').style.display = 'none';
+            document.getElementById('sectionDashboard').classList.add('hidden');
+            document.getElementById('sectionArchives').classList.add('hidden');
+            loadAvailablePrograms();
+        }
+
+        async function submitApplication(e) {
+            e.preventDefault();
+            const programId = document.getElementById('applyProgramId').value;
+            const letterFile = document.getElementById('applyLetter').files[0];
+
+            if (!programId || !letterFile) return;
+
+            const formData = new FormData();
+            formData.append('program', programId);
+            formData.append('application_letter', letterFile);
+
+            const btn = document.getElementById('applySubmitBtn');
+            const errDiv = document.getElementById('applyError');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Submitting...';
+            lucide.createIcons();
+            errDiv.classList.add('hidden');
+
+            try {
+                const res = await fetch('/api/student/dashboard/apply/', {
+                    method: 'POST',
+                    headers: { 'Authorization': `Token ${token}` },
+                    body: formData
+                });
+                if (!res.ok) {
+                    const err = await res.json();
+                    const msg = err.detail || Object.values(err).flat().join(', ') || 'Unknown error';
+                    errDiv.textContent = 'Error: ' + msg;
+                    errDiv.classList.remove('hidden');
+                    throw new Error(msg);
+                }
+                closeModal('applyModal');
+                showAlert('Application submitted successfully! You can now access your dashboard.');
+                showDashboardContent();
+            } catch (err) {
+                console.error(err);
+            }
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="send"></i> Submit Application';
+            lucide.createIcons();
+        }
+
+        async function initApp() {
+            try {
+                const apps = await apiFetch('/api/student/dashboard/my_applications/');
+                if (apps && apps.length > 0) {
+                    showDashboardContent();
+                } else {
+                    openModal('applyRequiredModal');
+                    lucide.createIcons();
+                }
+            } catch (err) {
+                showDashboardContent();
+            }
+        }
+
+        function openApplyModal(programId, programName) {
+            document.getElementById('applyProgramId').value = programId;
+            document.getElementById('applyProgramName').textContent = programName;
+            document.getElementById('applyLetter').value = '';
+            document.getElementById('applyError').classList.add('hidden');
+            openModal('applyModal');
+            lucide.createIcons();
+        }
+
         // ===== INIT =====
-        loadDashboard();
-        loadAttendanceHistory();
-        loadArchives();
+        initApp();
 
         // ===== LOGOUT =====
         function confirmLogout() {
@@ -752,6 +947,53 @@
 
     lucide.createIcons();
 </script>
+
+<!-- Apply to Program Modal -->
+<div id="applyModal" class="modal">
+    <div class="modal-content" style="max-width:550px;">
+        <div class="modal-header">
+            <h2>Apply to Program</h2>
+            <button class="close-btn" onclick="closeModal('applyModal')">&times;</button>
+        </div>
+        <form id="applyForm" onsubmit="submitApplication(event)" class="space-y-4">
+            <input type="hidden" id="applyProgramId" value="">
+            <div class="bg-emerald-50 p-4 rounded-xl border border-emerald-100">
+                <p class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider mb-1">Program</p>
+                <p id="applyProgramName" class="text-sm font-bold text-slate-800"></p>
+            </div>
+            <div class="flex flex-col">
+                <label class="text-[10px] font-bold text-slate-400 uppercase mb-1">Application Letter <span class="text-red-500">*</span></label>
+                <input type="file" id="applyLetter" required accept=".pdf,.doc,.docx" class="p-2.5 border-2 border-[#11693A] text-xs outline-none bg-white rounded-xl file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-bold file:bg-emerald-100 file:text-emerald-700 hover:file:bg-emerald-200">
+                <p class="text-[9px] text-slate-400 mt-1">Upload your application letter (PDF, DOC, DOCX)</p>
+            </div>
+            <div id="applyError" class="hidden p-3 bg-red-50 border border-red-300 text-red-700 text-xs font-bold rounded-xl"></div>
+            <div class="modal-buttons">
+                <button type="button" class="btn-cancel" onclick="closeModal('applyModal')">Cancel</button>
+                <button type="submit" id="applySubmitBtn" class="bg-[#11693A] hover:bg-[#0e5630] text-white font-bold text-xs px-6 py-2.5 rounded-full uppercase shadow-sm flex items-center gap-2">
+                    <i data-lucide="send"></i> Submit Application
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Apply Required Modal -->
+<div id="applyRequiredModal" class="modal">
+    <div class="modal-content" style="max-width:450px;">
+        <div class="flex flex-col items-center text-center py-4">
+            <div class="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
+                <i data-lucide="briefcase" class="text-emerald-600 w-8 h-8"></i>
+            </div>
+            <h2 class="text-xl font-black text-[#11693A] mb-2">Apply for a Program First</h2>
+            <p class="text-xs text-slate-500 leading-relaxed max-w-sm">You need to apply to an OJT program before you can access the dashboard. Please select a program available for your course to continue.</p>
+        </div>
+        <div class="modal-buttons justify-center">
+            <button onclick="closeModal('applyRequiredModal'); showApplySection();" class="bg-[#11693A] hover:bg-[#0e5630] text-white font-bold text-xs px-8 py-2.5 rounded-full uppercase shadow-sm transition">
+                OK, Let's Apply
+            </button>
+        </div>
+    </div>
+</div>
 
 <!-- View Narrative Report Modal -->
 <div id="viewNarrativeModal" class="modal">

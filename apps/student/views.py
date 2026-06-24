@@ -3,14 +3,17 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.db.models import Q, Count, F
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from apps.coordinator.models import OJTApplication, Attendance
+from apps.coordinator.models import OJTApplication, Attendance, OJTProgram
 from apps.coordinator.serializers import OJTApplicationSerializer, AttendanceSerializer
 from apps.core.models import Notification
 from apps.core.utils import create_and_send_notification
 from .models import StudentProfile, FacialRecognition, StudentNarrativeReport
-from .serializers import StudentProfileSerializer, FacialRecognitionSerializer, StudentNarrativeReportSerializer
+from .serializers import (StudentProfileSerializer, FacialRecognitionSerializer,
+                          StudentNarrativeReportSerializer, StudentProgramSerializer,
+                          StudentApplySerializer)
 from .face_utils import detect_face, encode_face, verify_faces
 
 logger = logging.getLogger(__name__)
@@ -94,6 +97,61 @@ class StudentDashboardViewSet(viewsets.ViewSet):
         attendances = Attendance.objects.filter(student=request.user).order_by('-date')
         serializer = AttendanceSerializer(attendances, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def available_programs(self, request):
+        """List active programs matching student's course with available slots."""
+        student = request.user
+        try:
+            profile = StudentProfile.objects.get(user=student)
+            student_course = profile.course
+        except StudentProfile.DoesNotExist:
+            return Response({'error': 'Student profile not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        applied_programs = OJTApplication.objects.filter(student=student).values_list('program_id', flat=True)
+
+        programs = OJTProgram.objects.filter(
+            status='active',
+            coordinator__course=student_course
+        ).exclude(
+            id__in=applied_programs
+        ).annotate(
+            approved_count=Count('applications', filter=Q(applications__status='approved'))
+        ).filter(
+            approved_count__lt=F('max_students')
+        )
+
+        serializer = StudentProgramSerializer(programs, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['post'])
+    def apply(self, request):
+        """Student applies to an OJT program."""
+        serializer = StudentApplySerializer(
+            data=request.data,
+            context={'request': request}
+        )
+        if serializer.is_valid():
+            application = OJTApplication.objects.create(
+                student=request.user,
+                program=serializer.validated_data['program'],
+                application_letter=serializer.validated_data['application_letter'],
+                resume=serializer.validated_data.get('resume', None),
+                status='pending'
+            )
+            coordinator = application.program.coordinator
+            create_and_send_notification(
+                recipient=coordinator,
+                title='New OJT Application',
+                message=f'{request.user.get_full_name() or request.user.username} has applied to {application.program.name}.',
+                type='application_update',
+                related_object=application,
+                related_object_type='OJTApplication',
+                email_subject='New OJT Application Submitted',
+            )
+            out_serializer = OJTApplicationSerializer(application)
+            return Response(out_serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class StudentNarrativeViewSet(viewsets.ModelViewSet):
