@@ -209,10 +209,6 @@
                             <input type="text" id="approvalSearchInput" placeholder="Search by name or email..." class="border-2 border-slate-200 rounded-lg pl-9 pr-4 py-2 w-full text-sm focus:outline-none focus:border-[#11693A] bg-white">
                         </div>
                         <div class="flex flex-wrap gap-2">
-                            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-sm" onclick="filterApprovalsByStatus('pending')">Pending</button>
-                            <button class="bg-green-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-green-700 transition-all shadow-sm" onclick="filterApprovalsByStatus('approved')">Approved</button>
-                            <button class="bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-700 transition-all shadow-sm" onclick="filterApprovalsByStatus('rejected')">Rejected</button>
-                            <button class="bg-slate-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-600 transition-all shadow-sm" onclick="filterApprovalsByStatus('all')">All</button>
                         </div>
                     </div>
 
@@ -1048,7 +1044,7 @@
                 pendingDeleteName = '';
                 renderStudentTable();
                 closeModal('deleteModal');
-                showAlert('✓ Student deactivated successfully');
+                showAlert('✓ Student permanently deleted');
             } catch (error) {
                 console.error('Error deleting student:', error);
                 showAlert('An error occurred while deleting');
@@ -1275,7 +1271,7 @@
                 pendingCoordDeleteName = '';
                 renderCoordinatorTable();
                 closeModal('coordDeleteModal');
-                showAlert('✓ Coordinator deactivated successfully');
+                showAlert('✓ Coordinator permanently deleted');
             } catch (error) {
                 console.error('Error deleting coordinator:', error);
                 showAlert('An error occurred while deleting');
@@ -1327,11 +1323,7 @@
             const tbody = document.getElementById('approvalTableBody');
             if (!tbody) return;
             tbody.innerHTML = '';
-            const filter = document.getElementById('approvalFilterSelect')?.value || 'pending';
             let filtered = approvalList;
-            if (filter !== 'all') {
-                filtered = approvalList.filter(item => (item.approval_status || 'pending') === filter);
-            }
             if (filtered.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-gray-400">No approval requests found</td></tr>';
                 return;
@@ -1980,7 +1972,7 @@
         });
 
         // ===== FILTER BUTTON EVENT LISTENERS =====
-        document.getElementById('approvalFilterSelect')?.addEventListener('change', renderApprovalTable);
+
 
         // ===== SEARCH INPUTS =====
         document.getElementById('studentSearchInput')?.addEventListener('keyup', function() {

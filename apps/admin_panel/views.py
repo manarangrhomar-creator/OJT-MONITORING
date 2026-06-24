@@ -37,24 +37,24 @@ class AdminDashboardViewSet(viewsets.ViewSet):
     @action(detail=False, methods=["get"])
     def students(self, request):
         """Get all OJT student accounts."""
-        students = User.objects.filter(role="student").order_by("-created_at")
+        students = User.objects.filter(role="student").exclude(approval_status="pending").order_by("-created_at")
         serializer = AdminUserSerializer(students, many=True)
         return Response(serializer.data)
     
     @action(detail=False, methods=["get"])
     def coordinators(self, request):
         """Get all OJT coordinator accounts."""
-        coordinators = User.objects.filter(role="coordinator").order_by("-created_at")
+        coordinators = User.objects.filter(role="coordinator").exclude(approval_status="pending").order_by("-created_at")
         serializer = AdminUserSerializer(coordinators, many=True)
         return Response(serializer.data)
-
+    
     @action(detail=False, methods=["get"], url_path="coordinator-approvals")
     def coordinator_approvals(self, request):
         """Get all OJT coordinator accounts with approval statuses."""
-        coordinators = User.objects.filter(role="coordinator").order_by("-created_at")
+        coordinators = User.objects.filter(role="coordinator", approval_status="pending").order_by("-created_at")
         serializer = AdminUserSerializer(coordinators, many=True)
         return Response(serializer.data)
-
+    
     @action(detail=True, methods=["post"], url_path="set-coordinator-approval")
     def set_coordinator_approval(self, request, pk=None):
         """Update approval status for a coordinator account."""
@@ -81,17 +81,13 @@ class AdminDashboardViewSet(viewsets.ViewSet):
                 email_subject='OJT Coordinator Account Approved',
             )
         elif status_value == 'rejected':
-            create_notification(
-                recipient=coordinator,
-                title='Account Rejected',
-                message='Your OJT coordinator account has been rejected. Please contact the administrator.',
-                type='general',
-            )
             send_notification_email(
                 recipient=coordinator,
                 subject='OJT Coordinator Account Rejected',
                 message=f'Your OJT coordinator account has been rejected. Please contact the administrator for further information.',
             )
+            coordinator.delete()
+            return Response({"message": "Coordinator rejected and deleted permanently"})
 
         serializer = AdminUserSerializer(coordinator)
         return Response(serializer.data)
@@ -113,19 +109,18 @@ class UserManagementViewSet(viewsets.ModelViewSet):
     search_fields = ["username", "email", "first_name", "last_name"]
     
     def destroy(self, request, *args, **kwargs):
-        """Soft delete user by marking as inactive."""
+        """Hard delete user permanently."""
         user = self.get_object()
-        user.is_active = False
-        user.save()
+        username = user.username
+        user.delete()
         
-        # Log the activity
         SystemLog.objects.create(
             activity_type="user_deleted",
-            description=f"User {user.username} deactivated",
+            description=f"User {username} permanently deleted",
             admin_user=request.user,
         )
         
-        return Response({"message": "User deactivated successfully"}, status=status.HTTP_200_OK)
+        return Response({"message": "User permanently deleted"}, status=status.HTTP_200_OK)
 
 
 class CoursesViewSet(viewsets.ModelViewSet):
