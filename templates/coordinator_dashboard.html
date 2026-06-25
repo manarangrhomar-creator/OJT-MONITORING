@@ -555,33 +555,9 @@
                     <label>Description</label>
                     <textarea id="progDescription" rows="3" placeholder="Brief description of the program..."></textarea>
                 </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div class="form-group">
-                        <label>Start Date <span class="text-red-500">*</span></label>
-                        <input type="date" id="progStartDate" required>
-                    </div>
-                    <div class="form-group">
-                        <label>End Date <span class="text-red-500">*</span></label>
-                        <input type="date" id="progEndDate" required>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div class="form-group">
-                        <label>Max Students</label>
-                        <input type="number" id="progMaxStudents" value="50" min="1">
-                    </div>
-                    <div class="form-group">
-                        <label>Status</label>
-                        <select id="progStatus">
-                            <option value="active" selected>Active</option>
-                            <option value="inactive">Inactive</option>
-                            <option value="completed">Completed</option>
-                        </select>
-                    </div>
-                </div>
                 <div class="form-group">
-                    <label>Location</label>
-                    <input type="text" id="progLocation" placeholder="e.g. ISU-CC Main Campus">
+                    <label>Max Students</label>
+                    <input type="number" id="progMaxStudents" value="50" min="1">
                 </div>
             </div>
             <div class="modal-buttons">
@@ -690,15 +666,9 @@
         async function createProgram() {
             const name = document.getElementById('progName').value.trim();
             const description = document.getElementById('progDescription').value.trim();
-            const startDate = document.getElementById('progStartDate').value;
-            const endDate = document.getElementById('progEndDate').value;
             const maxStudents = parseInt(document.getElementById('progMaxStudents').value) || 50;
-            const location = document.getElementById('progLocation').value.trim();
-            const status = document.getElementById('progStatus').value;
 
             if (!name) { showAlert('Please enter a program name'); return; }
-            if (!startDate) { showAlert('Please select a start date'); return; }
-            if (!endDate) { showAlert('Please select an end date'); return; }
 
             const btn = document.getElementById('createProgramBtn');
             const originalText = btn.textContent;
@@ -717,11 +687,7 @@
                     body: JSON.stringify({
                         name: name,
                         description: description,
-                        start_date: startDate,
-                        end_date: endDate,
-                        max_students: maxStudents,
-                        location: location,
-                        status: status
+                        max_students: maxStudents
                     })
                 });
 
@@ -752,11 +718,7 @@
         function openCreateProgramModal() {
             document.getElementById('progName').value = '';
             document.getElementById('progDescription').value = '';
-            document.getElementById('progStartDate').value = '';
-            document.getElementById('progEndDate').value = '';
             document.getElementById('progMaxStudents').value = '50';
-            document.getElementById('progLocation').value = '';
-            document.getElementById('progStatus').value = 'active';
             openModal('createProgramModal');
         }
 

@@ -25,6 +25,7 @@ class OJTProgramViewSet(viewsets.ModelViewSet):
     permission_classes = [IsCoordinator]
     filterset_fields = ['status']
     search_fields = ['name']
+    pagination_class = None
     
     def get_queryset(self):
         """Filter programs by coordinator."""

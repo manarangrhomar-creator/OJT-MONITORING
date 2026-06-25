@@ -12,8 +12,8 @@ class OJTProgram(BaseModel):
     
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    start_date = models.DateField()
-    end_date = models.DateField()
+    start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
     coordinator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ojt_programs', limit_choices_to={'role': 'coordinator'})
     max_students = models.IntegerField(default=50)

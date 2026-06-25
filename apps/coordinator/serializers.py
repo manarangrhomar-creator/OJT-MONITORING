@@ -10,7 +10,7 @@ class OJTProgramSerializer(serializers.ModelSerializer):
     class Meta:
         model = OJTProgram
         fields = ('id', 'name', 'description', 'start_date', 'end_date', 'status', 'coordinator', 'coordinator_name', 'max_students', 'student_count', 'location', 'created_at')
-        read_only_fields = ('id', 'created_at')
+        read_only_fields = ('id', 'coordinator', 'created_at')
     
     def get_student_count(self, obj):
         return obj.get_student_count()
