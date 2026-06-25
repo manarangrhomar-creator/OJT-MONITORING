@@ -97,6 +97,9 @@
             <button id="btn-sites" class="w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center gap-3 px-5 text-emerald-100 font-medium text-sm transition-all" onclick="switchSection('sites')">
                 <i data-lucide="building" class="text-base"></i> Manage Sites
             </button>
+            <button id="btn-programs" class="w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center gap-3 px-5 text-emerald-100 font-medium text-sm transition-all" onclick="switchSection('programs')">
+                <i data-lucide="briefcase" class="text-base"></i> Manage Programs
+            </button>
         </div>
 
         <div class="mt-auto text-[10px] text-emerald-300/50 uppercase tracking-widest font-bold">
@@ -287,6 +290,33 @@
                                 </tr>
                             </thead>
                             <tbody class="text-xs font-medium text-slate-600 divide-y divide-slate-100 bg-white" id="siteTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PROGRAMS SECTION -->
+            <div id="programsSection" class="section-container hidden flex flex-col h-full">
+                <div class="flex-1 flex flex-col px-4 py-6 md:px-8 md:py-8 gap-6">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+                        <div class="relative w-full sm:w-72">
+                            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style="width:14px;height:14px;"></i>
+                            <input type="text" id="programSearchInput" placeholder="Search program by name or coordinator..." class="border-2 border-slate-200 rounded-lg pl-9 pr-4 py-2 w-full text-sm focus:outline-none focus:border-[#11693A] bg-white">
+                        </div>
+
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-slate-100 shadow-inner bg-white">
+                        <table class="w-full text-left border-collapse min-w-[900px]">
+                            <thead class="text-[10px] font-bold text-[#11693A] uppercase border-b border-emerald-100 bg-emerald-50">
+                                <tr>
+                                    <th class="p-4">Program Name</th>
+                                    <th class="p-4">Coordinator</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4">Students</th>
+                                    <th class="p-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-xs font-medium text-slate-600 divide-y divide-slate-100 bg-white" id="programTableBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -719,6 +749,118 @@
 
 
 
+    <!-- Program Modals -->
+    <div id="editProgramModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit Program</h2>
+                <button class="close-btn" onclick="closeModal('editProgramModal')">&times;</button>
+            </div>
+            <input type="hidden" id="editProgramId" value="">
+            <div class="space-y-3">
+                <div class="form-group">
+                    <label>Program Name</label>
+                    <input type="text" id="editProgramName" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="editProgramDescription" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Coordinator</label>
+                    <input type="hidden" id="editProgramCoordinator" value="">
+                    <div class="relative">
+                        <input type="text" id="editProgramCoordinatorSearch" placeholder="Search coordinator..." autocomplete="off" readonly
+                            class="w-full border-2 border-gray-200 rounded-lg p-2 pr-10 focus:outline-none focus:border-[#11693A] transition-all bg-white cursor-pointer">
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                            <i data-lucide="chevron-down" class="h-5 w-5 transition-transform"></i>
+                        </div>
+                        <div id="editProgramCoordinatorDropdown" class="hidden fixed z-[70] bg-white border-2 border-[#11693A] rounded-xl max-h-48 overflow-y-auto shadow-lg"></div>
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="form-group">
+                        <label>Start Date</label>
+                        <input type="date" id="editProgramStartDate">
+                    </div>
+                    <div class="form-group">
+                        <label>End Date</label>
+                        <input type="date" id="editProgramEndDate">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="editProgramStatus">
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Max Students</label>
+                        <input type="number" id="editProgramMaxStudents" min="1">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Location</label>
+                    <input type="text" id="editProgramLocation">
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal('editProgramModal')">Cancel</button>
+                <button id="saveProgramBtn" class="btn-save" onclick="saveProgramChanges()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="viewProgramStudentsModal" class="modal">
+        <div class="modal-content" style="max-width:800px;">
+            <div class="modal-header">
+                <h2 id="viewProgramStudentsTitle">Program Students</h2>
+                <button class="close-btn" onclick="closeModal('viewProgramStudentsModal')">&times;</button>
+            </div>
+            <div style="max-height:60vh; overflow-y:auto;">
+                <table class="w-full text-left border-collapse min-w-[600px]">
+                    <thead class="text-[10px] font-bold text-[#11693A] uppercase border-b border-emerald-100 bg-emerald-50 sticky top-0">
+                        <tr>
+                            <th class="p-3">Student Name</th>
+                            <th class="p-3">Email</th>
+                            <th class="p-3">Course</th>
+                            <th class="p-3">Student ID</th>
+                            <th class="p-3">Site</th>
+                            <th class="p-3">Supervisor</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-xs font-medium text-slate-600 divide-y divide-slate-100 bg-white" id="programStudentsBody"></tbody>
+                </table>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal('viewProgramStudentsModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="deleteProgramModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Delete Program</h2>
+                <button class="close-btn" onclick="closeModal('deleteProgramModal')">&times;</button>
+            </div>
+            <p style="color: #666; margin-bottom: 20px; font-size: 16px;">
+                Are you sure you want to delete <strong id="deleteProgramName"></strong>? This will also remove all applications, attendance records, and site assignments linked to this program. This action cannot be undone.
+            </p>
+            <div class="form-group">
+                <label>Type "<span id="deleteProgramNameConfirm"></span>" to confirm</label>
+                <input type="text" id="deleteProgramConfirmInput" placeholder="Type the name to confirm...">
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal('deleteProgramModal')">Cancel</button>
+                <button id="confirmDeleteProgramBtn" class="btn-save" style="background: #dc2626;" onclick="confirmProgramDelete()" disabled>Delete</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ===== INITIALIZATION DATA =====
         let students = {};
@@ -780,7 +922,8 @@
                 'coordinators': document.getElementById('btn-coordinators'),
                 'approvals': document.getElementById('btn-approvals'),
                 'courses': document.getElementById('btn-courses'),
-                'sites': document.getElementById('btn-sites')
+                'sites': document.getElementById('btn-sites'),
+                'programs': document.getElementById('btn-programs')
             };
 
             Object.entries(buttons).forEach(([key, btn]) => {
@@ -800,13 +943,15 @@
                 'coordinators': 'Coordinator Accounts',
                 'approvals': 'Coordinator Approval',
                 'courses': 'Course Management',
-                'sites': 'Site Management'
+                'sites': 'Site Management',
+                'programs': 'Program Management'
             };
             const subtitle = document.getElementById('pageSubtitle');
             if (subtitle) subtitle.textContent = subtitles[section] || '';
 
             if (section === 'courses') { loadCourses(); }
             if (section === 'sites') { loadSitesAdmin(); }
+            if (section === 'programs') { loadPrograms(); }
         }
 
         // ===== FILTER FUNCTIONS =====
@@ -1943,6 +2088,328 @@
             }
         }
 
+        // ===== PROGRAM MANAGEMENT =====
+        let programList = [];
+        let coordinatorChoices = [];
+
+        function initProgramCoordinatorDropdown(searchId, dropdownId, hiddenId, coordinators, selectedId) {
+            const searchInput = document.getElementById(searchId);
+            const dropdownList = document.getElementById(dropdownId);
+            const hiddenInput = document.getElementById(hiddenId);
+
+            function buildDropdown(filter) {
+                dropdownList.innerHTML = '';
+                const filtered = filter
+                    ? coordinators.filter(c => c.name.toLowerCase().includes(filter.toLowerCase()) || c.email.toLowerCase().includes(filter.toLowerCase()))
+                    : coordinators;
+
+                if (filtered.length === 0) {
+                    const empty = document.createElement('div');
+                    empty.className = 'p-3 text-gray-400 text-center';
+                    empty.textContent = 'No coordinators found';
+                    dropdownList.appendChild(empty);
+                    return;
+                }
+
+                filtered.forEach(c => {
+                    const item = document.createElement('div');
+                    item.className = 'p-3 hover:bg-emerald-100 cursor-pointer text-[#11693A] font-semibold border-b border-gray-100 last:border-b-0 transition-colors';
+                    item.textContent = `${c.name} (${c.email})`;
+                    item.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        searchInput.value = c.name;
+                        hiddenInput.value = c.id;
+                        dropdownList.classList.add('hidden');
+                        searchInput.setAttribute('readonly', true);
+                    });
+                    dropdownList.appendChild(item);
+                });
+            }
+
+            function positionDropdown() {
+                const rect = searchInput.getBoundingClientRect();
+                dropdownList.style.top = (rect.bottom + 4) + 'px';
+                dropdownList.style.left = rect.left + 'px';
+                dropdownList.style.width = rect.width + 'px';
+            }
+
+            function openDropdown() {
+                positionDropdown();
+                buildDropdown(searchInput.value);
+                dropdownList.classList.remove('hidden');
+            }
+
+            searchInput.addEventListener('focus', function() {
+                this.removeAttribute('readonly');
+                buildDropdown(this.value);
+                openDropdown();
+            });
+
+            searchInput.addEventListener('input', function() {
+                buildDropdown(this.value);
+                openDropdown();
+            });
+
+            searchInput.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (dropdownList.classList.contains('hidden')) {
+                    this.removeAttribute('readonly');
+                    this.value = '';
+                    hiddenInput.value = '';
+                    buildDropdown('');
+                    openDropdown();
+                }
+            });
+
+            if (selectedId && coordinators.length) {
+                const c = coordinators.find(c => c.id === selectedId);
+                if (c) {
+                    searchInput.value = c.name;
+                    hiddenInput.value = c.id;
+                    searchInput.setAttribute('readonly', true);
+                }
+            }
+        }
+
+        async function loadCoordinatorsForDropdown() {
+            try {
+                const response = await fetch('/api/admin/programs/coordinator_choices/', {
+                    headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` }
+                });
+                if (response.ok) {
+                    coordinatorChoices = await response.json();
+                }
+            } catch (error) {
+                console.error('Error loading coordinators:', error);
+            }
+        }
+
+        async function loadPrograms() {
+            const tbody = document.getElementById('programTableBody');
+            if (tbody) {
+                tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-slate-400"><i data-lucide="loader-circle" class="animate-spin"></i> Loading...</td></tr>';
+                lucide.createIcons();
+            }
+            try {
+                const response = await fetch('/api/admin/programs/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    }
+                });
+                if (!response.ok) {
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-red-500">Failed to load</td></tr>';
+                    return;
+                }
+                programList = await response.json();
+                renderProgramTable();
+            } catch (error) {
+                if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-red-500">Error loading</td></tr>';
+                console.error('Error loading programs:', error);
+            }
+        }
+
+        function renderProgramTable() {
+            const tbody = document.getElementById('programTableBody');
+            if (!tbody) return;
+            const filter = (document.getElementById('programSearchInput')?.value || '').toLowerCase();
+            const filtered = filter
+                ? programList.filter(p => p.name.toLowerCase().includes(filter) || (p.coordinator_name || '').toLowerCase().includes(filter))
+                : programList;
+            tbody.innerHTML = '';
+            if (!filtered.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-gray-400">No programs found</td></tr>';
+                return;
+            }
+            filtered.forEach(p => {
+                const statusClass = p.status === 'active' ? 'emerald' : p.status === 'completed' ? 'blue' : 'yellow';
+                const statusText = p.status.charAt(0).toUpperCase() + p.status.slice(1);
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-50 hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="py-4 px-2 font-bold">${p.name}</td>
+                    <td class="py-4 px-2">${p.coordinator_name || '—'}</td>
+                    <td class="py-4 px-2"><span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold">${statusText}</span></td>
+                    <td class="py-4 px-2">${p.student_count || 0}</td>
+                    <td class="py-4 px-2">
+                        <button class="text-blue-500 hover:text-blue-700 p-2" title="View Students" onclick="viewProgramStudents('${p.id}')">
+                            <i data-lucide="eye" class="text-lg"></i>
+                        </button>
+                        <button class="text-amber-500 hover:text-amber-700 p-2" title="Edit" onclick="editProgram('${p.id}')">
+                            <i data-lucide="pencil" class="text-lg"></i>
+                        </button>
+                        <button class="text-red-500 hover:text-red-700 p-2" title="Delete" onclick="deleteProgram('${p.id}')">
+                            <i data-lucide="trash-2" class="text-lg"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            lucide.createIcons();
+        }
+
+        async function viewProgramStudents(id) {
+            const program = programList.find(p => p.id === id);
+            if (!program) return;
+            document.getElementById('viewProgramStudentsTitle').textContent = `Students - ${program.name}`;
+            const tbody = document.getElementById('programStudentsBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-slate-400"><i data-lucide="loader-circle" class="animate-spin"></i> Loading...</td></tr>';
+            lucide.createIcons();
+            openModal('viewProgramStudentsModal');
+            try {
+                const response = await fetch(`/api/admin/programs/${id}/students/`, {
+                    headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` }
+                });
+                if (!response.ok) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-red-500">Failed to load</td></tr>';
+                    return;
+                }
+                const students = await response.json();
+                tbody.innerHTML = '';
+                if (!students.length) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-gray-400">No approved students in this program</td></tr>';
+                    return;
+                }
+                students.forEach(s => {
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-gray-50 hover:bg-gray-50';
+                    row.innerHTML = `
+                        <td class="py-3 px-2 font-bold">${s.student_name}</td>
+                        <td class="py-3 px-2">${s.email}</td>
+                        <td class="py-3 px-2">${s.course || '—'}</td>
+                        <td class="py-3 px-2">${s.student_id_number || '—'}</td>
+                        <td class="py-3 px-2">${s.site_name || '—'}</td>
+                        <td class="py-3 px-2">${s.supervisor_name || '—'}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-red-500">Error loading</td></tr>';
+                console.error('Error loading program students:', error);
+            }
+        }
+
+        function editProgram(id) {
+            const program = programList.find(p => p.id === id);
+            if (!program) return;
+            document.getElementById('editProgramId').value = id;
+            document.getElementById('editProgramName').value = program.name;
+            document.getElementById('editProgramDescription').value = program.description || '';
+            document.getElementById('editProgramStartDate').value = program.start_date || '';
+            document.getElementById('editProgramEndDate').value = program.end_date || '';
+            document.getElementById('editProgramStatus').value = program.status;
+            document.getElementById('editProgramMaxStudents').value = program.max_students;
+            document.getElementById('editProgramLocation').value = program.location || '';
+            const hiddenInput = document.getElementById('editProgramCoordinator');
+            const searchInput = document.getElementById('editProgramCoordinatorSearch');
+            hiddenInput.value = '';
+            searchInput.value = '';
+            searchInput.setAttribute('readonly', true);
+            loadCoordinatorsForDropdown().then(() => {
+                initProgramCoordinatorDropdown('editProgramCoordinatorSearch', 'editProgramCoordinatorDropdown', 'editProgramCoordinator', coordinatorChoices, program.coordinator);
+            });
+            openModal('editProgramModal');
+        }
+
+        async function saveProgramChanges() {
+            const id = document.getElementById('editProgramId').value;
+            const name = document.getElementById('editProgramName').value.trim();
+            const description = document.getElementById('editProgramDescription').value.trim();
+            const coordinator = document.getElementById('editProgramCoordinator').value;
+            const start_date = document.getElementById('editProgramStartDate').value || null;
+            const end_date = document.getElementById('editProgramEndDate').value || null;
+            const status = document.getElementById('editProgramStatus').value;
+            const max_students = parseInt(document.getElementById('editProgramMaxStudents').value) || 50;
+            const location = document.getElementById('editProgramLocation').value.trim();
+
+            if (!name) { showAlert('Please enter a program name'); return; }
+            if (!coordinator) { showAlert('Please select a coordinator'); return; }
+
+            const btn = document.getElementById('saveProgramBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Saving...';
+            lucide.createIcons();
+            try {
+                const response = await fetch(`/api/admin/programs/${id}/`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    },
+                    body: JSON.stringify({ name, description, coordinator, start_date, end_date, status, max_students, location })
+                });
+                if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
+                showAlert('Program updated successfully');
+                closeModal('editProgramModal');
+                loadPrograms();
+            } catch (error) {
+                showAlert('Error: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        let pendingProgramDeleteId = null;
+        let pendingProgramDeleteName = '';
+
+        function deleteProgram(id) {
+            const program = programList.find(p => p.id === id);
+            if (!program) return;
+            pendingProgramDeleteId = id;
+            pendingProgramDeleteName = program.name;
+            document.getElementById('deleteProgramName').textContent = program.name;
+            document.getElementById('deleteProgramNameConfirm').textContent = program.name;
+            document.getElementById('deleteProgramConfirmInput').value = '';
+            document.getElementById('confirmDeleteProgramBtn').disabled = true;
+            openModal('deleteProgramModal');
+        }
+
+        document.getElementById('deleteProgramConfirmInput')?.addEventListener('keyup', function() {
+            const btn = document.getElementById('confirmDeleteProgramBtn');
+            btn.disabled = this.value.trim() !== pendingProgramDeleteName;
+        });
+
+        async function confirmProgramDelete() {
+            const id = pendingProgramDeleteId;
+            if (!id) return;
+            const btn = document.getElementById('confirmDeleteProgramBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Deleting...';
+            lucide.createIcons();
+            try {
+                const response = await fetch(`/api/admin/programs/${id}/`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` }
+                });
+                if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
+                pendingProgramDeleteId = null;
+                pendingProgramDeleteName = '';
+                showAlert('Program deleted successfully');
+                closeModal('deleteProgramModal');
+                loadPrograms();
+            } catch (error) {
+                showAlert('Error: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        // Close coordinator dropdowns when clicking outside
+        document.addEventListener('click', function(e) {
+            document.querySelectorAll('[id$="ProgramCoordinatorDropdown"]:not(.hidden)').forEach(dd => {
+                const searchId = dd.id.replace('ProgramCoordinatorDropdown', 'ProgramCoordinatorSearch');
+                const search = document.getElementById(searchId);
+                if (search && !search.contains(e.target) && !dd.contains(e.target)) {
+                    dd.classList.add('hidden');
+                }
+            });
+        });
+
         // ===== LOGOUT =====
         function confirmLogout() {
             closeModal('confirmLogoutModal');
@@ -2007,6 +2474,7 @@
 
         document.getElementById('courseSearchInput')?.addEventListener('keyup', renderCourseTable);
         document.getElementById('siteSearchInput')?.addEventListener('keyup', renderSiteTableAdmin);
+        document.getElementById('programSearchInput')?.addEventListener('keyup', renderProgramTable);
 
         // ===== INITIAL LOAD =====
         window.addEventListener('DOMContentLoaded', () => {

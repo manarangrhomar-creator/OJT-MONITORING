@@ -4,9 +4,11 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from apps.core.models import User, Course
 from apps.core.utils import send_notification_email
-from apps.coordinator.models import Site
+from apps.coordinator.models import Site, OJTProgram, OJTApplication
 from .models import SystemLog
-from .serializers import AdminUserSerializer, CourseSerializer, SiteSerializer, SystemLogSerializer
+from .serializers import (AdminUserSerializer, CourseSerializer, SiteSerializer,
+                          SystemLogSerializer, AdminProgramSerializer,
+                          AdminProgramStudentSerializer, CoordinatorChoiceSerializer)
 
 
 class IsAdminUser(permissions.BasePermission):
@@ -132,6 +134,51 @@ class CoursesViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+
+class AdminProgramViewSet(viewsets.ModelViewSet):
+    """ViewSet for admin program management."""
+    queryset = OJTProgram.objects.all().select_related('coordinator').order_by('-created_at')
+    serializer_class = AdminProgramSerializer
+    permission_classes = [IsAdminUser]
+    search_fields = ['name', 'coordinator__first_name', 'coordinator__last_name']
+    filterset_fields = ['status']
+    pagination_class = None
+
+    def perform_create(self, serializer):
+        serializer.save(created_by=self.request.user)
+
+    def perform_update(self, serializer):
+        serializer.save(updated_by=self.request.user)
+
+    def perform_destroy(self, instance):
+        SystemLog.objects.create(
+            activity_type="program_deleted",
+            description=f"Program {instance.name} permanently deleted",
+            admin_user=self.request.user,
+        )
+        instance.delete()
+
+    @action(detail=True, methods=['get'])
+    def students(self, request, pk=None):
+        """Get approved students in a program."""
+        program = self.get_object()
+        applications = OJTApplication.objects.filter(
+            program=program, status='approved'
+        ).select_related(
+            'student', 'student__student_profile', 'student__student_profile__course'
+        ).order_by('student__last_name')
+        serializer = AdminProgramStudentSerializer(applications, many=True)
+        return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def coordinator_choices(self, request):
+        """Get approved coordinators for dropdown."""
+        coordinators = User.objects.filter(
+            role='coordinator', approval_status='approved', is_active=True
+        ).select_related('course').order_by('first_name')
+        serializer = CoordinatorChoiceSerializer(coordinators, many=True)
+        return Response(serializer.data)
 
 
 class SitesViewSet(viewsets.ModelViewSet):
