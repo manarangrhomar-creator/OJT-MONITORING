@@ -70,6 +70,22 @@ def _send_websocket_notification(recipient, notification):
         pass
 
 
+def send_unread_count_update(recipient):
+    """Push the current unread count to the recipient via WebSocket."""
+    try:
+        channel_layer = get_channel_layer()
+        unread_count = Notification.objects.filter(recipient=recipient, is_read=False).count()
+        async_to_sync(channel_layer.group_send)(
+            f'notifications_{recipient.id}',
+            {
+                'type': 'unread_count',
+                'count': unread_count,
+            }
+        )
+    except Exception:
+        pass
+
+
 def send_notification_email(recipient, subject, message, title='', site_url=None):
     """Send an HTML email notification using the branded email template."""
     if not recipient.email:

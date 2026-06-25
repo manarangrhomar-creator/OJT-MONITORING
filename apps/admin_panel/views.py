@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from apps.core.models import User, Course
-from apps.core.utils import create_notification, create_and_send_notification, send_notification_email
+from apps.core.utils import send_notification_email
 from apps.coordinator.models import Site
 from .models import SystemLog
 from .serializers import AdminUserSerializer, CourseSerializer, SiteSerializer, SystemLogSerializer
@@ -73,12 +73,11 @@ class AdminDashboardViewSet(viewsets.ViewSet):
         )
 
         if status_value == 'approved':
-            create_and_send_notification(
+            send_notification_email(
                 recipient=coordinator,
-                title='Account Approved',
+                subject='OJT Coordinator Account Approved',
                 message='Your OJT coordinator account has been approved. You can now log in.',
-                type='general',
-                email_subject='OJT Coordinator Account Approved',
+                title='Account Approved',
             )
         elif status_value == 'rejected':
             send_notification_email(

@@ -6,7 +6,7 @@ from django.db.models import Exists, OuterRef
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from apps.core.models import User
-from apps.core.utils import create_notification, create_and_send_notification, send_notification_email
+from apps.core.utils import create_and_send_notification, send_notification_email
 from apps.student.models import StudentNarrativeReport
 from apps.student.serializers import StudentNarrativeReportSerializer
 from .models import OJTProgram, OJTApplication, Attendance, SiteAssignment, Site
@@ -351,12 +351,11 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         student = get_object_or_404(User, id=student_id, role='student')
         student.approval_status = 'approved'
         student.save(update_fields=['approval_status'])
-        create_and_send_notification(
+        send_notification_email(
             recipient=student,
-            title='Account Approved',
+            subject='OJT Student Account Approved',
             message='Your OJT student account has been approved. You can now log in.',
-            type='general',
-            email_subject='OJT Student Account Approved',
+            title='Account Approved',
         )
         return Response({'message': 'Student account approved successfully'})
 
@@ -369,12 +368,6 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         student = get_object_or_404(User, id=student_id, role='student')
         student.approval_status = 'rejected'
         student.save(update_fields=['approval_status'])
-        create_notification(
-            recipient=student,
-            title='Account Rejected',
-            message='Your OJT student account has been rejected. Please contact your coordinator.',
-            type='general',
-        )
         send_notification_email(
             recipient=student,
             subject='OJT Student Account Rejected',

@@ -9,7 +9,7 @@ from django.shortcuts import get_object_or_404
 from apps.coordinator.models import OJTApplication, Attendance, OJTProgram
 from apps.coordinator.serializers import OJTApplicationSerializer, AttendanceSerializer
 from apps.core.models import Notification
-from apps.core.utils import create_and_send_notification
+from apps.core.utils import create_and_send_notification, send_unread_count_update
 from .models import StudentProfile, FacialRecognition, StudentNarrativeReport
 from .serializers import (StudentProfileSerializer, FacialRecognitionSerializer,
                           StudentNarrativeReportSerializer, StudentProgramSerializer,
@@ -322,6 +322,7 @@ class StudentNotificationViewSet(viewsets.ViewSet):
             notification = Notification.objects.get(id=pk, recipient=request.user)
             notification.is_read = True
             notification.save()
+            send_unread_count_update(request.user)
             return Response({'message': 'Notification marked as read'})
         except Notification.DoesNotExist:
             return Response({'error': 'Notification not found'}, status=status.HTTP_404_NOT_FOUND)
@@ -330,4 +331,5 @@ class StudentNotificationViewSet(viewsets.ViewSet):
     def mark_all_read(self, request):
         """Mark all notifications as read."""
         Notification.objects.filter(recipient=request.user, is_read=False).update(is_read=True)
+        send_unread_count_update(request.user)
         return Response({'message': 'All notifications marked as read'})
