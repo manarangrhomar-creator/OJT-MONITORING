@@ -147,18 +147,20 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='my-students')
     def my_students(self, request):
-        """Get all approved students for this coordinator's course."""
+        """Get all approved students for this coordinator's course and programs."""
         coordinator = request.user
+
+        coordinator_course = coordinator.course
+        if not coordinator_course:
+            return Response([])
+
         students = User.objects.filter(
             role='student',
-            approval_status='approved'
-        ).select_related('student_profile').order_by('-created_at')
-        
-        coordinator_course = coordinator.course
-        if coordinator_course:
-            students = students.filter(
-                student_profile__course=coordinator_course
-            )
+            approval_status='approved',
+            student_profile__course=coordinator_course,
+            ojt_applications__program__coordinator=coordinator,
+            ojt_applications__status='approved'
+        ).select_related('student_profile').distinct().order_by('-created_at')
 
         exclude_assigned = request.query_params.get('exclude_assigned') == 'true'
         if exclude_assigned:
@@ -185,8 +187,13 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='student-accounts')
     def student_accounts(self, request):
-        """Get all student accounts (role='student')."""
-        students = User.objects.filter(role='student').exclude(approval_status='pending').order_by('-created_at')
+        """Get student accounts for this coordinator's course."""
+        coordinator = request.user
+        students = User.objects.filter(role='student').exclude(approval_status='pending')
+        coordinator_course = coordinator.course
+        if coordinator_course:
+            students = students.filter(student_profile__course=coordinator_course)
+        students = students.order_by('-created_at')
         students_data = []
         for student in students:
             students_data.append({
@@ -329,14 +336,16 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
     def pending_student_approvals(self, request):
         """Get students pending approval, filtered by coordinator's course."""
         coordinator = request.user
-        students = User.objects.filter(
-            role='student',
-            approval_status='pending'
-        ).select_related('student_profile').order_by('-created_at')
 
         coordinator_course = coordinator.course
-        if coordinator_course:
-            students = students.filter(student_profile__course=coordinator_course)
+        if not coordinator_course:
+            return Response([])
+
+        students = User.objects.filter(
+            role='student',
+            approval_status='pending',
+            student_profile__course=coordinator_course
+        ).select_related('student_profile').order_by('-created_at')
 
         data = []
         for s in students:
