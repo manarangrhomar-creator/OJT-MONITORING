@@ -63,6 +63,8 @@ def _send_websocket_notification(recipient, notification):
                     'type': notification.type,
                     'is_read': notification.is_read,
                     'created_at': notification.created_at.isoformat(),
+                    'related_object_type': notification.related_object_type,
+                    'related_object_id': str(notification.related_object_id) if notification.related_object_id else None,
                 },
             }
         )

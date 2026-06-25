@@ -2290,6 +2290,9 @@
                 if (data.type === 'unread_count' || data.type === 'notification_message') {
                     updateBadge(data.count);
                 }
+                if (data.type === 'notification_message' && data.notification?.related_object_type === 'new_program') {
+                    loadPrograms();
+                }
             };
 
             notifSocket.onclose = function() {

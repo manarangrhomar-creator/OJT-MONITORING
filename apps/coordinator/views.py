@@ -6,7 +6,7 @@ from django.db.models import Exists, OuterRef
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from apps.core.models import User
-from apps.core.utils import create_and_send_notification, send_notification_email
+from apps.core.utils import create_and_send_notification, create_notification, send_notification_email
 from apps.student.models import StudentNarrativeReport
 from apps.student.serializers import StudentNarrativeReportSerializer
 from .models import OJTProgram, OJTApplication, Attendance, SiteAssignment, Site
@@ -35,8 +35,21 @@ class OJTProgramViewSet(viewsets.ModelViewSet):
         return OJTProgram.objects.filter(coordinator=user)
     
     def perform_create(self, serializer):
-        """Set coordinator to current user on creation."""
-        serializer.save(coordinator=self.request.user, created_by=self.request.user)
+        """Set coordinator to current user on creation and notify all admins."""
+        program = serializer.save(coordinator=self.request.user, created_by=self.request.user)
+        try:
+            admins = User.objects.filter(role='admin', is_active=True)
+            for admin in admins:
+                create_notification(
+                    recipient=admin,
+                    title='New OJT Program Added',
+                    message=f'A new OJT program "{program.name}" has been added by {self.request.user.get_full_name() or self.request.user.email}.',
+                    type='general',
+                    related_object=program,
+                    related_object_type='new_program',
+                )
+        except Exception:
+            pass
     
     @action(detail=True, methods=['get'])
     def applications(self, request, pk=None):
