@@ -93,6 +93,9 @@
             <button id="btn-sites" class="w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center gap-3 px-5 text-emerald-100 font-medium text-sm transition-all" onclick="switchSection('sites')">
                 <i data-lucide="map-pin" class="text-base"></i> Site Assignments
             </button>
+             <button id="btn-programs" class="w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center gap-3 px-5 text-emerald-100 font-medium text-sm transition-all" onclick="switchSection('programs')">
+                <i data-lucide="briefcase" class="text-base"></i> OJT Program
+            </button>
         </div>
 
         <div class="mt-auto text-[10px] text-emerald-300/50 uppercase tracking-widest font-bold">
@@ -153,6 +156,38 @@
 
         <!-- Main Content Area -->
         <div class="flex-1 overflow-auto custom-scroll flex flex-col">
+            <!-- PROGRAMS SECTION -->
+            <div id="programsSection" class="section-container hidden flex flex-col h-full">
+                <div class="flex-1 flex flex-col px-4 py-6 md:px-8 md:py-8 gap-6">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+                        <div>
+                            <button class="bg-[#11693A] text-white px-5 py-2.5 rounded-lg text-xs font-bold hover:bg-[#0e5630] transition-all shadow-sm flex items-center gap-2" onclick="openCreateProgramModal()">
+                                <i data-lucide="plus"></i> New Program
+                            </button>
+                        </div>
+                        <div class="relative w-full sm:w-72">
+                            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style="width:14px;height:14px;"></i>
+                            <input type="text" id="programSearchInput" placeholder="Search program by name..." class="border-2 border-slate-200 rounded-lg pl-9 pr-4 py-2 w-full text-sm focus:outline-none focus:border-[#11693A] bg-white">
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto rounded-xl border border-slate-100 shadow-inner bg-white">
+                        <table class="w-full text-left border-collapse min-w-[850px]">
+                            <thead class="text-[10px] font-bold text-[#11693A] uppercase border-b border-emerald-100 bg-emerald-50">
+                                <tr>
+                                    <th class="p-4">Program Name</th>
+                                    <th class="p-4">Description</th>
+                                    <th class="p-4">Max Students</th>
+                                    <th class="p-4">Current Students</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-xs font-medium text-slate-600 divide-y divide-slate-100 bg-white" id="programTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
             <!-- STUDENT SECTION -->
             <div id="studentsSection" class="section-container flex flex-col h-full">
                 <div class="flex-1 flex flex-col px-4 py-6 md:px-8 md:py-8 gap-6">
@@ -567,6 +602,43 @@
         </div>
     </div>
 
+    <!-- Edit Program Modal -->
+    <div id="editProgramModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Edit OJT Program</h2>
+                <button class="close-btn" onclick="closeModal('editProgramModal')">&times;</button>
+            </div>
+            <input type="hidden" id="editProgramId" value="">
+            <div class="space-y-3">
+                <div class="form-group">
+                    <label>Program Name <span class="text-red-500">*</span></label>
+                    <input type="text" id="editProgName" placeholder="e.g. BSIT OJT Program 2026" required>
+                </div>
+                <div class="form-group">
+                    <label>Description</label>
+                    <textarea id="editProgDescription" rows="3" placeholder="Brief description of the program..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Max Students</label>
+                    <input type="number" id="editProgMaxStudents" min="1">
+                </div>
+                <div class="form-group">
+                    <label>Status</label>
+                    <select id="editProgStatus" class="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-[#11693A]">
+                        <option value="active">Active</option>
+                        <option value="inactive">Inactive</option>
+                        <option value="completed">Completed</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal('editProgramModal')">Cancel</button>
+                <button id="updateProgramBtn" class="btn-save" onclick="updateProgram()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         let hasPrograms = false;
 
@@ -724,7 +796,7 @@
 
         // SECTION SWITCHING
         function switchSection(section) {
-            if (!hasPrograms) {
+            if (!hasPrograms && section !== 'programs') {
                 showAlert('Please create an OJT program first before accessing the dashboard.');
                 return;
             }
@@ -736,7 +808,7 @@
                 btn.classList.add('bg-transparent', 'text-emerald-100');
                 btn.classList.remove('bg-white', 'text-[#11693A]');
             };
-            ['btn-students', 'btn-accounts', 'btn-reports', 'btn-attendance', 'btn-sites'].forEach(resetBtnStyle);
+            ['btn-programs', 'btn-students', 'btn-accounts', 'btn-reports', 'btn-attendance', 'btn-sites'].forEach(resetBtnStyle);
 
             const activateBtn = (btnId) => {
                 const btn = document.getElementById(btnId);
@@ -744,7 +816,11 @@
                 btn.classList.remove('bg-transparent', 'text-emerald-100');
             };
 
-            if (section === 'students') {
+            if (section === 'programs') {
+                document.getElementById('pageSubtitle').textContent = 'OJT Programs';
+                activateBtn('btn-programs');
+                loadPrograms();
+            } else if (section === 'students') {
                 document.getElementById('pageSubtitle').textContent = 'Student Approval';
                 activateBtn('btn-students');
                 loadStudents();
@@ -765,6 +841,145 @@
                 loadSiteAssignments();
             }
             window.currentSection = section;
+        }
+
+        // ===== PROGRAMS MANAGEMENT FUNCTIONS =====
+        let programList = [];
+
+        async function loadPrograms() {
+            const tbody = document.getElementById('programTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-slate-400"><i data-lucide="loader-circle" class="animate-spin"></i> Loading...</td></tr>';
+            lucide.createIcons();
+            try {
+                const response = await fetch('/api/coordinator/programs/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    }
+                });
+                if (!response.ok) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-red-500">Failed to load programs</td></tr>';
+                    return;
+                }
+                programList = await response.json();
+                renderProgramTable();
+            } catch (error) {
+                console.error('Error loading programs:', error);
+                tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-red-500">Error loading programs</td></tr>';
+            }
+        }
+
+        function renderProgramTable() {
+            const tbody = document.getElementById('programTableBody');
+            tbody.innerHTML = '';
+
+            if (!programList.length) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="py-16 px-4 text-center">
+                            <div class="flex flex-col items-center gap-3">
+                                <div class="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center">
+                                    <i data-lucide="briefcase" class="text-emerald-400" style="width:28px;height:28px;"></i>
+                                </div>
+                                <span class="text-slate-400 text-sm font-medium">No programs yet</span>
+                                <span class="text-slate-300 text-xs">Create a new OJT program to get started</span>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            programList.forEach(program => {
+                const statusClass = program.status === 'active' ? 'emerald' : program.status === 'inactive' ? 'amber' : 'slate';
+                const row = document.createElement('tr');
+                row.id = `program-row-${program.id}`;
+                row.className = 'border-b border-slate-100 hover:bg-slate-50 transition-colors';
+                row.innerHTML = `
+                    <td class="p-4 font-bold text-slate-900">${program.name}</td>
+                    <td class="p-4 text-slate-600">${program.description || '<span class="text-slate-400">—</span>'}</td>
+                    <td class="p-4 text-slate-700 font-semibold">${program.max_students}</td>
+                    <td class="p-4 text-slate-700 font-semibold">${program.student_count || 0}</td>
+                    <td class="p-4">
+                        <span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold capitalize">${program.status}</span>
+                    </td>
+                    <td class="p-4 text-center">
+                        <button class="text-blue-500 hover:text-blue-700 p-2" title="Edit" onclick='openEditProgramModal("${program.id}")'>
+                            <i data-lucide="pencil" class="text-lg"></i>
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            lucide.createIcons();
+        }
+
+        async function openEditProgramModal(id) {
+            const program = programList.find(p => p.id == id);
+            if (!program) return;
+            
+            document.getElementById('editProgramId').value = id;
+            document.getElementById('editProgName').value = program.name;
+            document.getElementById('editProgDescription').value = program.description || '';
+            document.getElementById('editProgMaxStudents').value = program.max_students;
+            document.getElementById('editProgStatus').value = program.status;
+            
+            openModal('editProgramModal');
+        }
+
+        async function updateProgram() {
+            const id = document.getElementById('editProgramId').value;
+            const name = document.getElementById('editProgName').value.trim();
+            const description = document.getElementById('editProgDescription').value.trim();
+            const maxStudents = parseInt(document.getElementById('editProgMaxStudents').value) || 50;
+            const status = document.getElementById('editProgStatus').value;
+
+            if (!name) {
+                showAlert('Please enter a program name');
+                return;
+            }
+
+            const btn = document.getElementById('updateProgramBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Saving...';
+            lucide.createIcons();
+
+            try {
+                const response = await fetch(`/api/coordinator/programs/${id}/`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    },
+                    body: JSON.stringify({
+                        name: name,
+                        description: description,
+                        max_students: maxStudents,
+                        status: status
+                    })
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    const msg = Object.values(err).flat().join(', ');
+                    showAlert(msg || 'Failed to update program');
+                    return;
+                }
+
+                showAlert('Program updated successfully!');
+                closeModal('editProgramModal');
+                loadPrograms();
+            } catch (error) {
+                console.error('Error updating program:', error);
+                showAlert('An error occurred while updating the program');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
         }
 
         // ===== STUDENT ACCOUNT APPROVAL FUNCTIONS =====
@@ -1532,6 +1747,7 @@
         document.addEventListener('DOMContentLoaded', async function() {
             const hasProgs = await checkCoordinatorPrograms();
             if (hasProgs) {
+                loadPrograms();
                 loadStudents();
                 loadStudentAccounts();
                 loadProgramsForFilter();
@@ -1548,6 +1764,14 @@
         }, 30000);
 
         // Search functionality
+        document.getElementById('programSearchInput').addEventListener('keyup', function() {
+            const filter = this.value.toUpperCase();
+            document.querySelectorAll('#programTableBody tr').forEach(row => {
+                const text = row.textContent.toUpperCase();
+                row.style.display = text.includes(filter) ? '' : 'none';
+            });
+        });
+
         document.getElementById('studentSearchInput').addEventListener('keyup', function() {
             const filter = this.value.toUpperCase();
             document.querySelectorAll('#studentTableBody tr').forEach(row => {

@@ -18,6 +18,14 @@ class IsCoordinator(permissions.BasePermission):
     """Permission check for coordinators."""
     def has_permission(self, request, view):
         return request.user and request.user.is_authenticated and request.user.is_coordinator()
+    
+    def has_object_permission(self, request, view, obj):
+        """Check if coordinator owns the object."""
+        if request.user.is_admin():
+            return True
+        if hasattr(obj, 'coordinator'):
+            return obj.coordinator == request.user
+        return False
 
 
 class OJTProgramViewSet(viewsets.ModelViewSet):
@@ -51,6 +59,10 @@ class OJTProgramViewSet(viewsets.ModelViewSet):
                 )
         except Exception:
             pass
+    
+    def perform_update(self, serializer):
+        """Save program updates."""
+        serializer.save()
     
     @action(detail=True, methods=['get'])
     def applications(self, request, pk=None):
