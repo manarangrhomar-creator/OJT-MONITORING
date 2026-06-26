@@ -100,26 +100,6 @@
                         <div class="relative" id="courseDropdownContainer">
                             <select id="course" required style="display:none">
                                 <option value="" disabled selected>Select Course</option>
-                                <option>BS Information Technology (BSIT)</option>
-                                <option>BS Computer Science (BSCS)</option>
-                                <option>Bachelor of Entertainment and Multimedia Computing (BEMC)</option> 
-                                <option>Bachelor of Elementary Education (BEED)</option>
-                                <option>Bachelor of Secondary Education (BSED)</option>
-                                <option>Bachelor of Physical Education (BPED)</option>
-                                <option>BS Business Administration</option>
-                                <option>BS Entrepreneurship</option>
-                                <option>BS Management Accounting</option>
-                                <option>BS Accounting Information System</option>
-                                <option>BS Hospitality Management</option>
-                                <option>BS Tourism Management</option>
-                                <option>BA Political Science</option>
-                                <option>BA English Language Studies</option>
-                                <option>BS Psychology</option>
-                                <option>BS Legal Management</option>
-                                <option>BS Agriculture</option>
-                                <option>Bachelor of Agricultural Technology</option>
-                                <option>BS Food Technology</option>
-                                <option>BS Criminology</option>
                             </select>
                             <input type="text" id="courseSearch" placeholder="Search course..." autocomplete="off" readonly
                                 class="w-full border-4 border-[#11693A] rounded-xl p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all bg-white text-[#11693A] font-semibold cursor-pointer">
@@ -167,29 +147,7 @@
             lucide.createIcons();
         }
 
-        const COURSES = [
-            "BS Information Technology (BSIT)",
-            "BS Computer Science (BSCS)",
-            "Bachelor of Entertainment and Multimedia Computing (BEMC)",
-            "Bachelor of Elementary Education (BEED)",
-            "Bachelor of Secondary Education (BSED)",
-            "Bachelor of Physical Education (BPED)",
-            "BS Business Administration",
-            "BS Entrepreneurship",
-            "BS Management Accounting",
-            "BS Accounting Information System",
-            "BS Hospitality Management",
-            "BS Tourism Management",
-            "BA Political Science",
-            "BA English Language Studies",
-            "BS Psychology",
-            "BS Legal Management",
-            "BS Agriculture",
-            "Bachelor of Agricultural Technology",
-            "BS Food Technology",
-            "BS Criminology"
-        ];
-
+        let courses = [];
         let selectedCourse = '';
 
         function initCourseDropdown() {
@@ -200,8 +158,8 @@
             function buildDropdown(filter) {
                 dropdownList.innerHTML = '';
                 const filtered = filter
-                    ? COURSES.filter(c => c.toLowerCase().includes(filter.toLowerCase()))
-                    : COURSES;
+                    ? courses.filter(c => c.toLowerCase().includes(filter.toLowerCase()))
+                    : courses;
 
                 if (filtered.length === 0) {
                     const empty = document.createElement('div');
@@ -317,7 +275,28 @@
             });
         }
 
-        document.addEventListener('DOMContentLoaded', initCourseDropdown);
+        async function fetchCourses() {
+            try {
+                const res = await fetch('/api/auth/courses/');
+                const data = await res.json();
+                courses = data.map(c => c.name);
+                const hiddenSelect = document.getElementById('course');
+                hiddenSelect.innerHTML = '<option value="" disabled selected>Select Course</option>';
+                courses.forEach(name => {
+                    const opt = document.createElement('option');
+                    opt.value = name;
+                    opt.textContent = name;
+                    hiddenSelect.appendChild(opt);
+                });
+            } catch (err) {
+                console.error('Failed to load courses:', err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async function() {
+            await fetchCourses();
+            initCourseDropdown();
+        });
 
         function parseFullName(fullName) {
             const parts = fullName.split(',').map(s => s.trim());
