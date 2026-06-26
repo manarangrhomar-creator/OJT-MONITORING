@@ -3,7 +3,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from apps.core.models import User, Course
-from apps.core.utils import send_notification_email
+from apps.core.tasks import send_email_task
 from apps.coordinator.models import Site, OJTProgram, OJTApplication
 from .models import SystemLog
 from .serializers import (AdminUserSerializer, CourseSerializer, SiteSerializer,
@@ -74,18 +74,21 @@ class AdminDashboardViewSet(viewsets.ViewSet):
             admin_user=request.user,
         )
 
+        coordinator_name = coordinator.get_full_name() or coordinator.username
         if status_value == 'approved':
-            send_notification_email(
-                recipient=coordinator,
+            send_email_task.delay(
+                recipient_email=coordinator.email,
                 subject='OJT Coordinator Account Approved',
                 message='Your OJT coordinator account has been approved. You can now log in.',
                 title='Account Approved',
+                recipient_name=coordinator_name,
             )
         elif status_value == 'rejected':
-            send_notification_email(
-                recipient=coordinator,
+            send_email_task.delay(
+                recipient_email=coordinator.email,
                 subject='OJT Coordinator Account Rejected',
-                message=f'Your OJT coordinator account has been rejected. Please contact the administrator for further information.',
+                message='Your OJT coordinator account has been rejected. Please contact the administrator for further information.',
+                recipient_name=coordinator_name,
             )
             coordinator.delete()
             return Response({"message": "Coordinator rejected and deleted permanently"})

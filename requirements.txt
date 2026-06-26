@@ -12,3 +12,4 @@ redis==5.0.1
 drf-spectacular==0.26.5
 opencv-contrib-python==4.13.0.92
 channels-redis==4.3.0
+eventlet==0.36.1

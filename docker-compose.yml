@@ -46,6 +46,26 @@ services:
     volumes:
       - redis_data:/data
 
+  worker:
+    build: .
+    command: celery -A ojt_monitoring worker -l info
+    volumes:
+      - .:/app
+    environment:
+      DEBUG: "True"
+      SECRET_KEY: "dev-secret-key-change-in-production"
+      DB_ENGINE: django.db.backends.postgresql
+      DB_NAME: ojt_monitoring_db
+      DB_USER: ojt_admin
+      DB_PASSWORD: ojt_admin_password
+      DB_HOST: db
+      DB_PORT: "5432"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
 volumes:
   postgres_data:
   redis_data:

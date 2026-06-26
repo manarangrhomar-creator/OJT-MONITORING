@@ -764,6 +764,7 @@
                 activateBtn('btn-sites');
                 loadSiteAssignments();
             }
+            window.currentSection = section;
         }
 
         // ===== STUDENT ACCOUNT APPROVAL FUNCTIONS =====
@@ -1538,6 +1539,14 @@
             }
         });
 
+        // Poll active section every 30 seconds
+        setInterval(function() {
+            const sec = window.currentSection;
+            if (sec === 'attendance') loadAttendance();
+            else if (sec === 'reports') loadStudentReports();
+            else if (sec === 'sites') loadSiteAssignments();
+        }, 30000);
+
         // Search functionality
         document.getElementById('studentSearchInput').addEventListener('keyup', function() {
             const filter = this.value.toUpperCase();
@@ -1616,6 +1625,15 @@
                 const data = JSON.parse(e.data);
                 if (data.type === 'unread_count' || data.type === 'notification_message') {
                     updateBadge(data.count);
+                }
+                if (data.type === 'notification_message' && data.notification) {
+                    const objType = data.notification.related_object_type;
+                    if (objType === 'StudentNarrativeReport' && window.currentSection === 'reports') {
+                        loadStudentReports();
+                    }
+                    if (objType === 'Attendance') {
+                        loadAttendance();
+                    }
                 }
             };
 

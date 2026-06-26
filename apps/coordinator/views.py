@@ -6,7 +6,8 @@ from django.db.models import Exists, OuterRef
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from apps.core.models import User
-from apps.core.utils import create_and_send_notification, create_notification, send_notification_email
+from apps.core.utils import create_and_send_notification, create_notification
+from apps.core.tasks import send_email_task
 from apps.student.models import StudentNarrativeReport
 from apps.student.serializers import StudentNarrativeReportSerializer
 from .models import OJTProgram, OJTApplication, Attendance, SiteAssignment, Site
@@ -127,6 +128,28 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             defaults={'time_in': timezone.now().time()}
         )
         
+        if created:
+            student = attendance.student
+            program = attendance.program
+            coordinator_name = request.user.get_full_name() or request.user.username
+            create_notification(
+                recipient=student,
+                title='Clocked In',
+                message=f'{coordinator_name} has clocked you in for {program.name}.',
+                type='general',
+                related_object=attendance,
+                related_object_type='Attendance',
+            )
+            if program.coordinator and program.coordinator != request.user:
+                create_notification(
+                    recipient=program.coordinator,
+                    title='Student Clocked In',
+                    message=f'{student.get_full_name() or student.username} has clocked in for {program.name}.',
+                    type='general',
+                    related_object=attendance,
+                    related_object_type='Attendance',
+                )
+        
         serializer = self.get_serializer(attendance)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
@@ -136,6 +159,27 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         attendance = self.get_object()
         attendance.time_out = timezone.now().time()
         attendance.save()
+        
+        student = attendance.student
+        program = attendance.program
+        coordinator_name = request.user.get_full_name() or request.user.username
+        create_notification(
+            recipient=student,
+            title='Clocked Out',
+            message=f'{coordinator_name} has clocked you out for {program.name}.',
+            type='general',
+            related_object=attendance,
+            related_object_type='Attendance',
+        )
+        if program.coordinator and program.coordinator != request.user:
+            create_notification(
+                recipient=program.coordinator,
+                title='Student Clocked Out',
+                message=f'{student.get_full_name() or student.username} has clocked out for {program.name}.',
+                type='general',
+                related_object=attendance,
+                related_object_type='Attendance',
+            )
         
         serializer = self.get_serializer(attendance)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -373,11 +417,12 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         student = get_object_or_404(User, id=student_id, role='student')
         student.approval_status = 'approved'
         student.save(update_fields=['approval_status'])
-        send_notification_email(
-            recipient=student,
+        send_email_task.delay(
+            recipient_email=student.email,
             subject='OJT Student Account Approved',
             message='Your OJT student account has been approved. You can now log in.',
             title='Account Approved',
+            recipient_name=student.get_full_name() or student.username,
         )
         return Response({'message': 'Student account approved successfully'})
 
@@ -390,10 +435,11 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         student = get_object_or_404(User, id=student_id, role='student')
         student.approval_status = 'rejected'
         student.save(update_fields=['approval_status'])
-        send_notification_email(
-            recipient=student,
+        send_email_task.delay(
+            recipient_email=student.email,
             subject='OJT Student Account Rejected',
-            message=f'Your OJT student account has been rejected. Please contact your coordinator for further information.',
+            message='Your OJT student account has been rejected. Please contact your coordinator for further information.',
+            recipient_name=student.get_full_name() or student.username,
         )
         return Response({'message': 'Student account rejected'})
 

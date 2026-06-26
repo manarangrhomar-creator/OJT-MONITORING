@@ -30,8 +30,6 @@ share/python-wheels/
 MANIFEST
 
 # Database
-db.sqlite3
-*.db
 
 # Environment Variables
 .env

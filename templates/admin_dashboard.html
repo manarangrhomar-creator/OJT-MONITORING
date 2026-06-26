@@ -888,6 +888,7 @@
             if (section === 'courses') { loadCourses(); }
             if (section === 'sites') { loadSitesAdmin(); }
             if (section === 'programs') { loadPrograms(); }
+            window.currentSection = section;
         }
 
         // ===== FILTER FUNCTIONS =====
@@ -2262,6 +2263,17 @@
             switchSection('students');
         });
 
+        // Poll active section every 30 seconds
+        setInterval(() => {
+            const sec = window.currentSection;
+            if (sec === 'students') loadStudents();
+            else if (sec === 'coordinators') loadCoordinators();
+            else if (sec === 'approvals') loadCoordinatorApprovals();
+            else if (sec === 'courses') loadCourses();
+            else if (sec === 'sites') loadSitesAdmin();
+            else if (sec === 'programs') loadPrograms();
+        }, 30000);
+
         // ===== NOTIFICATIONS ENGINE =====
         const notifBtn = document.getElementById('btnNotifications');
         const notifDropdown = document.getElementById('notifDropdown');
@@ -2290,8 +2302,11 @@
                 if (data.type === 'unread_count' || data.type === 'notification_message') {
                     updateBadge(data.count);
                 }
-                if (data.type === 'notification_message' && data.notification?.related_object_type === 'new_program') {
-                    loadPrograms();
+                if (data.type === 'notification_message' && data.notification) {
+                    const objType = data.notification.related_object_type;
+                    if (objType === 'new_program' || objType === 'OJTProgram') {
+                        if (window.currentSection === 'programs') loadPrograms();
+                    }
                 }
             };
 

@@ -95,6 +95,9 @@ TEMPLATES = [
 WSGI_APPLICATION = 'ojt_monitoring.wsgi.application'
 ASGI_APPLICATION = 'ojt_monitoring.asgi.application'
 
+# Celery configuration
+CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
+
 # Channels configuration
 CHANNEL_LAYERS = {
     'default': {

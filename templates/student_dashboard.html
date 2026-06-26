@@ -699,6 +699,10 @@
             loadDashboard();
             loadAttendanceHistory();
             loadArchives();
+            if (!window._dashboardPollInterval) {
+                window._dashboardPollInterval = setInterval(loadDashboard, 30000);
+                window._attendancePollInterval = setInterval(loadAttendanceHistory, 30000);
+            }
         }
 
         function showApplySection() {
@@ -813,6 +817,11 @@
             const data = JSON.parse(e.data);
             if (data.type === 'unread_count' || data.type === 'notification_message') {
                 updateBadge(data.count);
+            }
+            if (data.type === 'notification_message' && data.notification) {
+                const objType = data.notification.related_object_type;
+                if (objType === 'StudentNarrativeReport') loadArchives();
+                if (objType === 'OJTApplication') initApp();
             }
         };
 

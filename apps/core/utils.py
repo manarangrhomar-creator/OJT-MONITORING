@@ -9,6 +9,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.template.loader import render_to_string
 from .models import Notification
+from .tasks import send_email_task
 
 
 def get_week_range(date=None):
@@ -118,7 +119,7 @@ def send_notification_email(recipient, subject, message, title='', site_url=None
 def create_and_send_notification(recipient, title, message, type='general',
                                  related_object=None, related_object_type='',
                                  email_subject=None):
-    """Create an in-app notification and send an email notification."""
+    """Create an in-app notification and send an email notification asynchronously."""
     create_notification(
         recipient=recipient,
         title=title,
@@ -127,9 +128,12 @@ def create_and_send_notification(recipient, title, message, type='general',
         related_object=related_object,
         related_object_type=related_object_type,
     )
-    send_notification_email(
-        recipient=recipient,
-        subject=email_subject or title,
-        message=message,
-        title=title,
-    )
+    if recipient.email:
+        recipient_name = recipient.get_full_name() or recipient.username
+        send_email_task.delay(
+            recipient_email=recipient.email,
+            subject=email_subject or title,
+            message=message,
+            title=title,
+            recipient_name=recipient_name,
+        )

@@ -1,0 +1,18 @@
+=== RUNNING LOCALLY (Windows) ===
+
+1) Start Redis (required for both Channels WebSocket and Celery):
+   Using Docker:           docker run -d -p 6379:6379 redis:7-alpine
+   Or if installed:        redis-server
+
+2) Start Django server (with Channels ASGI support):
+   python manage.py runserver
+
+3) Start Celery worker (in a separate terminal, --pool=solo for Windows):
+   celery -A ojt_monitoring worker -l info --pool=solo
+
+
+=== RUNNING WITH DOCKER ===
+
+   docker-compose up
+
+   Starts all 4 services: db, redis, web (Django), and worker (Celery).
