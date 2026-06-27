@@ -207,16 +207,15 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         coordinator = request.user
 
         coordinator_course = coordinator.course
-        if not coordinator_course:
-            return Response([])
-
         students = User.objects.filter(
             role='student',
-            approval_status='approved',
-            student_profile__course=coordinator_course,
-            ojt_applications__program__coordinator=coordinator,
-            ojt_applications__status='approved'
-        ).select_related('student_profile').distinct().order_by('-created_at')
+            approval_status='approved'
+        )
+
+        if coordinator_course:
+            students = students.filter(student_profile__course=coordinator_course)
+
+        students = students.select_related('student_profile').distinct().order_by('-created_at')
 
         exclude_assigned = request.query_params.get('exclude_assigned') == 'true'
         if exclude_assigned:
