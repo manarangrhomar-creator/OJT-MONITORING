@@ -35,13 +35,19 @@ class StudentProfileSerializer(serializers.ModelSerializer):
 
 class StudentProgramSerializer(serializers.ModelSerializer):
     """Lightweight program view for students."""
-    coordinator_name = serializers.CharField(source='coordinator.get_full_name', read_only=True)
+    coordinator_name = serializers.SerializerMethodField()
     student_count = serializers.SerializerMethodField()
 
     class Meta:
         model = OJTProgram
         fields = ('id', 'name', 'description', 'start_date', 'end_date', 'status',
                   'coordinator_name', 'max_students', 'student_count', 'location')
+
+    def get_coordinator_name(self, obj):
+        if obj.coordinator:
+            name = obj.coordinator.get_full_name()
+            return name or obj.coordinator.username
+        return ''
 
     def get_student_count(self, obj):
         return obj.applications.filter(status='approved').count()
