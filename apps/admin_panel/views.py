@@ -7,7 +7,6 @@ from apps.core.models import User, Course
 from apps.core.tasks import send_email_task
 from apps.core.utils import broadcast_dashboard_update
 from apps.coordinator.models import Site, OJTProgram, OJTApplication
-from apps.student.models import StudentProfile
 from .models import SystemLog
 from .serializers import (AdminUserSerializer, CourseSerializer, SiteSerializer,
                           SystemLogSerializer, AdminProgramSerializer,

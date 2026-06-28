@@ -271,6 +271,14 @@
 
         const token = getAuthToken();
 
+        // Safely escape HTML to prevent XSS
+        function esc(str) {
+            if (str === null || str === undefined) return '';
+            var d = document.createElement('div');
+            d.appendChild(document.createTextNode(String(str)));
+            return d.innerHTML;
+        }
+
         // ===== MOBILE HAMBURGER MECHANICS =====
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const closeMobileMenuBtn = document.getElementById('closeMobileMenuBtn');
@@ -464,9 +472,9 @@
                     const status = r.time_out ? 'Completed' : 'Pending';
                     const statusClass = r.time_out ? 'text-emerald-600 bg-emerald-100' : 'text-amber-600 bg-amber-100';
                     html += `<tr class="border-b border-slate-100 text-xs">
-                        <td class="p-2 font-medium">${date}</td>
-                        <td class="p-2">${timeIn}</td>
-                        <td class="p-2">${timeOut}</td>
+                        <td class="p-2 font-medium">${esc(date)}</td>
+                        <td class="p-2">${esc(timeIn)}</td>
+                        <td class="p-2">${esc(timeOut)}</td>
                         <td class="p-2"><span class="px-2 py-0.5 rounded-full font-bold text-[9px] uppercase ${statusClass}">${status}</span></td>
                     </tr>`;
                 });
@@ -483,7 +491,7 @@
             const urls = [r.photo_1, r.photo_2, r.photo_3, r.photo_4].filter(u => u);
             if (urls.length === 0) return '';
             return '<div class="flex gap-1.5 mt-1.5 flex-wrap">' + urls.map(u =>
-                `<a href="${u}" target="_blank" class="block w-14 h-14 md:w-16 md:h-16 rounded-lg overflow-hidden border border-slate-200 shadow-sm hover:opacity-80 transition"><img src="${u}" class="w-full h-full object-cover"></a>`
+                `<a href="${esc(u)}" target="_blank" class="block w-14 h-14 md:w-16 md:h-16 rounded-lg overflow-hidden border border-slate-200 shadow-sm hover:opacity-80 transition"><img src="${esc(u)}" class="w-full h-full object-cover"></a>`
             ).join('') + '</div>';
         }
 
@@ -499,7 +507,7 @@
                 const slot = document.getElementById('archPhotoSlot' + i);
                 const url = photos[i - 1];
                 if (url) {
-                    slot.innerHTML = `<img src="${url}" class="w-full h-full object-cover rounded-xl"><input type="file" class="hidden" accept="image/*">`;
+                    slot.innerHTML = `<img src="${esc(url)}" class="w-full h-full object-cover rounded-xl"><input type="file" class="hidden" accept="image/*">`;
                 } else {
                     slot.innerHTML = `<i data-lucide="plus" class="text-amber-500"></i><input type="file" class="hidden" accept="image/*">`;
                 }
@@ -538,39 +546,39 @@
                     const p4 = r.photo_4 || '';
                     const isGraded = r.grade !== null && r.grade !== undefined;
                     const statusBadge = isGraded
-                        ? `<span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600 font-bold text-[9px] uppercase">Graded ${r.grade}/100</span>`
+                        ? `<span class="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-600 font-bold text-[9px] uppercase">Graded ${esc(r.grade)}/100</span>`
                         : `<span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-600 font-bold text-[9px] uppercase">Submitted</span>`;
                     const feedbackHtml = isGraded && r.feedback
-                        ? `<div onclick="openViewFeedback('${r.id}')" class="mt-2 pl-3 border-l-2 border-emerald-300 cursor-pointer hover:border-emerald-500 transition-colors">
+                        ? `<div onclick="openViewFeedback('${esc(r.id)}')" class="mt-2 pl-3 border-l-2 border-emerald-300 cursor-pointer hover:border-emerald-500 transition-colors">
                             <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Feedback</p>
-                            <p class="text-xs text-slate-600 mt-0.5 leading-relaxed">${r.feedback.length > 80 ? r.feedback.substring(0, 80) + '...' : r.feedback}</p>
+                            <p class="text-xs text-slate-600 mt-0.5 leading-relaxed">${r.feedback.length > 80 ? esc(r.feedback.substring(0, 80)) + '...' : esc(r.feedback)}</p>
                            </div>`
                         : '';
                     mobileHtml += `
                         <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3">
                             <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-                                <span class="text-[11px] font-bold text-slate-400">${dateStr}</span>
+                                <span class="text-[11px] font-bold text-slate-400">${esc(dateStr)}</span>
                                 ${statusBadge}
                             </div>
                             <div class="space-y-1">
                                 <p class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Topic Header</p>
-                                <p class="text-xs font-mono font-bold text-slate-700">${r.topic}</p>
+                                <p class="text-xs font-mono font-bold text-slate-700">${esc(r.topic)}</p>
                                 ${feedbackHtml}
                                 ${photoGallery(r)}
                             </div>
                             ${isGraded
-                                ? `<button type="button" onclick="openViewNarrative('${r.id}')" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-2 font-bold text-[10px] rounded-lg transition shadow-sm flex items-center justify-center gap-1">
+                                ? `<button type="button" onclick="openViewNarrative('${esc(r.id)}')" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white py-2 font-bold text-[10px] rounded-lg transition shadow-sm flex items-center justify-center gap-1">
                                     <i data-lucide="eye"></i> View Report
                                 </button>`
-                                : `<button type="button" onclick='openArchiveEdit("${r.id}","${r.log_date}","${r.topic.replace(/"/g, '\\"')}","${r.content.replace(/"/g, '\\"')}","${p1}","${p2}","${p3}","${p4}")' class="w-full bg-amber-500 hover:bg-amber-600 text-white py-2 font-bold text-[10px] rounded-lg transition shadow-sm flex items-center justify-center gap-1">
+                                : `<button type="button" onclick='openArchiveEdit("${esc(r.id)}","${esc(r.log_date)}","${esc(r.topic)}","${esc(r.content)}","${esc(p1)}","${esc(p2)}","${esc(p3)}","${esc(p4)}")' class="w-full bg-amber-500 hover:bg-amber-600 text-white py-2 font-bold text-[10px] rounded-lg transition shadow-sm flex items-center justify-center gap-1">
                                     <i data-lucide="pencil"></i> Open & Edit
                                 </button>`}
                         </div>`;
                     desktopHtml += `
                         <tr class="border-b border-slate-100 hover:bg-slate-50">
-                            <td class="p-4 font-bold text-slate-800">${dateStr}</td>
+                            <td class="p-4 font-bold text-slate-800">${esc(dateStr)}</td>
                             <td class="p-4 font-mono text-slate-500">
-                                ${r.topic}
+                                ${esc(r.topic)}
                                 ${photoGallery(r)}
                             </td>
                             <td class="p-4 text-center">
@@ -578,10 +586,10 @@
                             </td>
                             <td class="p-4 text-center">
                                 ${isGraded
-                                    ? `<button type="button" onclick="openViewNarrative('${r.id}')" class="text-emerald-600 hover:text-emerald-800 p-1.5 inline-flex items-center justify-center rounded-md hover:bg-emerald-50 transition-colors" title="View Report">
+                                    ? `<button type="button" onclick="openViewNarrative('${esc(r.id)}')" class="text-emerald-600 hover:text-emerald-800 p-1.5 inline-flex items-center justify-center rounded-md hover:bg-emerald-50 transition-colors" title="View Report">
                                         <i data-lucide="eye" class="w-4 h-4"></i>
                                        </button>`
-                                    : `<button type="button" onclick='openArchiveEdit("${r.id}","${r.log_date}","${r.topic.replace(/"/g, '\\"')}","${r.content.replace(/"/g, '\\"')}","${p1}","${p2}","${p3}","${p4}")' class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-1.5 font-bold text-[10px] rounded-lg transition shadow-sm inline-flex items-center gap-1">
+                                    : `<button type="button" onclick='openArchiveEdit("${esc(r.id)}","${esc(r.log_date)}","${esc(r.topic)}","${esc(r.content)}","${esc(p1)}","${esc(p2)}","${esc(p3)}","${esc(p4)}")' class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-1.5 font-bold text-[10px] rounded-lg transition shadow-sm inline-flex items-center gap-1">
                                         <i data-lucide="pencil"></i> Open & Edit
                                     </button>`}
                             </td>
@@ -628,12 +636,12 @@
                 return `
                     <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm hover:shadow-md transition-all hover:border-emerald-300 flex flex-col">
                         <div class="flex-1">
-                            <h4 class="font-black text-sm text-slate-800 mb-1">${p.name}</h4>
-                            <p class="text-[10px] text-slate-400 leading-relaxed mb-3 line-clamp-3">${p.description || 'No description provided.'}</p>
+                            <h4 class="font-black text-sm text-slate-800 mb-1">${esc(p.name)}</h4>
+                            <p class="text-[10px] text-slate-400 leading-relaxed mb-3 line-clamp-3">${esc(p.description) || 'No description provided.'}</p>
                             <div class="space-y-1.5 text-[10px] text-slate-500">
                                 <div class="flex items-center gap-1.5">
                                     <i data-lucide="user" class="w-3 h-3"></i>
-                                    <span>Coordinator: <strong>${p.coordinator_name}</strong></span>
+                                    <span>Coordinator: <strong>${esc(p.coordinator_name)}</strong></span>
                                 </div>
                                 <div class="flex items-center gap-1.5">
                                     <i data-lucide="users" class="w-3 h-3"></i>
@@ -641,7 +649,7 @@
                                 </div>
                             </div>
                         </div>
-                        <button type="button" onclick='openApplyModal("${p.id}", "${p.name.replace(/"/g, '&quot;')}")' class="mt-4 w-full bg-[#11693A] hover:bg-[#0e5630] text-white font-bold text-[10px] py-2.5 rounded-xl uppercase tracking-wider transition shadow-sm flex items-center justify-center gap-1.5">
+                        <button type="button" onclick='openApplyModal("${esc(p.id)}", "${esc(p.name)}")' class="mt-4 w-full bg-[#11693A] hover:bg-[#0e5630] text-white font-bold text-[10px] py-2.5 rounded-xl uppercase tracking-wider transition shadow-sm flex items-center justify-center gap-1.5">
                             <i data-lucide="file-plus"></i> Apply Now
                         </button>
                     </div>
@@ -846,12 +854,12 @@
                     <div class="p-3 border-b border-slate-50 hover:bg-slate-50 transition ${n.is_read ? '' : 'bg-blue-50/50'}">
                         <div class="flex justify-between items-start gap-2">
                             <div class="flex-1 min-w-0">
-                                <p class="font-bold text-slate-700 text-xs">${n.title}</p>
-                                <p class="text-[11px] text-slate-500 mt-0.5">${n.message}</p>
-                                <p class="text-[10px] text-slate-400 mt-1">${time}</p>
+                                <p class="font-bold text-slate-700 text-xs">${esc(n.title)}</p>
+                                <p class="text-[11px] text-slate-500 mt-0.5">${esc(n.message)}</p>
+                                <p class="text-[10px] text-slate-400 mt-1">${esc(time)}</p>
                             </div>
                             ${!n.is_read ? `
-                                <button onclick="markNotifRead('${n.id}')" class="shrink-0 bg-[#11693A] text-white text-[9px] font-bold px-2 py-1 rounded hover:bg-[#0e5630] transition">
+                                <button onclick="markNotifRead('${esc(n.id)}')" class="shrink-0 bg-[#11693A] text-white text-[9px] font-bold px-2 py-1 rounded hover:bg-[#0e5630] transition">
                                     Read
                                 </button>
                             ` : ''}
@@ -915,7 +923,7 @@
         const gradeRow = document.getElementById('vnGradeRow');
         if (isGraded) {
             gradeRow.style.display = '';
-            document.getElementById('vnViewGrade').innerHTML = `<span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">${r.grade}/100</span>`;
+            document.getElementById('vnViewGrade').innerHTML = `<span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">${esc(r.grade)}/100</span>`;
         } else {
             gradeRow.style.display = 'none';
         }
@@ -935,7 +943,7 @@
             if (r[key]) {
                 hasPhotos = true;
                 const img = document.createElement('img');
-                img.src = r[key];
+                img.src = esc(r[key]);
                 img.className = 'w-24 h-24 object-cover rounded-lg border border-slate-200';
                 photosGrid.appendChild(img);
             }

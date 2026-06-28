@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from apps.core.models import User
 from apps.coordinator.models import OJTProgram, OJTApplication
 from .models import StudentProfile, FacialRecognition, StudentNarrativeReport
 

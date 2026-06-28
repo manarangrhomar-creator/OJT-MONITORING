@@ -650,6 +650,14 @@
     <script>
         let hasPrograms = false;
 
+        // Safely escape HTML to prevent XSS
+        function esc(str) {
+            if (str === null || str === undefined) return '';
+            var d = document.createElement('div');
+            d.appendChild(document.createTextNode(String(str)));
+            return d.innerHTML;
+        }
+
         // MOBILE MENU MECHANICS
         const mobileMenuBtn = document.getElementById('mobileMenuBtn');
         const closeMobileMenuBtn = document.getElementById('closeMobileMenuBtn');
@@ -905,12 +913,12 @@
                 row.id = `program-row-${program.id}`;
                 row.className = 'border-b border-slate-100 hover:bg-slate-50 transition-colors';
                 row.innerHTML = `
-                    <td class="p-4 font-bold text-slate-900">${program.name}</td>
-                    <td class="p-4 text-slate-600">${program.description || '<span class="text-slate-400">—</span>'}</td>
-                    <td class="p-4 text-slate-700 font-semibold">${program.max_students}</td>
-                    <td class="p-4 text-slate-700 font-semibold">${program.student_count || 0}</td>
+                    <td class="p-4 font-bold text-slate-900">${esc(program.name)}</td>
+                    <td class="p-4 text-slate-600">${program.description ? esc(program.description) : '<span class="text-slate-400">—</span>'}</td>
+                    <td class="p-4 text-slate-700 font-semibold">${esc(program.max_students)}</td>
+                    <td class="p-4 text-slate-700 font-semibold">${esc(program.student_count || 0)}</td>
                     <td class="p-4">
-                        <span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold capitalize">${program.status}</span>
+                        <span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold capitalize">${esc(program.status)}</span>
                     </td>
                     <td class="p-4 text-center">
                         <button class="text-blue-500 hover:text-blue-700 p-2" title="Edit" onclick='openEditProgramModal("${program.id}")'>
@@ -1034,9 +1042,9 @@
                 const row = document.createElement('tr');
                 row.className = 'border-b border-slate-100 hover:bg-slate-50 transition-colors';
                 row.innerHTML = `
-                    <td class="p-4 font-bold text-slate-900">${student.name}</td>
-                    <td class="p-4 text-slate-600">${student.email}</td>
-                    <td class="p-4 text-slate-600">${student.username}</td>
+                    <td class="p-4 font-bold text-slate-900">${esc(student.name)}</td>
+                    <td class="p-4 text-slate-600">${esc(student.email)}</td>
+                    <td class="p-4 text-slate-600">${esc(student.username)}</td>
                     <td class="p-4">
                         <span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold capitalize">${statusText}</span>
                     </td>
@@ -1068,11 +1076,11 @@
             if (!student) return;
             const details = document.getElementById('viewAccountDetails');
             details.innerHTML = `
-                <div class="detail-row"><span class="detail-label">Name:</span><span class="detail-value">${student.name}</span></div>
-                <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">${student.email}</span></div>
-                <div class="detail-row"><span class="detail-label">Username:</span><span class="detail-value">${student.username}</span></div>
+                <div class="detail-row"><span class="detail-label">Name:</span><span class="detail-value">${esc(student.name)}</span></div>
+                <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">${esc(student.email)}</span></div>
+                <div class="detail-row"><span class="detail-label">Username:</span><span class="detail-value">${esc(student.username)}</span></div>
                 <div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value">${student.is_active ? 'Active' : 'Inactive'}</span></div>
-                <div class="detail-row"><span class="detail-label">Created:</span><span class="detail-value">${student.created_at ? new Date(student.created_at).toLocaleDateString() : 'N/A'}</span></div>
+                <div class="detail-row"><span class="detail-label">Created:</span><span class="detail-value">${student.created_at ? esc(new Date(student.created_at).toLocaleDateString()) : 'N/A'}</span></div>
             `;
             openModal('viewAccountModal');
         }
@@ -1118,10 +1126,10 @@
                 const row = document.createElement('tr');
                 row.className = 'border-b border-slate-100 hover:bg-slate-50 transition-colors';
                 row.innerHTML = `
-                    <td class="p-4 font-bold text-slate-900">${app.student_name}</td>
-                    <td class="p-4 text-slate-600">${app.program_name}</td>
-                    <td class="p-4">${app.application_letter ? `<a href="${app.application_letter}" target="_blank" class="text-blue-600 hover:underline text-xs">View Letter</a>` : '—'}</td>
-                    <td class="p-4 text-slate-600">${dateApplied}</td>
+                    <td class="p-4 font-bold text-slate-900">${esc(app.student_name)}</td>
+                    <td class="p-4 text-slate-600">${esc(app.program_name)}</td>
+                    <td class="p-4">${app.application_letter ? `<a href="${esc(app.application_letter)}" target="_blank" class="text-blue-600 hover:underline text-xs">View Letter</a>` : '—'}</td>
+                    <td class="p-4 text-slate-600">${esc(dateApplied)}</td>
                     <td class="p-4"><span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold capitalize">${statusText}</span></td>
                     <td class="p-4 text-center">
                         ${app.status === 'pending' ? `
@@ -1291,13 +1299,13 @@
                 const row = document.createElement('tr');
                 row.className = 'border-b border-slate-100 hover:bg-slate-50 transition-colors';
                 row.innerHTML = `
-                    <td class="p-4 font-bold text-slate-900">${n.student_name}</td>
-                    <td class="p-4 text-slate-600">${n.topic}</td>
-                    <td class="p-4 text-slate-600">${n.program_name || '—'}</td>
-                    <td class="p-4 text-slate-600">${new Date(n.log_date).toLocaleDateString()}</td>
+                    <td class="p-4 font-bold text-slate-900">${esc(n.student_name)}</td>
+                    <td class="p-4 text-slate-600">${esc(n.topic)}</td>
+                    <td class="p-4 text-slate-600">${n.program_name ? esc(n.program_name) : '—'}</td>
+                    <td class="p-4 text-slate-600">${esc(new Date(n.log_date).toLocaleDateString())}</td>
                     <td class="p-4">${
                         isGraded
-                            ? `<span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">${n.grade}/100</span>`
+                            ? `<span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">${esc(n.grade)}/100</span>`
                             : `<span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold">Pending</span>`
                     }</td>
                     <td class="p-4 text-center whitespace-nowrap">
@@ -1445,13 +1453,13 @@
                     const row = document.createElement('tr');
                     row.className = 'border-b border-slate-100 hover:bg-slate-50 transition-colors';
                     row.innerHTML = `
-                        <td class="p-4 font-bold text-slate-900">${r.student_name}</td>
-                        <td class="p-4 text-slate-600">${r.program_name}</td>
-                        <td class="p-4 text-slate-600">${new Date(r.date).toLocaleDateString()}</td>
-                        <td class="p-4 font-bold text-slate-700">${r.time_in}</td>
-                        <td class="p-4 font-bold text-slate-700">${r.time_out}</td>
+                        <td class="p-4 font-bold text-slate-900">${esc(r.student_name)}</td>
+                        <td class="p-4 text-slate-600">${esc(r.program_name)}</td>
+                        <td class="p-4 text-slate-600">${esc(new Date(r.date).toLocaleDateString())}</td>
+                        <td class="p-4 font-bold text-slate-700">${esc(r.time_in)}</td>
+                        <td class="p-4 font-bold text-slate-700">${esc(r.time_out)}</td>
                         <td class="p-4">
-                            <span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold capitalize">${r.status}</span>
+                            <span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold capitalize">${esc(r.status)}</span>
                         </td>
                         <td class="p-4 text-center">${faceIcon}</td>
                     `;
@@ -1536,11 +1544,11 @@
                 const row = document.createElement('tr');
                 row.className = 'border-b border-slate-100 hover:bg-slate-50 transition-colors';
                 row.innerHTML = `
-                    <td class="p-4 font-bold text-slate-900">${s.student_name}</td>
-                    <td class="p-4 text-slate-600">${s.program_name}</td>
-                    <td class="p-4 text-slate-600">${s.site_location}</td>
-                    <td class="p-4">${s.supervisor_name || '<span class="text-slate-400">—</span>'}</td>
-                    <td class="p-4 text-slate-600">${new Date(s.assigned_date).toLocaleDateString()}</td>
+                    <td class="p-4 font-bold text-slate-900">${esc(s.student_name)}</td>
+                    <td class="p-4 text-slate-600">${esc(s.program_name)}</td>
+                    <td class="p-4 text-slate-600">${esc(s.site_location)}</td>
+                    <td class="p-4">${s.supervisor_name ? esc(s.supervisor_name) : '<span class="text-slate-400">—</span>'}</td>
+                    <td class="p-4 text-slate-600">${esc(new Date(s.assigned_date).toLocaleDateString())}</td>
                     <td class="p-4 text-center">
                         <button class="text-blue-500 hover:text-blue-700 p-2" title="Edit" onclick='openEditSiteModal("${s.id}")'>
                             <i data-lucide="pencil" class="text-lg"></i>
@@ -1899,9 +1907,9 @@
                         <div class="p-3 border-b border-slate-50 hover:bg-slate-50 transition ${n.is_read ? '' : 'bg-blue-50/50'}">
                             <div class="flex justify-between items-start gap-2">
                                 <div class="flex-1 min-w-0">
-                                    <p class="font-bold text-slate-700 text-xs">${n.title}</p>
-                                    <p class="text-[11px] text-slate-500 mt-0.5">${n.message}</p>
-                                    <p class="text-[10px] text-slate-400 mt-1">${time}</p>
+                                    <p class="font-bold text-slate-700 text-xs">${esc(n.title)}</p>
+                                    <p class="text-[11px] text-slate-500 mt-0.5">${esc(n.message)}</p>
+                                    <p class="text-[10px] text-slate-400 mt-1">${esc(time)}</p>
                                 </div>
                                 ${!n.is_read ? `
                                     <button onclick="markNotifRead('${n.id}')" class="shrink-0 bg-[#11693A] text-white text-[9px] font-bold px-2 py-1 rounded hover:bg-[#0e5630] transition">

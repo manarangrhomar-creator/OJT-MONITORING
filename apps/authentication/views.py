@@ -9,7 +9,6 @@ from django.core.mail import send_mail
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
-from django.views.decorators.http import require_http_methods
 from apps.core.models import User, Course
 from apps.student.models import StudentProfile
 from apps.core.utils import create_notification, broadcast_dashboard_update
