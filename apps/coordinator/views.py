@@ -7,7 +7,6 @@ from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from apps.core.models import User
 from apps.core.utils import create_and_send_notification, create_notification
-from apps.core.tasks import send_email_task
 from apps.student.models import StudentNarrativeReport
 from apps.student.serializers import StudentNarrativeReportSerializer
 from .models import OJTProgram, OJTApplication, Attendance, SiteAssignment, Site
@@ -386,73 +385,6 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
 
         serializer = StudentNarrativeReportSerializer(narrative)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-    @action(detail=False, methods=['get'], url_path='pending-student-approvals')
-    def pending_student_approvals(self, request):
-        """Get students pending approval, filtered by coordinator's course."""
-        coordinator = request.user
-
-        coordinator_course = coordinator.course
-        if not coordinator_course:
-            return Response([])
-
-        students = User.objects.filter(
-            role='student',
-            approval_status='pending',
-            student_profile__course=coordinator_course
-        ).select_related('student_profile').order_by('-created_at')
-
-        data = []
-        for s in students:
-            course = ''
-            try:
-                course = s.student_profile.course.name
-            except:
-                pass
-            data.append({
-                'id': s.id,
-                'name': s.get_full_name(),
-                'email': s.email,
-                'username': s.username,
-                'course': course,
-                'registration_date': s.created_at,
-            })
-        return Response(data)
-
-    @action(detail=False, methods=['post'], url_path='approve-student-account')
-    def approve_student_account(self, request):
-        """Approve a student account."""
-        student_id = request.data.get('student_id')
-        if not student_id:
-            return Response({'error': 'student_id is required'}, status=status.HTTP_400_BAD_REQUEST)
-        student = get_object_or_404(User, id=student_id, role='student')
-        student.approval_status = 'approved'
-        student.save(update_fields=['approval_status'])
-        send_email_task.delay(
-            recipient_email=student.email,
-            subject='OJT Student Account Approved',
-            message='Your OJT student account has been approved. You can now log in.',
-            title='Account Approved',
-            recipient_name=student.get_full_name() or student.username,
-        )
-        return Response({'message': 'Student account approved successfully'})
-
-    @action(detail=False, methods=['post'], url_path='reject-student-account')
-    def reject_student_account(self, request):
-        """Reject a student account."""
-        student_id = request.data.get('student_id')
-        if not student_id:
-            return Response({'error': 'student_id is required'}, status=status.HTTP_400_BAD_REQUEST)
-        student = get_object_or_404(User, id=student_id, role='student')
-        student.approval_status = 'rejected'
-        student.save(update_fields=['approval_status'])
-        send_email_task.delay(
-            recipient_email=student.email,
-            subject='OJT Student Account Rejected',
-            message='Your OJT student account has been rejected. Please contact your coordinator for further information.',
-            recipient_name=student.get_full_name() or student.username,
-        )
-        return Response({'message': 'Student account rejected'})
 
     @action(detail=False, methods=['get'], url_path='available-sites')
     def available_sites(self, request):

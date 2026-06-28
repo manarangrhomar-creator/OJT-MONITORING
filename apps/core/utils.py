@@ -116,6 +116,21 @@ def send_notification_email(recipient, subject, message, title='', site_url=None
     email.send(fail_silently=True)
 
 
+def broadcast_dashboard_update(section=''):
+    """Broadcast a dashboard refresh event to all connected dashboards."""
+    try:
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            'dashboard_updates',
+            {
+                'type': 'dashboard_refresh',
+                'section': section,
+            }
+        )
+    except Exception:
+        pass
+
+
 def create_and_send_notification(recipient, title, message, type='general',
                                  related_object=None, related_object_type='',
                                  email_subject=None):

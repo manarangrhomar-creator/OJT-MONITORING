@@ -12,5 +12,7 @@ router.register(r"programs", AdminProgramViewSet, basename="admin-programs")
 
 urlpatterns = [
     path("dashboard/coordinators/<uuid:pk>/set-coordinator-approval/", AdminDashboardViewSet.as_view({"post": "set_coordinator_approval"}), name="set-coordinator-approval"),
+    path("dashboard/students/<uuid:pk>/approve/", AdminDashboardViewSet.as_view({"post": "approve_student"}), name="approve-student"),
+    path("dashboard/students/<uuid:pk>/reject/", AdminDashboardViewSet.as_view({"post": "reject_student"}), name="reject-student"),
     path("", include(router.urls)),
 ]

@@ -4,7 +4,9 @@ from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
 from apps.core.models import User, Course
 from apps.core.tasks import send_email_task
+from apps.core.utils import broadcast_dashboard_update
 from apps.coordinator.models import Site, OJTProgram, OJTApplication
+from apps.student.models import StudentProfile
 from .models import SystemLog
 from .serializers import (AdminUserSerializer, CourseSerializer, SiteSerializer,
                           SystemLogSerializer, AdminProgramSerializer,
@@ -39,7 +41,7 @@ class AdminDashboardViewSet(viewsets.ViewSet):
     @action(detail=False, methods=["get"])
     def students(self, request):
         """Get all OJT student accounts."""
-        students = User.objects.filter(role="student").exclude(approval_status="pending").order_by("-created_at")
+        students = User.objects.filter(role="student").order_by("-created_at")
         serializer = AdminUserSerializer(students, many=True)
         return Response(serializer.data)
     
@@ -91,11 +93,72 @@ class AdminDashboardViewSet(viewsets.ViewSet):
                 recipient_name=coordinator_name,
             )
             coordinator.delete()
+            broadcast_dashboard_update(section='coordinators')
             return Response({"message": "Coordinator rejected and deleted permanently"})
+
+        broadcast_dashboard_update(section='coordinators')
 
         serializer = AdminUserSerializer(coordinator)
         return Response(serializer.data)
     
+    @action(detail=False, methods=["get"], url_path="student-approvals")
+    def student_approvals(self, request):
+        """Get all pending student accounts for approval."""
+        students = User.objects.filter(role="student", approval_status="pending").order_by("-created_at")
+        serializer = AdminUserSerializer(students, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=["post"], url_path="approve-student")
+    def approve_student(self, request, pk=None):
+        """Approve a student account."""
+        student = get_object_or_404(User, id=pk, role="student")
+        student.approval_status = "approved"
+        student.save(update_fields=["approval_status"])
+
+        SystemLog.objects.create(
+            activity_type="approval_made",
+            description=f"Student {student.username} account approved",
+            admin_user=request.user,
+        )
+
+        student_name = student.get_full_name() or student.username
+        send_email_task.delay(
+            recipient_email=student.email,
+            subject="OJT Student Account Approved",
+            message="Your OJT student account has been approved. You can now log in and apply for programs.",
+            title="Account Approved",
+            recipient_name=student_name,
+        )
+        broadcast_dashboard_update(section="students")
+
+        serializer = AdminUserSerializer(student)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=["post"], url_path="reject-student")
+    def reject_student(self, request, pk=None):
+        """Reject a student account."""
+        student = get_object_or_404(User, id=pk, role="student")
+        student.approval_status = "rejected"
+        student.save(update_fields=["approval_status"])
+
+        SystemLog.objects.create(
+            activity_type="approval_made",
+            description=f"Student {student.username} account rejected",
+            admin_user=request.user,
+        )
+
+        student_name = student.get_full_name() or student.username
+        send_email_task.delay(
+            recipient_email=student.email,
+            subject="OJT Student Account Rejected",
+            message="Your OJT student account has been rejected. Please contact the administrator for further information.",
+            recipient_name=student_name,
+        )
+        broadcast_dashboard_update(section="students")
+
+        serializer = AdminUserSerializer(student)
+        return Response(serializer.data)
+
     @action(detail=False, methods=["get"])
     def system_logs(self, request):
         """Get system logs."""

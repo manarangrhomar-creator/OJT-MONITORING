@@ -78,11 +78,11 @@
         </div>
 
         <div class="w-full space-y-2 px-2">
-            <button id="btn-students" class="w-full h-12 bg-white rounded-xl flex items-center gap-3 px-5 text-[#11693A] font-bold text-sm shadow-sm transition-all" onclick="switchSection('students')">
-                <i data-lucide="users" class="text-base"></i> Student Approval
+            <button id="btn-accounts" class="w-full h-12 bg-white rounded-xl flex items-center gap-3 px-5 text-[#11693A] font-bold text-sm shadow-sm transition-all" onclick="switchSection('accounts')">
+                <i data-lucide="users" class="text-base"></i> My Students
             </button>
-            <button id="btn-accounts" class="w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center gap-3 px-5 text-emerald-100 font-medium text-sm transition-all" onclick="switchSection('accounts')">
-                <i data-lucide="contact" class="text-base"></i> Student Accounts
+            <button id="btn-applications" class="w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center gap-3 px-5 text-emerald-100 font-medium text-sm transition-all" onclick="switchSection('applications')">
+                <i data-lucide="clipboard-list" class="text-base"></i> Applications
             </button>
             <button id="btn-reports" class="w-full h-12 bg-transparent hover:bg-white/10 rounded-xl flex items-center gap-3 px-5 text-emerald-100 font-medium text-sm transition-all" onclick="switchSection('reports')">
                 <i data-lucide="file-text" class="text-base"></i> Student Reports
@@ -130,7 +130,7 @@
         <div class="w-full flex flex-col sm:flex-row justify-between items-start sm:items-center pl-4 pr-6 pt-4 md:pl-6 md:pr-8 md:pt-6 pb-4 gap-3 shrink-0">
             <div>
                 <h1 class="text-2xl md:text-4xl isu-header-font tracking-tight">OJT Coordinator</h1>
-                <p id="pageSubtitle" class="text-[11px] md:text-xs text-slate-500 font-bold mt-0.5 uppercase tracking-wider">Student Approval</p>
+                <p id="pageSubtitle" class="text-[11px] md:text-xs text-slate-500 font-bold mt-0.5 uppercase tracking-wider">My Students</p>
             </div>
             <div class="flex items-center gap-2 self-end sm:self-auto">
                 <div class="relative">
@@ -188,43 +188,8 @@
                 </div>
             </div>
 
-            <!-- STUDENT SECTION -->
-            <div id="studentsSection" class="section-container flex flex-col h-full">
-                <div class="flex-1 flex flex-col px-4 py-6 md:px-8 md:py-8 gap-6">
-                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
-                        <div class="relative w-full sm:w-72">
-                            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style="width:14px;height:14px;"></i>
-                            <input type="text" id="studentSearchInput" placeholder="Search student by name or email..." class="border-2 border-slate-200 rounded-lg pl-9 pr-4 py-2 w-full text-sm focus:outline-none focus:border-[#11693A] bg-white">
-                        </div>
-
-                    </div>
-
-                    <div class="overflow-x-auto rounded-xl border border-slate-100 shadow-inner bg-white">
-                        <table class="w-full text-left border-collapse min-w-[750px]">
-                            <colgroup>
-                                <col class="w-[28%]">
-                                <col class="w-[28%]">
-                                <col class="w-[20%]">
-                                <col class="w-[14%]">
-                                <col class="w-[10%]">
-                            </colgroup>
-                            <thead class="text-[10px] font-bold text-[#11693A] uppercase border-b border-emerald-100 bg-emerald-50">
-                                <tr>
-                                    <th class="p-4">Name</th>
-                                    <th class="p-4">Email</th>
-                                    <th class="p-4">Course</th>
-                                    <th class="p-4">Status</th>
-                                    <th class="p-4 text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-xs font-medium text-slate-600 divide-y divide-slate-100 bg-white" id="studentTableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
             <!-- STUDENT ACCOUNTS SECTION -->
-            <div id="accountsSection" class="section-container hidden flex flex-col h-full">
+            <div id="accountsSection" class="section-container flex flex-col h-full">
                 <div class="flex-1 flex flex-col px-4 py-6 md:px-8 md:py-8 gap-6">
                     <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
                         <div class="relative w-full sm:w-72">
@@ -253,6 +218,48 @@
                                 </tr>
                             </thead>
                             <tbody class="text-xs font-medium text-slate-600 divide-y divide-slate-100 bg-white" id="accountTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- APPLICATIONS SECTION -->
+            <div id="applicationsSection" class="section-container hidden flex flex-col h-full">
+                <div class="flex-1 flex flex-col px-4 py-6 md:px-8 md:py-8 gap-6">
+                    <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-3">
+                        <div class="relative w-full sm:w-72">
+                            <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" style="width:14px;height:14px;"></i>
+                            <input type="text" id="applicationSearchInput" placeholder="Search by student name or program..." class="border-2 border-slate-200 rounded-lg pl-9 pr-4 py-2 w-full text-sm focus:outline-none focus:border-[#11693A] bg-white">
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-sm" onclick="filterApplicationsByStatus('pending')">Pending</button>
+                            <button class="bg-emerald-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-emerald-700 transition-all shadow-sm" onclick="filterApplicationsByStatus('approved')">Approved</button>
+                            <button class="bg-red-600 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-red-700 transition-all shadow-sm" onclick="filterApplicationsByStatus('rejected')">Rejected</button>
+                            <button class="bg-slate-500 text-white px-4 py-2 rounded-lg text-xs font-bold hover:bg-slate-600 transition-all shadow-sm" onclick="filterApplicationsByStatus('all')">All</button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto rounded-xl border border-slate-100 shadow-inner bg-white">
+                        <table class="w-full text-left border-collapse min-w-[850px]">
+                            <colgroup>
+                                <col class="w-[18%]">
+                                <col class="w-[18%]">
+                                <col class="w-[20%]">
+                                <col class="w-[12%]">
+                                <col class="w-[12%]">
+                                <col class="w-[20%]">
+                            </colgroup>
+                            <thead class="text-[10px] font-bold text-[#11693A] uppercase border-b border-emerald-100 bg-emerald-50">
+                                <tr>
+                                    <th class="p-4">Student</th>
+                                    <th class="p-4">Program</th>
+                                    <th class="p-4">Application Letter</th>
+                                    <th class="p-4">Date Applied</th>
+                                    <th class="p-4">Status</th>
+                                    <th class="p-4 text-center">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-xs font-medium text-slate-600 divide-y divide-slate-100 bg-white" id="applicationTableBody"></tbody>
                         </table>
                     </div>
                 </div>
@@ -438,45 +445,6 @@
     </div>
 
     <!-- MODALS -->
-    <div id="approveStudentModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Approve Student</h2>
-                <button class="close-btn" onclick="closeModal('approveStudentModal')">&times;</button>
-            </div>
-            <p style="color: #666; margin-bottom: 20px; font-size: 16px;">
-                Approve <strong id="approveName"></strong>'s account?
-            </p>
-            <input type="hidden" id="approveStudentId" value="">
-            <div class="modal-buttons">
-                <button class="btn-cancel" onclick="closeModal('approveStudentModal')">Cancel</button>
-                <button id="confirmApproveBtn" class="btn-approve" onclick="confirmApproveStudent()">Approve</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="rejectStudentModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Reject Student</h2>
-                <button class="close-btn" onclick="closeModal('rejectStudentModal')">&times;</button>
-            </div>
-            <p style="color: #666; margin-bottom: 20px; font-size: 16px;">
-                Reject <strong id="rejectName"></strong>'s account?
-            </p>
-            <input type="hidden" id="rejectStudentId" value="">
-            <div class="form-group">
-                <label>Reason for Rejection</label>
-                <textarea id="rejectionReason" rows="3" placeholder="Enter reason..."></textarea>
-            </div>
-            <div class="modal-buttons">
-                <button class="btn-cancel" onclick="closeModal('rejectStudentModal')">Cancel</button>
-                <button id="confirmRejectBtn" class="btn-reject" onclick="confirmRejectStudent()">Reject</button>
-            </div>
-        </div>
-    </div>
-
-
     <div id="viewStudentReportModal" class="modal">
         <div class="modal-content" style="max-width: 600px;">
             <div class="modal-header">
@@ -553,6 +521,46 @@
             <div id="viewAccountDetails"></div>
             <div class="modal-buttons">
                 <button class="btn-cancel" onclick="closeModal('viewAccountModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Approve Modal -->
+    <div id="approveAppModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Approve Application</h2>
+                <button class="close-btn" onclick="closeModal('approveAppModal')">&times;</button>
+            </div>
+            <p style="color: #666; margin-bottom: 20px; font-size: 16px;">
+                Approve application from <strong id="approveAppStudent"></strong> for <strong id="approveAppProgram"></strong>?
+            </p>
+            <input type="hidden" id="approveAppId" value="">
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal('approveAppModal')">Cancel</button>
+                <button id="confirmApproveAppBtn" class="btn-approve" onclick="confirmApproveApplication()">Approve</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Reject Modal -->
+    <div id="rejectAppModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Reject Application</h2>
+                <button class="close-btn" onclick="closeModal('rejectAppModal')">&times;</button>
+            </div>
+            <p style="color: #666; margin-bottom: 20px; font-size: 16px;">
+                Reject application from <strong id="rejectAppStudent"></strong> for <strong id="rejectAppProgram"></strong>?
+            </p>
+            <input type="hidden" id="rejectAppId" value="">
+            <div class="form-group">
+                <label>Reason for Rejection</label>
+                <textarea id="rejectAppReason" rows="3" placeholder="Enter reason..."></textarea>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal('rejectAppModal')">Cancel</button>
+                <button id="confirmRejectAppBtn" class="btn-reject" onclick="confirmRejectApplication()">Reject</button>
             </div>
         </div>
     </div>
@@ -774,10 +782,9 @@
                 closeModal('createProgramModal');
                 document.getElementById('noProgramOverlay').classList.add('hidden');
                 hasPrograms = true;
-                loadStudents();
                 loadStudentAccounts();
                 loadProgramsForFilter();
-                switchSection('students');
+                switchSection('accounts');
             } catch (error) {
                 console.error('Error creating program:', error);
                 showAlert('An error occurred while creating the program');
@@ -808,7 +815,7 @@
                 btn.classList.add('bg-transparent', 'text-emerald-100');
                 btn.classList.remove('bg-white', 'text-[#11693A]');
             };
-            ['btn-programs', 'btn-students', 'btn-accounts', 'btn-reports', 'btn-attendance', 'btn-sites'].forEach(resetBtnStyle);
+            ['btn-programs', 'btn-accounts', 'btn-applications', 'btn-reports', 'btn-attendance', 'btn-sites'].forEach(resetBtnStyle);
 
             const activateBtn = (btnId) => {
                 const btn = document.getElementById(btnId);
@@ -820,13 +827,13 @@
                 document.getElementById('pageSubtitle').textContent = 'OJT Programs';
                 activateBtn('btn-programs');
                 loadPrograms();
-            } else if (section === 'students') {
-                document.getElementById('pageSubtitle').textContent = 'Student Approval';
-                activateBtn('btn-students');
-                loadStudents();
             } else if (section === 'accounts') {
-                document.getElementById('pageSubtitle').textContent = 'Student Accounts';
+                document.getElementById('pageSubtitle').textContent = 'My Students';
                 activateBtn('btn-accounts');
+            } else if (section === 'applications') {
+                document.getElementById('pageSubtitle').textContent = 'Applications';
+                activateBtn('btn-applications');
+                loadApplications();
             } else if (section === 'reports') {
                 document.getElementById('pageSubtitle').textContent = 'Student Reports';
                 activateBtn('btn-reports');
@@ -982,179 +989,6 @@
             }
         }
 
-        // ===== STUDENT ACCOUNT APPROVAL FUNCTIONS =====
-        let pendingStudentList = [];
-        let currentApproveStudentId = null;
-        let currentRejectStudentId = null;
-
-        async function loadStudents() {
-            const tbody = document.getElementById('studentTableBody');
-            tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-slate-400"><i data-lucide="loader-circle" class="animate-spin"></i> Loading...</td></tr>';
-            lucide.createIcons();
-            try {
-                const response = await fetch('/api/coordinator/dashboard/pending-student-approvals/', {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'),
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
-                    }
-                });
-
-                if (!response.ok) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-red-500">Failed to load</td></tr>';
-                    console.error('Failed to load students:', response.status);
-                    return;
-                }
-
-                pendingStudentList = await response.json();
-                renderStudentTable();
-            } catch (error) {
-                tbody.innerHTML = '<tr><td colspan="5" class="py-8 px-4 text-center text-red-500">Error loading</td></tr>';
-                console.error('Error loading students:', error);
-            }
-        }
-
-        function renderStudentTable() {
-            const tbody = document.getElementById('studentTableBody');
-            tbody.innerHTML = '';
-
-            if (!pendingStudentList.length) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="py-16 px-4 text-center">
-                            <div class="flex flex-col items-center gap-3">
-                                <div class="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center">
-                                    <i data-lucide="clipboard-check" class="text-emerald-400" style="width:28px;height:28px;"></i>
-                                </div>
-                                <span class="text-slate-400 text-sm font-medium">No pending approvals</span>
-                                <span class="text-slate-300 text-xs">All student accounts have been reviewed</span>
-                            </div>
-                        </td>
-                    </tr>
-                `;
-                lucide.createIcons();
-                return;
-            }
-
-            pendingStudentList.forEach(student => {
-                const row = document.createElement('tr');
-                row.id = `student-row-${student.id}`;
-                row.className = 'border-b border-slate-100 hover:bg-slate-50 transition-colors';
-                row.innerHTML = `
-                    <td class="p-4 font-bold text-slate-900">${student.name}</td>
-                    <td class="p-4 text-slate-600">${student.email}</td>
-                    <td class="p-4 text-slate-600">${student.course || '—'}</td>
-                    <td class="p-4">
-                        <span class="bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-bold capitalize">Pending</span>
-                    </td>
-                    <td class="p-4 text-center">
-                        <button class="text-emerald-500 hover:text-emerald-700 p-2" title="Approve" onclick="requestApproveStudent('${student.id}', '${student.name.replace(/'/g, "\\'")}')">
-                            <i data-lucide="check-circle" class="text-lg"></i>
-                        </button>
-                        <button class="text-red-500 hover:text-red-700 p-2" title="Reject" onclick="requestRejectStudent('${student.id}', '${student.name.replace(/'/g, "\\'")}')">
-                            <i data-lucide="x-circle" class="text-lg"></i>
-                        </button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-            lucide.createIcons();
-        }
-
-        function requestApproveStudent(studentId, name) {
-            currentApproveStudentId = studentId;
-            document.getElementById('approveName').textContent = name;
-            document.getElementById('approveStudentId').value = studentId;
-            openModal('approveStudentModal');
-        }
-
-        function requestRejectStudent(studentId, name) {
-            currentRejectStudentId = studentId;
-            document.getElementById('rejectName').textContent = name;
-            document.getElementById('rejectStudentId').value = studentId;
-            document.getElementById('rejectionReason').value = '';
-            openModal('rejectStudentModal');
-        }
-
-        async function confirmApproveStudent() {
-            const btn = document.getElementById('confirmApproveBtn');
-            const originalText = btn.textContent;
-            btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Processing...';
-            lucide.createIcons();
-            const studentId = document.getElementById('approveStudentId').value;
-            try {
-                const response = await fetch('/api/coordinator/dashboard/approve-student-account/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'),
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
-                    },
-                    body: JSON.stringify({ student_id: studentId })
-                });
-
-                if (!response.ok) {
-                    const err = await response.json();
-                    showAlert(err.error || 'Failed to approve student');
-                    return;
-                }
-
-                showAlert('Student account approved successfully! The student can now log in.');
-                closeModal('approveStudentModal');
-                loadStudents();
-            } catch (error) {
-                console.error('Error approving student:', error);
-                showAlert('An error occurred');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-            }
-        }
-
-        async function confirmRejectStudent() {
-            const reason = document.getElementById('rejectionReason').value.trim();
-            if (!reason) {
-                showAlert('Please provide a reason for rejection');
-                return;
-            }
-
-            const btn = document.getElementById('confirmRejectBtn');
-            const originalText = btn.textContent;
-            btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Processing...';
-            lucide.createIcons();
-            const studentId = document.getElementById('rejectStudentId').value;
-            try {
-                const response = await fetch('/api/coordinator/dashboard/reject-student-account/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'),
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
-                    },
-                    body: JSON.stringify({ student_id: studentId, reason: reason })
-                });
-
-                if (!response.ok) {
-                    const err = await response.json();
-                    showAlert(err.error || 'Failed to reject student');
-                    return;
-                }
-
-                showAlert('Student account rejected');
-                closeModal('rejectStudentModal');
-                loadStudents();
-            } catch (error) {
-                console.error('Error rejecting student:', error);
-                showAlert('An error occurred');
-            } finally {
-                btn.disabled = false;
-                btn.innerHTML = originalText;
-            }
-        }
-
         // ===== STUDENT ACCOUNTS FUNCTIONS =====
         let accountList = [];
         let accountStatusFilter = 'all';
@@ -1241,6 +1075,176 @@
                 <div class="detail-row"><span class="detail-label">Created:</span><span class="detail-value">${student.created_at ? new Date(student.created_at).toLocaleDateString() : 'N/A'}</span></div>
             `;
             openModal('viewAccountModal');
+        }
+
+        // ===== APPLICATION APPROVAL FUNCTIONS =====
+        let applicationList = [];
+
+        async function loadApplications() {
+            const tbody = document.getElementById('applicationTableBody');
+            tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-slate-400"><i data-lucide="loader-circle" class="animate-spin"></i> Loading...</td></tr>';
+            lucide.createIcons();
+            try {
+                const response = await fetch('/api/coordinator/applications/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    }
+                });
+                if (!response.ok) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-red-500">Failed to load</td></tr>';
+                    return;
+                }
+                applicationList = await response.json();
+                renderApplicationTable();
+            } catch (error) {
+                tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-red-500">Error loading</td></tr>';
+                console.error('Error loading applications:', error);
+            }
+        }
+
+        function renderApplicationTable() {
+            const tbody = document.getElementById('applicationTableBody');
+            tbody.innerHTML = '';
+            if (!applicationList.length) {
+                tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-gray-400">No applications found</td></tr>';
+                return;
+            }
+            applicationList.forEach(app => {
+                const statusClass = app.status === 'pending' ? 'yellow' : app.status === 'approved' ? 'emerald' : 'red';
+                const statusText = app.status.charAt(0).toUpperCase() + app.status.slice(1);
+                const dateApplied = app.created_at ? new Date(app.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
+                const row = document.createElement('tr');
+                row.className = 'border-b border-slate-100 hover:bg-slate-50 transition-colors';
+                row.innerHTML = `
+                    <td class="p-4 font-bold text-slate-900">${app.student_name}</td>
+                    <td class="p-4 text-slate-600">${app.program_name}</td>
+                    <td class="p-4">${app.application_letter ? `<a href="${app.application_letter}" target="_blank" class="text-blue-600 hover:underline text-xs">View Letter</a>` : '—'}</td>
+                    <td class="p-4 text-slate-600">${dateApplied}</td>
+                    <td class="p-4"><span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold capitalize">${statusText}</span></td>
+                    <td class="p-4 text-center">
+                        ${app.status === 'pending' ? `
+                            <button class="text-emerald-500 hover:text-emerald-700 p-2" title="Approve" onclick="requestApproveApplication('${app.id}')">
+                                <i data-lucide="check-circle" class="text-lg"></i>
+                            </button>
+                            <button class="text-red-500 hover:text-red-700 p-2" title="Reject" onclick="requestRejectApplication('${app.id}')">
+                                <i data-lucide="x-circle" class="text-lg"></i>
+                            </button>
+                        ` : `<span class="text-slate-400 text-xs">${app.status === 'approved' ? 'Approved' : 'Rejected'}</span>`}
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            lucide.createIcons();
+        }
+
+        function filterApplicationsByStatus(status) {
+            const tbody = document.getElementById('applicationTableBody');
+            if (!tbody) return;
+            const rows = tbody.getElementsByTagName('tr');
+            Array.from(rows).forEach(row => {
+                if (status === 'all') {
+                    row.style.display = '';
+                } else {
+                    const statusCell = row.querySelector('td:nth-child(5)');
+                    if (statusCell) {
+                        const rowStatus = statusCell.textContent.trim().toLowerCase();
+                        row.style.display = rowStatus === status ? '' : 'none';
+                    }
+                }
+            });
+        }
+
+        function requestApproveApplication(id) {
+            const app = applicationList.find(a => a.id === id);
+            if (!app) return;
+            document.getElementById('approveAppStudent').textContent = app.student_name;
+            document.getElementById('approveAppProgram').textContent = app.program_name;
+            document.getElementById('approveAppId').value = id;
+            openModal('approveAppModal');
+        }
+
+        async function confirmApproveApplication() {
+            const id = document.getElementById('approveAppId').value;
+            const btn = document.getElementById('confirmApproveAppBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Processing...';
+            lucide.createIcons();
+            try {
+                const response = await fetch(`/api/coordinator/applications/${id}/approve/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    }
+                });
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    showAlert(err.message || 'Failed to approve application');
+                    return;
+                }
+                showAlert('Application approved successfully!');
+                closeModal('approveAppModal');
+                loadApplications();
+            } catch (error) {
+                console.error('Error approving application:', error);
+                showAlert('An error occurred');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        }
+
+        function requestRejectApplication(id) {
+            const app = applicationList.find(a => a.id === id);
+            if (!app) return;
+            document.getElementById('rejectAppStudent').textContent = app.student_name;
+            document.getElementById('rejectAppProgram').textContent = app.program_name;
+            document.getElementById('rejectAppId').value = id;
+            document.getElementById('rejectAppReason').value = '';
+            openModal('rejectAppModal');
+        }
+
+        async function confirmRejectApplication() {
+            const id = document.getElementById('rejectAppId').value;
+            const reason = document.getElementById('rejectAppReason').value.trim();
+            if (!reason) {
+                showAlert('Please provide a reason for rejection.');
+                return;
+            }
+            const btn = document.getElementById('confirmRejectAppBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Processing...';
+            lucide.createIcons();
+            try {
+                const response = await fetch(`/api/coordinator/applications/${id}/reject/`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': getCookie('csrftoken'),
+                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    },
+                    body: JSON.stringify({ reason: reason })
+                });
+                if (!response.ok) {
+                    const err = await response.json().catch(() => ({}));
+                    showAlert(err.message || 'Failed to reject application');
+                    return;
+                }
+                showAlert('Application rejected');
+                closeModal('rejectAppModal');
+                loadApplications();
+            } catch (error) {
+                console.error('Error rejecting application:', error);
+                showAlert('An error occurred');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
         }
 
         // ===== STUDENT REPORTS FUNCTIONS =====
@@ -1748,10 +1752,9 @@
             const hasProgs = await checkCoordinatorPrograms();
             if (hasProgs) {
                 loadPrograms();
-                loadStudents();
                 loadStudentAccounts();
                 loadProgramsForFilter();
-                switchSection('students');
+                switchSection('accounts');
             }
         });
 
@@ -1761,6 +1764,7 @@
             if (sec === 'attendance') loadAttendance();
             else if (sec === 'reports') loadStudentReports();
             else if (sec === 'sites') loadSiteAssignments();
+            else if (sec === 'applications') loadApplications();
         }, 30000);
 
         // Search functionality
@@ -1772,17 +1776,17 @@
             });
         });
 
-        document.getElementById('studentSearchInput').addEventListener('keyup', function() {
+        document.getElementById('accountSearchInput').addEventListener('keyup', function() {
             const filter = this.value.toUpperCase();
-            document.querySelectorAll('#studentTableBody tr').forEach(row => {
+            document.querySelectorAll('#accountTableBody tr').forEach(row => {
                 const text = row.textContent.toUpperCase();
                 row.style.display = text.includes(filter) ? '' : 'none';
             });
         });
 
-        document.getElementById('accountSearchInput').addEventListener('keyup', function() {
+        document.getElementById('applicationSearchInput').addEventListener('keyup', function() {
             const filter = this.value.toUpperCase();
-            document.querySelectorAll('#accountTableBody tr').forEach(row => {
+            document.querySelectorAll('#applicationTableBody tr').forEach(row => {
                 const text = row.textContent.toUpperCase();
                 row.style.display = text.includes(filter) ? '' : 'none';
             });
@@ -1857,6 +1861,9 @@
                     }
                     if (objType === 'Attendance') {
                         loadAttendance();
+                    }
+                    if (objType === 'OJTApplication' && window.currentSection === 'applications') {
+                        loadApplications();
                     }
                 }
             };
@@ -1950,6 +1957,30 @@
             }
         });
     lucide.createIcons();
+
+    // ===== REAL-TIME DASHBOARD SYNC =====
+    function connectDashboardSocket() {
+        const token = localStorage.getItem('auth_token');
+        if (!token) return;
+        const wsUrl = `ws://${window.location.host}/ws/dashboard/?token=${token}`;
+        const socket = new WebSocket(wsUrl);
+        socket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            if (data.type === 'dashboard_refresh') {
+                const sec = data.section || '';
+                if (sec === 'students' || sec === 'all') {
+                    loadStudentAccounts();
+                }
+            }
+        };
+        socket.onclose = function() {
+            setTimeout(connectDashboardSocket, 3000);
+        };
+        socket.onerror = function() {
+            socket.close();
+        };
+    }
+    connectDashboardSocket();
 </script>
 </body>
 </html>

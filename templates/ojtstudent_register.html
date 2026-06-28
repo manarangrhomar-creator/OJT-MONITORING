@@ -353,7 +353,7 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    showAlert('Account created! Please wait for coordinator approval before you can log in.');
+                    await showAlert('Account created! Please wait for coordinator approval before you can log in.');
                     window.location.href = '/auth/login/';
                 } else {
                     const errMsg = typeof data === 'object' ? Object.values(data).flat().join('\n') : 'Registration failed';

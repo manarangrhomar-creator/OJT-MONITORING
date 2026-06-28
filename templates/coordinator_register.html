@@ -456,7 +456,7 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    showAlert('Coordinator account created successfully! Pending admin approval.');
+                    await showAlert('Coordinator account created successfully! Pending admin approval.');
                     window.location.href = '/auth/login/';
                 } else {
                     const errMsg = typeof data === 'object' ? Object.values(data).flat().join('\n') : 'Registration failed';
