@@ -1,6 +1,8 @@
 import json
 
+from asgiref.sync import sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
+from django.core.cache import cache
 
 from apps.core.models import Notification
 
@@ -34,7 +36,12 @@ class NotificationConsumer(AsyncWebsocketConsumer):
         }))
 
     async def get_unread_count(self):
-        return await Notification.objects.filter(recipient=self.user, is_read=False).acount()
+        cache_key = f'unread_count_{self.user.id}'
+        count = await sync_to_async(cache.get)(cache_key)
+        if count is None:
+            count = await Notification.objects.filter(recipient=self.user, is_read=False).acount()
+            await sync_to_async(cache.set)(cache_key, count, 30)
+        return count
 
 
 class DashboardConsumer(AsyncWebsocketConsumer):

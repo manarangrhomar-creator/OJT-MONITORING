@@ -7,8 +7,8 @@ from apps.core.models import User, BaseModel
 
 class PasswordResetOTP(BaseModel):
     """Store OTP codes for password reset."""
-    email = models.EmailField()
-    otp = models.CharField(max_length=6)
+    email = models.EmailField(db_index=True)
+    otp = models.CharField(max_length=6, db_index=True)
     is_used = models.BooleanField(default=False)
     expires_at = models.DateTimeField()
 

@@ -2,6 +2,9 @@ import cv2
 import numpy as np
 import pickle
 
+# Cache the LBPH factory at module level — recreating it on every call is expensive
+_recognizer_factory = cv2.face.LBPHFaceRecognizer_create
+
 
 def detect_face(image_bytes):
     nparr = np.frombuffer(image_bytes, np.uint8)
@@ -29,7 +32,7 @@ def decode_face(encoding_bytes):
 
 def verify_faces(stored_encoding, new_face_roi, confidence_threshold=90):
     stored_face = decode_face(stored_encoding)
-    recognizer = cv2.face.LBPHFaceRecognizer_create()
+    recognizer = _recognizer_factory()
     recognizer.train([stored_face], np.array([1]))
     label, confidence = recognizer.predict(new_face_roi)
     is_match = confidence < confidence_threshold

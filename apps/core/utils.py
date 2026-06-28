@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.core.cache import cache
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -52,6 +53,7 @@ def _send_websocket_notification(recipient, notification):
     try:
         channel_layer = get_channel_layer()
         unread_count = Notification.objects.filter(recipient=recipient, is_read=False).count()
+        cache.delete(f'unread_count_{recipient.id}')
         async_to_sync(channel_layer.group_send)(
             f'notifications_{recipient.id}',
             {
@@ -77,6 +79,7 @@ def send_unread_count_update(recipient):
     """Push the current unread count to the recipient via WebSocket."""
     try:
         channel_layer = get_channel_layer()
+        cache.delete(f'unread_count_{recipient.id}')
         unread_count = Notification.objects.filter(recipient=recipient, is_read=False).count()
         async_to_sync(channel_layer.group_send)(
             f'notifications_{recipient.id}',

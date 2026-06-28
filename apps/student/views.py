@@ -3,6 +3,7 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.exceptions import ValidationError
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from datetime import datetime, timedelta
 from django.db.models import Q, Count, F
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
@@ -65,16 +66,24 @@ class StudentDashboardViewSet(viewsets.ViewSet):
         student = request.user
         
         # Get applications
-        applications = OJTApplication.objects.filter(student=student)
-        approved_apps = applications.filter(status='approved').count()
-        pending_apps = applications.filter(status='pending').count()
+        app_counts = OJTApplication.objects.filter(student=student).aggregate(
+            approved=Count('id', filter=Q(status='approved')),
+            pending=Count('id', filter=Q(status='pending')),
+        )
+        approved_apps = app_counts['approved']
+        pending_apps = app_counts['pending']
         
         # Get attendance
         attendances = Attendance.objects.filter(student=student)
-        total_hours = sum(
-            (att.time_out.hour - att.time_in.hour) if att.time_out else 0
-            for att in attendances
-        )
+        total_duration = timedelta()
+        for att in attendances:
+            if att.time_out:
+                t_in = datetime.combine(att.date, att.time_in)
+                t_out = datetime.combine(att.date, att.time_out)
+                if t_out < t_in:
+                    t_out += timedelta(days=1)
+                total_duration += (t_out - t_in)
+        total_hours = total_duration.total_seconds() / 3600
         
         return Response({
             'student_name': student.get_full_name(),
@@ -87,14 +96,14 @@ class StudentDashboardViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'])
     def my_applications(self, request):
         """Get student's OJT applications."""
-        applications = OJTApplication.objects.filter(student=request.user)
+        applications = OJTApplication.objects.filter(student=request.user).select_related('student', 'program')
         serializer = OJTApplicationSerializer(applications, many=True)
         return Response(serializer.data)
     
     @action(detail=False, methods=['get'])
     def my_attendance(self, request):
         """Get student's attendance records."""
-        attendances = Attendance.objects.filter(student=request.user).order_by('-date')
+        attendances = Attendance.objects.filter(student=request.user).select_related('student').order_by('-date')
         serializer = AttendanceSerializer(attendances, many=True)
         return Response(serializer.data)
 
@@ -113,7 +122,7 @@ class StudentDashboardViewSet(viewsets.ViewSet):
         programs = OJTProgram.objects.filter(
             status='active',
             coordinator__course=student_course
-        ).exclude(
+        ).select_related('coordinator').exclude(
             id__in=applied_programs
         ).annotate(
             approved_count=Count('applications', filter=Q(applications__status='approved'))

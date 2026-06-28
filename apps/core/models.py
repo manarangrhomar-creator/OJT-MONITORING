@@ -21,13 +21,13 @@ class User(AbstractUser):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student')
-    approval_status = models.CharField(max_length=20, choices=APPROVAL_STATUS_CHOICES, default='pending')
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student', db_index=True)
+    approval_status = models.CharField(max_length=20, choices=APPROVAL_STATUS_CHOICES, default='pending', db_index=True)
     phone_number = models.CharField(max_length=20, blank=True, null=True)
     course = models.ForeignKey('Course', on_delete=models.SET_NULL, null=True, blank=True, related_name='coordinators', help_text="Course/Program the coordinator oversees")
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
     faculty_id = models.ImageField(upload_to='faculty_ids/', blank=True, null=True, help_text="Upload faculty ID card")
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -84,7 +84,7 @@ class Notification(BaseModel):
     title = models.CharField(max_length=255)
     message = models.TextField()
     type = models.CharField(max_length=50, choices=TYPE_CHOICES, default='site_assignment')
-    is_read = models.BooleanField(default=False)
+    is_read = models.BooleanField(default=False, db_index=True)
     related_object_id = models.UUIDField(null=True, blank=True)
     related_object_type = models.CharField(max_length=50, blank=True)
 
@@ -92,6 +92,9 @@ class Notification(BaseModel):
         verbose_name = 'Notification'
         verbose_name_plural = 'Notifications'
         ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['recipient', 'is_read'], name='idx_notif_recip_read'),
+        ]
 
     def __str__(self):
         return f"[{self.get_type_display()}] {self.title} -> {self.recipient.username}"
@@ -100,7 +103,7 @@ class Notification(BaseModel):
 class Course(BaseModel):
     """Course/Program model linking coordinators, students, and sites."""
     name = models.CharField(max_length=255, unique=True)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True, db_index=True)
 
     class Meta:
         verbose_name = 'Course'

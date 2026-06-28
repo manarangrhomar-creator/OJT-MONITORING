@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from apps.core.models import User, Course
 from apps.core.tasks import send_email_task
@@ -25,37 +26,36 @@ class AdminDashboardViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=["get"])
     def dashboard_stats(self, request):
-        """Get dashboard statistics."""
-        total_users = User.objects.count()
-        total_students = User.objects.filter(role="student").count()
-        total_coordinators = User.objects.filter(role="coordinator").count()
-        total_admins = User.objects.filter(role="admin").count()
-        
-        return Response({
-            "total_users": total_users,
-            "total_students": total_students,
-            "total_coordinators": total_coordinators,
-            "total_admins": total_admins,
-        })
+        """Get dashboard statistics (cached 60s)."""
+        stats = cache.get('admin_dashboard_stats')
+        if stats is None:
+            stats = {
+                "total_users": User.objects.count(),
+                "total_students": User.objects.filter(role="student").count(),
+                "total_coordinators": User.objects.filter(role="coordinator").count(),
+                "total_admins": User.objects.filter(role="admin").count(),
+            }
+            cache.set('admin_dashboard_stats', stats, 60)
+        return Response(stats)
     
     @action(detail=False, methods=["get"])
     def students(self, request):
         """Get all OJT student accounts."""
-        students = User.objects.filter(role="student").order_by("-created_at")
+        students = User.objects.filter(role="student").select_related('course').order_by("-created_at")
         serializer = AdminUserSerializer(students, many=True)
         return Response(serializer.data)
     
     @action(detail=False, methods=["get"])
     def coordinators(self, request):
         """Get all OJT coordinator accounts."""
-        coordinators = User.objects.filter(role="coordinator").exclude(approval_status="pending").order_by("-created_at")
+        coordinators = User.objects.filter(role="coordinator").exclude(approval_status="pending").select_related('course').order_by("-created_at")
         serializer = AdminUserSerializer(coordinators, many=True)
         return Response(serializer.data)
     
     @action(detail=False, methods=["get"], url_path="coordinator-approvals")
     def coordinator_approvals(self, request):
         """Get all OJT coordinator accounts with approval statuses."""
-        coordinators = User.objects.filter(role="coordinator", approval_status="pending").order_by("-created_at")
+        coordinators = User.objects.filter(role="coordinator", approval_status="pending").select_related('course').order_by("-created_at")
         serializer = AdminUserSerializer(coordinators, many=True)
         return Response(serializer.data)
     
@@ -161,10 +161,14 @@ class AdminDashboardViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=["get"])
     def system_logs(self, request):
-        """Get system logs."""
-        logs = SystemLog.objects.all()[:100]
-        serializer = SystemLogSerializer(logs, many=True)
-        return Response(serializer.data)
+        """Get system logs (cached 60s)."""
+        logs_data = cache.get('admin_system_logs')
+        if logs_data is None:
+            logs = SystemLog.objects.all().select_related('admin_user')[:100]
+            serializer = SystemLogSerializer(logs, many=True)
+            logs_data = serializer.data
+            cache.set('admin_system_logs', logs_data, 60)
+        return Response(logs_data)
 
 
 class UserManagementViewSet(viewsets.ModelViewSet):
@@ -200,6 +204,15 @@ class CoursesViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+        cache.delete('active_courses')
+
+    def perform_update(self, serializer):
+        serializer.save()
+        cache.delete('active_courses')
+
+    def perform_destroy(self, instance):
+        cache.delete('active_courses')
+        instance.delete()
 
 
 class AdminProgramViewSet(viewsets.ModelViewSet):
@@ -252,9 +265,9 @@ class SitesViewSet(viewsets.ModelViewSet):
     queryset = Site.objects.all()
     serializer_class = SiteSerializer
     permission_classes = [IsAdminUser]
-    pagination_class = None
     search_fields = ['name']
     filterset_fields = ['course', 'is_active']
+    pagination_class = None
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)

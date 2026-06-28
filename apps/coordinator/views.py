@@ -120,7 +120,7 @@ class OJTApplicationViewSet(viewsets.ModelViewSet):
 
 class AttendanceViewSet(viewsets.ModelViewSet):
     """ViewSet for Attendance management."""
-    queryset = Attendance.objects.all()
+    queryset = Attendance.objects.all().select_related('student', 'program')
     serializer_class = AttendanceSerializer
     permission_classes = [IsCoordinator]
     filterset_fields = ['program', 'student', 'date']
@@ -214,7 +214,7 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         if coordinator_course:
             students = students.filter(student_profile__course=coordinator_course)
 
-        students = students.select_related('student_profile').distinct().order_by('-created_at')
+        students = students.select_related('student_profile__course').distinct().order_by('-created_at')
 
         exclude_assigned = request.query_params.get('exclude_assigned') == 'true'
         if exclude_assigned:

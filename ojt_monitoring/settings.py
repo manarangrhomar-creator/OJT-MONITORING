@@ -100,6 +100,18 @@ CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 
+# Cache configuration (Redis — also serves as the Celery broker)
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': 'ojt',
+    }
+}
+
 # Channels configuration
 CHANNEL_LAYERS = {
     'default': {

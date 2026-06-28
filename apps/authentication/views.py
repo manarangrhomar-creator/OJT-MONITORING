@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login, logout
+from django.core.cache import cache
 from django.core.mail import send_mail
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
@@ -189,12 +190,13 @@ class AuthenticationViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], permission_classes=[AllowAny], authentication_classes=[])
     def courses(self, request):
-        """Get list of active courses for registration forms."""
-        courses = Course.objects.filter(is_active=True).order_by('name')
-        return Response([{
-            'id': str(c.id),
-            'name': c.name,
-        } for c in courses])
+        """Get list of active courses for registration forms (cached 5min)."""
+        course_list = cache.get('active_courses')
+        if course_list is None:
+            courses = Course.objects.filter(is_active=True).order_by('name')
+            course_list = [{'id': str(c.id), 'name': c.name} for c in courses]
+            cache.set('active_courses', course_list, 300)
+        return Response(course_list)
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
     def send_otp(self, request):

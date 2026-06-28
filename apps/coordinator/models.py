@@ -12,9 +12,9 @@ class OJTProgram(BaseModel):
     
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
-    start_date = models.DateField(null=True, blank=True)
+    start_date = models.DateField(null=True, blank=True, db_index=True)
     end_date = models.DateField(null=True, blank=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='active', db_index=True)
     coordinator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ojt_programs', limit_choices_to={'role': 'coordinator'})
     max_students = models.IntegerField(default=50)
     location = models.CharField(max_length=255, blank=True)
@@ -42,7 +42,7 @@ class OJTApplication(BaseModel):
     
     student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ojt_applications', limit_choices_to={'role': 'student'})
     program = models.ForeignKey(OJTProgram, on_delete=models.CASCADE, related_name='applications')
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)
     application_letter = models.FileField(upload_to='applications/')
     resume = models.FileField(upload_to='resumes/')
     approved_date = models.DateTimeField(blank=True, null=True)
@@ -84,7 +84,7 @@ class Site(BaseModel):
     course = models.ForeignKey('core.Course', on_delete=models.SET_NULL, null=True, blank=True, related_name='sites')
     contact_person = models.CharField(max_length=255, blank=True)
     contact_number = models.CharField(max_length=50, blank=True)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True, db_index=True)
 
     class Meta:
         verbose_name = 'Site'
