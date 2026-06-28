@@ -1,54 +1,211 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ISU Login Portal</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Inter:wght@500;600&display=swap" rel="stylesheet">
-    <style>
-        .custom-heading { font-family: 'Fredoka', sans-serif; }
-        .custom-btn { font-family: 'Inter', sans-serif; }
-        body {
-            /* Heto na ang direct link ng bago mong napiling green bamboo wallpaper background */
-            background-image: url('https://static.vecteezy.com/system/resources/previews/027/177/798/original/jungle-bamboo-tropical-background-vector.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OJT Monitoring System — Isabela State University</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --forest: #0F5436;
+      --forest-light: #11693A;
+      --gold: #C8A44A;
+      --gold-light: #E5D09E;
+      --paper: #F7F5F0;
+      --charcoal: #1A1A1A;
+      --font-display: 'Fraunces', Georgia, serif;
+      --font-body: 'DM Sans', system-ui, sans-serif;
+    }
+    body {
+      font-family: var(--font-body);
+      background-color: var(--paper);
+      color: var(--charcoal);
+    }
+    .grain::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    .watermark {
+      position: fixed;
+      right: -120px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 500px;
+      height: 500px;
+      opacity: 0.04;
+      pointer-events: none;
+      z-index: 0;
+      background: url('https://www.eduopinions.com/wp-content/uploads/2023/09/ISU-SEAL-DOWNSCALE-350x345.png') no-repeat center/contain;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(24px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-in > * {
+      animation: fadeUp 0.8s ease-out both;
+    }
+    .animate-in > *:nth-child(1) { animation-delay: 0.1s; }
+    .animate-in > *:nth-child(2) { animation-delay: 0.25s; }
+    .animate-in > *:nth-child(3) { animation-delay: 0.4s; }
+    .animate-in > *:nth-child(4) { animation-delay: 0.55s; }
+    .gold-link {
+      position: relative;
+      text-decoration: none;
+    }
+    .gold-link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--gold);
+      transition: width 0.3s ease;
+    }
+    .gold-link:hover::after {
+      width: 100%;
+    }
+    .role-card {
+      border-left: 3px solid var(--gold);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .role-card:hover {
+      transform: translateX(4px);
+      box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+    }
+    .gold-divider {
+      height: 1px;
+      background: linear-gradient(90deg, var(--gold) 0%, transparent 100%);
+    }
+    /* Clean scrollbar */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--gold) transparent;
+    }
+    *::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    *::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    *::-webkit-scrollbar-thumb {
+      background: var(--gold);
+      border-radius: 3px;
+      border: 2px solid transparent;
+      background-clip: content-box;
+    }
+    *::-webkit-scrollbar-thumb:hover {
+      background: var(--forest);
+      background-clip: content-box;
+    }
+    *::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+  </style>
 </head>
-<body class="min-h-screen flex items-center justify-center p-4 md:p-8">
+<body class="grain min-h-screen flex flex-col">
+  <div class="watermark" aria-hidden="true"></div>
 
-    <div class="w-full max-w-4xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[520px]">
-        
-        <div class="w-full md:w-[40%] bg-[#11693A] flex items-center justify-center p-8 md:p-12">
-            <div class="w-60 h-60 flex items-center justify-center">
-                <img src="https://www.eduopinions.com/wp-content/uploads/2023/09/ISU-SEAL-DOWNSCALE-350x345.png"
-                     alt="ISU Logo" 
-                     class="w-full h-full object-contain">
-            </div>
-        </div>
+  <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded">
+    Skip to main content
+  </a>
 
-        <div class="w-full md:w-[60%] flex flex-col justify-center px-8 py-12 md:px-16 bg-white">
-            
-            <div class="text-[#11693A] custom-heading text-center mb-10 tracking-wide w-full">
-                <h1 class="text-3xl md:text-4xl font-bold leading-tight">Isabela State University</h1>
-                <h2 class="text-xl md:text-2xl font-bold mt-2 text-[#11693A]">Cauayan City, Isabela</h2>
-            </div>
+  <header class="relative z-10 px-6 md:px-12 lg:px-24 py-6 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <img src="https://www.eduopinions.com/wp-content/uploads/2023/09/ISU-SEAL-DOWNSCALE-350x345.png"
+           alt="ISU Seal"
+           class="w-9 h-9 object-contain" />
+      <span class="text-sm font-medium text-[var(--charcoal)]/60 hidden sm:block">
+        OJT Monitoring System
+      </span>
+    </div>
+    <nav class="flex items-center gap-6">
+      <a href="{% url 'student-register' %}" class="gold-link text-sm font-medium text-[var(--charcoal)]/70 hover:text-[var(--forest)] transition-colors">
+        Register
+      </a>
+      <a href="{% url 'login' %}" class="text-sm font-semibold text-[var(--paper)] bg-[var(--forest)] hover:bg-[var(--forest-light)] px-5 py-2 rounded-full transition-all duration-300 hover:shadow-md">
+        Sign In
+      </a>
+    </nav>
+  </header>
 
-            <div class="space-y-4 max-w-sm mx-auto w-full">
-                <a href="{% url 'login' %}" class="custom-btn block w-full text-center bg-[#11693A] hover:bg-[#0d522d] text-white text-lg font-semibold py-4 rounded-full transition-all duration-300 transform hover:scale-[1.01] shadow-md">
-                    Sign In
-                </a>
-                <a href="{% url 'student-register' %}" class="custom-btn block w-full text-center border-2 border-[#11693A] text-[#11693A] hover:bg-[#11693A] hover:text-white text-lg font-semibold py-4 rounded-full transition-all duration-300 transform hover:scale-[1.01] shadow-md">
-                    Sign Up
-                </a>
-            </div>
-            
-        </div>
+  <main id="main" class="relative z-10 flex-1 flex flex-col px-6 md:px-12 lg:px-24">
+    <div class="animate-in max-w-4xl pt-16 md:pt-24 lg:pt-32 pb-16">
+
+      <p class="text-xs uppercase tracking-[0.2em] text-[var(--gold)] font-medium mb-6">
+        Isabela State University — Cauayan Campus
+      </p>
+
+      <h1 class="font-[var(--font-display)] text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.95] font-semibold text-[var(--charcoal)] max-w-3xl">
+        OJT<br />
+        <span class="italic font-normal text-[var(--forest)]">Monitoring</span>
+        <br />
+        System
+      </h1>
+
+      <p class="mt-8 text-base md:text-lg text-[var(--charcoal)]/60 max-w-xl leading-relaxed">
+        A centralized platform for coordinating, tracking, and evaluating
+        On-the-Job Training across all colleges — connecting students,
+        coordinators, and administration in one streamlined workflow.
+      </p>
+
+      <div class="mt-10 flex flex-wrap gap-4 items-center">
+        <a href="{% url 'login' %}" class="inline-flex items-center gap-2 bg-[var(--forest)] text-[var(--paper)] font-semibold px-8 py-3.5 rounded-full transition-all duration-300 hover:bg-[var(--forest-light)] hover:shadow-lg active:scale-[0.97]">
+          Sign In to Dashboard
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
+        </a>
+        <a href="{% url 'student-register' %}" class="gold-link inline-flex items-center gap-2 text-[var(--charcoal)]/70 hover:text-[var(--forest)] font-medium transition-colors px-2 py-1">
+          New student? Register here
+        </a>
+      </div>
     </div>
 
+    <section class="pb-20 max-w-4xl">
+      <div class="gold-divider mb-10"></div>
+      <h2 class="font-[var(--font-display)] text-2xl md:text-3xl font-semibold text-[var(--charcoal)] mb-8">
+        Who this serves
+      </h2>
+      <div class="grid md:grid-cols-3 gap-6">
+        <div class="role-card bg-white/80 backdrop-blur-sm p-6 rounded-r-lg">
+          <span class="text-xs uppercase tracking-widest text-[var(--gold)] font-semibold">Admin</span>
+          <h3 class="font-[var(--font-display)] text-xl font-semibold mt-2 text-[var(--forest)]">System Oversight</h3>
+          <p class="text-sm text-[var(--charcoal)]/60 mt-2 leading-relaxed">
+            Manage users, configure programs, monitor platform-wide activity and generate reports.
+          </p>
+        </div>
+        <div class="role-card bg-white/80 backdrop-blur-sm p-6 rounded-r-lg">
+          <span class="text-xs uppercase tracking-widest text-[var(--gold)] font-semibold">Coordinator</span>
+          <h3 class="font-[var(--font-display)] text-xl font-semibold mt-2 text-[var(--forest)]">Program Management</h3>
+          <p class="text-sm text-[var(--charcoal)]/60 mt-2 leading-relaxed">
+            Approve applications, assign sites, track attendance, and evaluate student performance.
+          </p>
+        </div>
+        <div class="role-card bg-white/80 backdrop-blur-sm p-6 rounded-r-lg">
+          <span class="text-xs uppercase tracking-widest text-[var(--gold)] font-semibold">Student</span>
+          <h3 class="font-[var(--font-display)] text-xl font-semibold mt-2 text-[var(--forest)]">OJT Tracking</h3>
+          <p class="text-sm text-[var(--charcoal)]/60 mt-2 leading-relaxed">
+            Submit applications, log attendance via facial recognition, and submit narrative reports.
+          </p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="relative z-10 border-t border-[var(--charcoal)]/5 px-6 md:px-12 lg:px-24 py-8">
+    <div class="max-w-4xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-[var(--charcoal)]/40">
+      <p>&copy; 2026 Isabela State University — Cauayan City, Isabela. All rights reserved.</p>
+      <p class="tracking-wider">OJT Monitoring System v1.0</p>
+    </div>
+  </footer>
 </body>
 </html>
