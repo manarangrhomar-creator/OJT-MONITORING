@@ -1,372 +1,448 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OJT Student Register - ISU</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght=600;700&family=Inter:wght=400;500;600&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@0.344.0"></script>
-    <style>
-         .custom-heading { font-family: 'Fredoka', sans-serif; }
-        .custom-btn { font-family: 'Inter', sans-serif; }
-        body {
-            /* Heto na ang direct link ng bago mong napiling green bamboo wallpaper background */
-            background-image: url('https://static.vecteezy.com/system/resources/previews/027/177/798/original/jungle-bamboo-tropical-background-vector.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Register — ISU OJT Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="https://isu.edu.ph/wp-content/uploads/2026/03/isu_new_seal_512x512.png" sizes="any" type="image/png" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/lucide@0.344.0"></script>
+  <style>
+    :root {
+      --forest: #0F5436;
+      --forest-light: #11693A;
+      --gold: #C8A44A;
+      --gold-light: #E5D09E;
+      --paper: #F7F5F0;
+      --charcoal: #1A1A1A;
+      --font-display: 'Fraunces', Georgia, serif;
+      --font-body: 'DM Sans', system-ui, sans-serif;
+    }
+    body {
+      font-family: var(--font-body);
+      background-color: var(--paper);
+      color: var(--charcoal);
+    }
+    .grain::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-in > * {
+      animation: fadeUp 0.7s ease-out both;
+    }
+    .animate-in > *:nth-child(1) { animation-delay: 0.1s; }
+    .animate-in > *:nth-child(2) { animation-delay: 0.2s; }
+    .animate-in > *:nth-child(3) { animation-delay: 0.35s; }
+    .animate-in > *:nth-child(4) { animation-delay: 0.5s; }
+    .animate-in > *:nth-child(5) { animation-delay: 0.65s; }
+    .bg-seal {
+      position: fixed;
+      right: -120px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 500px;
+      height: 500px;
+      opacity: 0.04;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .gold-link {
+      position: relative;
+      text-decoration: none;
+    }
+    .gold-link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--gold);
+      transition: width 0.3s ease;
+    }
+    .gold-link:hover::after {
+      width: 100%;
+    }
+    * { scrollbar-width: thin; scrollbar-color: var(--gold) transparent; }
+    *::-webkit-scrollbar { width: 6px; height: 6px; }
+    *::-webkit-scrollbar-track { background: transparent; }
+    *::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 3px; border: 2px solid transparent; background-clip: content-box; }
+    *::-webkit-scrollbar-thumb:hover { background: var(--forest); background-clip: content-box; }
+    *::-webkit-scrollbar-corner { background: transparent; }
+    .gold-divider {
+      height: 1px;
+      background: linear-gradient(90deg, var(--gold) 0%, transparent 100%);
+    }
+  </style>
 </head>
-<body class="bg-emerald-50/50 min-h-screen flex items-center justify-center p-4">
+<body class="grain min-h-screen flex items-center justify-center p-4">
 
-    <div class="w-full max-w-4xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row-reverse min-h-[550px]">
-        
-        <div class="w-full md:w-[40%] bg-[#11693A] flex flex-col items-center justify-center p-10 text-white">
-             <div class="w-60 h-60 flex items-center justify-center">
-                <img src="https://www.eduopinions.com/wp-content/uploads/2023/09/ISU-SEAL-DOWNSCALE-350x345.png"
-                     alt="ISU Logo" 
-                     class="w-full h-full object-contain">
-            </div>
-            <p class="custom-text mb-4 font-medium italic opacity-90 text-sm text-center">Already have an account?</p>
-            <a href="{% url 'login' %}" class="w-full max-w-[200px] border-2 border-white rounded-full py-2 px-6 font-bold hover:bg-white hover:text-[#11693A] transition-all duration-300 text-center">
-                Login
-            </a>
-            <p class="custom-text mt-4 mb-2 font-medium italic opacity-90 text-sm text-center">Register as a Coordinator instead?</p>
-            <a href="{% url 'coordinator-register' %}" class="w-full max-w-[200px] border-2 border-white rounded-full py-2 px-6 font-bold hover:bg-white hover:text-[#11693A] transition-all duration-300 text-center">
-                Coordinator
-            </a>
-        </div>
+  <img class="bg-seal" src="https://isu.edu.ph/wp-content/uploads/2026/03/isu_new_seal_512x512.png" alt="" aria-hidden="true" />
 
-        <div class="w-full md:w-[60%] p-8 md:p-12 relative flex flex-col justify-center">
-            
-            <a href="{% url 'login' %}" class="absolute top-8 left-8 w-10 h-10 flex items-center justify-center rounded-full border border-gray-200 hover:bg-gray-100 transition-all shadow-sm text-[#11693A]">
-                <i data-lucide="chevron-left" class="w-5 h-5"></i>
-            </a>
-            
-            <div class="max-w-md mx-auto w-full mt-6 md:mt-0">
-                <h1 class="custom-heading text-[#11693A] text-4xl font-bold text-center mb-6 leading-tight">OJT Student</h1>
-                
-                <form class="space-y-4" id="regForm">
-                    
-                    <div>
-                        <label class="custom-heading text-[#11693A] text-lg block mb-1">Full Name</label>
-                        <input type="text" id="fullName" placeholder="Last Name, First Name, M.I., Suffix" required 
-                            pattern="[A-Za-z\s,.]+" title="Full name should only contain letters, spaces, commas, and periods" oninput="this.value = this.value.replace(/[^A-Za-z\s,.]/g, '')"
-                            class="w-full border-4 border-[#11693A] rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-gray-700 font-medium">
-                    </div>
+  <div class="animate-in w-full max-w-4xl bg-white shadow-2xl flex flex-col md:flex-row min-h-[560px]" style="box-shadow: 0 20px 60px rgba(0,0,0,0.08);">
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="custom-heading text-[#11693A] text-lg block mb-1">Student ID</label>
-                            <input type="text" id="studentId" placeholder="Enter Student ID" required 
-                                class="w-full border-4 border-[#11693A] rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-gray-700 font-medium">
-                        </div>
-                        <div>
-                            <label class="custom-heading text-[#11693A] text-lg block mb-1">Email Address</label>
-                            <input type="email" id="email" placeholder="name@gmail.com" required 
-                                class="w-full border-4 border-[#11693A] rounded-xl p-2 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-gray-700 font-medium">
-                        </div>
-                    </div>  
-
-                    <div>
-                        <label class="custom-heading text-[#11693A] text-lg block mb-1">Password</label>
-                        <div class="relative">
-                            <input type="password" id="password" placeholder="••••••••" required 
-                                class="w-full border-4 border-[#11693A] rounded-xl p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-gray-700 font-medium">
-                            <button type="button" onclick="togglePassword('password', 'eyeIcon1')" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#11693A]">
-                                <i id="eyeIcon1" data-lucide="eye-off" class="h-6 w-6"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="custom-heading text-[#11693A] text-lg block mb-1">Confirm Password</label>
-                        <div class="relative">
-                            <input type="password" id="confirmPassword" placeholder="••••••••" required 
-                                class="w-full border-4 border-[#11693A] rounded-xl p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-gray-700 font-medium">
-                            <button type="button" onclick="togglePassword('confirmPassword', 'eyeIcon2')" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#11693A]">
-                                <i id="eyeIcon2" data-lucide="eye-off" class="h-6 w-6"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="custom-heading text-[#11693A] text-lg block mb-1">Course / Program</label>
-                        <div class="relative" id="courseDropdownContainer">
-                            <select id="course" required style="display:none">
-                                <option value="" disabled selected>Select Course</option>
-                            </select>
-                            <input type="text" id="courseSearch" placeholder="Search course..." autocomplete="off" readonly
-                                class="w-full border-4 border-[#11693A] rounded-xl p-2 pr-10 focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all bg-white text-[#11693A] font-semibold cursor-pointer">
-                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#11693A]">
-                                <i data-lucide="chevron-down" class="h-6 w-6 transition-transform"></i>
-                            </div>
-                            <div id="courseDropdownList" class="hidden fixed z-50 bg-white border-2 border-[#11693A] rounded-xl max-h-48 overflow-y-auto shadow-lg"></div>
-                        </div>
-                    </div>
-
-                    <button type="submit" id="regBtn" class="w-full max-w-[250px] mx-auto block bg-[#11693A] text-white py-3 rounded-full text-2xl font-bold custom-heading hover:bg-[#0d522d] transition-all transform hover:scale-[1.02] active:scale-95 shadow-md mt-6">
-                        Next
-                    </button>
-                </form>
-            </div>
-        </div>
+    <!-- Left panel — university branding -->
+    <div class="w-full md:w-[38%] bg-[var(--forest)] flex flex-col items-center justify-center p-10 text-white relative">
+      <div class="w-48 h-48 flex items-center justify-center mb-6">
+        <img src="https://isu.edu.ph/wp-content/uploads/2026/03/isu_new_seal_512x512.png"
+             alt="ISU Logo"
+             class="w-full h-full object-contain" />
+      </div>
+      <h2 class="font-[var(--font-display)] text-2xl font-semibold text-center leading-snug">
+        OJT Monitoring System
+      </h2>
+      <p class="text-sm text-white/65 mt-2 text-center max-w-[220px]">
+        Isabela State University — Cauayan Campus
+      </p>
+      <div class="mt-8 w-12 h-px bg-[var(--gold)]/50"></div>
+      <p class="text-sm text-white/60 mt-6 mb-3">Already have an account?</p>
+      <a href="{% url 'login' %}"
+         class="inline-block border border-white/40 text-white/90 hover:bg-white hover:text-[var(--forest)] rounded-full py-2.5 px-8 text-sm font-medium transition-all duration-300">
+        Login
+      </a>
+      <p class="text-xs text-white/40 mt-6 mb-2">Register as a Coordinator instead?</p>
+      <a href="{% url 'coordinator-register' %}"
+         class="gold-link text-sm text-white/70 hover:text-white transition-colors">
+        Coordinator Registration
+      </a>
     </div>
 
+    <!-- Right panel — student registration form -->
+    <div class="w-full md:w-[62%] p-8 md:p-14 relative flex flex-col justify-center">
 
+      <a href="{% url 'login' %}"
+         class="absolute top-8 left-8 w-10 h-10 flex items-center justify-center rounded-full border border-[var(--charcoal)]/10 text-[var(--forest)] hover:bg-[var(--forest)] hover:text-white transition-all duration-300">
+        <i data-lucide="chevron-left" class="w-5 h-5"></i>
+      </a>
 
-    <script>
-        // ===== ALERT HELPER =====
-        function showAlert(message) {
-            return Swal.fire({
-                icon: 'info',
-                text: message,
-                confirmButtonColor: '#11693A',
-                confirmButtonText: 'OK',
-            });
+      <div class="max-w-sm mx-auto w-full mt-6 md:mt-0">
+        <span class="text-xs uppercase tracking-[0.2em] text-[var(--gold)] font-medium">Student</span>
+        <h1 class="font-[var(--font-display)] text-[var(--forest)] text-3xl font-semibold mt-2 mb-8 leading-tight">
+          Create Account
+        </h1>
+
+        <form class="space-y-4" id="regForm">
+          <div>
+            <label for="fullName" class="text-sm font-medium text-[var(--charcoal)]/80 block mb-1.5">Full Name</label>
+            <input type="text" id="fullName" placeholder="Last Name, First Name, M.I., Suffix" required
+                pattern="[A-Za-z\s,.]+" title="Full name should only contain letters, spaces, commas, and periods" oninput="this.value = this.value.replace(/[^A-Za-z\s,.]/g, '')"
+                class="w-full border border-[var(--charcoal)]/15 bg-[var(--paper)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)] focus:ring-1 focus:ring-[var(--gold)] transition-all">
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label for="studentId" class="text-sm font-medium text-[var(--charcoal)]/80 block mb-1.5">Student ID</label>
+              <input type="text" id="studentId" placeholder="Enter Student ID" required
+                  class="w-full border border-[var(--charcoal)]/15 bg-[var(--paper)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)] focus:ring-1 focus:ring-[var(--gold)] transition-all">
+            </div>
+            <div>
+              <label for="email" class="text-sm font-medium text-[var(--charcoal)]/80 block mb-1.5">Email Address</label>
+              <input type="email" id="email" placeholder="name@gmail.com" required
+                  class="w-full border border-[var(--charcoal)]/15 bg-[var(--paper)] rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[var(--gold)] focus:ring-1 focus:ring-[var(--gold)] transition-all">
+            </div>
+          </div>
+
+          <div>
+            <label for="password" class="text-sm font-medium text-[var(--charcoal)]/80 block mb-1.5">Password</label>
+            <div class="relative flex items-center">
+              <input type="password" id="password" placeholder="••••••••" required
+                  class="w-full border border-[var(--charcoal)]/15 bg-[var(--paper)] rounded-lg px-4 py-3 pr-12 text-sm focus:outline-none focus:border-[var(--gold)] focus:ring-1 focus:ring-[var(--gold)] transition-all">
+              <button type="button" onclick="togglePassword('password', 'eyeIcon1')" class="absolute right-3 text-[var(--charcoal)]/40 hover:text-[var(--forest)] transition-colors">
+                <i id="eyeIcon1" data-lucide="eye-off" class="w-5 h-5"></i>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label for="confirmPassword" class="text-sm font-medium text-[var(--charcoal)]/80 block mb-1.5">Confirm Password</label>
+            <div class="relative flex items-center">
+              <input type="password" id="confirmPassword" placeholder="••••••••" required
+                  class="w-full border border-[var(--charcoal)]/15 bg-[var(--paper)] rounded-lg px-4 py-3 pr-12 text-sm focus:outline-none focus:border-[var(--gold)] focus:ring-1 focus:ring-[var(--gold)] transition-all">
+              <button type="button" onclick="togglePassword('confirmPassword', 'eyeIcon2')" class="absolute right-3 text-[var(--charcoal)]/40 hover:text-[var(--forest)] transition-colors">
+                <i id="eyeIcon2" data-lucide="eye-off" class="w-5 h-5"></i>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label for="courseSearch" class="text-sm font-medium text-[var(--charcoal)]/80 block mb-1.5">Course / Program</label>
+            <div class="relative" id="courseDropdownContainer">
+              <select id="course" required style="display:none">
+                <option value="" disabled selected>Select Course</option>
+              </select>
+              <input type="text" id="courseSearch" placeholder="Search course..." autocomplete="off" readonly
+                  class="w-full border border-[var(--charcoal)]/15 bg-[var(--paper)] rounded-lg px-4 py-3 pr-10 text-sm focus:outline-none focus:border-[var(--gold)] focus:ring-1 focus:ring-[var(--gold)] transition-all text-[var(--charcoal)] cursor-pointer">
+              <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[var(--charcoal)]/40">
+                <i data-lucide="chevron-down" class="w-5 h-5 transition-transform"></i>
+              </div>
+               <div id="courseDropdownList" class="hidden absolute z-50 bg-white border border-[var(--charcoal)]/15 rounded-lg max-h-48 overflow-y-auto shadow-lg left-0 right-0 top-full mt-1"></div>
+            </div>
+          </div>
+
+          <button type="submit" id="regBtn"
+                  class="w-full bg-[var(--forest)] text-white font-semibold py-3.5 rounded-full text-base hover:bg-[var(--forest-light)] transition-all duration-300 shadow-md hover:shadow-lg active:scale-[0.97] mt-4">
+            Next
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showAlert(message) {
+      return Swal.fire({
+        icon: 'info',
+        text: message,
+        confirmButtonColor: '#0F5436',
+        confirmButtonText: 'OK',
+        customClass: { popup: 'rounded-xl' }
+      });
+    }
+
+    const regForm = document.getElementById('regForm');
+    const regBtn = document.getElementById('regBtn');
+
+    function togglePassword(inputId, iconId) {
+      const passwordInput = document.getElementById(inputId);
+      const eyeIcon = document.getElementById(iconId);
+      if (passwordInput.type === "password") {
+        passwordInput.type = "text";
+        eyeIcon.setAttribute('data-lucide', 'eye');
+      } else {
+        passwordInput.type = "password";
+        eyeIcon.setAttribute('data-lucide', 'eye-off');
+      }
+      lucide.createIcons();
+    }
+
+    let courses = [];
+    let selectedCourse = '';
+
+    function initCourseDropdown() {
+      const searchInput = document.getElementById('courseSearch');
+      const dropdownList = document.getElementById('courseDropdownList');
+      const hiddenSelect = document.getElementById('course');
+
+      function buildDropdown(filter) {
+        dropdownList.innerHTML = '';
+        const filtered = filter
+            ? courses.filter(c => c.toLowerCase().includes(filter.toLowerCase()))
+            : courses;
+
+        if (filtered.length === 0) {
+          const empty = document.createElement('div');
+          empty.className = 'p-3 text-gray-400 text-center text-sm';
+          empty.textContent = 'No courses found';
+          dropdownList.appendChild(empty);
+          return;
         }
 
-        const regForm = document.getElementById('regForm');
-        const regBtn = document.getElementById('regBtn');
-
-        function togglePassword(inputId, iconId) {
-            const passwordInput = document.getElementById(inputId);
-            const eyeIcon = document.getElementById(iconId);
-            if (passwordInput.type === "password") {
-                passwordInput.type = "text";
-                eyeIcon.setAttribute('data-lucide', 'eye');
-            } else {
-                passwordInput.type = "password";
-                eyeIcon.setAttribute('data-lucide', 'eye-off');
-            }
-            lucide.createIcons();
-        }
-
-        let courses = [];
-        let selectedCourse = '';
-
-        function initCourseDropdown() {
-            const searchInput = document.getElementById('courseSearch');
-            const dropdownList = document.getElementById('courseDropdownList');
-            const hiddenSelect = document.getElementById('course');
-
-            function buildDropdown(filter) {
-                dropdownList.innerHTML = '';
-                const filtered = filter
-                    ? courses.filter(c => c.toLowerCase().includes(filter.toLowerCase()))
-                    : courses;
-
-                if (filtered.length === 0) {
-                    const empty = document.createElement('div');
-                    empty.className = 'p-3 text-gray-400 text-center';
-                    empty.textContent = 'No courses found';
-                    dropdownList.appendChild(empty);
-                    return;
-                }
-
-                filtered.forEach(course => {
-                    const item = document.createElement('div');
-                    item.className = 'p-3 hover:bg-emerald-100 cursor-pointer text-[#11693A] font-semibold border-b border-gray-100 last:border-b-0 transition-colors';
-                    item.textContent = course;
-                    item.addEventListener('mousedown', function(e) {
-                        e.preventDefault();
-                        selectCourse(course);
-                    });
-                    dropdownList.appendChild(item);
-                });
-            }
-
-            function selectCourse(course) {
-                searchInput.value = course;
-                selectedCourse = course;
-                hiddenSelect.value = course;
-                dropdownList.classList.add('hidden');
-                searchInput.setAttribute('readonly', true);
-            }
-
-            function positionDropdown() {
-                const rect = searchInput.getBoundingClientRect();
-                dropdownList.style.top = (rect.bottom + 4) + 'px';
-                dropdownList.style.left = rect.left + 'px';
-                dropdownList.style.width = rect.width + 'px';
-            }
-
-            function openDropdown() {
-                positionDropdown();
-                dropdownList.classList.remove('hidden');
-            }
-
-            function closeDropdown() {
-                dropdownList.classList.add('hidden');
-            }
-
-            searchInput.addEventListener('focus', function() {
-                searchInput.removeAttribute('readonly');
-                buildDropdown(searchInput.value);
-                openDropdown();
-            });
-
-            searchInput.addEventListener('input', function() {
-                buildDropdown(this.value);
-                openDropdown();
-            });
-
-            window.addEventListener('scroll', function() {
-                if (!dropdownList.classList.contains('hidden')) {
-                    positionDropdown();
-                }
-            }, true);
-
-            window.addEventListener('resize', function() {
-                if (!dropdownList.classList.contains('hidden')) {
-                    positionDropdown();
-                }
-            });
-
-            searchInput.addEventListener('blur', function() {
-                setTimeout(function() {
-                    closeDropdown();
-                    if (!selectedCourse) {
-                        searchInput.setAttribute('readonly', true);
-                    }
-                }, 200);
-            });
-
-            document.addEventListener('click', function(e) {
-                const container = document.getElementById('courseDropdownContainer');
-                if (!container.contains(e.target)) {
-                    closeDropdown();
-                    if (!selectedCourse) {
-                        searchInput.setAttribute('readonly', true);
-                    }
-                }
-            });
-
-            searchInput.addEventListener('keydown', function(e) {
-                const items = dropdownList.querySelectorAll('div:not(.text-gray-400)');
-                if (items.length === 0) return;
-
-                const active = dropdownList.querySelector('.bg-emerald-200');
-                let idx = active ? Array.from(items).indexOf(active) : -1;
-
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    if (active) active.classList.remove('bg-emerald-200');
-                    idx = Math.min(idx + 1, items.length - 1);
-                    items[idx].classList.add('bg-emerald-200');
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    if (active) active.classList.remove('bg-emerald-200');
-                    idx = Math.max(idx - 1, 0);
-                    items[idx].classList.add('bg-emerald-200');
-                } else if (e.key === 'Enter') {
-                    e.preventDefault();
-                    if (active) {
-                        selectCourse(active.textContent);
-                    }
-                } else if (e.key === 'Escape') {
-                    closeDropdown();
-                }
-            });
-        }
-
-        async function fetchCourses() {
-            try {
-                const res = await fetch('/api/auth/courses/');
-                const data = await res.json();
-                courses = data.map(c => c.name);
-                const hiddenSelect = document.getElementById('course');
-                hiddenSelect.innerHTML = '<option value="" disabled selected>Select Course</option>';
-                courses.forEach(name => {
-                    const opt = document.createElement('option');
-                    opt.value = name;
-                    opt.textContent = name;
-                    hiddenSelect.appendChild(opt);
-                });
-            } catch (err) {
-                console.error('Failed to load courses:', err);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', async function() {
-            await fetchCourses();
-            initCourseDropdown();
-        });
-
-        function parseFullName(fullName) {
-            const parts = fullName.split(',').map(s => s.trim());
-            let lastName = '', firstName = '';
-            if (parts.length >= 2) {
-                lastName = parts[0];
-                firstName = parts[1].split(' ')[0];
-            } else {
-                const sp = fullName.split(' ');
-                firstName = sp[0] || '';
-                lastName = sp.slice(1).join(' ') || '';
-            }
-            return { firstName, lastName };
-        }
-
-        regForm.addEventListener('submit', async function(e) {
+        filtered.forEach(course => {
+          const item = document.createElement('div');
+          item.className = 'p-3 hover:bg-[var(--gold-light)]/30 cursor-pointer text-[var(--charcoal)] text-sm border-b border-[var(--charcoal)]/5 last:border-b-0 transition-colors';
+          item.textContent = course;
+          item.addEventListener('mousedown', function(e) {
             e.preventDefault();
-
-            const fullName = document.getElementById('fullName').value.trim();
-            const studentId = document.getElementById('studentId').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            const course = document.getElementById('courseSearch').value;
-
-            if (password !== confirmPassword) {
-                showAlert('Passwords do not match!');
-                return;
-            }
-
-            const { firstName, lastName } = parseFullName(fullName);
-
-            regBtn.disabled = true;
-            regBtn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin mr-2" style="width:16px;height:16px;"></i> Registering...';
-            lucide.createIcons();
-
-            try {
-                const response = await fetch('/api/auth/register/', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        username: email,
-                        email: email,
-                        first_name: firstName,
-                        last_name: lastName,
-                        password: password,
-                        password2: confirmPassword,
-                        role: 'student',
-                        course: selectedCourse,
-                        student_id: studentId
-                    })
-                });
-
-                const data = await response.json();
-
-                if (response.ok) {
-                    await showAlert('Account created! Please wait for coordinator approval before you can log in.');
-                    window.location.href = '/auth/login/';
-                } else {
-                    const errMsg = typeof data === 'object' ? Object.values(data).flat().join('\n') : 'Registration failed';
-                    showAlert(errMsg);
-                }
-            } catch (err) {
-                showAlert('Connection error. Please try again.');
-            } finally {
-                regBtn.disabled = false;
-                regBtn.innerHTML = 'Next';
-            }
+            selectCourse(course);
+          });
+          dropdownList.appendChild(item);
         });
-    lucide.createIcons();
-</script>
+      }
+
+      function selectCourse(course) {
+        searchInput.value = course;
+        selectedCourse = course;
+        hiddenSelect.value = course;
+        dropdownList.classList.add('hidden');
+        searchInput.setAttribute('readonly', true);
+      }
+
+      function openDropdown() {
+        dropdownList.classList.remove('hidden');
+      }
+
+      function closeDropdown() {
+        dropdownList.classList.add('hidden');
+      }
+
+      searchInput.addEventListener('focus', function() {
+        this.removeAttribute('readonly');
+        this.value = '';
+        selectedCourse = '';
+        hiddenSelect.value = '';
+        buildDropdown('');
+        openDropdown();
+      });
+
+      searchInput.addEventListener('click', function(e) {
+        e.stopPropagation();
+        if (dropdownList.classList.contains('hidden')) {
+          this.removeAttribute('readonly');
+          this.value = '';
+          selectedCourse = '';
+          hiddenSelect.value = '';
+          buildDropdown('');
+          openDropdown();
+        }
+      });
+
+      searchInput.addEventListener('input', function() {
+        buildDropdown(this.value);
+        openDropdown();
+      });
+
+      searchInput.addEventListener('blur', function() {
+        setTimeout(function() {
+          closeDropdown();
+          if (!selectedCourse) {
+            searchInput.setAttribute('readonly', true);
+          }
+        }, 200);
+      });
+
+      document.addEventListener('click', function(e) {
+        const container = document.getElementById('courseDropdownContainer');
+        if (!container.contains(e.target)) {
+          closeDropdown();
+          if (!selectedCourse) {
+            searchInput.setAttribute('readonly', true);
+          }
+        }
+      });
+
+      searchInput.addEventListener('keydown', function(e) {
+        const items = dropdownList.querySelectorAll('div:not(.text-gray-400)');
+        if (items.length === 0) return;
+
+        const active = dropdownList.querySelector('.bg-emerald-200');
+        let idx = active ? Array.from(items).indexOf(active) : -1;
+
+        if (e.key === 'ArrowDown') {
+          e.preventDefault();
+          if (active) active.classList.remove('bg-emerald-200');
+          idx = Math.min(idx + 1, items.length - 1);
+          items[idx].classList.add('bg-emerald-200');
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault();
+          if (active) active.classList.remove('bg-emerald-200');
+          idx = Math.max(idx - 1, 0);
+          items[idx].classList.add('bg-emerald-200');
+        } else if (e.key === 'Enter') {
+          e.preventDefault();
+          if (active) {
+            selectCourse(active.textContent);
+          }
+        } else if (e.key === 'Escape') {
+          closeDropdown();
+        }
+      });
+    }
+
+    async function fetchCourses() {
+      try {
+        const res = await fetch('/api/auth/courses/');
+        const data = await res.json();
+        courses = Array.isArray(data) ? data.map(c => c.name) : [];
+        const hiddenSelect = document.getElementById('course');
+        hiddenSelect.innerHTML = '<option value="" disabled selected>Select Course</option>';
+        courses.forEach(name => {
+          const opt = document.createElement('option');
+          opt.value = name;
+          opt.textContent = name;
+          hiddenSelect.appendChild(opt);
+        });
+      } catch (err) {
+        console.error('Failed to load courses:', err);
+      }
+    }
+
+    (async function init() {
+      await fetchCourses();
+      initCourseDropdown();
+      lucide.createIcons();
+    })();
+
+    function parseFullName(fullName) {
+      const parts = fullName.split(',').map(s => s.trim());
+      let lastName = '', firstName = '';
+      if (parts.length >= 2) {
+        lastName = parts[0];
+        firstName = parts[1].split(' ')[0];
+      } else {
+        const sp = fullName.split(' ');
+        firstName = sp[0] || '';
+        lastName = sp.slice(1).join(' ') || '';
+      }
+      return { firstName, lastName };
+    }
+
+    regForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const fullName = document.getElementById('fullName').value.trim();
+      const studentId = document.getElementById('studentId').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirmPassword').value;
+      const course = document.getElementById('courseSearch').value;
+
+      if (password !== confirmPassword) {
+        showAlert('Passwords do not match!');
+        return;
+      }
+
+      const { firstName, lastName } = parseFullName(fullName);
+
+      regBtn.disabled = true;
+      regBtn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin mr-2" style="width:16px;height:16px;"></i> Registering...';
+      lucide.createIcons();
+
+      try {
+        const response = await fetch('/api/auth/register/', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            username: email,
+            email: email,
+            first_name: firstName,
+            last_name: lastName,
+            password: password,
+            password2: confirmPassword,
+            role: 'student',
+            course: selectedCourse,
+            student_id: studentId
+          })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          await showAlert('Account created! Please wait for coordinator approval before you can log in.');
+          window.location.href = '/auth/login/';
+        } else {
+          const errMsg = typeof data === 'object' ? Object.values(data).flat().join('\n') : 'Registration failed';
+          showAlert(errMsg);
+        }
+      } catch (err) {
+        showAlert('Connection error. Please try again.');
+      } finally {
+        regBtn.disabled = false;
+        regBtn.innerHTML = 'Next';
+      }
+    });
+  </script>
+
 </body>
 </html>
