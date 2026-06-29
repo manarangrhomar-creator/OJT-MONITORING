@@ -64,13 +64,6 @@
       width: 100%;
       background: #C8A44A;
       border-radius: 2px;
-      width: 0%;
-      animation: loaderSweep 2s ease-in-out infinite;
-    }
-    @keyframes loaderSweep {
-      0% { width: 0%; }
-      50% { width: 85%; }
-      100% { width: 0%; }
     }
     </style>
 </head>
@@ -83,7 +76,7 @@
     <div class="loader-progress-bar"></div>
   </div>
 </div>
-<script>(function(){var e=document.getElementById('isuPageLoader');if(!e)return;var b=e.querySelector('.loader-progress-bar');window.addEventListener('load',function(){if(b){b.style.animation='none';b.style.transition='width 0.3s ease';b.style.width='100%'}setTimeout(function(){e.style.display='none'},600)});})();</script>
+<script>(function(){var e=document.getElementById('isuPageLoader');if(!e)return;var b=e.querySelector('.loader-progress-bar');if(b){b.style.transformOrigin='left';var d=2000;var s=Date.now();var r=1;(function a(){if(!r||e.style.display==='none')return;var p=((Date.now()-s)%d)/d;var v=p<.5?p/.5*.85:.85*(1-(p-.5)/.5);b.style.transform='scaleX('+v+')';requestAnimationFrame(a)})();}window.addEventListener('load',function(){r=0;if(b){b.style.transition='transform 0.3s ease';b.style.transform='scaleX(1)'}setTimeout(function(){e.style.display='none'},600)});})();</script>
 
     <div class="w-full max-w-4xl bg-white rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row-reverse min-h-[550px]">
         
