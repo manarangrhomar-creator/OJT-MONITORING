@@ -82,6 +82,9 @@
       pointer-events: none;
       z-index: 0;
     }
+    @media (max-width: 639px) {
+      .bg-seal { width: 160px; height: 160px; right: -60px; opacity: 0.025; }
+    }
     .gold-divider {
       height: 1px;
       background: linear-gradient(90deg, var(--gold) 0%, transparent 100%);
@@ -93,33 +96,11 @@
       object-fit: contain;
       border-radius: 4px;
     }
-    * {
-      scrollbar-width: thin;
-      scrollbar-color: var(--gold) transparent;
-    }
-    *::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
-    }
-    *::-webkit-scrollbar-track {
-      background: transparent;
-    }
-    *::-webkit-scrollbar-thumb {
-      background: var(--gold);
-      border-radius: 3px;
-      border: 2px solid transparent;
-      background-clip: content-box;
-    }
-    *::-webkit-scrollbar-thumb:hover {
-      background: var(--forest);
-      background-clip: content-box;
-    }
-    *::-webkit-scrollbar-corner {
-      background: transparent;
-    }
+    * { scrollbar-width: none; }
+    *::-webkit-scrollbar { display: none; }
   </style>
 </head>
-<body class="grain min-h-screen flex flex-col">
+<body class="grain min-h-screen flex flex-col overflow-x-hidden">
 
   <img class="bg-seal" src="https://isu.edu.ph/wp-content/uploads/2026/03/isu_new_seal_512x512.png" alt="" aria-hidden="true" />
 
@@ -127,18 +108,18 @@
     Skip to main content
   </a>
 
-  <header class="relative z-10 px-6 md:px-12 lg:px-24 py-6 flex items-center justify-between">
+  <header class="relative z-10 px-4 sm:px-6 md:px-12 lg:px-24 py-4 sm:py-6 flex items-center justify-between">
     <div class="flex items-center gap-3">
       <img class="seal-img" src="https://isu.edu.ph/wp-content/uploads/2026/03/isu_new_seal_512x512.png" alt="ISU Logo" />
       <span class="text-sm font-medium text-[var(--charcoal)]/60">
         OJT Monitoring System
       </span>
     </div>
-    <nav class="flex items-center gap-6">
-      <a href="{% url 'student-register' %}" class="gold-link text-sm font-medium text-[var(--charcoal)]/70 hover:text-[var(--forest)] transition-colors">
+    <nav class="flex items-center gap-3 sm:gap-6">
+      <a href="{% url 'student-register' %}" class="gold-link text-sm font-medium text-[var(--charcoal)]/70 hover:text-[var(--forest)] transition-colors hidden sm:inline">
         Register
       </a>
-      <a href="{% url 'login' %}" class="text-sm font-semibold text-[var(--paper)] bg-[var(--forest)] hover:bg-[var(--forest-light)] px-5 py-2 rounded-full transition-all duration-300 hover:shadow-md">
+      <a href="{% url 'login' %}" class="text-xs sm:text-sm font-semibold text-[var(--paper)] bg-[var(--forest)] hover:bg-[var(--forest-light)] px-4 sm:px-5 py-2 rounded-full transition-all duration-300 hover:shadow-md whitespace-nowrap">
         Sign In
       </a>
     </nav>
@@ -151,7 +132,7 @@
         Isabela State University — Cauayan Campus
       </p>
 
-      <h1 class="font-[var(--font-display)] text-5xl sm:text-6xl md:text-7xl lg:text-8xl leading-[0.95] font-semibold text-[var(--charcoal)] max-w-3xl">
+      <h1 class="font-[var(--font-display)] text-[clamp(2rem,8vw,5rem)] sm:text-6xl md:text-7xl lg:text-8xl leading-[0.95] font-semibold text-[var(--charcoal)] max-w-3xl text-balance">
         OJT<br />
         <span class="italic font-normal text-[var(--forest)]">Monitoring</span>
         <br />

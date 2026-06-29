@@ -1,26 +1,26 @@
 {% extends "emails/base_email.html" %}
 
 {% block content %}
-    <p style="margin:0 0 6px; font-size:15px; color:#374151;">
-        Dear <strong style="color:#11693A;">{{ recipient_name }}</strong>,
+    <p style="margin:0 0 6px; font-size:15px; color:#1f2e24;">
+        Dear <strong style="color:#0F5436;">{{ recipient_name }}</strong>,
     </p>
 
-    <div style="background-color:#f0fdf4; border-left:4px solid #11693A; padding:16px 18px; margin:18px 0; border-radius:8px;">
-        <h2 style="margin:0 0 8px; font-family:'Fredoka',Arial,Helvetica,sans-serif; font-size:18px; color:#11693A; font-weight:600;">
+    <div style="background-color:#F7F5F0; border-left:4px solid #C8A44A; padding:16px 18px; margin:18px 0;">
+        <h2 style="margin:0 0 8px; font-family:'Fraunces',Georgia,serif; font-size:18px; color:#0F5436; font-weight:600; letter-spacing:-0.01em;">
             {{ title }}
         </h2>
-        <p style="margin:0; font-size:14px; color:#374151; line-height:1.6;">
+        <p style="margin:0; font-size:14px; color:#3a4a3e; line-height:1.6;">
             {{ message }}
         </p>
     </div>
 
-    <p style="margin:18px 0 0; font-size:14px; color:#6b7280; line-height:1.5;">
+    <p style="margin:18px 0 0; font-size:14px; color:#5e6b61; line-height:1.5;">
         You can view this and other notifications by logging into the
-        <a href="{{ site_url }}" style="color:#11693A; font-weight:600; text-decoration:underline;">OJT Portal</a>.
+        <a href="{{ site_url }}" style="color:#0F5436; font-weight:600; text-decoration:underline;">OJT Portal</a>.
     </p>
 
-    <p style="margin:20px 0 0; font-size:14px; color:#374151;">
+    <p style="margin:20px 0 0; font-size:14px; color:#1f2e24;">
         Best regards,<br>
-        <strong style="color:#11693A;">ISU OJT Monitoring System</strong>
+        <strong style="color:#0F5436;">ISU OJT Monitoring System</strong>
     </p>
 {% endblock %}

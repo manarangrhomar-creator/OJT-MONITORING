@@ -6,6 +6,7 @@ from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login, logout
 from django.core.cache import cache
 from django.core.mail import send_mail
+from django.template.loader import render_to_string
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
@@ -210,9 +211,14 @@ class AuthenticationViewSet(viewsets.ViewSet):
         if serializer.is_valid():
             email = serializer.validated_data['email']
             otp_record = PasswordResetOTP.generate_otp(email)
+            html_message = render_to_string('emails/otp_email.html', {
+                'otp': otp_record.otp,
+                'subject': 'Your OTP for Password Reset',
+            })
             send_mail(
                 subject='Your OTP for Password Reset',
                 message=f'Your OTP is: {otp_record.otp}\n\nThis code will expire in 15 minutes.',
+                html_message=html_message,
                 from_email=settings.EMAIL_HOST_USER,
                 recipient_list=[email],
                 fail_silently=False,
