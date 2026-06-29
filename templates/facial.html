@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+{% load static %}
 <html lang="en">
 <head>
 <meta charset="UTF-8">
@@ -78,10 +79,70 @@ body{
 aside > div{
     backdrop-filter: blur(6px);
 }
+    .isu-page-loader {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(4px);
+    }
+    .isu-page-loader .loader-logo-wrap {
+      width: 112px;
+      height: 112px;
+      background: rgba(255,255,255,0.95);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .isu-page-loader .loader-logo-wrap img {
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+      animation: loaderPulse 1.5s ease-in-out infinite;
+    }
+    @keyframes loaderPulse {
+      0%, 100% { transform: scale(1); opacity: 0.9; }
+      50% { transform: scale(1.05); opacity: 1; }
+    }
+    .loader-progress {
+      width: 200px;
+      height: 4px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 2px;
+      margin-top: 1.5rem;
+      overflow: hidden;
+    }
+    .loader-progress-bar {
+      height: 100%;
+      width: 100%;
+      background: #C8A44A;
+      border-radius: 2px;
+      width: 0%;
+      animation: loaderSweep 2s ease-in-out infinite;
+    }
+    @keyframes loaderSweep {
+      0% { width: 0%; }
+      50% { width: 85%; }
+      100% { width: 0%; }
+    }
 </style>
 </head>
 
 <body>
+<div id="isuPageLoader" class="isu-page-loader">
+  <div class="loader-logo-wrap">
+    <img src="{% static 'images/isu_new_seal_512x512.png' %}" alt="Loading" />
+  </div>
+  <div class="loader-progress">
+    <div class="loader-progress-bar"></div>
+  </div>
+</div>
+<script>(function(){var e=document.getElementById('isuPageLoader');if(!e)return;var b=e.querySelector('.loader-progress-bar');window.addEventListener('load',function(){if(b){b.style.animation='none';b.style.transition='width 0.3s ease';b.style.width='100%'}setTimeout(function(){e.style.display='none'},600)});})();</script>
 
 <div class="h-screen flex flex-col bg-white">
 
