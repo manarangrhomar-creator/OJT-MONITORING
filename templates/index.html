@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OJT Monitoring System — Isabela State University</title>
+  <link rel="icon" href="https://isu.edu.ph/wp-content/uploads/2026/03/isu_new_seal_512x512.png" sizes="any" type="image/png" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap"
@@ -33,18 +34,6 @@
       opacity: 0.03;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
       pointer-events: none;
-    }
-    .watermark {
-      position: fixed;
-      right: -120px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 500px;
-      height: 500px;
-      opacity: 0.04;
-      pointer-events: none;
-      z-index: 0;
-      background: url('https://www.eduopinions.com/wp-content/uploads/2023/09/ISU-SEAL-DOWNSCALE-350x345.png') no-repeat center/contain;
     }
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(24px); }
@@ -82,11 +71,28 @@
       transform: translateX(4px);
       box-shadow: 0 4px 24px rgba(0,0,0,0.06);
     }
+    .bg-seal {
+      position: fixed;
+      right: -120px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 500px;
+      height: 500px;
+      opacity: 0.04;
+      pointer-events: none;
+      z-index: 0;
+    }
     .gold-divider {
       height: 1px;
       background: linear-gradient(90deg, var(--gold) 0%, transparent 100%);
     }
-    /* Clean scrollbar */
+    .seal-img {
+      width: 40px;
+      height: 40px;
+      flex-shrink: 0;
+      object-fit: contain;
+      border-radius: 4px;
+    }
     * {
       scrollbar-width: thin;
       scrollbar-color: var(--gold) transparent;
@@ -114,7 +120,8 @@
   </style>
 </head>
 <body class="grain min-h-screen flex flex-col">
-  <div class="watermark" aria-hidden="true"></div>
+
+  <img class="bg-seal" src="https://isu.edu.ph/wp-content/uploads/2026/03/isu_new_seal_512x512.png" alt="" aria-hidden="true" />
 
   <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded">
     Skip to main content
@@ -122,10 +129,8 @@
 
   <header class="relative z-10 px-6 md:px-12 lg:px-24 py-6 flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <img src="https://www.eduopinions.com/wp-content/uploads/2023/09/ISU-SEAL-DOWNSCALE-350x345.png"
-           alt="ISU Seal"
-           class="w-9 h-9 object-contain" />
-      <span class="text-sm font-medium text-[var(--charcoal)]/60 hidden sm:block">
+      <img class="seal-img" src="https://isu.edu.ph/wp-content/uploads/2026/03/isu_new_seal_512x512.png" alt="ISU Logo" />
+      <span class="text-sm font-medium text-[var(--charcoal)]/60">
         OJT Monitoring System
       </span>
     </div>
@@ -178,23 +183,23 @@
       <div class="grid md:grid-cols-3 gap-6">
         <div class="role-card bg-white/80 backdrop-blur-sm p-6 rounded-r-lg">
           <span class="text-xs uppercase tracking-widest text-[var(--gold)] font-semibold">Admin</span>
-          <h3 class="font-[var(--font-display)] text-xl font-semibold mt-2 text-[var(--forest)]">System Oversight</h3>
+          <h3 class="font-[var(--font-display)] text-xl font-semibold mt-2 text-[var(--forest)]">Full Platform Control</h3>
           <p class="text-sm text-[var(--charcoal)]/60 mt-2 leading-relaxed">
-            Manage users, configure programs, monitor platform-wide activity and generate reports.
+            Manage users and programs, audit platform-wide activity, generate compliance reports, and keep every deployment on track.
           </p>
         </div>
         <div class="role-card bg-white/80 backdrop-blur-sm p-6 rounded-r-lg">
           <span class="text-xs uppercase tracking-widest text-[var(--gold)] font-semibold">Coordinator</span>
-          <h3 class="font-[var(--font-display)] text-xl font-semibold mt-2 text-[var(--forest)]">Program Management</h3>
+          <h3 class="font-[var(--font-display)] text-xl font-semibold mt-2 text-[var(--forest)]">Seamless Program Oversight</h3>
           <p class="text-sm text-[var(--charcoal)]/60 mt-2 leading-relaxed">
-            Approve applications, assign sites, track attendance, and evaluate student performance.
+            Approve applications, assign training sites, track attendance in real time, and evaluate student performance from one dashboard.
           </p>
         </div>
         <div class="role-card bg-white/80 backdrop-blur-sm p-6 rounded-r-lg">
           <span class="text-xs uppercase tracking-widest text-[var(--gold)] font-semibold">Student</span>
-          <h3 class="font-[var(--font-display)] text-xl font-semibold mt-2 text-[var(--forest)]">OJT Tracking</h3>
+          <h3 class="font-[var(--font-display)] text-xl font-semibold mt-2 text-[var(--forest)]">One-Centre OJT Hub</h3>
           <p class="text-sm text-[var(--charcoal)]/60 mt-2 leading-relaxed">
-            Submit applications, log attendance via facial recognition, and submit narrative reports.
+            Submit applications, log attendance with facial recognition, upload narrative reports, and track your progress in real time.
           </p>
         </div>
       </div>

@@ -190,11 +190,17 @@ class AuthenticationViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'], permission_classes=[AllowAny], authentication_classes=[])
     def courses(self, request):
         """Get list of active courses for registration forms (cached 5min)."""
-        course_list = cache.get('active_courses')
+        try:
+            course_list = cache.get('active_courses')
+        except ConnectionError:
+            course_list = None
         if course_list is None:
             courses = Course.objects.filter(is_active=True).order_by('name')
             course_list = [{'id': str(c.id), 'name': c.name} for c in courses]
-            cache.set('active_courses', course_list, 300)
+            try:
+                cache.set('active_courses', course_list, 300)
+            except ConnectionError:
+                pass
         return Response(course_list)
 
     @action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
