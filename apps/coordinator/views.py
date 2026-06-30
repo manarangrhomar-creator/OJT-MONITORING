@@ -274,7 +274,7 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
                 'id': student.id,
                 'name': student.get_full_name(),
                 'email': student.email,
-                'username': student.username,
+                'student_id': student.student_profile.student_id if hasattr(student, 'student_profile') and student.student_profile else None,
                 'is_active': student.is_active,
                 'created_at': student.created_at,
             })

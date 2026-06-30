@@ -266,7 +266,7 @@
                                 <tr>
                                     <th class="p-4">Name</th>
                                     <th class="p-4">Email</th>
-                                    <th class="p-4">Username</th>
+                                    <th class="p-4">Student ID</th>
                                     <th class="p-4">Status</th>
                                     <th class="p-4 text-center">Action</th>
                                 </tr>
@@ -1098,7 +1098,7 @@
                 row.innerHTML = `
                     <td class="p-4 font-bold text-slate-900">${esc(student.name)}</td>
                     <td class="p-4 text-slate-600">${esc(student.email)}</td>
-                    <td class="p-4 text-slate-600">${esc(student.username)}</td>
+                    <td class="p-4 text-slate-600">${esc(student.student_id || 'N/A')}</td>
                     <td class="p-4">
                         <span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold capitalize">${statusText}</span>
                     </td>
@@ -1132,7 +1132,7 @@
             details.innerHTML = `
                 <div class="detail-row"><span class="detail-label">Name:</span><span class="detail-value">${esc(student.name)}</span></div>
                 <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">${esc(student.email)}</span></div>
-                <div class="detail-row"><span class="detail-label">Username:</span><span class="detail-value">${esc(student.username)}</span></div>
+                <div class="detail-row"><span class="detail-label">Student ID:</span><span class="detail-value">${esc(student.student_id || 'N/A')}</span></div>
                 <div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value">${student.is_active ? 'Active' : 'Inactive'}</span></div>
                 <div class="detail-row"><span class="detail-label">Created:</span><span class="detail-value">${student.created_at ? esc(new Date(student.created_at).toLocaleDateString()) : 'N/A'}</span></div>
             `;
