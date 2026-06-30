@@ -22,6 +22,10 @@ class IsCoordinator(permissions.BasePermission):
         """Check if coordinator owns the object."""
         if request.user.is_admin():
             return True
+        # Handle OJTApplication - check if coordinator owns the program
+        if hasattr(obj, 'program') and hasattr(obj.program, 'coordinator'):
+            return obj.program.coordinator == request.user
+        # Handle other objects that have a direct coordinator field
         if hasattr(obj, 'coordinator'):
             return obj.coordinator == request.user
         return False
@@ -74,11 +78,19 @@ class OJTProgramViewSet(viewsets.ModelViewSet):
 
 class OJTApplicationViewSet(viewsets.ModelViewSet):
     """ViewSet for OJT Application management."""
-    queryset = OJTApplication.objects.all()
     serializer_class = OJTApplicationSerializer
     permission_classes = [IsCoordinator]
     filterset_fields = ['status', 'program']
     search_fields = ['student__username', 'program__name']
+    
+    def get_queryset(self):
+        """Filter applications by coordinator's programs."""
+        user = self.request.user
+        if user.is_admin():
+            return OJTApplication.objects.all().select_related('student', 'program')
+        return OJTApplication.objects.filter(
+            program__coordinator=user
+        ).select_related('student', 'program')
     
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
@@ -120,11 +132,19 @@ class OJTApplicationViewSet(viewsets.ModelViewSet):
 
 class AttendanceViewSet(viewsets.ModelViewSet):
     """ViewSet for Attendance management."""
-    queryset = Attendance.objects.all().select_related('student', 'program')
     serializer_class = AttendanceSerializer
     permission_classes = [IsCoordinator]
     filterset_fields = ['program', 'student', 'date']
     search_fields = ['student__username']
+    
+    def get_queryset(self):
+        """Filter attendance records by coordinator's programs."""
+        user = self.request.user
+        if user.is_admin():
+            return Attendance.objects.all().select_related('student', 'program')
+        return Attendance.objects.filter(
+            program__coordinator=user
+        ).select_related('student', 'program')
     
     @action(detail=False, methods=['post'])
     def clock_in(self, request):

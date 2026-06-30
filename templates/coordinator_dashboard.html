@@ -1158,7 +1158,9 @@
                     tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-red-500">Failed to load</td></tr>';
                     return;
                 }
-                applicationList = await response.json();
+                const data = await response.json();
+                // Handle paginated response
+                applicationList = Array.isArray(data) ? data : (data.results || []);
                 renderApplicationTable();
             } catch (error) {
                 tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-red-500">Error loading</td></tr>';
@@ -1173,12 +1175,20 @@
                 tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-gray-400">No applications found</td></tr>';
                 return;
             }
-            applicationList.forEach(app => {
+            
+            const pendingApps = applicationList.filter(app => app.status === 'pending');
+            if (!pendingApps.length) {
+                tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-gray-400">No pending applications</td></tr>';
+                return;
+            }
+            
+            pendingApps.forEach(app => {
                 const statusClass = app.status === 'pending' ? 'yellow' : app.status === 'approved' ? 'emerald' : 'red';
                 const statusText = app.status.charAt(0).toUpperCase() + app.status.slice(1);
                 const dateApplied = app.created_at ? new Date(app.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
                 const row = document.createElement('tr');
                 row.className = 'border-b border-slate-100 hover:bg-slate-50 transition-colors';
+                row.setAttribute('data-status', app.status);
                 row.innerHTML = `
                     <td class="p-4 font-bold text-slate-900">${esc(app.student_name)}</td>
                     <td class="p-4 text-slate-600">${esc(app.program_name)}</td>
@@ -1204,18 +1214,51 @@
         function filterApplicationsByStatus(status) {
             const tbody = document.getElementById('applicationTableBody');
             if (!tbody) return;
-            const rows = tbody.getElementsByTagName('tr');
-            Array.from(rows).forEach(row => {
-                if (status === 'all') {
-                    row.style.display = '';
-                } else {
-                    const statusCell = row.querySelector('td:nth-child(5)');
-                    if (statusCell) {
-                        const rowStatus = statusCell.textContent.trim().toLowerCase();
-                        row.style.display = rowStatus === status ? '' : 'none';
-                    }
-                }
+            
+            tbody.innerHTML = '';
+            
+            if (!applicationList.length) {
+                tbody.innerHTML = '<tr><td colspan="6" class="py-8 px-4 text-center text-gray-400">No applications found</td></tr>';
+                return;
+            }
+            
+            let filteredApps = applicationList;
+            if (status !== 'all') {
+                filteredApps = applicationList.filter(app => app.status === status);
+            }
+            
+            if (!filteredApps.length) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 px-4 text-center text-gray-400">No ${status} applications</td></tr>`;
+                return;
+            }
+            
+            filteredApps.forEach(app => {
+                const statusClass = app.status === 'pending' ? 'yellow' : app.status === 'approved' ? 'emerald' : 'red';
+                const statusText = app.status.charAt(0).toUpperCase() + app.status.slice(1);
+                const dateApplied = app.created_at ? new Date(app.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
+                const row = document.createElement('tr');
+                row.className = 'border-b border-slate-100 hover:bg-slate-50 transition-colors';
+                row.setAttribute('data-status', app.status);
+                row.innerHTML = `
+                    <td class="p-4 font-bold text-slate-900">${esc(app.student_name)}</td>
+                    <td class="p-4 text-slate-600">${esc(app.program_name)}</td>
+                    <td class="p-4">${app.application_letter ? `<a href="${esc(app.application_letter)}" target="_blank" class="text-blue-600 hover:underline text-xs">View Letter</a>` : '—'}</td>
+                    <td class="p-4 text-slate-600">${esc(dateApplied)}</td>
+                    <td class="p-4"><span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold capitalize">${statusText}</span></td>
+                    <td class="p-4 text-center">
+                        ${app.status === 'pending' ? `
+                            <button class="text-emerald-500 hover:text-emerald-700 p-2" title="Approve" onclick="requestApproveApplication('${app.id}')">
+                                <i data-lucide="check-circle" class="text-lg"></i>
+                            </button>
+                            <button class="text-red-500 hover:text-red-700 p-2" title="Reject" onclick="requestRejectApplication('${app.id}')">
+                                <i data-lucide="x-circle" class="text-lg"></i>
+                            </button>
+                        ` : `<span class="text-slate-400 text-xs">${app.status === 'approved' ? 'Approved' : 'Rejected'}</span>`}
+                    </td>
+                `;
+                tbody.appendChild(row);
             });
+            lucide.createIcons();
         }
 
         function requestApproveApplication(id) {
