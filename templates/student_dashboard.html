@@ -174,7 +174,7 @@
 <script>(function(){var e=document.getElementById('isuPageLoader');if(!e)return;var b=e.querySelector('.loader-progress-bar');if(b){b.style.transformOrigin='left';var d=2000;var s=Date.now();var r=1;(function a(){if(!r||e.style.display==='none')return;var p=((Date.now()-s)%d)/d;var v=p<.5?p/.5*.85:.85*(1-(p-.5)/.5);b.style.transform='scaleX('+v+')';requestAnimationFrame(a)})();}window.addEventListener('load',function(){r=0;if(b){b.style.transition='transform 0.3s ease';b.style.transform='scaleX(1)'}setTimeout(function(){e.style.display='none'},600)});})();</script>
 
 <!-- MAIN CONTENT -->
-<main class="px-5 lg:px-8">
+<main class="px-4 sm:px-5 lg:px-8">
 
   <!-- APPLY SECTION -->
   <div id="sectionApply" class="hidden animate-in">
@@ -218,7 +218,7 @@
           <div class="flex items-center gap-3 min-w-0">
             <img src="{% static 'images/isu_new_seal_512x512.png' %}" alt="ISU" class="w-9 h-9 md:w-10 md:h-10 object-contain shrink-0">
             <div class="min-w-0">
-              <h1 id="welcomeHeading" class="text-sm md:text-base font-bold text-[var(--fg)] truncate">Welcome back</h1>
+              <h1 id="welcomeHeading" class="text-sm md:text-base font-bold text-[var(--fg)] break-words">Welcome back</h1>
               <p class="text-[10px] md:text-[11px] text-[var(--muted)] font-medium">Your OJT Dashboard</p>
             </div>
           </div>
@@ -232,7 +232,7 @@
                 <i data-lucide="bell" class="w-[18px] h-[18px]"></i>
                 <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-bold w-4 h-4 flex items-center justify-center rounded-full hidden">0</span>
               </button>
-              <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 md:w-96 bg-white rounded-xl shadow-lg border border-[var(--border)] z-50 overflow-hidden">
+              <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 md:w-96 bg-white rounded-xl shadow-lg border border-[var(--border)] z-50 overflow-hidden" style="max-width: calc(100vw - 2rem); right: 0;">
                 <div class="p-3 border-b border-[var(--border)] flex justify-between items-center">
                   <h3 class="font-semibold text-xs text-[var(--muted)] uppercase tracking-wider">Notifications</h3>
                   <button id="markAllReadBtn" class="text-[10px] font-semibold text-[var(--primary)] hover:underline">Mark all read</button>
@@ -250,15 +250,15 @@
         </header>
 
         <!-- TAB PILLS -->
-        <div class="pt-5 pb-3 flex items-center gap-2">
-          <button id="tabDashboardBtn" class="tab-pill-active px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2">
-            <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+        <div class="pt-5 pb-3 flex items-center gap-2 flex-wrap">
+          <button id="tabDashboardBtn" class="tab-pill-active px-3 sm:px-5 py-2 rounded-xl text-[10px] sm:text-xs transition-all flex items-center gap-1.5 sm:gap-2">
+            <i data-lucide="layout-dashboard" class="w-3.5 sm:w-4 h-3.5 sm:h-4"></i> Dashboard
           </button>
-          <button id="tabReportBtn" class="tab-pill-inactive px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2">
-            <i data-lucide="file-text" class="w-4 h-4"></i> Today's Accomplishment Report
+          <button id="tabReportBtn" class="tab-pill-inactive px-3 sm:px-5 py-2 rounded-xl text-[10px] sm:text-xs transition-all flex items-center gap-1.5 sm:gap-2">
+            <i data-lucide="file-text" class="w-3.5 sm:w-4 h-3.5 sm:h-4"></i> <span class="hidden sm:inline">Today's Accomplishment Report</span><span class="sm:hidden">Report</span>
           </button>
-          <button id="tabArchivesBtn" class="tab-pill-inactive px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2">
-            <i data-lucide="folder-open" class="w-4 h-4"></i> Archives
+          <button id="tabArchivesBtn" class="tab-pill-inactive px-3 sm:px-5 py-2 rounded-xl text-[10px] sm:text-xs transition-all flex items-center gap-1.5 sm:gap-2">
+            <i data-lucide="folder-open" class="w-3.5 sm:w-4 h-3.5 sm:h-4"></i> Archives
           </button>
           <div class="flex-1"></div>
         </div>
@@ -285,10 +285,10 @@
                 </div>
               </div>
               <div class="min-w-0 mt-4">
-                <h2 id="profileName" class="text-lg font-bold text-[var(--fg)]">Student</h2>
+                <h2 id="profileName" class="text-lg font-bold text-[var(--fg)] break-words">Student</h2>
                 <p id="profileCourse" class="text-xs text-[var(--muted)] mt-0.5">OJT Trainee</p>
               </div>
-              <div class="flex flex-row items-center justify-center gap-1 mt-auto">
+              <div class="flex flex-row items-center justify-center gap-1 mt-auto flex-wrap">
                 <span id="badgeRendered" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--primary)]/5 text-[var(--primary)] text-[10px] font-semibold whitespace-nowrap">
                   <i data-lucide="clock" class="w-3 h-3"></i> 0.0 hrs
                 </span>
@@ -373,9 +373,9 @@
             </span>
           </div>
 
-          <div class="flex gap-4">
+          <div class="flex flex-col lg:flex-row gap-4">
             <!-- Mini stat tiles -->
-            <div class="flex flex-col gap-2 w-36 shrink-0">
+            <div class="grid grid-cols-3 lg:grid-cols-1 gap-2 lg:w-36 shrink-0">
               <div class="rounded-xl bg-[var(--bg-body)] p-3">
                 <p class="text-[9px] font-semibold uppercase tracking-wider text-[var(--muted)]">This Week</p>
                 <p class="text-base font-bold text-[var(--primary)] mt-0.5" id="chartStatTotal">0.0</p>
@@ -394,7 +394,7 @@
             </div>
 
             <!-- Chart -->
-            <div class="relative flex-1" style="height: 200px;">
+            <div class="relative flex-1 min-w-0" style="height: 200px;">
               <canvas id="activityChart"></canvas>
             </div>
           </div>
@@ -504,45 +504,17 @@
           <div class="hidden lg:block absolute top-0 bottom-0 w-px bg-[var(--border)] pointer-events-none" style="left: -0.75rem;"></div>
 
           <!-- Panel header -->
-          <div class="px-5 py-3.5 flex items-center gap-2 shrink-0">
+          <div class="px-4 sm:px-5 py-3.5 flex items-center gap-2 shrink-0">
             <div class="w-1.5 h-5 rounded-full bg-[var(--primary)]"></div>
             <i data-lucide="layout-dashboard" class="w-4 h-4 text-[var(--primary)]"></i>
             <h3 class="text-sm font-bold text-[var(--fg)]">Dashboard Overview</h3>
           </div>
 
           <!-- Panel body -->
-          <div class="flex-1 p-5 space-y-5 overflow-y-auto custom-scroll min-h-0 animate-in">
+          <div class="flex-1 p-4 sm:p-5 flex flex-col gap-5 overflow-y-auto custom-scroll min-h-0 animate-in">
 
-            <!-- Recent Activity -->
-            <div>
-              <h4 class="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                <i data-lucide="activity" class="w-3.5 h-3.5"></i>
-                Recent Activity
-              </h4>
-              <div id="recentActivityList" class="space-y-2.5">
-                <div class="flex items-start gap-2.5">
-                  <div class="activity-dot bg-[var(--gold)]"></div>
-                  <div class="min-w-0">
-                    <p class="text-xs font-medium text-[var(--fg)]">Welcome to OJT Dashboard</p>
-                    <p class="text-[10px] text-[var(--muted)] mt-0.5">Start your OJT journey by submitting daily reports.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Attendance Overview -->
-            <div>
-              <h4 class="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
-                Attendance Overview
-              </h4>
-              <div id="attendanceHistory" class="text-sm text-[var(--muted)]">Loading attendance records...</div>
-            </div>
-
-            <div class="border-t border-[var(--border)]/60"></div>
-
-            <!-- Quick Actions -->
-            <div>
+            <!-- Quick Actions (first on mobile, last on desktop) -->
+            <div class="order-first lg:order-4">
               <h4 class="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-3 flex items-center gap-1.5">
                 <i data-lucide="zap" class="w-3.5 h-3.5"></i>
                 Quick Actions
@@ -559,6 +531,33 @@
               </div>
             </div>
 
+            <div class="border-t border-[var(--border)]/60 order-2 lg:order-3"></div>
+
+            <!-- Recent Activity -->
+            <div class="order-3 lg:order-1">
+              <h4 class="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <i data-lucide="activity" class="w-3.5 h-3.5"></i>
+                Recent Activity
+              </h4>
+              <div id="recentActivityList" class="space-y-2.5">
+                <div class="flex items-start gap-2.5">
+                  <div class="activity-dot bg-[var(--gold)]"></div>
+                  <div class="min-w-0">
+                    <p class="text-xs font-medium text-[var(--fg)]">Welcome to OJT Dashboard</p>
+                    <p class="text-[10px] text-[var(--muted)] mt-0.5">Start your OJT journey by submitting daily reports.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Attendance Overview -->
+            <div class="order-4 lg:order-2">
+              <h4 class="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                Attendance Overview
+              </h4>
+              <div id="attendanceHistory" class="text-sm text-[var(--muted)]">Loading attendance records...</div>
+            </div>
           </div>
       </div>
     </div>
@@ -677,14 +676,14 @@
   const goToArchivesPillBtn = document.getElementById('goToArchivesPillBtn');
 
   function resetTabPills() {
-    tabDashboardBtn.className = "tab-pill-inactive px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2";
-    tabReportBtn.className = "tab-pill-inactive px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2";
-    tabArchivesBtn.className = "tab-pill-inactive px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2";
+    tabDashboardBtn.className = "tab-pill-inactive px-3 sm:px-5 py-2 rounded-xl text-[10px] sm:text-xs transition-all flex items-center gap-1.5 sm:gap-2";
+    tabReportBtn.className = "tab-pill-inactive px-3 sm:px-5 py-2 rounded-xl text-[10px] sm:text-xs transition-all flex items-center gap-1.5 sm:gap-2";
+    tabArchivesBtn.className = "tab-pill-inactive px-3 sm:px-5 py-2 rounded-xl text-[10px] sm:text-xs transition-all flex items-center gap-1.5 sm:gap-2";
   }
 
   function switchToDashboard() {
     resetTabPills();
-    tabDashboardBtn.className = "tab-pill-active px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2";
+    tabDashboardBtn.className = "tab-pill-active px-3 sm:px-5 py-2 rounded-xl text-[10px] sm:text-xs transition-all flex items-center gap-1.5 sm:gap-2";
     dashboardContent.classList.remove('hidden');
     reportContent.classList.add('hidden');
     archivesContent.classList.add('hidden');
@@ -692,7 +691,7 @@
 
   function switchToReport() {
     resetTabPills();
-    tabReportBtn.className = "tab-pill-active px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2";
+    tabReportBtn.className = "tab-pill-active px-3 sm:px-5 py-2 rounded-xl text-[10px] sm:text-xs transition-all flex items-center gap-1.5 sm:gap-2";
     reportContent.classList.remove('hidden');
     dashboardContent.classList.add('hidden');
     archivesContent.classList.add('hidden');
@@ -700,7 +699,7 @@
 
   function switchToArchives() {
     resetTabPills();
-    tabArchivesBtn.className = "tab-pill-active px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2";
+    tabArchivesBtn.className = "tab-pill-active px-3 sm:px-5 py-2 rounded-xl text-[10px] sm:text-xs transition-all flex items-center gap-1.5 sm:gap-2";
     archivesContent.classList.remove('hidden');
     dashboardContent.classList.add('hidden');
     reportContent.classList.add('hidden');
