@@ -43,6 +43,14 @@
       .modal-content { background-color: #fefefe; padding: 28px; border-radius: 16px; width: 90%; max-width: 520px; box-shadow: var(--shadow-lg); animation: slideUp 0.25s ease; overflow-y: auto; max-height: 90vh; }
       @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
       @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+      @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+      .animate-in > * { animation: fadeUp 0.7s ease-out both; }
+      .animate-in > *:nth-child(1) { animation-delay: 0.08s; }
+      .animate-in > *:nth-child(2) { animation-delay: 0.2s; }
+      .animate-in > *:nth-child(3) { animation-delay: 0.32s; }
+      .animate-in > *:nth-child(4) { animation-delay: 0.44s; }
+      .animate-in > *:nth-child(5) { animation-delay: 0.56s; }
+      .animate-in > *:nth-child(6) { animation-delay: 0.68s; }
       .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 14px; }
       .modal-header h2 { font-family: var(--font-display); color: var(--primary); font-size: 20px; font-weight: 700; }
       .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; transition: color 0.2s; line-height: 1; }
@@ -138,9 +146,18 @@
         border-color: var(--primary);
       }
 
-      @media (max-width: 1023px) {
-        .right-side-panel { min-height: auto !important; }
+      * {
+        scrollbar-width: none;
       }
+      *::-webkit-scrollbar {
+        display: none;
+      }
+
+      .quick-action-btn:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+      }
+      }
+
     </style>
 </head>
 <body class="bg-[#F4F5F9] min-h-screen">
@@ -156,58 +173,11 @@
 
 <script>(function(){var e=document.getElementById('isuPageLoader');if(!e)return;var b=e.querySelector('.loader-progress-bar');if(b){b.style.transformOrigin='left';var d=2000;var s=Date.now();var r=1;(function a(){if(!r||e.style.display==='none')return;var p=((Date.now()-s)%d)/d;var v=p<.5?p/.5*.85:.85*(1-(p-.5)/.5);b.style.transform='scaleX('+v+')';requestAnimationFrame(a)})();}window.addEventListener('load',function(){r=0;if(b){b.style.transition='transform 0.3s ease';b.style.transform='scaleX(1)'}setTimeout(function(){e.style.display='none'},600)});})();</script>
 
-<!-- HEADER -->
-<header class="bg-white/95 backdrop-blur-sm border-b border-[var(--border)] px-5 lg:px-8 py-3 flex items-center justify-between sticky top-0 z-40" style="box-shadow: 0 1px 3px rgba(0,0,0,0.02);">
-  <div class="flex items-center gap-3 min-w-0">
-    <img src="https://upload.wikimedia.org/wikipedia/commons/f/f4/Isu_logo.jpg" alt="ISU" class="w-9 h-9 md:w-10 md:h-10 object-contain shrink-0">
-    <div class="min-w-0">
-      <h1 id="welcomeHeading" class="text-sm md:text-base font-bold text-[var(--fg)] truncate">Welcome back</h1>
-      <p class="text-[10px] md:text-[11px] text-[var(--muted)] font-medium">Your OJT Dashboard</p>
-    </div>
-  </div>
-  <div class="flex items-center gap-2 md:gap-3">
-    <div class="relative hidden sm:block header-search">
-      <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]"></i>
-      <input type="text" id="headerSearch" placeholder="Search..." class="w-44 lg:w-56 pl-9 pr-4 py-2 border border-[var(--border)] rounded-xl text-xs outline-none bg-[#F9FAFB] focus:bg-white transition">
-    </div>
-    <div class="relative">
-      <button id="btnNotifications" class="w-9 h-9 rounded-xl border border-[var(--border)] flex items-center justify-center text-[var(--muted)] hover:bg-gray-50 hover:text-[var(--fg)] transition relative">
-        <i data-lucide="bell" class="w-[18px] h-[18px]"></i>
-        <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-bold w-4 h-4 flex items-center justify-center rounded-full hidden">0</span>
-      </button>
-      <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 md:w-96 bg-white rounded-xl shadow-lg border border-[var(--border)] z-50 overflow-hidden">
-        <div class="p-3 border-b border-[var(--border)] flex justify-between items-center">
-          <h3 class="font-semibold text-xs text-[var(--muted)] uppercase tracking-wider">Notifications</h3>
-          <button id="markAllReadBtn" class="text-[10px] font-semibold text-[var(--primary)] hover:underline">Mark all read</button>
-        </div>
-        <div id="notifList" class="max-h-72 overflow-y-auto custom-scroll text-xs text-[var(--muted)] p-4">Loading...</div>
-      </div>
-    </div>
-    <div class="w-9 h-9 rounded-full bg-[var(--primary)] flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm cursor-pointer" id="headerAvatar" title="Profile">
-      S
-    </div>
-    <button id="btnLogout" class="h-9 px-4 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
-      <i data-lucide="log-out" class="w-[15px] h-[15px]"></i> <span class="hidden sm:inline">Logout</span>
-    </button>
-  </div>
-</header>
-
-<!-- TAB PILLS -->
-<div class="px-5 lg:px-8 pt-5 pb-3 flex items-center gap-2">
-  <button id="tabDashboardBtn" class="tab-pill-active px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2">
-    <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
-  </button>
-  <button id="tabArchivesBtn" class="tab-pill-inactive px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2">
-    <i data-lucide="folder-open" class="w-4 h-4"></i> Archives
-  </button>
-  <div class="flex-1"></div>
-</div>
-
 <!-- MAIN CONTENT -->
-<main class="px-5 lg:px-8 pb-10">
+<main class="px-5 lg:px-8">
 
   <!-- APPLY SECTION -->
-  <div id="sectionApply" class="hidden">
+  <div id="sectionApply" class="hidden animate-in">
     <div class="bento-card p-8 text-center max-w-xl mx-auto mb-6">
       <div class="w-14 h-14 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-4">
         <i data-lucide="briefcase" class="w-7 h-7 text-[var(--primary)]"></i>
@@ -238,44 +208,102 @@
   <div id="sectionDashboard">
 
     <!-- Flex layout: left content + full-height right panel -->
-    <div class="flex flex-col lg:flex-row gap-6" style="align-items: stretch;">
+    <div class="flex flex-col lg:flex-row gap-6 min-h-screen" style="align-items: stretch;">
 
       <!-- LEFT COLUMN -->
-      <div class="flex-1 min-w-0 space-y-5">
+      <div class="flex-1 min-w-0 flex flex-col animate-in">
 
-        <!-- Profile Card -->
-        <div class="bento-card p-5 md:p-6">
-          <div class="flex items-start gap-5">
-            <div class="relative w-20 h-20 shrink-0">
-              <svg class="w-20 h-20 absolute inset-0" viewBox="0 0 80 80">
-                <circle cx="40" cy="40" r="34" fill="none" stroke="#E5E7EB" stroke-width="4"/>
-                <circle id="profileRingCircle" cx="40" cy="40" r="34" fill="none" stroke="var(--gold)" stroke-width="4"
-                  stroke-linecap="round" stroke-dasharray="213.6" stroke-dashoffset="213.6"/>
-              </svg>
-              <div class="w-20 h-20 rounded-full bg-[var(--primary)] flex items-center justify-center text-white font-bold text-lg">
-                <span id="profileAvatar">S</span>
+        <!-- HEADER -->
+        <header class="py-3 flex items-center justify-between relative z-50">
+          <div class="flex items-center gap-3 min-w-0">
+            <img src="{% static 'images/isu_new_seal_512x512.png' %}" alt="ISU" class="w-9 h-9 md:w-10 md:h-10 object-contain shrink-0">
+            <div class="min-w-0">
+              <h1 id="welcomeHeading" class="text-sm md:text-base font-bold text-[var(--fg)] truncate">Welcome back</h1>
+              <p class="text-[10px] md:text-[11px] text-[var(--muted)] font-medium">Your OJT Dashboard</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2 md:gap-3">
+            <div class="relative hidden sm:block header-search">
+              <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)]"></i>
+              <input type="text" id="headerSearch" placeholder="Search..." class="w-44 lg:w-56 pl-9 pr-4 py-2 border border-[var(--border)] rounded-xl text-xs outline-none bg-[#F9FAFB] focus:bg-white transition">
+            </div>
+            <div class="relative z-50">
+              <button id="btnNotifications" class="w-9 h-9 rounded-xl border border-[var(--border)] flex items-center justify-center text-[var(--muted)] hover:bg-gray-50 hover:text-[var(--fg)] transition relative">
+                <i data-lucide="bell" class="w-[18px] h-[18px]"></i>
+                <span id="notifBadge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[8px] font-bold w-4 h-4 flex items-center justify-center rounded-full hidden">0</span>
+              </button>
+              <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 md:w-96 bg-white rounded-xl shadow-lg border border-[var(--border)] z-50 overflow-hidden">
+                <div class="p-3 border-b border-[var(--border)] flex justify-between items-center">
+                  <h3 class="font-semibold text-xs text-[var(--muted)] uppercase tracking-wider">Notifications</h3>
+                  <button id="markAllReadBtn" class="text-[10px] font-semibold text-[var(--primary)] hover:underline">Mark all read</button>
+                </div>
+                <div id="notifList" class="max-h-72 overflow-y-auto custom-scroll text-xs text-[var(--muted)] p-4">Loading...</div>
               </div>
             </div>
-            <div class="min-w-0 flex-1">
-              <h2 id="profileName" class="text-lg font-bold text-[var(--fg)] truncate">Student</h2>
-              <p id="profileCourse" class="text-xs text-[var(--muted)] mt-0.5">OJT Trainee</p>
-              <div class="flex flex-wrap gap-2 mt-3">
-                <span id="badgeRendered" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[var(--primary)]/5 text-[var(--primary)] text-[10px] font-semibold">
+            <div class="w-9 h-9 rounded-full bg-[var(--primary)] flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm cursor-pointer" id="headerAvatar" title="Profile">
+              S
+            </div>
+            <button id="btnLogout" class="h-9 px-4 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+              <i data-lucide="log-out" class="w-[15px] h-[15px]"></i> <span class="hidden sm:inline">Logout</span>
+            </button>
+          </div>
+        </header>
+
+        <!-- TAB PILLS -->
+        <div class="pt-5 pb-3 flex items-center gap-2">
+          <button id="tabDashboardBtn" class="tab-pill-active px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2">
+            <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Dashboard
+          </button>
+          <button id="tabReportBtn" class="tab-pill-inactive px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2">
+            <i data-lucide="file-text" class="w-4 h-4"></i> Today's Accomplishment Report
+          </button>
+          <button id="tabArchivesBtn" class="tab-pill-inactive px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2">
+            <i data-lucide="folder-open" class="w-4 h-4"></i> Archives
+          </button>
+          <div class="flex-1"></div>
+        </div>
+
+        <!-- TAB CONTENT: Dashboard -->
+        <div id="dashboardContent">
+        <div class="space-y-5 pb-5">
+        <!-- Profile + Stats row -->
+        <div class="flex flex-col lg:flex-row gap-5">
+
+          <!-- Profile Card -->
+          <div class="bento-card p-5 md:p-6 lg:w-72 shrink-0 flex flex-col">
+            <div class="flex flex-col text-center flex-1">
+              <div>
+                <div class="relative w-20 h-20 shrink-0 mx-auto">
+                  <svg class="w-20 h-20 absolute inset-0" viewBox="0 0 80 80">
+                    <circle cx="40" cy="40" r="34" fill="none" stroke="#E5E7EB" stroke-width="4"/>
+                    <circle id="profileRingCircle" cx="40" cy="40" r="34" fill="none" stroke="var(--gold)" stroke-width="4"
+                      stroke-linecap="round" stroke-dasharray="213.6" stroke-dashoffset="213.6"/>
+                  </svg>
+                  <div class="w-20 h-20 rounded-full bg-[var(--primary)] flex items-center justify-center text-white font-bold text-lg">
+                    <span id="profileAvatar">S</span>
+                  </div>
+                </div>
+              </div>
+              <div class="min-w-0 mt-4">
+                <h2 id="profileName" class="text-lg font-bold text-[var(--fg)]">Student</h2>
+                <p id="profileCourse" class="text-xs text-[var(--muted)] mt-0.5">OJT Trainee</p>
+              </div>
+              <div class="flex flex-row items-center justify-center gap-1 mt-auto">
+                <span id="badgeRendered" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--primary)]/5 text-[var(--primary)] text-[10px] font-semibold whitespace-nowrap">
                   <i data-lucide="clock" class="w-3 h-3"></i> 0.0 hrs
                 </span>
-                <span id="badgeRequired" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-50 text-amber-600 text-[10px] font-semibold">
+                <span id="badgeRequired" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-amber-50 text-amber-600 text-[10px] font-semibold whitespace-nowrap">
                   <i data-lucide="flag" class="w-3 h-3"></i> 480 hrs
                 </span>
-                <span id="badgeRemaining" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-orange-50 text-orange-600 text-[10px] font-semibold">
+                <span id="badgeRemaining" class="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-orange-50 text-orange-600 text-[10px] font-semibold whitespace-nowrap">
                   <i data-lucide="hourglass" class="w-3 h-3"></i> 480.0 hrs left
                 </span>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- Stat Cards -->
-        <div id="statCardsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Stat Cards -->
+          <div id="statCardsGrid" class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="gradient-gold rounded-2xl p-5 relative overflow-hidden" style="box-shadow: 0 2px 6px rgba(200,164,74,0.15), 0 8px 24px rgba(200,164,74,0.08);">
             <div class="stat-shine"></div>
             <div class="relative z-10">
@@ -302,99 +330,13 @@
               <p class="text-[11px] text-white/70 mt-1 font-medium">hours to complete</p>
             </div>
           </div>
-        </div>
-
-        <!-- OJT Activity Analytics -->
-        <div class="bento-card p-5 md:p-6">
-          <div class="flex items-center justify-between mb-5">
-            <div>
-              <h3 class="text-sm font-bold text-[var(--fg)]">OJT Activity</h3>
-              <p class="text-[10px] text-[var(--muted)] mt-0.5">Hours rendered &middot; last 7 days</p>
-            </div>
-            <span class="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-[var(--primary)]/5 text-[var(--primary)]">
-              <i data-lucide="trending-up" class="w-3 h-3 inline mr-1"></i> 7 days
-            </span>
-          </div>
-
-          <!-- Mini stat tiles -->
-          <div class="grid grid-cols-3 gap-3 mb-5">
-            <div class="rounded-xl bg-[var(--bg-body)] p-3 text-center">
-              <p class="text-[9px] font-semibold uppercase tracking-wider text-[var(--muted)]">This Week</p>
-              <p class="text-base font-bold text-[var(--primary)] mt-1" id="chartStatTotal">0.0</p>
-              <p class="text-[9px] text-[var(--muted)]">hours</p>
-            </div>
-            <div class="rounded-xl bg-[var(--bg-body)] p-3 text-center">
-              <p class="text-[9px] font-semibold uppercase tracking-wider text-[var(--muted)]">Daily Avg</p>
-              <p class="text-base font-bold text-[var(--fg)] mt-1" id="chartStatAvg">0.0</p>
-              <p class="text-[9px] text-[var(--muted)]">hours/day</p>
-            </div>
-            <div class="rounded-xl bg-[var(--bg-body)] p-3 text-center">
-              <p class="text-[9px] font-semibold uppercase tracking-wider text-[var(--muted)]">Best Day</p>
-              <p class="text-base font-bold text-[var(--gold)] mt-1" id="chartStatBest">0.0</p>
-              <p class="text-[9px] text-[var(--muted)]">hours</p>
-            </div>
-          </div>
-
-          <!-- Chart -->
-          <div class="relative" style="height: 240px;">
-            <canvas id="activityChart"></canvas>
-          </div>
-        </div>
-
-        <!-- Attendance Overview -->
-        <div class="bento-card p-5 md:p-6">
-          <div class="flex items-center justify-between mb-5">
-            <div>
-              <h3 class="text-sm font-bold text-[var(--fg)]">Attendance Overview</h3>
-              <p class="text-[10px] text-[var(--muted)] mt-0.5">Your recent attendance records</p>
-            </div>
-            <span class="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-[var(--primary)]/5 text-[var(--primary)]">
-              <i data-lucide="calendar" class="w-3 h-3 inline mr-1"></i> Last 7 days
-            </span>
-          </div>
-          <div id="attendanceHistory" class="text-sm text-[var(--muted)]">Loading attendance records...</div>
-        </div>
-      </div>
-
-      <!-- RIGHT COLUMN — full-height side panel -->
-      <div class="right-side-panel w-full lg:w-[380px] shrink-0 flex flex-col">
-        <div class="flex-1 bg-white border border-[var(--border)] rounded-2xl shadow-sm flex flex-col overflow-hidden" style="box-shadow: var(--shadow-sm);">
-
-          <!-- Panel header -->
-          <div class="px-5 py-3.5 border-b border-[var(--border)] bg-[#FAFBFC] flex items-center gap-2 shrink-0">
-            <div class="w-1.5 h-5 rounded-full bg-[var(--primary)]"></div>
-            <i data-lucide="layout-dashboard" class="w-4 h-4 text-[var(--primary)]"></i>
-            <h3 class="text-sm font-bold text-[var(--fg)]">Dashboard Overview</h3>
-          </div>
-
-          <!-- Panel body -->
-          <div class="flex-1 p-5 space-y-5 overflow-y-auto custom-scroll">
-
-            <!-- Recent Activity -->
-            <div>
-              <h4 class="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                <i data-lucide="activity" class="w-3.5 h-3.5"></i>
-                Recent Activity
-              </h4>
-              <div id="recentActivityList" class="space-y-2.5">
-                <div class="flex items-start gap-2.5">
-                  <div class="activity-dot bg-[var(--gold)]"></div>
-                  <div class="min-w-0">
-                    <p class="text-xs font-medium text-[var(--fg)]">Welcome to OJT Dashboard</p>
-                    <p class="text-[10px] text-[var(--muted)] mt-0.5">Start your OJT journey by submitting daily reports.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="border-t border-[var(--border)]/60"></div>
 
             <!-- OJT Progress -->
-            <div>
-              <h4 class="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                <i data-lucide="trending-up" class="w-3.5 h-3.5"></i>
-                OJT Progress
-              </h4>
+            <div class="bg-gray-100 rounded-2xl p-5 border border-[var(--border)] md:col-span-2">
+              <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="trending-up" class="w-4 h-4 text-[var(--primary)]"></i>
+                <h4 class="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">OJT Progress</h4>
+              </div>
               <div class="space-y-3">
                 <div>
                   <div class="flex justify-between text-xs mb-1.5">
@@ -417,6 +359,186 @@
               </div>
             </div>
 
+        </div>
+        </div>
+
+        <!-- OJT Activity Analytics -->
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <h3 class="text-sm font-bold text-[var(--fg)]">OJT Activity</h3>
+              <p class="text-[10px] text-[var(--muted)] mt-0.5">Hours rendered &middot; last 7 days</p>
+            </div>
+            <span class="text-[10px] font-semibold px-2.5 py-1 rounded-lg bg-[var(--primary)]/5 text-[var(--primary)]">
+              <i data-lucide="trending-up" class="w-3 h-3 inline mr-1"></i> 7 days
+            </span>
+          </div>
+
+          <div class="flex gap-4">
+            <!-- Mini stat tiles -->
+            <div class="flex flex-col gap-2 w-36 shrink-0">
+              <div class="rounded-xl bg-[var(--bg-body)] p-3">
+                <p class="text-[9px] font-semibold uppercase tracking-wider text-[var(--muted)]">This Week</p>
+                <p class="text-base font-bold text-[var(--primary)] mt-0.5" id="chartStatTotal">0.0</p>
+                <p class="text-[9px] text-[var(--muted)]">hours</p>
+              </div>
+              <div class="rounded-xl bg-[var(--bg-body)] p-3">
+                <p class="text-[9px] font-semibold uppercase tracking-wider text-[var(--muted)]">Daily Avg</p>
+                <p class="text-base font-bold text-[var(--fg)] mt-0.5" id="chartStatAvg">0.0</p>
+                <p class="text-[9px] text-[var(--muted)]">hours/day</p>
+              </div>
+              <div class="rounded-xl bg-[var(--bg-body)] p-3">
+                <p class="text-[9px] font-semibold uppercase tracking-wider text-[var(--muted)]">Best Day</p>
+                <p class="text-base font-bold text-[var(--gold)] mt-0.5" id="chartStatBest">0.0</p>
+                <p class="text-[9px] text-[var(--muted)]">hours</p>
+              </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="relative flex-1" style="height: 200px;">
+              <canvas id="activityChart"></canvas>
+            </div>
+          </div>
+
+      </div>
+      </div>
+
+        <!-- TAB CONTENT: Report -->
+        <div id="reportContent" class="hidden">
+        <div class="space-y-5 pb-5 animate-in">
+        <div class="bento-card overflow-hidden">
+          <div class="px-5 md:px-6 py-4 border-b border-[var(--border)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div class="flex items-center gap-2.5">
+              <i data-lucide="file-text" class="w-[18px] h-[18px] text-[var(--primary)]"></i>
+              <h3 class="font-semibold text-sm text-[var(--fg)]">Today's Accomplishment Report</h3>
+            </div>
+            <button type="button" id="goToArchivesPillBtn" class="inline-flex items-center gap-1.5 bg-[var(--gold)]/10 hover:bg-[var(--gold)]/20 text-[var(--gold)] font-semibold text-[11px] px-3.5 py-1.5 rounded-lg border border-[var(--gold)]/20 transition whitespace-nowrap">
+              <i data-lucide="user-pen" class="w-3.5 h-3.5"></i> Edit Existing
+            </button>
+          </div>
+          <div class="p-5 md:p-6">
+            <form id="narrativeForm" class="space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="flex flex-col gap-1">
+                  <label class="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Log Date</label>
+                  <input type="date" id="reportDate" readonly class="p-2.5 border border-[var(--border)] text-sm outline-none bg-gray-50 cursor-not-allowed text-gray-400 rounded-lg">
+                </div>
+                <div class="flex flex-col gap-1">
+                  <label class="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Core Topic</label>
+                  <input type="text" id="reportTopic" required placeholder="Subject matter topic" class="p-2.5 border border-[var(--border)] text-sm outline-none bg-white rounded-lg focus:border-[var(--primary)] transition">
+                </div>
+              </div>
+              <p class="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Proof Photos (Max 4)</p>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <label class="photo-label aspect-square border-2 border-dashed border-[var(--border)] rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-gray-50 overflow-hidden relative"><i data-lucide="camera" class="text-[var(--muted)]"></i><input type="file" class="hidden" accept="image/*"></label>
+                <label class="photo-label aspect-square border-2 border-dashed border-[var(--border)] rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-gray-50 overflow-hidden relative"><i data-lucide="camera" class="text-[var(--muted)]"></i><input type="file" class="hidden" accept="image/*"></label>
+                <label class="photo-label aspect-square border-2 border-dashed border-[var(--border)] rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-gray-50 overflow-hidden relative"><i data-lucide="camera" class="text-[var(--muted)]"></i><input type="file" class="hidden" accept="image/*"></label>
+                <label class="photo-label aspect-square border-2 border-dashed border-[var(--border)] rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-gray-50 overflow-hidden relative"><i data-lucide="camera" class="text-[var(--muted)]"></i><input type="file" class="hidden" accept="image/*"></label>
+              </div>
+              <div class="flex flex-col gap-1">
+                <label class="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Activity Description</label>
+                <textarea id="reportContent" required rows="4" placeholder="Describe specific actions performed..." class="w-full p-3 border border-[var(--border)] text-sm outline-none bg-white rounded-lg resize-none focus:border-[var(--primary)] transition"></textarea>
+              </div>
+              <div id="formError" class="hidden p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-medium rounded-lg"></div>
+              <div class="flex justify-end">
+                <button type="submit" class="px-6 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-semibold text-sm rounded-xl transition shadow-sm flex items-center gap-2">
+                  <i data-lucide="send"></i> Submit Log
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+        </div>
+        </div>
+
+        <!-- TAB CONTENT: Archives -->
+        <div id="archivesContent" class="hidden">
+        <div class="space-y-5 pb-5 animate-in">
+        <div id="archiveEditFormCard" class="hidden bento-card overflow-hidden border-amber-200">
+          <div class="px-5 md:px-6 py-4 border-b border-amber-200 flex justify-between items-center">
+            <h4 class="font-semibold text-sm text-amber-800 flex items-center gap-2">
+              <i data-lucide="pencil"></i> Edit Archived Entry
+            </h4>
+            <span class="text-[10px] font-semibold uppercase px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-800">Edit Mode</span>
+          </div>
+          <div class="p-5 md:p-6">
+            <form id="archiveModifyForm" class="space-y-4">
+              <input type="hidden" id="archEditId" value="">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <input type="text" id="archEditDate" readonly class="p-2.5 border border-amber-300 text-sm outline-none bg-amber-50 text-amber-900 rounded-xl">
+                <input type="text" id="archEditTopic" required class="p-2.5 border border-amber-300 text-sm outline-none bg-white rounded-xl focus:border-amber-500 transition">
+              </div>
+              <p class="text-[11px] font-semibold text-amber-800 uppercase tracking-wider">Update Photos</p>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <label id="archPhotoSlot1" class="arch-photo-slot aspect-square border-2 border-dashed border-amber-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-amber-50 overflow-hidden relative"><i data-lucide="plus" class="text-amber-500"></i><input type="file" class="hidden" accept="image/*"></label>
+                <label id="archPhotoSlot2" class="arch-photo-slot aspect-square border-2 border-dashed border-amber-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-amber-50 overflow-hidden relative"><i data-lucide="plus" class="text-amber-500"></i><input type="file" class="hidden" accept="image/*"></label>
+                <label id="archPhotoSlot3" class="arch-photo-slot aspect-square border-2 border-dashed border-amber-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-amber-50 overflow-hidden relative"><i data-lucide="plus" class="text-amber-500"></i><input type="file" class="hidden" accept="image/*"></label>
+                <label id="archPhotoSlot4" class="arch-photo-slot aspect-square border-2 border-dashed border-amber-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-amber-50 overflow-hidden relative"><i data-lucide="plus" class="text-amber-500"></i><input type="file" class="hidden" accept="image/*"></label>
+              </div>
+              <textarea id="archEditContent" required rows="4" class="w-full p-3 border border-amber-300 text-sm outline-none bg-white rounded-xl resize-none focus:border-amber-500 transition"></textarea>
+              <div class="flex flex-col sm:flex-row justify-end gap-2">
+                <button type="button" onclick="closeArchiveEdit()" class="px-5 py-2 bg-gray-400 text-white font-semibold text-sm rounded-xl hover:bg-gray-500 transition">Cancel</button>
+                <button type="submit" class="px-5 py-2 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-semibold text-sm rounded-xl transition shadow-sm">Save Changes</button>
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="bento-card overflow-hidden">
+          <div class="px-5 md:px-6 py-4 border-b border-[var(--border)]">
+            <h3 class="font-semibold text-sm text-[var(--fg)] flex items-center gap-2">
+              <i data-lucide="archive" class="w-[18px] h-[18px] text-[var(--primary)]"></i>
+              Historical Report Ledger
+            </h3>
+          </div>
+          <div class="p-5 md:p-6">
+            <div id="archiveContainer" class="text-sm text-[var(--muted)]">Loading archives...</div>
+          </div>
+        </div>
+        </div>
+        </div>
+
+      </div>
+
+      <!-- RIGHT COLUMN -- full-height side panel -->
+      <div class="flex flex-col w-full lg:w-[380px] shrink-0 min-h-0 relative">
+          <!-- VERTICAL DIVIDER -->
+          <div class="hidden lg:block absolute top-0 bottom-0 w-px bg-[var(--border)] pointer-events-none" style="left: -0.75rem;"></div>
+
+          <!-- Panel header -->
+          <div class="px-5 py-3.5 flex items-center gap-2 shrink-0">
+            <div class="w-1.5 h-5 rounded-full bg-[var(--primary)]"></div>
+            <i data-lucide="layout-dashboard" class="w-4 h-4 text-[var(--primary)]"></i>
+            <h3 class="text-sm font-bold text-[var(--fg)]">Dashboard Overview</h3>
+          </div>
+
+          <!-- Panel body -->
+          <div class="flex-1 p-5 space-y-5 overflow-y-auto custom-scroll min-h-0 animate-in">
+
+            <!-- Recent Activity -->
+            <div>
+              <h4 class="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <i data-lucide="activity" class="w-3.5 h-3.5"></i>
+                Recent Activity
+              </h4>
+              <div id="recentActivityList" class="space-y-2.5">
+                <div class="flex items-start gap-2.5">
+                  <div class="activity-dot bg-[var(--gold)]"></div>
+                  <div class="min-w-0">
+                    <p class="text-xs font-medium text-[var(--fg)]">Welcome to OJT Dashboard</p>
+                    <p class="text-[10px] text-[var(--muted)] mt-0.5">Start your OJT journey by submitting daily reports.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Attendance Overview -->
+            <div>
+              <h4 class="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-3 flex items-center gap-1.5">
+                <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
+                Attendance Overview
+              </h4>
+              <div id="attendanceHistory" class="text-sm text-[var(--muted)]">Loading attendance records...</div>
+            </div>
+
             <div class="border-t border-[var(--border)]/60"></div>
 
             <!-- Quick Actions -->
@@ -426,11 +548,11 @@
                 Quick Actions
               </h4>
               <div class="space-y-2">
-                <button type="button" onclick="document.getElementById('reportTopic').focus()" class="w-full text-left px-3.5 py-2.5 rounded-xl border border-[var(--border)] hover:border-[var(--primary)]/30 hover:bg-[var(--primary)]/5 text-xs font-medium text-[var(--fg)] transition flex items-center gap-2">
+                <button type="button" onclick="switchToReport();setTimeout(function(){var e=document.getElementById('reportTopic');if(e)e.focus()},50)" class="quick-action-btn w-full text-left px-3.5 py-2.5 rounded-xl border border-[var(--border)] hover:border-[var(--primary)]/30 hover:bg-[var(--primary)]/5 text-xs font-medium text-[var(--fg)] transition flex items-center gap-2">
                   <i data-lucide="file-text" class="w-4 h-4 text-[var(--primary)]"></i>
                   Submit Daily Report
                 </button>
-                <button type="button" onclick="switchToArchives()" class="w-full text-left px-3.5 py-2.5 rounded-xl border border-[var(--border)] hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 text-xs font-medium text-[var(--fg)] transition flex items-center gap-2">
+                <button type="button" onclick="switchToArchives()" class="quick-action-btn w-full text-left px-3.5 py-2.5 rounded-xl border border-[var(--border)] hover:border-[var(--gold)]/30 hover:bg-[var(--gold)]/5 text-xs font-medium text-[var(--fg)] transition flex items-center gap-2">
                   <i data-lucide="archive" class="w-4 h-4 text-[var(--gold)]"></i>
                   View Archives
                 </button>
@@ -438,101 +560,9 @@
             </div>
 
           </div>
-        </div>
       </div>
     </div>
 
-    <!-- Narrative Report Form (full width below bento) -->
-    <div class="bento-card mt-5 overflow-hidden">
-      <div class="px-5 md:px-6 py-4 border-b border-[var(--border)] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
-        <div class="flex items-center gap-2.5">
-          <i data-lucide="file-text" class="w-[18px] h-[18px] text-[var(--primary)]"></i>
-          <h3 class="font-semibold text-sm text-[var(--fg)]">Today's Accomplishment Report</h3>
-        </div>
-        <button type="button" id="goToArchivesPillBtn" class="inline-flex items-center gap-1.5 bg-[var(--gold)]/10 hover:bg-[var(--gold)]/20 text-[var(--gold)] font-semibold text-[11px] px-3.5 py-1.5 rounded-lg border border-[var(--gold)]/20 transition whitespace-nowrap">
-          <i data-lucide="user-pen" class="w-3.5 h-3.5"></i> Edit Existing
-        </button>
-      </div>
-      <div class="p-5 md:p-6">
-        <form id="narrativeForm" class="space-y-4">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="flex flex-col gap-1">
-              <label class="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Log Date</label>
-              <input type="date" id="reportDate" readonly class="p-2.5 border border-[var(--border)] text-sm outline-none bg-gray-50 cursor-not-allowed text-gray-400 rounded-lg">
-            </div>
-            <div class="flex flex-col gap-1">
-              <label class="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Core Topic</label>
-              <input type="text" id="reportTopic" required placeholder="Subject matter topic" class="p-2.5 border border-[var(--border)] text-sm outline-none bg-white rounded-lg focus:border-[var(--primary)] transition">
-            </div>
-          </div>
-
-          <p class="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Proof Photos (Max 4)</p>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <label class="photo-label aspect-square border-2 border-dashed border-[var(--border)] rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-gray-50 overflow-hidden relative"><i data-lucide="camera" class="text-[var(--muted)]"></i><input type="file" class="hidden" accept="image/*"></label>
-            <label class="photo-label aspect-square border-2 border-dashed border-[var(--border)] rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-gray-50 overflow-hidden relative"><i data-lucide="camera" class="text-[var(--muted)]"></i><input type="file" class="hidden" accept="image/*"></label>
-            <label class="photo-label aspect-square border-2 border-dashed border-[var(--border)] rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-gray-50 overflow-hidden relative"><i data-lucide="camera" class="text-[var(--muted)]"></i><input type="file" class="hidden" accept="image/*"></label>
-            <label class="photo-label aspect-square border-2 border-dashed border-[var(--border)] rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-gray-50 overflow-hidden relative"><i data-lucide="camera" class="text-[var(--muted)]"></i><input type="file" class="hidden" accept="image/*"></label>
-          </div>
-
-          <div class="flex flex-col gap-1">
-            <label class="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Activity Description</label>
-            <textarea id="reportContent" required rows="4" placeholder="Describe specific actions performed..." class="w-full p-3 border border-[var(--border)] text-sm outline-none bg-white rounded-lg resize-none focus:border-[var(--primary)] transition"></textarea>
-          </div>
-
-          <div id="formError" class="hidden p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-medium rounded-lg"></div>
-          <div class="flex justify-end">
-            <button type="submit" class="px-6 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-semibold text-sm rounded-xl transition shadow-sm flex items-center gap-2">
-              <i data-lucide="send"></i> Submit Log
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- ARCHIVES SECTION -->
-  <div id="sectionArchives" class="hidden space-y-5">
-    <div id="archiveEditFormCard" class="hidden bento-card overflow-hidden border-amber-200">
-      <div class="px-5 md:px-6 py-4 border-b border-amber-200 flex justify-between items-center">
-        <h4 class="font-semibold text-sm text-amber-800 flex items-center gap-2">
-          <i data-lucide="pencil"></i> Edit Archived Entry
-        </h4>
-        <span class="text-[10px] font-semibold uppercase px-2.5 py-0.5 rounded-full bg-amber-200 text-amber-800">Edit Mode</span>
-      </div>
-      <div class="p-5 md:p-6">
-        <form id="archiveModifyForm" class="space-y-4">
-          <input type="hidden" id="archEditId" value="">
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <input type="text" id="archEditDate" readonly class="p-2.5 border border-amber-300 text-sm outline-none bg-amber-50 text-amber-900 rounded-xl">
-            <input type="text" id="archEditTopic" required class="p-2.5 border border-amber-300 text-sm outline-none bg-white rounded-xl focus:border-amber-500 transition">
-          </div>
-          <p class="text-[11px] font-semibold text-amber-800 uppercase tracking-wider">Update Photos</p>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <label id="archPhotoSlot1" class="arch-photo-slot aspect-square border-2 border-dashed border-amber-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-amber-50 overflow-hidden relative"><i data-lucide="plus" class="text-amber-500"></i><input type="file" class="hidden" accept="image/*"></label>
-            <label id="archPhotoSlot2" class="arch-photo-slot aspect-square border-2 border-dashed border-amber-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-amber-50 overflow-hidden relative"><i data-lucide="plus" class="text-amber-500"></i><input type="file" class="hidden" accept="image/*"></label>
-            <label id="archPhotoSlot3" class="arch-photo-slot aspect-square border-2 border-dashed border-amber-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-amber-50 overflow-hidden relative"><i data-lucide="plus" class="text-amber-500"></i><input type="file" class="hidden" accept="image/*"></label>
-            <label id="archPhotoSlot4" class="arch-photo-slot aspect-square border-2 border-dashed border-amber-300 rounded-xl flex flex-col items-center justify-center cursor-pointer bg-white hover:bg-amber-50 overflow-hidden relative"><i data-lucide="plus" class="text-amber-500"></i><input type="file" class="hidden" accept="image/*"></label>
-          </div>
-          <textarea id="archEditContent" required rows="4" class="w-full p-3 border border-amber-300 text-sm outline-none bg-white rounded-xl resize-none focus:border-amber-500 transition"></textarea>
-          <div class="flex flex-col sm:flex-row justify-end gap-2">
-            <button type="button" onclick="closeArchiveEdit()" class="px-5 py-2 bg-gray-400 text-white font-semibold text-sm rounded-xl hover:bg-gray-500 transition">Cancel</button>
-            <button type="submit" class="px-5 py-2 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-semibold text-sm rounded-xl transition shadow-sm">Save Changes</button>
-          </div>
-        </form>
-      </div>
-    </div>
-
-    <div class="bento-card overflow-hidden">
-      <div class="px-5 md:px-6 py-4 border-b border-[var(--border)]">
-        <h3 class="font-semibold text-sm text-[var(--fg)] flex items-center gap-2">
-          <i data-lucide="archive" class="w-[18px] h-[18px] text-[var(--primary)]"></i>
-          Historical Report Ledger
-        </h3>
-      </div>
-      <div class="p-5 md:p-6">
-        <div id="archiveContainer" class="text-sm text-[var(--muted)]">Loading archives...</div>
-      </div>
-    </div>
   </div>
 
 </main>
@@ -617,6 +647,8 @@
 </div>
 
 <script>
+  if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
+  window.scrollTo(0, 0);
   function openModal(id) { document.getElementById(id).classList.add('active'); }
   function closeModal(id) { document.getElementById(id).classList.remove('active'); }
 </script>
@@ -630,29 +662,52 @@
     d.appendChild(document.createTextNode(String(str)));
     return d.innerHTML;
   }
+  function jq(str) {
+    if (str === null || str === undefined) return '""';
+    return JSON.stringify(String(str));
+  }
 
   // Tabs
   const tabDashboardBtn = document.getElementById('tabDashboardBtn');
+  const tabReportBtn = document.getElementById('tabReportBtn');
   const tabArchivesBtn = document.getElementById('tabArchivesBtn');
-  const sectionDashboard = document.getElementById('sectionDashboard');
-  const sectionArchives = document.getElementById('sectionArchives');
+  const dashboardContent = document.getElementById('dashboardContent');
+  const reportContent = document.getElementById('reportContent');
+  const archivesContent = document.getElementById('archivesContent');
   const goToArchivesPillBtn = document.getElementById('goToArchivesPillBtn');
 
-  function switchToDashboard() {
-    tabDashboardBtn.className = "tab-pill-active px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2";
+  function resetTabPills() {
+    tabDashboardBtn.className = "tab-pill-inactive px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2";
+    tabReportBtn.className = "tab-pill-inactive px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2";
     tabArchivesBtn.className = "tab-pill-inactive px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2";
-    sectionDashboard.classList.remove('hidden');
-    sectionArchives.classList.add('hidden');
+  }
+
+  function switchToDashboard() {
+    resetTabPills();
+    tabDashboardBtn.className = "tab-pill-active px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2";
+    dashboardContent.classList.remove('hidden');
+    reportContent.classList.add('hidden');
+    archivesContent.classList.add('hidden');
+  }
+
+  function switchToReport() {
+    resetTabPills();
+    tabReportBtn.className = "tab-pill-active px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2";
+    reportContent.classList.remove('hidden');
+    dashboardContent.classList.add('hidden');
+    archivesContent.classList.add('hidden');
   }
 
   function switchToArchives() {
+    resetTabPills();
     tabArchivesBtn.className = "tab-pill-active px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2";
-    tabDashboardBtn.className = "tab-pill-inactive px-5 py-2 rounded-xl text-xs transition-all flex items-center gap-2";
-    sectionArchives.classList.remove('hidden');
-    sectionDashboard.classList.add('hidden');
+    archivesContent.classList.remove('hidden');
+    dashboardContent.classList.add('hidden');
+    reportContent.classList.add('hidden');
   }
 
   tabDashboardBtn.addEventListener('click', switchToDashboard);
+  tabReportBtn.addEventListener('click', switchToReport);
   tabArchivesBtn.addEventListener('click', switchToArchives);
   goToArchivesPillBtn.addEventListener('click', switchToArchives);
 
@@ -740,10 +795,13 @@
       document.getElementById('reportTopic').value = '';
       document.getElementById('reportContent').value = '';
       fileInputs.forEach(f => { f.value = ''; });
+      document.querySelectorAll('#narrativeForm label.photo-label img.preview').forEach(img => img.remove());
+      document.querySelectorAll('#narrativeForm label.photo-label i[data-lucide]').forEach(icon => icon.style.display = '');
       loadArchives(); showAlert('Narrative report submitted successfully.');
     } catch (err) { console.error(err); }
     submitBtn.disabled = false;
-    submitBtn.textContent = 'Submit Log';
+    submitBtn.innerHTML = '<i data-lucide="send"></i> Submit Log';
+    lucide.createIcons();
   });
 
   async function apiFetch(url) {
@@ -968,6 +1026,7 @@
       else { slot.innerHTML = '<i data-lucide="plus" class="text-amber-500"></i><input type="file" class="hidden" accept="image/*">'; }
     }
     lucide.createIcons();
+    setupPhotoPreview('#archiveModifyForm');
     if (scrollContainer) scrollContainer.scrollTo({ top: archiveEditFormCard.offsetTop - 20, behavior: 'smooth' });
   }
 
@@ -1002,8 +1061,8 @@
         const feedbackHtml = isGraded && r.feedback
           ? '<div onclick="openViewFeedback(\'' + esc(r.id) + '\')" class="mt-2 pl-3 border-l-2 border-[var(--gold)] cursor-pointer hover:border-[var(--gold)] transition-colors"><p class="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Feedback</p><p class="text-xs text-[var(--fg)] mt-0.5 leading-relaxed">' + (r.feedback.length > 80 ? esc(r.feedback.substring(0, 80)) + '...' : esc(r.feedback)) + '</p></div>'
           : '';
-        mobileHtml += '<div class="bg-white p-4 rounded-2xl border border-[var(--border)] shadow-sm space-y-3"><div class="flex justify-between items-center border-b border-[var(--border)] pb-2"><span class="text-xs font-medium text-[var(--muted)]">' + esc(dateStr) + '</span>' + statusBadge + '</div><div class="space-y-1"><p class="text-[10px] uppercase tracking-wider text-[var(--muted)] font-semibold">Topic</p><p class="text-sm font-medium text-[var(--fg)]">' + esc(r.topic) + '</p>' + feedbackHtml + photoGallery(r) + '</div>' + (isGraded ? '<button type="button" onclick="openViewNarrative(\'' + esc(r.id) + '\')" class="w-full bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white py-2 font-semibold text-xs rounded-xl transition shadow-sm flex items-center justify-center gap-1"><i data-lucide="eye"></i> View Report</button>' : '<button type="button" onclick=\'openArchiveEdit("' + esc(r.id) + '","' + esc(r.log_date) + '","' + esc(r.topic) + '","' + esc(r.content) + '","' + esc(p1) + '","' + esc(p2) + '","' + esc(p3) + '","' + esc(p4) + '")\' class="w-full bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white py-2 font-semibold text-xs rounded-xl transition shadow-sm flex items-center justify-center gap-1"><i data-lucide="pencil"></i> Open & Edit</button>') + '</div>';
-        desktopHtml += '<tr class="border-b border-[var(--border)] hover:bg-gray-50"><td class="py-3.5 pr-4 font-medium text-[var(--fg)]">' + esc(dateStr) + '</td><td class="py-3.5 pr-4 text-[var(--muted)]">' + esc(r.topic) + photoGallery(r) + '</td><td class="py-3.5 pr-4 text-center">' + statusBadge + '</td><td class="py-3.5 text-center">' + (isGraded ? '<button type="button" onclick="openViewNarrative(\'' + esc(r.id) + '\')" class="text-[var(--primary)] hover:bg-[var(--primary)]/10 p-1.5 inline-flex items-center justify-center rounded-md transition-colors" title="View"><i data-lucide="eye" class="w-4 h-4"></i></button>' : '<button type="button" onclick=\'openArchiveEdit("' + esc(r.id) + '","' + esc(r.log_date) + '","' + esc(r.topic) + '","' + esc(r.content) + '","' + esc(p1) + '","' + esc(p2) + '","' + esc(p3) + '","' + esc(p4) + '")\' class="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-3.5 py-1.5 font-semibold text-xs rounded-xl transition shadow-sm inline-flex items-center gap-1"><i data-lucide="pencil"></i> Edit</button>') + '</td></tr>';
+        mobileHtml += '<div class="bg-white p-4 rounded-2xl border border-[var(--border)] shadow-sm space-y-3"><div class="flex justify-between items-center border-b border-[var(--border)] pb-2"><span class="text-xs font-medium text-[var(--muted)]">' + esc(dateStr) + '</span>' + statusBadge + '</div><div class="space-y-1"><p class="text-[10px] uppercase tracking-wider text-[var(--muted)] font-semibold">Topic</p><p class="text-sm font-medium text-[var(--fg)]">' + esc(r.topic) + '</p>' + feedbackHtml + photoGallery(r) + '</div>' + (isGraded ? '<button type="button" onclick="openViewNarrative(\'' + esc(r.id) + '\')" class="w-full bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white py-2 font-semibold text-xs rounded-xl transition shadow-sm flex items-center justify-center gap-1"><i data-lucide="eye"></i> View Report</button>' : '<button type="button" onclick=\'openArchiveEdit(' + jq(r.id) + ',' + jq(r.log_date) + ',' + jq(r.topic) + ',' + jq(r.content) + ',' + jq(p1) + ',' + jq(p2) + ',' + jq(p3) + ',' + jq(p4) + ')\' class="w-full bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white py-2 font-semibold text-xs rounded-xl transition shadow-sm flex items-center justify-center gap-1"><i data-lucide="pencil"></i> Open & Edit</button>') + '</div>';
+        desktopHtml += '<tr class="border-b border-[var(--border)] hover:bg-gray-50"><td class="py-3.5 pr-4 font-medium text-[var(--fg)]">' + esc(dateStr) + '</td><td class="py-3.5 pr-4 text-[var(--muted)]">' + esc(r.topic) + photoGallery(r) + '</td><td class="py-3.5 pr-4 text-center">' + statusBadge + '</td><td class="py-3.5 text-center">' + (isGraded ? '<button type="button" onclick="openViewNarrative(\'' + esc(r.id) + '\')" class="text-[var(--primary)] hover:bg-[var(--primary)]/10 p-1.5 inline-flex items-center justify-center rounded-md transition-colors" title="View"><i data-lucide="eye" class="w-4 h-4"></i></button>' : '<button type="button" onclick=\'openArchiveEdit(' + jq(r.id) + ',' + jq(r.log_date) + ',' + jq(r.topic) + ',' + jq(r.content) + ',' + jq(p1) + ',' + jq(p2) + ',' + jq(p3) + ',' + jq(p4) + ')\' class="bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white px-3.5 py-1.5 font-semibold text-xs rounded-xl transition shadow-sm inline-flex items-center gap-1"><i data-lucide="pencil"></i> Edit</button>') + '</td></tr>';
       });
       mobileHtml += '</div>';
       desktopHtml += '</tbody></table></div>';
@@ -1057,7 +1116,6 @@
   function showDashboardContent() {
     document.getElementById('sectionApply').classList.add('hidden');
     document.getElementById('sectionDashboard').classList.remove('hidden');
-    document.getElementById('sectionArchives').classList.add('hidden');
     switchToDashboard();
     loadDashboard(); loadAttendanceHistory(); loadArchives();
     if (!window._dashboardPollInterval) {
@@ -1069,7 +1127,6 @@
   function showApplySection() {
     document.getElementById('sectionApply').classList.remove('hidden');
     document.getElementById('sectionDashboard').classList.add('hidden');
-    document.getElementById('sectionArchives').classList.add('hidden');
     loadAvailablePrograms();
   }
 
