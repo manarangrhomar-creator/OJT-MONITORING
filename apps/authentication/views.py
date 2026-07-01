@@ -214,6 +214,7 @@ class AuthenticationViewSet(viewsets.ViewSet):
             html_message = render_to_string('emails/otp_email.html', {
                 'otp': otp_record.otp,
                 'subject': 'Your OTP for Password Reset',
+                'site_url': getattr(settings, 'SITE_URL', 'http://localhost:8000'),
             })
             send_mail(
                 subject='Your OTP for Password Reset',

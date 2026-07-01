@@ -38,7 +38,12 @@ def student_dashboard(request):
 @role_required('coordinator')
 def coordinator_dashboard(request):
     """Coordinator dashboard view."""
-    return render(request, 'coordinator_dashboard.html')
+    user = request.user
+    initials = (user.first_name[0] if user.first_name else user.username[0]).upper()
+    return render(request, 'coordinator_dashboard.html', {
+        'user_name': user.get_full_name() or user.username,
+        'user_initials': initials,
+    })
 
 
 def logout_view(request):

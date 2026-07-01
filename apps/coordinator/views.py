@@ -261,15 +261,43 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=['get'], url_path='student-accounts')
     def student_accounts(self, request):
-        """Get student accounts for this coordinator's course."""
+        """Get student accounts with attendance data for this coordinator's course."""
+        from datetime import date, datetime, time
+
         coordinator = request.user
-        students = User.objects.filter(role='student').exclude(approval_status='pending')
+        students = User.objects.filter(
+            role='student'
+        ).exclude(
+            approval_status='pending'
+        ).filter(
+            ojt_applications__program__coordinator=coordinator,
+            ojt_applications__status='approved'
+        )
         coordinator_course = coordinator.course
         if coordinator_course:
             students = students.filter(student_profile__course=coordinator_course)
-        students = students.order_by('-created_at')
+        students = students.distinct().order_by('-created_at')
+
+        today = date.today()
+        att_qs = Attendance.objects.filter(student__in=students).select_related('student')
+
+        stats = {}
+        for att in att_qs:
+            sid = att.student_id
+            if sid not in stats:
+                stats[sid] = {'present_days': 0, 'total_seconds': 0, 'today_status': ''}
+            stats[sid]['present_days'] += 1
+            if att.time_out:
+                tin = datetime.combine(att.date, att.time_in)
+                tout = datetime.combine(att.date, att.time_out)
+                stats[sid]['total_seconds'] += (tout - tin).total_seconds()
+            if att.date == today:
+                stats[sid]['today_status'] = 'present' if att.time_out else 'on-going'
+
         students_data = []
         for student in students:
+            s = stats.get(student.id, {'present_days': 0, 'total_seconds': 0, 'today_status': ''})
+            hours = round(s['total_seconds'] / 3600, 2)
             students_data.append({
                 'id': student.id,
                 'name': student.get_full_name(),
@@ -277,7 +305,11 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
                 'student_id': student.student_profile.student_id if hasattr(student, 'student_profile') and student.student_profile else None,
                 'is_active': student.is_active,
                 'created_at': student.created_at,
+                'present_days': s['present_days'],
+                'total_hours': hours,
+                'today_status': s['today_status'],
             })
+
         return Response(students_data)
 
     @action(detail=False, methods=['post'], url_path='approve-student')
