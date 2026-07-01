@@ -214,6 +214,56 @@
       .progress-bar-bg { background: var(--card-border); border-radius: 9999px; height: 6px; overflow: hidden; }
       .progress-bar-fill { height: 100%; border-radius: 9999px; transition: width 1s ease; }
 
+      /* Mobile Drawer */
+      .drawer-overlay {
+        position: fixed; inset: 0; z-index: 50;
+        background: rgba(0,0,0,0.4); opacity: 0; pointer-events: none;
+        transition: opacity 0.3s ease;
+      }
+      .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+      .mobile-drawer {
+        position: fixed; top: 0; left: 0; bottom: 0; z-index: 55;
+        width: 280px; max-width: 80vw;
+        background: var(--card-bg);
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: var(--shadow-lg);
+        overflow-y: auto;
+      }
+      .mobile-drawer.open { transform: translateX(0); }
+      .hamburger-btn {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 36px; height: 36px; border: none; background: transparent;
+        cursor: pointer; color: var(--fg); border-radius: 8px;
+        transition: background 0.2s;
+      }
+      .hamburger-btn:hover { background: rgba(0,0,0,0.05); }
+      .hamburger-btn span {
+        display: block; width: 18px; height: 2px; background: currentColor;
+        border-radius: 1px; position: relative; transition: all 0.3s ease;
+      }
+      .hamburger-btn span::before,
+      .hamburger-btn span::after {
+        content: ''; display: block; width: 18px; height: 2px;
+        background: currentColor; border-radius: 1px;
+        position: absolute; left: 0; transition: all 0.3s ease;
+      }
+      .hamburger-btn span::before { top: -5px; }
+      .hamburger-btn span::after { top: 5px; }
+      .hamburger-btn.open span { background: transparent; }
+      .hamburger-btn.open span::before { top: 0; transform: rotate(45deg); }
+      .hamburger-btn.open span::after { top: 0; transform: rotate(-45deg); }
+
+      .mobile-drawer-item {
+        display: flex; align-items: center; gap: 0.625rem;
+        width: 100%; padding: 0.625rem 1rem;
+        font-size: 0.8rem; font-weight: 600;
+        border: none; background: transparent; border-radius: 0.625rem;
+        cursor: pointer; transition: all 0.15s ease;
+      }
+      .mobile-drawer-item:hover { background: rgba(0,0,0,0.04); }
+      .mobile-drawer-item i { width: 1rem; height: 1rem; flex-shrink: 0; }
+
       input, select, textarea {
         background: var(--card-bg) !important;
         border: 1px solid var(--card-border) !important;
@@ -253,11 +303,14 @@
         <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(17,105,58,0.08); border: 1px solid rgba(17,105,58,0.15); display: flex; align-items: center; justify-content: center; overflow: hidden;">
           <img src="{% static 'images/isu_new_seal_512x512.png' %}" alt="ISU" class="w-6 h-6 object-contain" />
         </div>
-        <div class="hidden sm:block">
+        <div>
           <h1 class="text-sm font-bold tracking-tight">Coordinator</h1>
-          <p style="font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold);">OJT Portal</p>
+          <p style="font-size: 0.55rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold);">OJT Portal</p>
         </div>
       </div>
+      <button class="hamburger-btn md:hidden" id="hamburgerBtn" onclick="toggleMobileDrawer()" aria-label="Toggle navigation menu">
+        <span></span>
+      </button>
       <nav class="hidden md:flex items-center gap-1.5 ml-2" id="pillNav">
         <button class="pill-btn active" data-section="overview" onclick="switchSection('overview')"><i data-lucide="layout-dashboard" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Overview</button>
         <button class="pill-btn" data-section="accounts" onclick="switchSection('accounts')"><i data-lucide="users" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Students</button>
@@ -276,7 +329,7 @@
           <i data-lucide="bell" class="w-3.5 h-3.5"></i>
           <span id="notifBadge" class="absolute -top-0.5 -right-0.5 w-4 h-4 flex items-center justify-center rounded-full text-[8px] font-bold hidden" style="background: var(--danger); color: #fff;">0</span>
         </button>
-        <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 rounded-xl z-50 overflow-hidden" style="background: var(--card-bg); border: 1px solid var(--card-border); box-shadow: var(--shadow-lg);">
+        <div id="notifDropdown" class="hidden fixed sm:absolute right-4 sm:right-0 left-4 sm:left-auto top-[4.5rem] sm:top-full mt-0 sm:mt-2 w-auto sm:w-80 rounded-xl z-50 overflow-hidden" style="background: var(--card-bg); border: 1px solid var(--card-border); box-shadow: var(--shadow-lg);">
           <div class="p-3 border-b" style="border-color: var(--card-border); display: flex; justify-content: space-between; align-items: center;">
             <h3 class="text-[0.6rem] font-bold uppercase tracking-wider" style="color: var(--fg-dim);">Notifications</h3>
             <button id="markAllReadBtn" class="text-[0.55rem] font-bold" style="color: var(--primary);" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Mark all read</button>
@@ -398,8 +451,8 @@
               </select>
             </div>
           </div>
-          <div class="flex justify-around items-center">
-            <div class="flex items-center gap-3" id="donutTotal">
+          <div class="flex flex-col sm:flex-row justify-around items-stretch sm:items-center gap-4 sm:gap-0">
+            <div class="flex items-center gap-3 justify-between sm:justify-start" id="donutTotal">
               <div class="text-right">
                 <p class="text-lg font-bold" id="donutTotalVal">0</p>
                 <p class="text-[0.55rem] font-semibold uppercase tracking-wider" style="color: var(--fg-muted);">Total Reports</p>
@@ -409,7 +462,7 @@
                 <circle cx="36" cy="36" r="28" fill="none" stroke="var(--fg-muted)" stroke-width="6" stroke-dasharray="175.93" stroke-dashoffset="0" class="donut-ring"/>
               </svg>
             </div>
-            <div class="flex items-center gap-3" id="donutApproved">
+            <div class="flex items-center gap-3 justify-between sm:justify-start" id="donutApproved">
               <div class="text-right">
                 <p class="text-lg font-bold" id="donutApprovedVal">0</p>
                 <p class="text-[0.55rem] font-semibold uppercase tracking-wider" style="color: var(--fg-muted);">Approved</p>
@@ -419,7 +472,7 @@
                 <circle cx="36" cy="36" r="28" fill="none" stroke="var(--primary)" stroke-width="6" stroke-dasharray="175.93" stroke-dashoffset="79.17" class="donut-ring"/>
               </svg>
             </div>
-            <div class="flex items-center gap-3" id="donutAttendance">
+            <div class="flex items-center gap-3 justify-between sm:justify-start" id="donutAttendance">
               <div class="text-right">
                 <p class="text-lg font-bold" id="donutAttendanceVal">0</p>
                 <p class="text-[0.55rem] font-semibold uppercase tracking-wider" style="color: var(--fg-muted);">Attendance</p>
@@ -922,6 +975,7 @@
       showAlert('Please create an OJT program first before accessing dashboard sections.');
       return;
     }
+    closeMobileDrawer();
     document.querySelectorAll('.section-container').forEach(el => el.classList.add('hidden'));
     const el = document.getElementById(section + 'Section');
     if (el) el.classList.remove('hidden');
@@ -1907,7 +1961,63 @@
     else if (sec === 'applications') loadApplications();
   }, 30000);
 
+  // ===== MOBILE DRAWER =====
+  function toggleMobileDrawer() {
+    const overlay = document.getElementById('drawerOverlay');
+    const drawer = document.getElementById('mobileDrawer');
+    const btn = document.getElementById('hamburgerBtn');
+    const open = !drawer.classList.contains('open');
+    drawer.classList.toggle('open');
+    overlay.classList.toggle('open');
+    btn.classList.toggle('open');
+    document.body.style.overflow = open ? 'hidden' : '';
+  }
+  function closeMobileDrawer() {
+    document.getElementById('drawerOverlay').classList.remove('open');
+    document.getElementById('mobileDrawer').classList.remove('open');
+    document.getElementById('hamburgerBtn').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
   lucide.createIcons();
 </script>
+
+<!-- Mobile Drawer -->
+<div class="drawer-overlay md:hidden" id="drawerOverlay" onclick="closeMobileDrawer()"></div>
+<div class="mobile-drawer md:hidden" id="mobileDrawer">
+  <div class="flex items-center gap-3 px-5 py-5 border-b" style="border-color: var(--card-border);">
+    <img src="{% static 'images/isu_new_seal_512x512.png' %}" alt="ISU" class="w-10 h-10 object-contain">
+    <div>
+      <p class="text-sm font-bold">Coordinator</p>
+      <p class="text-[0.6rem] font-semibold" style="color: var(--fg-dim);">ISU OJT Monitor</p>
+    </div>
+  </div>
+  <div class="py-3 px-3 space-y-0.5">
+    <button class="mobile-drawer-item" data-section="overview" onclick="switchSection('overview'); closeMobileDrawer()">
+      <i data-lucide="layout-dashboard" class="w-4 h-4"></i> Overview
+    </button>
+    <button class="mobile-drawer-item" data-section="accounts" onclick="switchSection('accounts'); closeMobileDrawer()">
+      <i data-lucide="users" class="w-4 h-4"></i> Students
+    </button>
+    <button class="mobile-drawer-item" data-section="programs" onclick="switchSection('programs'); closeMobileDrawer()">
+      <i data-lucide="briefcase" class="w-4 h-4"></i> Programs
+    </button>
+    <button class="mobile-drawer-item" data-section="applications" onclick="switchSection('applications'); closeMobileDrawer()">
+      <i data-lucide="clipboard-list" class="w-4 h-4"></i> Applications
+    </button>
+    <button class="mobile-drawer-item" data-section="reports" onclick="switchSection('reports'); closeMobileDrawer()">
+      <i data-lucide="file-text" class="w-4 h-4"></i> Reports
+    </button>
+    <button class="mobile-drawer-item" data-section="attendance" onclick="switchSection('attendance'); closeMobileDrawer()">
+      <i data-lucide="clock" class="w-4 h-4"></i> Attendance
+    </button>
+    <button class="mobile-drawer-item" data-section="sites" onclick="switchSection('sites'); closeMobileDrawer()">
+      <i data-lucide="map-pin" class="w-4 h-4"></i> Sites
+    </button>
+  </div>
+  <div class="px-5 py-4 border-t mt-2" style="border-color: var(--card-border);">
+    <p class="text-[0.55rem] font-semibold uppercase tracking-wider" style="color: var(--fg-dim);">ISU OJT Monitoring System</p>
+  </div>
+</div>
 </body>
 </html>
