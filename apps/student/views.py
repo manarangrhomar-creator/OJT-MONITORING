@@ -203,7 +203,13 @@ class StudentNarrativeViewSet(viewsets.ModelViewSet):
             context={'request': request}
         )
         if serializer.is_valid():
-            instance = serializer.save(student=request.user)
+            program = OJTApplication.objects.filter(
+                student=self.request.user, status='approved'
+            ).first()
+            instance = serializer.save(
+                student=request.user,
+                program=program.program if program else None
+            )
             if instance.program and instance.program.coordinator:
                 create_and_send_notification(
                     recipient=instance.program.coordinator,

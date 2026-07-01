@@ -8,10 +8,26 @@ class StudentNarrativeReportSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(source='student.get_full_name', read_only=True)
     program_name = serializers.CharField(source='program.name', read_only=True)
 
+    def validate(self, attrs):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            log_date = attrs.get('log_date')
+            if log_date:
+                qs = StudentNarrativeReport.objects.filter(
+                    student=request.user, log_date=log_date
+                )
+                if self.instance:
+                    qs = qs.exclude(pk=self.instance.pk)
+                if qs.exists():
+                    raise serializers.ValidationError({
+                        'log_date': 'You have already submitted a report for this date.'
+                    })
+        return attrs
+
     class Meta:
         model = StudentNarrativeReport
         fields = ('id', 'student', 'student_name', 'program', 'program_name', 'log_date', 'topic', 'content', 'photo_1', 'photo_2', 'photo_3', 'photo_4', 'grade', 'feedback', 'graded_by', 'graded_at', 'created_at', 'updated_at')
-        read_only_fields = ('id', 'student', 'grade', 'feedback', 'graded_by', 'graded_at', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'student', 'program', 'grade', 'feedback', 'graded_by', 'graded_at', 'created_at', 'updated_at')
 
 
 class StudentProfileSerializer(serializers.ModelSerializer):

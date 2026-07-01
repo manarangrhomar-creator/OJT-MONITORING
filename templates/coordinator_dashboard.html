@@ -205,10 +205,11 @@
       .donut-ring {
         transform: rotate(-90deg);
       }
-      .donut-ring circle {
+      circle.donut-ring {
         fill: none;
         stroke-width: 6;
         cx: 50%; cy: 50%; r: 28;
+        transition: stroke-dashoffset 0.6s ease;
       }
 
       .progress-bar-bg { background: var(--card-border); border-radius: 9999px; height: 6px; overflow: hidden; }
@@ -744,13 +745,35 @@
 </div>
 
 <div id="gradeReportModal" class="modal">
-  <div class="modal-content">
+  <div class="modal-content" style="max-width: 520px;">
     <div class="modal-header"><h2>Grade Narrative Report</h2><button class="close-btn" onclick="closeModal('gradeReportModal')">&times;</button></div>
     <div class="space-y-4">
-      <p class="text-sm font-bold" id="gradeStudentName"></p>
-      <p class="text-xs" style="color: var(--fg-muted);" id="gradeTopic"></p>
-      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Grade (1-100)</label><input type="number" id="gradeInput" min="1" max="100" class="w-full !p-2.5 !rounded-xl text-sm"></div>
-      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Feedback</label><textarea id="feedbackInput" rows="3" class="w-full !p-2.5 !rounded-xl text-sm resize-none"></textarea></div>
+      <div class="flex items-center gap-3 pb-3 border-b" style="border-color: var(--card-border);">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style="background: rgba(17,105,58,0.1); color: var(--primary);" id="gradeInitial">?</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold truncate" id="gradeStudentName"></p>
+          <p class="text-[0.6rem] truncate" style="color: var(--fg-dim);" id="gradeTopic"></p>
+        </div>
+        <span class="text-[0.55rem] font-semibold px-2 py-0.5 rounded-full shrink-0" style="background: rgba(218,165,32,0.15); color: var(--gold);" id="gradeStatusBadge">Pending Grading</span>
+      </div>
+      <div>
+        <p class="text-[0.55rem] font-bold uppercase tracking-wider mb-2" style="color: var(--fg-muted);">Report Content</p>
+        <div class="p-3 rounded-xl text-xs leading-relaxed max-h-48 overflow-y-auto" style="background: var(--bg-subtle); color: var(--fg-main); border: 1px solid var(--card-border);" id="gradeContent"></div>
+      </div>
+      <div id="gradePhotos" class="hidden">
+        <p class="text-[0.55rem] font-bold uppercase tracking-wider mb-2" style="color: var(--fg-muted);">Attached Photos</p>
+        <div class="flex gap-2 flex-wrap" id="gradePhotosGrid"></div>
+      </div>
+      <div class="pt-3 border-t" style="border-color: var(--card-border);">
+        <div>
+          <label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5" style="color: var(--fg-muted);">Grade (1-100)</label>
+          <input type="number" id="gradeInput" min="1" max="100" class="w-full !p-2.5 !rounded-xl text-sm" style="background: var(--card-bg); border: 1px solid var(--card-border);">
+        </div>
+      </div>
+      <div>
+        <label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5" style="color: var(--fg-muted);">Feedback</label>
+        <textarea id="feedbackInput" rows="3" class="w-full !p-2.5 !rounded-xl text-sm resize-none" style="background: var(--card-bg); border: 1px solid var(--card-border);" placeholder="Provide feedback to the student..."></textarea>
+      </div>
     </div>
     <input type="hidden" id="gradeNarrativeId" value="">
     <div class="modal-buttons">
@@ -912,7 +935,7 @@
 
   function jq(str) {
     if (str === null || str === undefined) return '""';
-    return JSON.stringify(String(str));
+    return JSON.stringify(String(str)).replace(/'/g, "&#39;");
   }
 
   async function apiFetch(url, options) {
@@ -1142,12 +1165,23 @@
     const circumference = 2 * Math.PI * 28;
     if (total > 0) {
       const approvedOffset = circumference * (1 - approved / total);
-      document.querySelector('#donutApproved circle:last-child').setAttribute('stroke-dasharray', circumference);
-      document.querySelector('#donutApproved circle:last-child').setAttribute('stroke-dashoffset', approvedOffset);
+      const approvedCircle = document.querySelector('#donutApproved circle:last-child');
+      approvedCircle.style.strokeDasharray = circumference;
+      approvedCircle.style.strokeDashoffset = approvedOffset;
     }
     const attOffset = circumference * (1 - attendanceRate / 100);
-    document.querySelector('#donutAttendance circle:last-child').setAttribute('stroke-dasharray', circumference);
-    document.querySelector('#donutAttendance circle:last-child').setAttribute('stroke-dashoffset', attOffset);
+    const attCircle = document.querySelector('#donutAttendance circle:last-child');
+    attCircle.style.strokeDasharray = circumference;
+    attCircle.style.strokeDashoffset = attOffset;
+    // Total ring — proportional fill (graded / total)
+    const totalCircle = document.querySelector('#donutTotal circle:last-child');
+    totalCircle.style.strokeDasharray = circumference;
+    const totalOffset = total > 0 ? circumference * (1 - approved / total) : circumference;
+    totalCircle.style.transition = 'none';
+    totalCircle.style.strokeDashoffset = circumference;
+    totalCircle.getBoundingClientRect();
+    totalCircle.style.transition = 'stroke-dashoffset 0.6s ease';
+    totalCircle.style.strokeDashoffset = totalOffset;
   }
 
   function filterDonuts(period) {
@@ -1555,11 +1589,25 @@
   }
 
   function openGradeModal(id) {
-    const n = studentReportList.find(r => r.id === id);
+    const n = studentReportList.find(r => r.id === id) || (overviewCache.narratives || []).find(r => r.id === id);
     if (!n) return;
+    const isGraded = n.grade !== null && n.grade !== undefined;
     document.getElementById('gradeNarrativeId').value = id;
+    document.getElementById('gradeInitial').textContent = (n.student_name || '?')[0].toUpperCase();
     document.getElementById('gradeStudentName').textContent = n.student_name;
     document.getElementById('gradeTopic').textContent = n.topic;
+    document.getElementById('gradeContent').textContent = n.content || 'No content provided.';
+    document.getElementById('gradeStatusBadge').textContent = isGraded ? 'Graded' : 'Pending Grading';
+    document.getElementById('gradeStatusBadge').style.background = isGraded ? 'rgba(17,105,58,0.15)' : 'rgba(218,165,32,0.15)';
+    document.getElementById('gradeStatusBadge').style.color = isGraded ? 'var(--success)' : 'var(--gold)';
+    const photosGrid = document.getElementById('gradePhotosGrid');
+    const photosSection = document.getElementById('gradePhotos');
+    photosGrid.innerHTML = '';
+    const photos = [n.photo_1, n.photo_2, n.photo_3, n.photo_4].filter(p => p);
+    if (photos.length) {
+      photosSection.classList.remove('hidden');
+      photos.forEach(p => { const img = document.createElement('img'); img.src = p; img.className = 'w-16 h-16 rounded-lg object-cover cursor-pointer hover:opacity-80'; img.onclick = () => window.open(p, '_blank'); photosGrid.appendChild(img); });
+    } else { photosSection.classList.add('hidden'); }
     document.getElementById('gradeInput').value = n.grade || '';
     document.getElementById('feedbackInput').value = n.feedback || '';
     openModal('gradeReportModal');
