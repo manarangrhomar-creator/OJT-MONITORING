@@ -645,10 +645,10 @@
 <div id="confirmLogoutModal" class="modal">
   <div class="modal-content" style="max-width:400px;">
     <div class="modal-header"><h2>Confirm Logout</h2><button class="close-btn" onclick="closeModal('confirmLogoutModal')">&times;</button></div>
-    <p style="color:#666; margin-bottom:20px; font-size:14px;">Are you sure you want to exit the OJT Student Portal?</p>
+    <p class="text-sm mb-4" style="color: var(--fg-muted);">Are you sure you want to exit the OJT Student Portal?</p>
     <div class="modal-buttons">
-      <button onclick="closeModal('confirmLogoutModal')" class="px-5 py-2 bg-gray-400 text-white font-semibold text-sm rounded-xl hover:bg-gray-500 transition">Cancel</button>
-      <button onclick="confirmLogout()" class="px-5 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold text-sm rounded-xl transition shadow-sm">Yes, Logout</button>
+      <button class="ghost-btn" onclick="closeModal('confirmLogoutModal')">Cancel</button>
+      <button class="ghost-btn" style="border-color: var(--danger); color: var(--danger);" onclick="confirmLogout()">Yes, Logout</button>
     </div>
   </div>
 </div>
