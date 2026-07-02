@@ -7,11 +7,15 @@ from .models import SystemLog
 class AdminUserSerializer(serializers.ModelSerializer):
     """Serializer for admin user management."""
     course_name = serializers.CharField(source='course.name', read_only=True, allow_null=True)
+    full_name = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'role', 'approval_status', 'is_active', 'created_at', 'phone_number', 'course', 'course_name', 'faculty_id')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'full_name', 'role', 'approval_status', 'is_active', 'created_at', 'phone_number', 'course', 'course_name', 'faculty_id')
         read_only_fields = ('id', 'created_at')
+
+    def get_full_name(self, obj):
+        return obj.get_full_name() or obj.username
 
 
 class CourseSerializer(serializers.ModelSerializer):

@@ -39,8 +39,8 @@ class AdminDashboardViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=["get"])
     def students(self, request):
-        """Get all OJT student accounts."""
-        students = User.objects.filter(role="student").select_related('course').order_by("-created_at")
+        """Get only approved OJT student accounts for admin listing."""
+        students = User.objects.filter(role="student", approval_status="approved").select_related('course').order_by("-created_at")
         serializer = AdminUserSerializer(students, many=True)
         return Response(serializer.data)
     

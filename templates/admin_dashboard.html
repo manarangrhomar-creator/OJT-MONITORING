@@ -1104,7 +1104,7 @@
                 data.forEach(item => {
                     students[item.id] = {
                         id: item.id,
-                        name: item.first_name && item.last_name ? `${item.first_name} ${item.last_name}` : item.username || 'Unknown',
+                        name: item.full_name || (item.first_name && item.last_name ? `${item.first_name} ${item.last_name}` : item.username || 'Unknown'),
                         email: item.email || 'N/A',
                         role: item.role || 'Student',
                         status: item.is_active ? 'Active' : 'Inactive',
@@ -1310,7 +1310,7 @@
                 data.forEach(item => {
                     coordinators[item.id] = {
                         id: item.id,
-                        name: item.first_name && item.last_name ? `${item.first_name} ${item.last_name}` : item.username || 'Unknown',
+                        name: item.full_name || (item.first_name && item.last_name ? `${item.first_name} ${item.last_name}` : item.username || 'Unknown'),
                         email: item.email || 'N/A',
                         username: item.username || 'N/A',
                         status: item.is_active ? 'Active' : 'Inactive',
