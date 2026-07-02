@@ -228,7 +228,9 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         coordinator_course = coordinator.course
         students = User.objects.filter(
             role='student',
-            approval_status='approved'
+            approval_status='approved',
+            ojt_applications__status='approved',
+            ojt_applications__program__coordinator=coordinator
         )
 
         if coordinator_course:
@@ -452,7 +454,7 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         data = [{
             'id': str(s.id),
             'name': s.name,
-            'contact_person': s.contact_person,
+            'supervisor_name': s.supervisor_name,
             'contact_number': s.contact_number,
         } for s in sites]
         return Response(data)
@@ -469,6 +471,20 @@ class SiteAssignmentViewSet(viewsets.ModelViewSet):
         return SiteAssignment.objects.filter(
             program__coordinator=coordinator
         ).select_related('student', 'program', 'site')
+
+    @action(detail=False, methods=['get'], url_path='my-site')
+    def my_site(self, request):
+        """Get the site assigned to this coordinator by admin."""
+        from .models import Site
+        site = Site.objects.filter(coordinator=request.user, is_active=True).first()
+        if not site:
+            return Response({'error': 'No site assigned'}, status=status.HTTP_404_NOT_FOUND)
+        return Response({
+            'id': site.id,
+            'name': site.name,
+            'supervisor_name': site.supervisor_name,
+            'contact_number': site.contact_number,
+        })
 
     @action(detail=False, methods=['get'], url_path='by-student')
     def by_student(self, request):

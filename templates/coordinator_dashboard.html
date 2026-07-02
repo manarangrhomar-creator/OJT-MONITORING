@@ -13,8 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@0.344.0"></script>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Leaflet removed — table-based site view -->
     <style>
       :root {
         --primary: #11693A;
@@ -284,137 +283,14 @@
       label { color: var(--fg-muted) !important; }
       select option { background: var(--card-bg); }
 
-      /* ===== CAMPUS MAP (2D flat) ===== */
-      /* Leaflet map container */
-      #leafletMap {
-        width: 100%;
-        height: 100%;
-        border-radius: var(--radius-md);
-        z-index: 1;
-      }
-      .leaflet-container {
-        border-radius: var(--radius-md);
-        font-family: 'Inter', sans-serif;
-      }
-      /* Custom map markers */
-      .campus-marker {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 32px;
-        height: 32px;
-        border-radius: 50% 50% 50% 0;
-        transform: rotate(-45deg);
-        border: 2px solid #fff;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.3);
-        cursor: pointer;
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-      }
-      .campus-marker:hover {
-        transform: rotate(-45deg) scale(1.15);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.35);
-      }
-      .campus-marker.assigned {
-        background: var(--primary);
-      }
-      .campus-marker.unassigned {
-        background: var(--gold);
-      }
-      .campus-marker.selected {
-        transform: rotate(-45deg) scale(1.2);
-        box-shadow: 0 0 0 3px var(--primary), 0 4px 14px rgba(0,0,0,0.35);
-      }
-      .campus-marker.filtered-out {
-        opacity: 0.15;
-        pointer-events: none;
-      }
-      .marker-icon {
-        transform: rotate(45deg);
-        font-size: 14px;
-        color: #fff;
-        font-weight: 700;
-        line-height: 1;
-      }
-      /* Custom popup styling */
-      .campus-popup .leaflet-popup-content-wrapper {
-        border-radius: 10px;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
-        font-family: 'Inter', sans-serif;
-      }
-      .campus-popup .leaflet-popup-content {
-        margin: 10px 14px;
-        font-size: 0.75rem;
-        line-height: 1.5;
-      }
-      .campus-popup .leaflet-popup-tip {
-        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      }
-      .popup-title {
-        font-weight: 700;
-        font-size: 0.8rem;
-        color: var(--fg);
-        margin-bottom: 4px;
-      }
-      .popup-count {
-        font-size: 0.7rem;
-        color: var(--fg-muted);
-      }
-      .popup-count strong {
-        color: var(--primary);
-      }
-      /* Map empty state */
-      .campus-map-empty {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        z-index: 6;
-        background: var(--card-bg);
-        border-radius: var(--radius-md);
-      }
-
-      /* Filter buttons */
-      .site-filter-btn {
-        padding: 0.3rem 0.7rem;
-        border-radius: 9999px;
-        font-size: 0.65rem;
-        font-weight: 600;
-        border: 1px solid var(--card-border);
-        background: var(--card-bg);
-        color: var(--fg-muted);
-        cursor: pointer;
-        transition: all 0.2s ease;
-      }
-      .site-filter-btn:hover { background: rgba(0,0,0,0.03); color: var(--fg); }
-      .site-filter-btn.active {
-        background: var(--primary);
-        color: #fff;
-        border-color: var(--primary);
-      }
-
-      /* Assignment list item */
-      .site-list-item {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 8px 12px;
-        border-bottom: 1px solid var(--card-border);
-        cursor: pointer;
+      /* ===== SITE TABLE ===== */
+      /* Site table row hover */
+      #siteTableBody tr {
         transition: background 0.15s ease;
-        font-size: 0.7rem;
       }
-      .site-list-item:hover { background: rgba(0,0,0,0.02); }
-      .site-list-item:last-child { border-bottom: none; }
-      .site-list-dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 2px;
-        flex-shrink: 0;
+      #siteTableBody tr:hover {
+        background: rgba(0,0,0,0.02);
       }
-      .site-list-name { font-weight: 600; color: var(--fg); }
-      .site-list-site { color: var(--fg-muted); font-size: 0.65rem; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -826,81 +702,31 @@
         <i data-lucide="plus" class="w-4 h-4"></i> New Assignment
       </button>
     </div>
-    <div class="flex flex-col lg:flex-row gap-5" style="height: calc(100vh - 220px); min-height: 480px;">
-      <!-- Map Panel -->
-      <div class="bento-card flex-1 relative overflow-hidden" id="siteMapPanel">
-        <div class="absolute top-4 left-4 z-10 flex items-center gap-2">
-          <div class="relative">
-            <i data-lucide="search" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style="color: var(--fg-dim);"></i>
-            <input type="text" id="siteSearchInput" placeholder="Search sites..." class="w-52 pl-8 pr-3 py-1.5 !rounded-lg text-xs" style="background: var(--card-bg); border: 1px solid var(--card-border);">
-          </div>
+    <div class="bento-card">
+      <div class="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3" style="border-color: var(--card-border);">
+        <div class="relative">
+          <i data-lucide="search" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style="color: var(--fg-dim);"></i>
+          <input type="text" id="siteSearchInput" placeholder="Search by student, site, or program..." class="w-64 pl-8 pr-3 py-1.5 !rounded-lg text-xs" style="background: var(--card-bg); border: 1px solid var(--card-border);">
         </div>
-        <div class="absolute top-4 right-4 z-10 flex gap-2" id="siteFilterBtns">
-          <button class="site-filter-btn active" data-filter="all" onclick="filterSiteMap('all')">All</button>
-          <button class="site-filter-btn" data-filter="assigned" onclick="filterSiteMap('assigned')">Assigned</button>
-          <button class="site-filter-btn" data-filter="unassigned" onclick="filterSiteMap('unassigned')">Unassigned</button>
-        </div>
-        <!-- Leaflet Map -->
-        <div style="position: relative; width: 100%; height: 100%;">
-          <div id="leafletMap"></div>
-          <div class="campus-map-empty hidden" id="campusMapEmpty">
-            <i data-lucide="map-pin" class="w-10 h-10 mx-auto mb-2" style="color: var(--fg-dim);"></i>
-            <p class="text-xs" style="color: var(--fg-dim);">No sites to display on the map</p>
-          </div>
-        </div>
-        <!-- Stats footer -->
-        <div class="absolute bottom-0 left-0 right-0 px-5 py-3 flex items-center justify-between" style="background: linear-gradient(to top, var(--card-bg) 60%, transparent);">
-          <div class="flex items-center gap-4">
-            <span class="flex items-center gap-1.5 text-xs" style="color: var(--fg-muted);"><span class="inline-block w-2.5 h-2.5 rounded-sm" style="background: var(--primary);"></span> Assigned</span>
-            <span class="flex items-center gap-1.5 text-xs" style="color: var(--fg-muted);"><span class="inline-block w-2.5 h-2.5 rounded-sm" style="background: var(--gold);"></span> Unassigned</span>
-          </div>
-          <div class="flex items-center gap-3 text-xs font-semibold" style="color: var(--fg);">
-            <span id="siteStatTotal">0</span> total sites
-          </div>
+        <div class="flex items-center gap-3 text-xs font-semibold" style="color: var(--fg);">
+          <span id="siteStatTotal">0</span> total assignments
         </div>
       </div>
-      <!-- Sidebar Detail Panel -->
-      <div class="w-full lg:w-80 flex flex-col gap-4">
-        <div class="bento-card flex-1 flex flex-col" id="siteDetailPanel">
-          <div class="p-4 border-b" style="border-color: var(--card-border);">
-            <h3 class="text-sm font-bold" style="color: var(--fg);">Site Details</h3>
-          </div>
-          <div class="flex-1 flex flex-col items-center justify-center p-5" id="siteDetailEmpty">
-            <i data-lucide="building-2" class="w-10 h-10 mb-2" style="color: var(--fg-dim);"></i>
-            <p class="text-xs text-center" style="color: var(--fg-dim);">Select a building on the map to view details</p>
-          </div>
-          <div class="hidden flex-1 flex flex-col" id="siteDetailContent">
-            <div class="p-4 space-y-3">
-              <div>
-                <p class="text-[0.6rem] font-semibold uppercase tracking-wider mb-1" style="color: var(--fg-dim);">Building Name</p>
-                <p class="text-sm font-bold" id="detailBuildingName" style="color: var(--fg);">—</p>
-              </div>
-              <div>
-                <p class="text-[0.6rem] font-semibold uppercase tracking-wider mb-1" style="color: var(--fg-dim);">Total Assignments</p>
-                <p class="text-lg font-bold" id="detailTotalAssignments" style="color: var(--primary);">0</p>
-              </div>
-              <div class="pt-2 border-t" style="border-color: var(--card-border);">
-                <p class="text-[0.6rem] font-semibold uppercase tracking-wider mb-2" style="color: var(--fg-dim);">Assigned Students</p>
-                <div id="detailStudentList" class="space-y-2 max-h-48 overflow-y-auto"></div>
-              </div>
-            </div>
-            <div class="mt-auto p-4 border-t flex gap-2" style="border-color: var(--card-border);">
-              <button class="ghost-btn flex-1 text-xs flex items-center justify-center gap-1.5" id="detailEditBtn" onclick="openEditSiteModal(selectedSiteAssignmentId)">
-                <i data-lucide="pencil" class="w-3 h-3"></i> Edit
-              </button>
-              <button class="ghost-btn flex-1 text-xs flex items-center justify-center gap-1.5" style="color: var(--danger);" id="detailDeleteBtn" onclick="deleteSiteAssignment(selectedSiteAssignmentId)">
-                <i data-lucide="trash-2" class="w-3 h-3"></i> Delete
-              </button>
-            </div>
-          </div>
-        </div>
-        <!-- Assignments List -->
-        <div class="bento-card" style="max-height: 260px;">
-          <div class="p-3 border-b" style="border-color: var(--card-border);">
-            <h3 class="text-xs font-bold" style="color: var(--fg);">All Assignments</h3>
-          </div>
-          <div class="overflow-y-auto" id="siteAssignmentList" style="max-height: 200px;"></div>
-        </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-xs" style="color: var(--fg);">
+          <thead>
+            <tr style="border-bottom: 1px solid var(--card-border); color: var(--fg-dim);">
+              <th class="text-left px-4 py-2.5 font-semibold uppercase tracking-wider text-[0.6rem]">Student</th>
+              <th class="text-left px-4 py-2.5 font-semibold uppercase tracking-wider text-[0.6rem]">Site</th>
+              <th class="text-left px-4 py-2.5 font-semibold uppercase tracking-wider text-[0.6rem]">Program</th>
+              <th class="text-left px-4 py-2.5 font-semibold uppercase tracking-wider text-[0.6rem]">Status</th>
+              <th class="text-right px-4 py-2.5 font-semibold uppercase tracking-wider text-[0.6rem]">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="siteTableBody">
+            <tr><td colspan="5" class="px-4 py-10 text-center" style="color: var(--fg-dim);">Loading...</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
@@ -1061,7 +887,7 @@
     <div class="modal-header"><h2>New Site Assignment</h2><button class="close-btn" onclick="closeModal('addSiteModal')">&times;</button></div>
     <div class="space-y-4">
       <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Student</label><select id="siteStudentSelect" class="w-full !p-2.5 !rounded-xl text-sm"></select></div>
-      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Site</label><select id="siteSelect" class="w-full !p-2.5 !rounded-xl text-sm"><option value="">Select a site...</option></select></div>
+      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Site</label><select id="siteSelect" class="w-full !p-2.5 !rounded-xl text-sm" onchange="onSiteSelectChange()"><option value="">Select a site...</option></select></div>
       <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Supervisor Name</label><input type="text" id="siteSupervisorName" placeholder="On-site supervisor" class="w-full !p-2.5 !rounded-xl text-sm"></div>
       <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Supervisor Contact</label><input type="text" id="siteSupervisorContact" placeholder="Phone number" class="w-full !p-2.5 !rounded-xl text-sm"></div>
     </div>
@@ -1078,7 +904,7 @@
     <input type="hidden" id="editSiteAssignmentId" value="">
     <div class="space-y-4">
       <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Student</label><p id="editSiteStudentName" class="!p-2.5 !rounded-xl text-sm font-bold" style="background: var(--card-bg-secondary); border: 1px solid var(--card-border); color: var(--fg);"></p></div>
-      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Site</label><select id="editSiteSelect" class="w-full !p-2.5 !rounded-xl text-sm"><option value="">Select a site...</option></select></div>
+      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Site</label><select id="editSiteSelect" class="w-full !p-2.5 !rounded-xl text-sm" onchange="onEditSiteSelectChange()"><option value="">Select a site...</option></select></div>
       <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Supervisor Name</label><input type="text" id="editSiteSupervisorName" class="w-full !p-2.5 !rounded-xl text-sm"></div>
       <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Supervisor Contact</label><input type="text" id="editSiteSupervisorContact" class="w-full !p-2.5 !rounded-xl text-sm"></div>
     </div>
@@ -1169,6 +995,7 @@
   let studentReportList = [];
   let siteList = [];
   let approvedStudentsForSite = [];
+  let availableSitesList = [];
   let currentAppFilter = 'all';
   let currentSection = 'overview';
   let donutPeriod = 'all';
@@ -1895,272 +1722,56 @@
   }
 
   // ===== SITES =====
-  let selectedBuilding = null;
   let selectedSiteAssignmentId = null;
-  let currentSiteFilter = 'all';
-  let siteDetailData = [];
-  let leafletMap = null;
-  let buildingMarkers = {};
-
-  // ISU Cauayan campus buildings with verified GPS coordinates
-  // Source: OpenStreetMap API — verified via Nominatim & Way geometry
-  // Campus: Isabela State University Cauayan, Brgy. San Fermin, Cauayan City
-  const CAMPUS_BUILDINGS = [
-    { id: 'admin', name: 'Administration Building',               lat: 16.93770, lng: 121.76480 },
-    { id: 'law',   name: 'College of Law',                        lat: 16.9373207, lng: 121.7637226 },  // OSM way 234072184
-    { id: 'ccsic', name: 'CCSICT Building',                       lat: 16.9382494, lng: 121.7640612 },  // OSM way 1329938171
-    { id: 'gym',   name: 'ISU Gym',                               lat: 16.9385703, lng: 121.7645873 },  // OSM way 234071845
-    { id: 'ee',    name: 'College of Elementary Education',       lat: 16.9366265, lng: 121.7646954 },  // OSM way 234072367
-    { id: 'nstp',  name: 'NSTP Office',                           lat: 16.93856,   lng: 121.76549   },  // OSM way 1330635314
-    { id: 'bamboo',name: 'Bamboo Laboratory',                     lat: 16.93924,   lng: 121.76430   },  // OSM way 1329938166
-    { id: 'sbo',   name: 'CCSCT SBO Office',                      lat: 16.93811,   lng: 121.76390   },  // OSM way 1329938172
-    { id: 'poly',  name: 'Polytechnic Building',                  lat: 16.93710,   lng: 121.76450   },  // inferred from campus layout
-    { id: 'crim',  name: 'College of Criminology',                lat: 16.93750,   lng: 121.76400   },  // inferred
-    { id: 'bus',   name: 'College of Business Management',        lat: 16.93690,   lng: 121.76410   },  // inferred
-    { id: 'agri',  name: 'Institute of Agricultural Technology',  lat: 16.93640,   lng: 121.76430   },  // inferred
-    { id: 'arts',  name: 'School of Arts & Sciences',             lat: 16.93860,   lng: 121.76420   },  // inferred
-    { id: 'edu',   name: 'College of Education',                  lat: 16.93680,   lng: 121.76460   },  // inferred
-    { id: 'lib',   name: 'Library',                               lat: 16.93790,   lng: 121.76460   },  // inferred
-    { id: 'comp',  name: 'Computer Center',                       lat: 16.93810,   lng: 121.76440   },  // inferred
-    { id: 'cafe',  name: 'Cafeteria',                             lat: 16.93760,   lng: 121.76440   },  // inferred
-    { id: 'med',   name: 'Medical Center',                        lat: 16.93740,   lng: 121.76500   },  // inferred
-    { id: 'dorm',  name: 'Dormitory',                             lat: 16.93890,   lng: 121.76500   },  // inferred
-    { id: 'oval',  name: 'ISU Oval',                              lat: 16.9375649, lng: 121.7643921 },  // OSM way 1330635313
-  ];
-
-  // Campus center coordinates (ISU Cauayan, Brgy. San Fermin, Cauayan City)
-  const CAMPUS_CENTER = [16.93804, 121.76454];
-  const CAMPUS_ZOOM = 17;
-
-  // Restrict map to campus area only (verified via Nominatim)
-  const CAMPUS_BOUNDS = L.latLngBounds(
-    [16.9355625, 121.7632976],  // Southwest corner
-    [16.9405145, 121.7657882]   // Northeast corner
-  );
-
-  function initLeafletMap() {
-    if (leafletMap) return;
-    leafletMap = L.map('leafletMap', {
-      center: CAMPUS_CENTER,
-      zoom: CAMPUS_ZOOM,
-      minZoom: 16,
-      maxZoom: 19,
-      zoomControl: true,
-      scrollWheelZoom: true,
-      maxBounds: CAMPUS_BOUNDS,
-      maxBoundsViscosity: 1.0,   // hard stop at boundary
-      worldCopyJump: false,       // don't wrap across antimeridian
-    });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      maxZoom: 19,
-    }).addTo(leafletMap);
-    // Fix map rendering when container becomes visible
-    setTimeout(() => leafletMap.invalidateSize(), 100);
-  }
-
-  function createMarkerIcon(status) {
-    const color = status === 'assigned' ? 'var(--primary)' : 'var(--gold)';
-    return L.divIcon({
-      className: '',
-      html: `<div class="campus-marker ${status}" style="background: ${color};"><span class="marker-icon">&#9679;</span></div>`,
-      iconSize: [32, 32],
-      iconAnchor: [16, 32],
-      popupAnchor: [0, -34],
-    });
-  }
 
   async function loadSiteAssignments() {
-    const empty = document.getElementById('campusMapEmpty');
-    empty.classList.add('hidden');
-    document.getElementById('siteDetailEmpty').classList.remove('hidden');
-    document.getElementById('siteDetailContent').classList.add('hidden');
-    selectedBuilding = null;
-    selectedSiteAssignmentId = null;
-
-    // Remove old markers
-    Object.values(buildingMarkers).forEach(m => leafletMap && leafletMap.removeLayer(m));
-    buildingMarkers = {};
-
+    const tbody = document.getElementById('siteTableBody');
+    tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-10 text-center" style="color: var(--fg-dim);">Loading...</td></tr>';
     try {
       const res = await fetch('/api/coordinator/site-assignments/', { headers: { 'Authorization': `Token ${token}` } });
-      if (!res.ok) { empty.innerHTML = '<i data-lucide="map-pin" class="w-10 h-10 mx-auto mb-2" style="color: var(--danger);"></i><p class="text-xs" style="color: var(--danger);">Failed to load</p>'; empty.classList.remove('hidden'); return; }
+      if (!res.ok) {
+        tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-10 text-center" style="color: var(--danger);">Failed to load</td></tr>';
+        return;
+      }
       siteList = await res.json();
-      siteDetailData = siteList;
-      renderCampusMap();
-      renderAssignmentList();
+      const totalEl = document.getElementById('siteStatTotal');
+      if (totalEl) totalEl.textContent = siteList.length;
+      renderSiteTable();
     } catch (e) {
-      empty.innerHTML = '<i data-lucide="map-pin" class="w-10 h-10 mx-auto mb-2" style="color: var(--danger);"></i><p class="text-xs" style="color: var(--danger);">Error loading</p>';
-      empty.classList.remove('hidden');
+      tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-10 text-center" style="color: var(--danger);">Error loading</td></tr>';
     }
   }
 
-  function renderCampusMap() {
-    const empty = document.getElementById('campusMapEmpty');
-    if (!leafletMap) initLeafletMap();
-
-    // Remove old markers
-    Object.values(buildingMarkers).forEach(m => leafletMap.removeLayer(m));
-    buildingMarkers = {};
-
-    const assignments = currentSiteFilter === 'all' ? siteList
-      : currentSiteFilter === 'assigned' ? siteList.filter(a => a.site_name)
-      : siteList.filter(a => !a.site_name);
-
-    const siteCounts = {};
-    siteList.forEach(a => {
-      const key = a.site_name || '__unassigned__';
-      if (!siteCounts[key]) siteCounts[key] = { total: 0, assignments: [] };
-      siteCounts[key].total++;
-      siteCounts[key].assignments.push(a);
-    });
-
-    let markersAdded = 0;
-    CAMPUS_BUILDINGS.forEach(b => {
-      const siteEntries = Object.entries(siteCounts);
-      const matchIdx = siteEntries.findIndex(([k]) => k.toLowerCase().includes(b.id) || b.id.includes(k.toLowerCase().replace(/\s+/g, '')));
-      const count = matchIdx >= 0 ? siteEntries[matchIdx][1].total : 0;
-      const status = count > 0 ? 'assigned' : 'unassigned';
-
-      const filtered = currentSiteFilter !== 'all' &&
-        !assignments.some(a => (a.site_name || '').toLowerCase().includes(b.id));
-
-      const icon = createMarkerIcon(status);
-      const marker = L.marker([b.lat, b.lng], { icon }).addTo(leafletMap);
-
-      if (filtered) {
-        marker.setOpacity(0.15);
-        marker.getElement() && (marker.getElement().style.pointerEvents = 'none');
-      } else {
-        marker.setOpacity(1);
-        markersAdded++;
-      }
-
-      // Popup content
-      const popupHtml = `
-        <div class="popup-title">${esc(b.name)}</div>
-        <div class="popup-count">${count > 0 ? `<strong>${count}</strong> student${count > 1 ? 's' : ''} assigned` : 'No assignments'}</div>
-      `;
-      marker.bindPopup(popupHtml, { className: 'campus-popup', closeButton: false });
-
-      marker.on('click', () => selectBuilding(b.id));
-      buildingMarkers[b.id] = marker;
-    });
-
-    if (markersAdded === 0 && currentSiteFilter !== 'all') {
-      empty.classList.remove('hidden');
-    } else {
-      empty.classList.add('hidden');
-    }
-
-    const totalEl = document.getElementById('siteStatTotal');
-    if (totalEl) totalEl.textContent = siteList.length;
-
-    // Fit map to markers
-    if (markersAdded > 0) {
-      const coords = CAMPUS_BUILDINGS.map(b => [b.lat, b.lng]);
-      leafletMap.fitBounds(coords, { padding: [40, 40], maxZoom: CAMPUS_ZOOM });
-    }
-
-    lucide.createIcons();
-  }
-
-  function selectBuilding(buildingId) {
-    // Reset previous selection
-    Object.entries(buildingMarkers).forEach(([id, m]) => {
-      const el = m.getElement();
-      if (el) {
-        const div = el.querySelector('.campus-marker');
-        if (div) div.classList.remove('selected');
-      }
-    });
-
-    const marker = buildingMarkers[buildingId];
-    if (marker) {
-      const el = marker.getElement();
-      if (el) {
-        const div = el.querySelector('.campus-marker');
-        if (div) div.classList.add('selected');
-      }
-      marker.openPopup();
-    }
-
-    selectedBuilding = buildingId;
-
-    const matched = siteList.filter(a => {
-      const siteName = (a.site_name || '').toLowerCase();
-      return siteName.includes(buildingId) || buildingId.includes(siteName.replace(/\s+/g, ''));
-    });
-
-    const emptyEl = document.getElementById('siteDetailEmpty');
-    const contentEl = document.getElementById('siteDetailContent');
-
-    if (matched.length === 0) {
-      emptyEl.classList.remove('hidden');
-      contentEl.classList.add('hidden');
-      emptyEl.innerHTML = `
-        <i data-lucide="building-2" class="w-10 h-10 mb-2" style="color: var(--fg-dim);"></i>
-        <p class="text-xs text-center" style="color: var(--fg-dim);">No assignments at this building</p>
-      `;
-      lucide.createIcons();
-      return;
-    }
-
-    emptyEl.classList.add('hidden');
-    contentEl.classList.remove('hidden');
-
-    const b = CAMPUS_BUILDINGS.find(x => x.id === buildingId);
-    document.getElementById('detailBuildingName').textContent = b ? b.name : buildingId;
-    document.getElementById('detailTotalAssignments').textContent = matched.length;
-
-    const list = document.getElementById('detailStudentList');
-    list.innerHTML = '';
-    matched.forEach(a => {
-      list.insertAdjacentHTML('beforeend', `
-        <div class="flex items-center gap-2 p-2 rounded-lg" style="background: var(--card-bg-secondary);">
-          <div class="w-7 h-7 rounded-full flex items-center justify-center text-[0.55rem] font-bold" style="background: var(--primary); color: #fff;">${esc((a.student_name || '?').charAt(0))}</div>
-          <div class="flex-1 min-w-0">
-            <p class="text-[0.65rem] font-semibold truncate" style="color: var(--fg);">${esc(a.student_name)}</p>
-            <p class="text-[0.55rem] truncate" style="color: var(--fg-muted);">${esc(a.program_name)}</p>
-          </div>
-          <div class="flex gap-1">
-            <button class="ghost-btn !p-1" title="Edit" onclick="event.stopPropagation(); openEditSiteModal('${a.id}')"><i data-lucide="pencil" class="w-3 h-3"></i></button>
-            <button class="ghost-btn !p-1" title="Delete" onclick="event.stopPropagation(); deleteSiteAssignment('${a.id}')" style="color: var(--danger);"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
-          </div>
-        </div>
-      `);
-    });
-
-    selectedSiteAssignmentId = matched[0].id;
-    lucide.createIcons();
-  }
-
-  function filterSiteMap(filter) {
-    currentSiteFilter = filter;
-    document.querySelectorAll('.site-filter-btn').forEach(b => {
-      b.classList.toggle('active', b.getAttribute('data-filter') === filter);
-    });
-    renderCampusMap();
-  }
-
-  function renderAssignmentList() {
-    const list = document.getElementById('siteAssignmentList');
+  function renderSiteTable() {
+    const tbody = document.getElementById('siteTableBody');
     if (!siteList.length) {
-      list.innerHTML = '<div class="py-8 text-center"><p class="text-xs" style="color: var(--fg-dim);">No assignments yet</p></div>';
+      tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-10 text-center" style="color: var(--fg-dim);">No assignments yet</td></tr>';
       return;
     }
-    list.innerHTML = '';
+    tbody.innerHTML = '';
     siteList.forEach(a => {
       const hasSite = !!a.site_name;
-      list.insertAdjacentHTML('beforeend', `
-        <div class="site-list-item" onclick="openEditSiteModal('${a.id}')">
-          <span class="site-list-dot" style="background: ${hasSite ? 'var(--primary)' : 'var(--gold)'};"></span>
-          <div class="flex-1 min-w-0">
-            <p class="site-list-name truncate">${esc(a.student_name)}</p>
-            <p class="site-list-site truncate">${hasSite ? esc(a.site_name) : 'Unassigned'}</p>
-          </div>
-          <i data-lucide="chevron-right" class="w-3 h-3" style="color: var(--fg-dim);"></i>
-        </div>
+      const statusHtml = hasSite
+        ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6rem] font-semibold" style="background: var(--primary); color: #fff;"><span class="inline-block w-1.5 h-1.5 rounded-full bg-white"></span> Assigned</span>'
+        : '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6rem] font-semibold" style="background: var(--gold); color: #000;"><span class="inline-block w-1.5 h-1.5 rounded-full bg-black opacity-30"></span> Unassigned</span>';
+      tbody.insertAdjacentHTML('beforeend', `
+        <tr style="border-bottom: 1px solid var(--card-border);" class="site-table-row">
+          <td class="px-4 py-2.5">
+            <div class="flex items-center gap-2">
+              <div class="w-6 h-6 rounded-full flex items-center justify-center text-[0.5rem] font-bold" style="background: var(--primary); color: #fff;">${esc((a.student_name || '?').charAt(0))}</div>
+              <span class="font-semibold truncate" style="color: var(--fg);">${esc(a.student_name)}</span>
+            </div>
+          </td>
+          <td class="px-4 py-2.5" style="color: var(--fg-muted);">${hasSite ? esc(a.site_name) : '<span style="color: var(--fg-dim);">—</span>'}</td>
+          <td class="px-4 py-2.5" style="color: var(--fg-muted);">${esc(a.program_name || '—')}</td>
+          <td class="px-4 py-2.5">${statusHtml}</td>
+          <td class="px-4 py-2.5 text-right">
+            <div class="flex items-center justify-end gap-1">
+              <button class="ghost-btn !p-1.5" title="Edit" onclick="openEditSiteModal('${a.id}')"><i data-lucide="pencil" class="w-3 h-3"></i></button>
+              <button class="ghost-btn !p-1.5" title="Delete" onclick="deleteSiteAssignment('${a.id}')" style="color: var(--danger);"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+            </div>
+          </td>
+        </tr>
       `);
     });
     lucide.createIcons();
@@ -2185,6 +1796,7 @@
       const res = await fetch('/api/coordinator/dashboard/available-sites/', { headers: { 'Authorization': `Token ${token}` } });
       if (res.ok) {
         const sites = await res.json();
+        availableSitesList = sites;
         siteSelect.innerHTML = '<option value="">Select a site...</option>';
         sites.forEach(s => { siteSelect.insertAdjacentHTML('beforeend', `<option value="${s.id}">${esc(s.name)}</option>`); });
         if (!sites.length) siteSelect.innerHTML = '<option value="">No sites available</option>';
@@ -2193,6 +1805,27 @@
     document.getElementById('siteSupervisorName').value = '';
     document.getElementById('siteSupervisorContact').value = '';
     openModal('addSiteModal');
+  }
+
+  function onSiteSelectChange() {
+    const siteId = document.getElementById('siteSelect').value;
+    const site = availableSitesList.find(s => s.id === siteId);
+    if (site) {
+      document.getElementById('siteSupervisorName').value = site.supervisor_name || '';
+      document.getElementById('siteSupervisorContact').value = site.contact_number || '';
+    } else {
+      document.getElementById('siteSupervisorName').value = '';
+      document.getElementById('siteSupervisorContact').value = '';
+    }
+  }
+
+  function onEditSiteSelectChange() {
+    const siteId = document.getElementById('editSiteSelect').value;
+    const site = availableSitesList.find(s => s.id === siteId);
+    if (site) {
+      document.getElementById('editSiteSupervisorName').value = site.supervisor_name || '';
+      document.getElementById('editSiteSupervisorContact').value = site.contact_number || '';
+    }
   }
 
   async function submitSiteAssignment() {
@@ -2240,6 +1873,7 @@
     fetch('/api/coordinator/dashboard/available-sites/', { headers: { 'Authorization': `Token ${token}` } })
       .then(r => r.ok ? r.json() : [])
       .then(sites => {
+        availableSitesList = sites;
         sel.innerHTML = '<option value="">Select a site...</option>';
         sites.forEach(site => {
           const opt = document.createElement('option');
@@ -2318,16 +1952,7 @@
   });
   document.getElementById('siteSearchInput')?.addEventListener('keyup', function() {
     const q = this.value.toLowerCase().trim();
-    document.querySelectorAll('.campus-building').forEach(el => {
-      if (!q) { el.style.opacity = '1'; return; }
-      const bid = el.getAttribute('data-building-id');
-      const match = siteList.some(a => {
-        const siteName = (a.site_name || '').toLowerCase();
-        return siteName.includes(bid) || bid.includes(siteName.replace(/\s+/g, ''));
-      });
-      el.style.opacity = match ? '1' : '0.2';
-    });
-    document.querySelectorAll('.site-list-item').forEach(el => {
+    document.querySelectorAll('#siteTableBody tr').forEach(el => {
       if (!q) { el.style.display = ''; return; }
       el.style.display = el.textContent.toLowerCase().includes(q) ? '' : 'none';
     });
