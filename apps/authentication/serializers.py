@@ -48,7 +48,7 @@ class UserLoginSerializer(serializers.Serializer):
             if user.role == 'coordinator' and user.approval_status != 'approved':
                 raise serializers.ValidationError("Your coordinator account is pending approval. Please wait for an admin to approve your account.")
             if user.role == 'student' and user.approval_status != 'approved':
-                raise serializers.ValidationError("Your student account is pending approval. Please wait for your coordinator to approve your account.")
+                raise serializers.ValidationError("Your student account is pending approval. Please wait for your admin to approve your account.")
             attrs['user'] = user
             return attrs
 
@@ -71,7 +71,7 @@ class UserLoginSerializer(serializers.Serializer):
                 if user.role == 'coordinator' and user.approval_status != 'approved':
                     raise serializers.ValidationError("Your coordinator account is pending approval. Please wait for an admin to approve your account.")
                 if user.role == 'student' and user.approval_status != 'approved':
-                    raise serializers.ValidationError("Your student account is pending approval. Please wait for your coordinator to approve your account.")
+                    raise serializers.ValidationError("Your student account is pending approval. Please wait for your admin to approve your account.")
                 attrs['user'] = user
                 return attrs
             raise serializers.ValidationError("Invalid password.")
