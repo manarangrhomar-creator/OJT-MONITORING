@@ -1,6 +1,7 @@
 """
 Utils for the application
 """
+import os
 from datetime import datetime, timedelta
 
 from asgiref.sync import async_to_sync
@@ -11,6 +12,18 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from .models import Notification
 from .tasks import send_email_task
+
+
+def _attach_logo(email):
+    """Attach the ISU logo as an inline image with Content-ID."""
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'isu_new_seal_512x512.png')
+    if os.path.exists(logo_path):
+        from email.mime.image import MIMEImage
+        with open(logo_path, 'rb') as f:
+            img = MIMEImage(f.read(), _subtype='png')
+            img.add_header('Content-ID', '<isu_logo>')
+            img.add_header('Content-Disposition', 'inline', filename='isu_logo.png')
+            email.attach(img)
 
 
 def get_week_range(date=None):
@@ -116,6 +129,7 @@ def send_notification_email(recipient, subject, message, title='', site_url=None
         to=[recipient.email],
     )
     email.attach_alternative(html_content, 'text/html')
+    _attach_logo(email)
     email.send(fail_silently=True)
 
 
