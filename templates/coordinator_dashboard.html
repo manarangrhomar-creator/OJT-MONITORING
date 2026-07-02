@@ -827,11 +827,13 @@
       </div>
     </div>
     <input type="hidden" id="approveAppId" value="">
+    <input type="hidden" id="enrollAppStudentId" value="">
     <div class="modal-buttons mt-5 pt-4 border-t" style="border-color: var(--card-border);">
       <button class="ghost-btn" onclick="closeModal('approveAppModal')">Cancel</button>
       <div class="flex items-center gap-2">
         <button class="ghost-btn !py-1.5 !px-3 text-xs" style="border-color: var(--danger); color: var(--danger);" onclick="openRejectFromApprove()">Reject</button>
         <button id="confirmApproveAppBtn" class="accent-btn !py-1.5 !px-3 text-xs" onclick="confirmApproveApplication()">Approve</button>
+        <button id="approveWithFaceBtn" class="accent-btn !py-1.5 !px-3 text-xs" style="background: var(--gold); display: none;" onclick="openFaceEnrollmentAfterApprove()">Approve + Enroll Face</button>
       </div>
     </div>
   </div>
@@ -926,6 +928,36 @@
   </div>
 </div>
 
+<div id="enrollFaceModal" class="modal">
+  <div class="modal-content" style="max-width: 540px;">
+    <div class="modal-header"><h2>Enroll Student Face</h2><button class="close-btn" onclick="closeEnrollFaceModal()">&times;</button></div>
+    <div class="space-y-4">
+      <p class="text-xs" style="color: var(--fg-muted);">Capture the student's face during the face-to-face approval meeting.</p>
+      <div class="flex items-center gap-3 pb-3 border-b" style="border-color: var(--card-border);">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style="background: rgba(17,105,58,0.1); color: var(--primary);" id="enrollFaceInitial">?</div>
+        <div>
+          <p class="text-sm font-bold" id="enrollFaceStudentName"></p>
+          <p class="text-[0.6rem]" style="color: var(--fg-dim);" id="enrollFaceProgram"></p>
+        </div>
+      </div>
+      <div class="camera-frame rounded-xl overflow-hidden relative" style="height: 280px; background: #111;">
+        <video id="enrollWebcam" autoplay playsinline class="absolute inset-0 w-full h-full object-cover"></video>
+        <canvas id="enrollCanvas" class="hidden"></canvas>
+      </div>
+      <div class="flex items-center gap-2">
+        <div class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
+        <span class="text-sm font-medium" id="enrollFaceStatus">Camera initializing...</span>
+      </div>
+    </div>
+    <input type="hidden" id="enrollFaceStudentId" value="">
+    <input type="hidden" id="enrollFaceAppId" value="">
+    <div class="modal-buttons mt-6 pt-4 border-t" style="border-color: var(--card-border);">
+      <button class="ghost-btn" onclick="closeEnrollFaceModal()">Cancel</button>
+      <button id="captureFaceBtn" class="accent-btn" onclick="captureAndEnrollFace()"><i data-lucide="camera" class="w-3.5 h-3.5 inline mr-1.5"></i> Capture & Enroll</button>
+    </div>
+  </div>
+</div>
+
 <script>
   if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
   window.scrollTo(0, 0);
@@ -986,6 +1018,123 @@
   function confirmLogout() {
     closeModal('confirmLogoutModal');
     window.location.href = '/auth/logout/';
+  }
+
+  // ===== FACIAL ENROLLMENT =====
+  let enrollStream = null;
+  let currentEnrollApp = null;
+
+  async function openEnrollFaceModal(appId, studentId, studentName, programName) {
+    currentEnrollApp = { id: appId, studentId: studentId, name: studentName, program: programName };
+    document.getElementById('enrollFaceStudentId').value = studentId;
+    document.getElementById('enrollFaceAppId').value = appId;
+    document.getElementById('enrollFaceStudentName').textContent = studentName;
+    document.getElementById('enrollFaceProgram').textContent = programName;
+    document.getElementById('enrollFaceInitial').textContent = (studentName || '?').charAt(0).toUpperCase();
+    document.getElementById('enrollFaceStatus').textContent = 'Camera initializing...';
+    document.getElementById('captureFaceBtn').disabled = true;
+    document.getElementById('captureFaceBtn').innerHTML = '<i data-lucide="camera" class="w-3.5 h-3.5 inline mr-1.5"></i> Capture & Enroll';
+    openModal('enrollFaceModal');
+    await initEnrollCamera();
+  }
+
+  function closeEnrollFaceModal() {
+    stopEnrollCamera();
+    closeModal('enrollFaceModal');
+  }
+
+  async function initEnrollCamera() {
+    const video = document.getElementById('enrollWebcam');
+    try {
+      enrollStream = await navigator.mediaDevices.getUserMedia({ video: { width: 640, height: 480 } });
+      video.srcObject = enrollStream;
+      document.getElementById('enrollFaceStatus').textContent = 'Ready - Position student face in frame';
+      document.getElementById('captureFaceBtn').disabled = false;
+    } catch (err) {
+      document.getElementById('enrollFaceStatus').textContent = 'Camera access denied. Please use file upload.';
+      document.getElementById('captureFaceBtn').innerHTML = 'Use File Upload Instead';
+    }
+    lucide.createIcons();
+  }
+
+  function stopEnrollCamera() {
+    if (enrollStream) {
+      enrollStream.getTracks().forEach(t => t.stop());
+      enrollStream = null;
+    }
+  }
+
+  async function captureAndEnrollFace() {
+    const btn = document.getElementById('captureFaceBtn');
+    const orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Processing...';
+    lucide.createIcons();
+
+    let blob;
+    if (enrollStream) {
+      const video = document.getElementById('enrollWebcam');
+      const canvas = document.getElementById('enrollCanvas');
+      canvas.width = video.videoWidth || 640;
+      canvas.height = video.videoHeight || 480;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.92));
+    } else {
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = 'image/*';
+      fileInput.capture = 'environment';
+      fileInput.onchange = async () => {
+        blob = fileInput.files[0];
+        await sendEnrollRequest(blob);
+      };
+      fileInput.click();
+      return;
+    }
+
+    await sendEnrollRequest(blob);
+  }
+
+  async function sendEnrollRequest(blob) {
+    const btn = document.getElementById('captureFaceBtn');
+    const formData = new FormData();
+    formData.append('image', blob, 'face.jpg');
+    formData.append('student_id', document.getElementById('enrollFaceStudentId').value);
+
+    try {
+      const res = await fetch('/api/coordinator/dashboard/enroll-student-face/', {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCookie('csrftoken'),
+          'Authorization': `Token ${token}`
+        },
+        body: formData
+      });
+      const data = await res.json();
+      if (res.ok) {
+        const appId = document.getElementById('enrollFaceAppId').value;
+        if (appId) {
+          const approveRes = await fetch(`/api/coordinator/applications/${appId}/approve/`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken'), 'Authorization': `Token ${token}` }
+          });
+        }
+        stopEnrollCamera();
+        closeModal('enrollFaceModal');
+        closeModal('approveAppModal');
+        showAlert('Face enrolled and application approved!');
+        loadApplications();
+        loadOverview();
+      } else {
+        document.getElementById('enrollFaceStatus').textContent = data.error || 'Failed to enroll face';
+        document.getElementById('enrollFaceStatus').className = 'text-sm font-medium text-red-600';
+      }
+    } catch (e) {
+      document.getElementById('enrollFaceStatus').textContent = 'Connection error';
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<i data-lucide="camera" class="w-3.5 h-3.5 inline mr-1.5"></i> Capture & Enroll';
+    lucide.createIcons();
   }
 
   let hasPrograms = false;
@@ -1472,6 +1621,7 @@
     document.getElementById('approveAppProgram').textContent = a.program_name;
     document.getElementById('approveAppInitial').textContent = (a.student_name || '?').charAt(0).toUpperCase();
     document.getElementById('approveAppId').value = id;
+    document.getElementById('enrollAppStudentId').value = a.student;
     const letterLink = document.getElementById('approveAppLetter');
     if (a.application_letter) {
       letterLink.href = a.application_letter;
@@ -1487,7 +1637,17 @@
       resumeLink.style.display = 'none';
     }
     document.getElementById('approveAppDate').textContent = a.created_at ? new Date(a.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
+    document.getElementById('confirmApproveAppBtn').style.display = 'inline-block';
+    document.getElementById('approveWithFaceBtn').style.display = 'inline-block';
     openModal('approveAppModal');
+  }
+
+  function openFaceEnrollmentAfterApprove() {
+    const studentId = document.getElementById('enrollAppStudentId').value;
+    const studentName = document.getElementById('approveAppStudent').textContent;
+    const programName = document.getElementById('approveAppProgram').textContent;
+    const appId = document.getElementById('approveAppId').value;
+    openEnrollFaceModal(appId, studentId, studentName, programName);
   }
 
   function openRejectFromApprove() {
@@ -1507,7 +1667,7 @@
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken'), 'Authorization': `Token ${token}` }
       });
       if (!res.ok) { const err = await res.json().catch(() => ({})); showAlert(err.message || 'Failed'); return; }
-      showAlert('Application approved!'); closeModal('approveAppModal'); loadApplications();
+      showAlert('Application approved!'); closeModal('approveAppModal'); loadApplications(); loadOverview();
     } catch (e) { showAlert('Error'); console.error(e); }
     finally { btn.disabled = false; btn.innerHTML = orig; }
   }

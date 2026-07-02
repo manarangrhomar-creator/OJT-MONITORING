@@ -6,9 +6,11 @@ from django.db.models import Exists, OuterRef
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from apps.core.models import User
-from apps.core.utils import create_and_send_notification, create_notification, broadcast_dashboard_update
-from apps.student.models import StudentNarrativeReport
+from apps.core.utils import create_notification, broadcast_dashboard_update
+from apps.core.tasks import send_email_task
+from apps.student.models import StudentNarrativeReport, FacialRecognition
 from apps.student.serializers import StudentNarrativeReportSerializer
+from apps.student.face_utils import detect_face, encode_face
 from .models import OJTProgram, OJTApplication, Attendance, SiteAssignment, Site
 from .serializers import OJTProgramSerializer, OJTApplicationSerializer, AttendanceSerializer, SiteAssignmentSerializer
 
@@ -99,14 +101,13 @@ class OJTApplicationViewSet(viewsets.ModelViewSet):
         application.status = 'approved'
         application.approved_date = timezone.now()
         application.save()
-        create_and_send_notification(
-            recipient=application.student,
-            title='Application Approved',
+        student_name = application.student.get_full_name() or application.student.username
+        send_email_task.delay(
+            recipient_email=application.student.email,
+            subject='OJT Application Approved',
             message=f'Your OJT application for {application.program.name} has been approved.',
-            type='application_update',
-            related_object=application,
-            related_object_type='OJTApplication',
-            email_subject='OJT Application Approved',
+            title='Application Approved',
+            recipient_name=student_name,
         )
         broadcast_dashboard_update('applications')
         return Response({'message': 'Application approved'}, status=status.HTTP_200_OK)
@@ -119,14 +120,13 @@ class OJTApplicationViewSet(viewsets.ModelViewSet):
         application.rejection_reason = request.data.get('reason', '')
         application.save()
         reason = request.data.get('reason', 'No reason provided')
-        create_and_send_notification(
-            recipient=application.student,
-            title='Application Rejected',
+        student_name = application.student.get_full_name() or application.student.username
+        send_email_task.delay(
+            recipient_email=application.student.email,
+            subject='OJT Application Rejected',
             message=f'Your OJT application for {application.program.name} has been rejected. Reason: {reason}',
-            type='application_update',
-            related_object=application,
-            related_object_type='OJTApplication',
-            email_subject='OJT Application Rejected',
+            title='Application Rejected',
+            recipient_name=student_name,
         )
         broadcast_dashboard_update('applications')
         return Response({'message': 'Application rejected'}, status=status.HTTP_200_OK)
@@ -164,16 +164,8 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         if created:
             student = attendance.student
             program = attendance.program
-            coordinator_name = request.user.get_full_name() or request.user.username
-            create_notification(
-                recipient=student,
-                title='Clocked In',
-                message=f'{coordinator_name} has clocked you in for {program.name}.',
-                type='general',
-                related_object=attendance,
-                related_object_type='Attendance',
-            )
             if program.coordinator and program.coordinator != request.user:
+                coordinator_name = request.user.get_full_name() or request.user.username
                 create_notification(
                     recipient=program.coordinator,
                     title='Student Clocked In',
@@ -196,16 +188,8 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         
         student = attendance.student
         program = attendance.program
-        coordinator_name = request.user.get_full_name() or request.user.username
-        create_notification(
-            recipient=student,
-            title='Clocked Out',
-            message=f'{coordinator_name} has clocked you out for {program.name}.',
-            type='general',
-            related_object=attendance,
-            related_object_type='Attendance',
-        )
         if program.coordinator and program.coordinator != request.user:
+            coordinator_name = request.user.get_full_name() or request.user.username
             create_notification(
                 recipient=program.coordinator,
                 title='Student Clocked Out',
@@ -345,6 +329,55 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         broadcast_dashboard_update('applications')
         return Response({'message': 'Student rejected'}, status=status.HTTP_200_OK)
 
+    @action(detail=False, methods=['post'], url_path='enroll-student-face')
+    def enroll_student_face(self, request):
+        """Enroll a student's face during face-to-face approval meeting."""
+        student_id = request.data.get('student_id')
+        facial_image = request.FILES.get('image')
+
+        if not student_id:
+            return Response({'error': 'student_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not facial_image:
+            return Response({'error': 'Image is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            application = OJTApplication.objects.get(
+                student_id=student_id,
+                program__coordinator=request.user
+            )
+        except OJTApplication.DoesNotExist:
+            return Response({'error': 'Student application not found or not authorized'}, status=status.HTTP_404_NOT_FOUND)
+
+        image_bytes = facial_image.read()
+        face_roi, coords = detect_face(image_bytes)
+
+        if face_roi is None:
+            return Response({'error': 'No face detected in the image. Please ensure the student\'s face is clearly visible.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        encoding = encode_face(face_roi)
+
+        facial_data, created = FacialRecognition.objects.get_or_create(
+            student=application.student,
+            defaults={
+                'facial_encoding': encoding,
+                'is_verified': True,
+                'verification_date': timezone.now()
+            }
+        )
+
+        if not created:
+            facial_data.facial_encoding = encoding
+            facial_data.is_verified = True
+            facial_data.verification_date = timezone.now()
+            facial_data.save()
+
+        return Response({
+            'message': 'Face enrolled successfully',
+            'student_name': application.student.get_full_name() or application.student.username,
+            'verified': True
+        }, status=status.HTTP_200_OK)
+
     @action(detail=False, methods=['get'], url_path='attendance-records')
     def attendance_records(self, request):
         """Get attendance records for coordinator's students."""
@@ -433,14 +466,13 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         narrative.graded_at = timezone.now()
         narrative.save(update_fields=['grade', 'feedback', 'graded_by', 'graded_at'])
 
-        create_and_send_notification(
-            recipient=narrative.student,
+        student_name = narrative.student.get_full_name() or narrative.student.username
+        send_email_task.delay(
+            recipient_email=narrative.student.email,
+            subject='Narrative Report Graded',
+            message=f'Your narrative report for {narrative.log_date} has been graded: {grade}/100. Feedback: {feedback or "None provided"}',
             title='Report Graded',
-            message=f'Your narrative report for {narrative.log_date} has been graded: {grade}/100.',
-            type='general',
-            related_object=narrative,
-            related_object_type='StudentNarrativeReport',
-            email_subject='Narrative Report Graded',
+            recipient_name=student_name,
         )
 
         serializer = StudentNarrativeReportSerializer(narrative)
