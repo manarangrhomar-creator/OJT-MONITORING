@@ -500,7 +500,7 @@
           const remaining = Math.max(0, 500 - elapsed);
           await new Promise(r => setTimeout(r, remaining));
           loadingDiv.classList.add('hidden');
-          await showAlert('Account created! Please wait for coordinator approval before you can log in.');
+          await showAlert('Account created! Please wait for Admin approval before you can log in.');
           window.location.href = '/auth/login/';
         } else {
           loadingDiv.classList.add('hidden');
