@@ -6,7 +6,7 @@ from django.db.models import Exists, OuterRef
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
 from apps.core.models import User
-from apps.core.utils import create_and_send_notification, create_notification
+from apps.core.utils import create_and_send_notification, create_notification, broadcast_dashboard_update
 from apps.student.models import StudentNarrativeReport
 from apps.student.serializers import StudentNarrativeReportSerializer
 from .models import OJTProgram, OJTApplication, Attendance, SiteAssignment, Site
@@ -108,6 +108,7 @@ class OJTApplicationViewSet(viewsets.ModelViewSet):
             related_object_type='OJTApplication',
             email_subject='OJT Application Approved',
         )
+        broadcast_dashboard_update('applications')
         return Response({'message': 'Application approved'}, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['post'])
@@ -127,6 +128,7 @@ class OJTApplicationViewSet(viewsets.ModelViewSet):
             related_object_type='OJTApplication',
             email_subject='OJT Application Rejected',
         )
+        broadcast_dashboard_update('applications')
         return Response({'message': 'Application rejected'}, status=status.HTTP_200_OK)
 
 
@@ -182,8 +184,9 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 )
         
         serializer = self.get_serializer(attendance)
+        broadcast_dashboard_update('attendance')
         return Response(serializer.data, status=status.HTTP_200_OK)
-    
+
     @action(detail=True, methods=['post'])
     def clock_out(self, request, pk=None):
         """Clock out for attendance."""
@@ -211,8 +214,9 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 related_object=attendance,
                 related_object_type='Attendance',
             )
-        
+
         serializer = self.get_serializer(attendance)
+        broadcast_dashboard_update('attendance')
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -323,7 +327,8 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         application.status = 'approved'
         application.approved_date = timezone.now()
         application.save()
-        
+
+        broadcast_dashboard_update('applications')
         return Response({'message': 'Student approved successfully'}, status=status.HTTP_200_OK)
     
     @action(detail=False, methods=['post'], url_path='reject-student')
@@ -336,7 +341,8 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         application.status = 'rejected'
         application.rejection_reason = reason
         application.save()
-        
+
+        broadcast_dashboard_update('applications')
         return Response({'message': 'Student rejected'}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='attendance-records')

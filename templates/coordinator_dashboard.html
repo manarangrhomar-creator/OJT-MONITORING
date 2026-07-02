@@ -477,21 +477,21 @@
             <div class="flex items-center gap-3 justify-between sm:justify-start" id="donutApproved">
               <div class="text-right">
                 <p class="text-lg font-bold" id="donutApprovedVal">0</p>
-                <p class="text-[0.55rem] font-semibold uppercase tracking-wider" style="color: var(--fg-muted);">Approved</p>
+                <p class="text-[0.55rem] font-semibold uppercase tracking-wider" style="color: var(--fg-muted);">Approved Accounts</p>
               </div>
               <svg width="72" height="72" viewBox="0 0 72 72">
                 <circle cx="36" cy="36" r="28" fill="none" stroke="#E8E9F0" stroke-width="6"/>
-                <circle cx="36" cy="36" r="28" fill="none" stroke="var(--primary)" stroke-width="6" stroke-linecap="round" stroke-dasharray="175.93" stroke-dashoffset="175.93" class="donut-ring"/>
+                <circle cx="36" cy="36" r="28" fill="none" stroke="var(--success)" stroke-width="6" stroke-linecap="round" stroke-dasharray="175.93" stroke-dashoffset="175.93" class="donut-ring"/>
               </svg>
             </div>
             <div class="flex items-center gap-3 justify-between sm:justify-start" id="donutAttendance">
               <div class="text-right">
                 <p class="text-lg font-bold" id="donutAttendanceVal">0</p>
-                <p class="text-[0.55rem] font-semibold uppercase tracking-wider" style="color: var(--fg-muted);">Attendance</p>
+                <p class="text-[0.55rem] font-semibold uppercase tracking-wider" style="color: var(--fg-muted);">Completion</p>
               </div>
               <svg width="72" height="72" viewBox="0 0 72 72">
                 <circle cx="36" cy="36" r="28" fill="none" stroke="#E8E9F0" stroke-width="6"/>
-                <circle cx="36" cy="36" r="28" fill="none" stroke="var(--success)" stroke-width="6" stroke-linecap="round" stroke-dasharray="175.93" stroke-dashoffset="175.93" class="donut-ring"/>
+                <circle cx="36" cy="36" r="28" fill="none" stroke="var(--primary)" stroke-width="6" stroke-linecap="round" stroke-dasharray="175.93" stroke-dashoffset="175.93" class="donut-ring"/>
               </svg>
             </div>
           </div>
@@ -1052,7 +1052,7 @@
       // Render pending actions table
       renderOverviewPending(narratives, appData);
       // Render donuts
-      renderOverviewDonuts(narratives, students);
+      renderOverviewDonuts(narratives, appData, students);
       // Render grade bars
       renderOverviewGrades(narratives);
       // Render hour analytics
@@ -1169,42 +1169,49 @@
     });
   }
 
-  function renderOverviewDonuts(narratives, students) {
+  function renderOverviewDonuts(narratives, applications, students) {
     const now = new Date();
-    let filtered = narratives;
+    // Left donut — narrative reports
+    let narrFiltered = narratives;
+    let appFiltered = applications;
     if (donutPeriod === 'week') {
       const cut = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-      filtered = narratives.filter(n => new Date(n.created_at) >= cut);
+      narrFiltered = narratives.filter(n => new Date(n.created_at) >= cut);
+      appFiltered = applications.filter(a => new Date(a.created_at) >= cut);
     } else if (donutPeriod === 'month') {
       const cut = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-      filtered = narratives.filter(n => new Date(n.created_at) >= cut);
+      narrFiltered = narratives.filter(n => new Date(n.created_at) >= cut);
+      appFiltered = applications.filter(a => new Date(a.created_at) >= cut);
     }
-    const total = filtered.length || 0;
-    const approved = filtered.filter(n => n.grade !== null && n.grade !== undefined).length;
-    const presentCount = students.filter(s => s.today_status === 'present').length;
-    const attendanceRate = students.length ? Math.round((presentCount / students.length) * 100) : 0;
-    document.getElementById('donutTotalVal').textContent = total;
+    const totalReports = narrFiltered.length || 0;
+    const approved = appFiltered.filter(a => a.status === 'approved').length;
+    // Last donut — average completion of active students
+    const active = students.filter(s => s.is_active !== false);
+    const avgCompletion = active.length
+      ? Math.round(active.reduce((sum, s) => sum + Math.min(100, ((s.total_hours || 0) / 480) * 100), 0) / active.length)
+      : 0;
+    document.getElementById('donutTotalVal').textContent = totalReports;
     document.getElementById('donutApprovedVal').textContent = approved;
-    document.getElementById('donutAttendanceVal').textContent = `${attendanceRate}%`;
+    document.getElementById('donutAttendanceVal').textContent = `${avgCompletion}%`;
     const circumference = 2 * Math.PI * 28;
+    // Total reports ring
+    const totalCircle = document.querySelector('#donutTotal circle:last-child');
+    totalCircle.style.strokeDasharray = circumference;
+    totalCircle.style.strokeDashoffset = 0;
     // Approved ring
     const approvedCircle = document.querySelector('#donutApproved circle:last-child');
     approvedCircle.style.strokeDasharray = circumference;
-    approvedCircle.style.strokeDashoffset = total > 0 ? circumference * (1 - approved / total) : circumference;
-    // Attendance ring
-    const attCircle = document.querySelector('#donutAttendance circle:last-child');
-    attCircle.style.strokeDasharray = circumference;
-    attCircle.style.strokeDashoffset = circumference * (1 - attendanceRate / 100);
-    // Total ring
-    const totalCircle = document.querySelector('#donutTotal circle:last-child');
-    totalCircle.style.strokeDasharray = circumference;
-    totalCircle.style.strokeDashoffset = total > 0 ? circumference * (1 - approved / total) : circumference;
+    approvedCircle.style.strokeDashoffset = circumference * (1 - Math.min(1, approved / (appFiltered.length || 1)));
+    // Completion ring
+    const completionCircle = document.querySelector('#donutAttendance circle:last-child');
+    completionCircle.style.strokeDasharray = circumference;
+    completionCircle.style.strokeDashoffset = circumference * (1 - avgCompletion / 100);
   }
 
   function filterDonuts(period) {
     donutPeriod = period;
-    const { narratives, students } = overviewCache;
-    if (narratives && students) renderOverviewDonuts(narratives, students);
+    const { narratives, applications, students } = overviewCache;
+    if (narratives && applications && students) renderOverviewDonuts(narratives, applications, students);
   }
 
   function renderOverviewGrades(narratives) {
@@ -1990,6 +1997,47 @@
     notifSocket.onerror = function() { notifSocket.close(); };
   }
   connectNotifSocket();
+
+  // ===== REAL-TIME DASHBOARD SYNC =====
+  let dashboardSocket = null;
+  function connectDashboardSocket() {
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+    const wsUrl = `ws://${window.location.host}/ws/dashboard/?token=${token}`;
+    dashboardSocket = new WebSocket(wsUrl);
+    dashboardSocket.onmessage = function(e) {
+      const data = JSON.parse(e.data);
+      if (data.type === 'dashboard_refresh') {
+        const sec = data.section || currentSection;
+        if (sec === 'overview' || sec === 'all') {
+          loadOverview();
+        }
+        if (sec === 'reports' || sec === 'all') {
+          loadStudentReports();
+        }
+        if (sec === 'attendance' || sec === 'all') {
+          loadAttendance();
+        }
+        if (sec === 'applications' || sec === 'all') {
+          loadApplications();
+          loadOverview();
+        }
+        if (sec === 'sites' || sec === 'all') {
+          loadSiteAssignments();
+        }
+        if (sec === 'students' || sec === 'all') {
+          loadStudentAccounts();
+        }
+      }
+    };
+    dashboardSocket.onclose = function() {
+      setTimeout(connectDashboardSocket, 3000);
+    };
+    dashboardSocket.onerror = function() {
+      if (dashboardSocket) dashboardSocket.close();
+    };
+  }
+  connectDashboardSocket();
 
   async function loadNotifications() {
     notifList.innerHTML = '<p class="text-center py-6"><i data-lucide="loader-circle" class="animate-spin w-4 h-4 mx-auto" style="color: var(--fg-dim);"></i></p>'; lucide.createIcons();

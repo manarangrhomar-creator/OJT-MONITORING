@@ -299,13 +299,15 @@ aside > div{
     const video = document.getElementById('webcam');
     const canvas = document.getElementById('photoCanvas');
     const wrapper = document.querySelector('.camera-frame');
-    const verifyBtn = document.querySelector('.attendance-btn');
+    const actionBtn = document.querySelector('.attendance-btn');
     const statusEl = document.querySelector('.attendance-status-value');
     const studentIdInput = document.querySelector('input[value="Student ID: auto detected"]');
     const studentNameInput = document.querySelector('input[value="Name: scanning..."]');
     const studentCourseInput = document.querySelector('input[value="Course: loading..."]');
     const studentTimeInput = document.querySelector('input[value="Time: waiting..."]');
     const faceStatusEl = document.querySelector('.face-status');
+
+    let currentAction = null; /* 'clock_in' or 'clock_out' */
 
     function getCookie(name) {
         let cookieValue = null;
@@ -354,33 +356,52 @@ aside > div{
         statusEl.className = (styles[type] || styles.info) + ' px-2 py-1 rounded text-xs font-semibold';
     }
 
-    async function checkEnrollment() {
+    async function checkTodayStatus() {
         try {
-            const response = await fetch('/api/student/facial/', {
-                headers: {
-                    'Authorization': `Token ${localStorage.getItem('auth_token')}`
-                }
+            const resp = await fetch('/api/student/dashboard/today_status/', {
+                headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` }
             });
-            const data = await response.json();
-            const enrolled = Array.isArray(data) ? data.length > 0 : !!data.id;
-            if (enrolled) {
-                setStatus('Face Enrolled — Ready', 'success');
+            const data = await resp.json();
+            if (!data.clocked_in) {
+                currentAction = 'clock_in';
+                actionBtn.innerHTML = '<i data-lucide="log-in" class="mr-2" style="width:16px;height:16px;"></i> Clock In';
+                setStatus('Ready for Time In', 'info');
+            } else if (!data.clocked_out) {
+                currentAction = 'clock_out';
+                actionBtn.innerHTML = '<i data-lucide="log-out" class="mr-2" style="width:16px;height:16px;"></i> Clock Out';
+                setStatus(`Clocked in at ${data.time_in} — Ready for Time Out`, 'success');
             } else {
-                setStatus('Not Enrolled — Go to /student/facial/', 'warning');
+                currentAction = null;
+                actionBtn.disabled = true;
+                actionBtn.innerHTML = '<i data-lucide="check-circle" class="mr-2" style="width:16px;height:16px;"></i> Done for Today';
+                setStatus(`Completed (In: ${data.time_in} • Out: ${data.time_out})`, 'success');
             }
-            return enrolled;
+            lucide.createIcons();
         } catch {
-            setStatus('Checking...', 'info');
-            return false;
+            setStatus('Could not load today status', 'error');
         }
     }
 
-    verifyBtn.addEventListener('click', async function () {
+    async function loadStudentInfo() {
+        try {
+            const resp = await fetch('/api/student/dashboard/dashboard/', {
+                headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` }
+            });
+            const data = await resp.json();
+            if (data.student_name) {
+                studentNameInput.value = `Name: ${data.student_name}`;
+            }
+        } catch {}
+    }
+
+    actionBtn.addEventListener('click', async function () {
+        if (!currentAction) return;
+
         wrapper.classList.add('flash-effect');
         setTimeout(() => wrapper.classList.remove('flash-effect'), 200);
 
-        verifyBtn.disabled = true;
-        verifyBtn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin mr-2" style="width:16px;height:16px;"></i> Verifying...';
+        actionBtn.disabled = true;
+        actionBtn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin mr-2" style="width:16px;height:16px;"></i> Processing...';
         lucide.createIcons();
 
         try {
@@ -388,7 +409,7 @@ aside > div{
             const formData = new FormData();
             formData.append('image', blob, 'face.jpg');
 
-            const response = await fetch('/api/student/facial/verify_face/', {
+            const response = await fetch(`/api/student/dashboard/${currentAction}/`, {
                 method: 'POST',
                 headers: {
                     'X-CSRFToken': getCookie('csrftoken'),
@@ -399,29 +420,28 @@ aside > div{
 
             const data = await response.json();
 
-            if (response.status === 404) {
-                setStatus('Not Enrolled — Enroll at /student/facial/', 'warning');
-            } else if (data.verified) {
-                setStatus('Verified', 'success');
+            if (response.ok) {
+                setStatus(currentAction === 'clock_in' ? 'Clocked In Successfully' : 'Clocked Out Successfully', 'success');
                 const now = new Date();
                 studentTimeInput.value = `Time: ${now.toLocaleTimeString()}`;
+                await checkTodayStatus();
+            } else if (response.status === 404) {
+                setStatus(data.error || 'Facial data not enrolled', 'warning');
             } else if (data.error) {
                 setStatus(data.error, 'error');
-            } else {
-                setStatus('No Match (confidence: ' + Math.round(data.confidence) + ')', 'error');
             }
         } catch (err) {
-            console.error('Verification error:', err);
+            console.error('Action error:', err);
             setStatus('Connection Error', 'error');
         } finally {
-            verifyBtn.disabled = false;
-            verifyBtn.innerHTML = '<i data-lucide="camera" class="mr-2" style="width:16px;height:16px;"></i> Verify Attendance';
+            actionBtn.disabled = false;
             lucide.createIcons();
         }
     });
 
-    checkEnrollment();
     initCamera();
+    checkTodayStatus();
+    loadStudentInfo();
 lucide.createIcons();
 </script>
 </body>

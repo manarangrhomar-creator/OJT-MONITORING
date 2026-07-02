@@ -10,7 +10,7 @@ from django.shortcuts import get_object_or_404
 from apps.coordinator.models import OJTApplication, Attendance, OJTProgram
 from apps.coordinator.serializers import OJTApplicationSerializer, AttendanceSerializer
 from apps.core.models import Notification
-from apps.core.utils import create_and_send_notification, send_unread_count_update
+from apps.core.utils import create_and_send_notification, send_unread_count_update, broadcast_dashboard_update
 from .models import StudentProfile, FacialRecognition, StudentNarrativeReport
 from .serializers import (StudentProfileSerializer, FacialRecognitionSerializer,
                           StudentNarrativeReportSerializer, StudentProgramSerializer,
@@ -91,6 +91,7 @@ class StudentDashboardViewSet(viewsets.ViewSet):
             'pending_applications': pending_apps,
             'total_attendance_records': attendances.count(),
             'total_hours': total_hours,
+            'created_at': student.created_at,
         })
     
     @action(detail=False, methods=['get'])
@@ -106,6 +107,142 @@ class StudentDashboardViewSet(viewsets.ViewSet):
         attendances = Attendance.objects.filter(student=request.user).select_related('student').order_by('-date')
         serializer = AttendanceSerializer(attendances, many=True)
         return Response(serializer.data)
+
+    @action(detail=False, methods=['get'])
+    def today_status(self, request):
+        """Check if student has clocked in/out today."""
+        student = request.user
+        today = timezone.now().date()
+        try:
+            attendance = Attendance.objects.get(student=student, date=today)
+            return Response({
+                'clocked_in': True,
+                'clocked_out': attendance.time_out is not None,
+                'time_in': str(attendance.time_in)[:5] if attendance.time_in else None,
+                'time_out': str(attendance.time_out)[:5] if attendance.time_out else None,
+            })
+        except Attendance.DoesNotExist:
+            return Response({
+                'clocked_in': False,
+                'clocked_out': False,
+                'time_in': None,
+                'time_out': None,
+            })
+
+    @action(detail=False, methods=['post'])
+    def clock_in(self, request):
+        """Student clock in using facial recognition."""
+        student = request.user
+        facial_image = request.FILES.get('image')
+
+        if not facial_image:
+            return Response({'error': 'Image is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            facial_data = FacialRecognition.objects.get(student=student)
+        except FacialRecognition.DoesNotExist:
+            return Response({'error': 'Facial data not enrolled. Please enroll your face first.'}, status=status.HTTP_404_NOT_FOUND)
+
+        image_bytes = facial_image.read()
+        new_face_roi, coords = detect_face(image_bytes)
+        if new_face_roi is None:
+            return Response({'error': 'No face detected in the image.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        is_match, confidence = verify_faces(facial_data.facial_encoding, new_face_roi)
+        if not is_match:
+            return Response({
+                'verified': False,
+                'confidence': float(confidence),
+                'error': 'Face does not match enrolled record'
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        application = OJTApplication.objects.filter(student=student, status='approved').first()
+        if not application:
+            return Response({'error': 'No approved OJT application found.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        today = timezone.now().date()
+        now_time = timezone.now().time()
+
+        attendance, created = Attendance.objects.get_or_create(
+            student=student,
+            program=application.program,
+            date=today,
+            defaults={
+                'time_in': now_time,
+                'facial_recognition_used': True,
+            }
+        )
+
+        if not created:
+            return Response({'error': 'Already clocked in today.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        create_and_send_notification(
+            recipient=application.program.coordinator,
+            title='Student Clocked In',
+            message=f'{student.get_full_name() or student.username} clocked in via facial recognition.',
+            type='attendance_update',
+            related_object=attendance,
+            related_object_type='Attendance',
+            email_subject='Student Attendance Update',
+        )
+
+        serializer = AttendanceSerializer(attendance)
+        broadcast_dashboard_update('attendance')
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['post'])
+    def clock_out(self, request):
+        """Student clock out using facial recognition."""
+        student = request.user
+        facial_image = request.FILES.get('image')
+
+        if not facial_image:
+            return Response({'error': 'Image is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            facial_data = FacialRecognition.objects.get(student=student)
+        except FacialRecognition.DoesNotExist:
+            return Response({'error': 'Facial data not enrolled.'}, status=status.HTTP_404_NOT_FOUND)
+
+        image_bytes = facial_image.read()
+        new_face_roi, coords = detect_face(image_bytes)
+        if new_face_roi is None:
+            return Response({'error': 'No face detected.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        is_match, confidence = verify_faces(facial_data.facial_encoding, new_face_roi)
+        if not is_match:
+            return Response({
+                'verified': False,
+                'confidence': float(confidence),
+                'error': 'Face does not match enrolled record'
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        today = timezone.now().date()
+
+        try:
+            attendance = Attendance.objects.get(student=student, date=today, time_out__isnull=True)
+        except Attendance.DoesNotExist:
+            return Response({'error': 'No active attendance record found for today.'}, status=status.HTTP_404_NOT_FOUND)
+
+        attendance.time_out = timezone.now().time()
+        attendance.facial_recognition_used = True
+        attendance.save()
+
+        application = OJTApplication.objects.filter(student=student, status='approved').first()
+        if application:
+            create_and_send_notification(
+                recipient=application.program.coordinator,
+                title='Student Clocked Out',
+                message=f'{student.get_full_name() or student.username} clocked out via facial recognition.',
+                type='attendance_update',
+                related_object=attendance,
+                related_object_type='Attendance',
+                email_subject='Student Attendance Update',
+            )
+
+        serializer = AttendanceSerializer(attendance)
+        broadcast_dashboard_update('attendance')
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'])
     def available_programs(self, request):
@@ -159,6 +296,7 @@ class StudentDashboardViewSet(viewsets.ViewSet):
                 email_subject='New OJT Application Submitted',
             )
             out_serializer = OJTApplicationSerializer(application)
+            broadcast_dashboard_update('applications')
             return Response(out_serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -189,6 +327,7 @@ class StudentNarrativeViewSet(viewsets.ModelViewSet):
                 related_object_type='StudentNarrativeReport',
                 email_subject='New Narrative Report Submitted',
             )
+        broadcast_dashboard_update('reports')
 
     def perform_update(self, serializer):
         if serializer.instance.grade is not None:
@@ -220,6 +359,7 @@ class StudentNarrativeViewSet(viewsets.ModelViewSet):
                     related_object_type='StudentNarrativeReport',
                     email_subject='New Narrative Report Submitted',
                 )
+            broadcast_dashboard_update('reports')
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

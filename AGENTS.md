@@ -51,3 +51,15 @@ No linter, formatter, typechecker, pre-commit, or CI config exists. Tests are mi
 - Django templates in `templates/`, Tailwind CSS via CDN, vanilla JS
 - `static/js/auth.js` handles token storage, login/register/logout, role-based redirect
 - WebSocket at `ws://host/ws/notifications/?token=...` and `ws://host/ws/dashboard/?token=...`
+
+## Live Dashboard
+
+The coordinator dashboard (`templates/coordinator_dashboard.html`) has two WebSocket connections:
+1. **Notifications** — `connectNotifSocket()` for real-time notifications
+2. **Dashboard** — `connectDashboardSocket()` for live section updates (overview, reports, attendance, applications, sites, students)
+
+`broadcast_dashboard_update(section)` in `apps/core/utils.py` broadcasts via `DashboardConsumer`. It silently catches exceptions, so it won't break existing flows.
+
+Coordinator-side broadcasts are in `apps/coordinator/views.py`: `OJTApplicationViewSet.approve/reject`, `AttendanceViewSet.clock_in/clock_out`, `CoordinatorDashboardViewSet.approve_student/reject_student`.
+
+Student-side broadcasts are in `apps/student/views.py`: `StudentDashboardViewSet.apply/clock_in/clock_out`, `StudentNarrativeViewSet.perform_create/submit_with_photos`.
