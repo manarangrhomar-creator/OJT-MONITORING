@@ -1,8 +1,18 @@
 """
 Tests for the core app
 """
-from django.test import TestCase
+from django.conf import settings
+from django.test import SimpleTestCase, TestCase, override_settings
 from apps.core.models import User
+
+
+class EmailBackendConfigTest(SimpleTestCase):
+    """Test cases for email backend configuration."""
+
+    @override_settings(EMAIL_BACKEND='apps.core.mail.backends.smtp.EmailBackend')
+    def test_custom_smtp_backend_is_configured(self):
+        """The custom SMTP backend should be used so approval emails can be delivered reliably."""
+        self.assertEqual(settings.EMAIL_BACKEND, 'apps.core.mail.backends.smtp.EmailBackend')
 
 
 class UserModelTest(TestCase):
