@@ -90,17 +90,30 @@ class AuthenticationViewSet(viewsets.ViewSet):
                         'year_level': 1,
                     }
                 )
-                # Refresh coordinator dashboard student list
+                # Notify coordinators and admins about new student registration
                 try:
+                    from django.db.models import Q
+                    staff = User.objects.filter(
+                        Q(role='coordinator', is_active=True) | Q(role='admin', is_active=True)
+                    )
+                    for staff_user in staff:
+                        create_notification(
+                            recipient=staff_user,
+                            title='New Student Registration',
+                            message=f'A new student ({user.get_full_name() or user.email}) has registered and is pending approval.',
+                            type='general',
+                            related_object=user,
+                            related_object_type='student_registration',
+                        )
                     broadcast_dashboard_update(section='students')
                 except Exception as e:
                     import logging
                     logger = logging.getLogger(__name__)
-                    logger.error(f"Failed to broadcast student registration dashboard update: {e}")
+                    logger.error(f"Failed to notify coordinators about new student registration: {e}")
 
                 # Don't create token or login — wait for coordinator approval
                 return Response({
-                    'message': 'Student account created successfully. Please wait for your coordinator to approve your account before logging in.',
+                    'message': 'Student account created successfully. Please wait for your admin to approve your account before logging in.',
                     'user': UserSerializer(user).data,
                 }, status=status.HTTP_201_CREATED)
 
