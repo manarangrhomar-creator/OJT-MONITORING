@@ -5,7 +5,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login, logout
 from django.core.cache import cache
-from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
@@ -15,6 +15,19 @@ from apps.student.models import StudentProfile
 from apps.core.utils import create_notification, broadcast_dashboard_update
 from .serializers import UserRegisterSerializer, UserLoginSerializer, UserSerializer, SendOTPSerializer, VerifyOTPSerializer, ResetPasswordSerializer
 from .models import LoginAttempt, PasswordResetOTP
+import os
+
+
+def _attach_logo(email):
+    """Attach the ISU logo as an inline image with Content-ID."""
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'isu_new_seal_512x512.png')
+    if os.path.exists(logo_path):
+        from email.mime.image import MIMEImage
+        with open(logo_path, 'rb') as f:
+            img = MIMEImage(f.read(), _subtype='png')
+            img.add_header('Content-ID', '<isu_logo>')
+            img.add_header('Content-Disposition', 'inline', filename='isu_logo.png')
+            email.attach(img)
 
 
 class AuthenticationViewSet(viewsets.ViewSet):
@@ -209,21 +222,23 @@ class AuthenticationViewSet(viewsets.ViewSet):
         """Send OTP for password reset."""
         serializer = SendOTPSerializer(data=request.data)
         if serializer.is_valid():
-            email = serializer.validated_data['email']
-            otp_record = PasswordResetOTP.generate_otp(email)
+            email_addr = serializer.validated_data['email']
+            otp_record = PasswordResetOTP.generate_otp(email_addr)
             html_message = render_to_string('emails/otp_email.html', {
                 'otp': otp_record.otp,
                 'subject': 'Your OTP for Password Reset',
                 'site_url': getattr(settings, 'SITE_URL', 'http://localhost:8000'),
             })
-            send_mail(
+            plain_message = f'Your OTP is: {otp_record.otp}\n\nThis code will expire in 15 minutes.'
+            email = EmailMultiAlternatives(
                 subject='Your OTP for Password Reset',
-                message=f'Your OTP is: {otp_record.otp}\n\nThis code will expire in 15 minutes.',
-                html_message=html_message,
+                body=plain_message,
                 from_email=settings.EMAIL_HOST_USER,
-                recipient_list=[email],
-                fail_silently=False,
+                to=[email_addr],
             )
+            email.attach_alternative(html_message, 'text/html')
+            _attach_logo(email)
+            email.send(fail_silently=False)
             return Response({
                 'message': 'OTP sent successfully',
             }, status=status.HTTP_200_OK)

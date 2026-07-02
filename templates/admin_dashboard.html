@@ -370,7 +370,7 @@
                                 <tr>
                                     <th class="p-4">Name</th>
                                     <th class="p-4">Course</th>
-                                    <th class="p-4">Contact Person</th>
+                                    <th class="p-4">Supervisor Name</th>
                                     <th class="p-4">Contact #</th>
                                     <th class="p-4">Status</th>
                                     <th class="p-4">Action</th>
@@ -791,8 +791,8 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Contact Person</label>
-                    <input type="text" id="siteContactPerson" placeholder="Full name of contact person">
+                    <label>Supervisor Name</label>
+                    <input type="text" id="siteContactPerson" placeholder="Full name of supervisor">
                 </div>
                 <div class="form-group">
                     <label>Contact Number</label>
@@ -831,12 +831,24 @@
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>Contact Person</label>
+                    <label>Supervisor Name</label>
                     <input type="text" id="editSiteContactPerson">
                 </div>
                 <div class="form-group">
                     <label>Contact Number</label>
                     <input type="text" id="editSiteContactNumber">
+                </div>
+                <div class="form-group">
+                    <label>Assigned Coordinator</label>
+                    <input type="hidden" id="editSiteCoordinator" value="">
+                    <div class="relative">
+                        <input type="text" id="editSiteCoordinatorSearch" placeholder="Search coordinator..." autocomplete="off" readonly
+                            class="w-full border-2 border-gray-200 rounded-lg p-2 pr-10 focus:outline-none focus:border-[#11693A] transition-all bg-white cursor-pointer">
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-400">
+                            <i data-lucide="chevron-down" class="h-5 w-5 transition-transform"></i>
+                        </div>
+                        <div id="editSiteCoordinatorDropdown" class="hidden fixed z-[70] bg-white border-2 border-[#11693A] rounded-xl max-h-48 overflow-y-auto shadow-lg"></div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Status</label>
@@ -2027,7 +2039,7 @@
                 row.innerHTML = `
                     <td class="py-4 px-2 font-bold">${esc(s.name)}</td>
                     <td class="py-4 px-2">${esc(s.course_name || '—')}</td>
-                    <td class="py-4 px-2">${esc(s.contact_person || '—')}</td>
+                    <td class="py-4 px-2">${esc(s.supervisor_name || '—')}</td>
                     <td class="py-4 px-2">${esc(s.contact_number || '—')}</td>
                     <td class="py-4 px-2"><span class="bg-${statusClass}-100 text-${statusClass}-700 px-3 py-1 rounded-full text-xs font-bold">${esc(statusText)}</span></td>
                     <td class="py-4 px-2">
@@ -2044,7 +2056,7 @@
             lucide.createIcons();
         }
 
-        function initSiteCourseDropdown(searchId, dropdownId, hiddenId, courses, selectedId) {
+        function initSiteCourseDropdown(searchId, dropdownId, hiddenId, courses, selectedId, onSelect) {
             const searchInput = document.getElementById(searchId);
             const dropdownList = document.getElementById(dropdownId);
             const hiddenInput = document.getElementById(hiddenId);
@@ -2064,6 +2076,7 @@
                     hiddenInput.value = '';
                     dropdownList.classList.add('hidden');
                     searchInput.setAttribute('readonly', true);
+                    if (onSelect) onSelect('');
                 });
                 dropdownList.appendChild(allItem);
 
@@ -2085,6 +2098,7 @@
                         hiddenInput.value = course.id;
                         dropdownList.classList.add('hidden');
                         searchInput.setAttribute('readonly', true);
+                        if (onSelect) onSelect(course.id);
                     });
                     dropdownList.appendChild(item);
                 });
@@ -2144,7 +2158,206 @@
                     dd.classList.add('hidden');
                 }
             });
+            document.querySelectorAll('[id$="CoordinatorDropdown"]:not(.hidden)').forEach(dd => {
+                const searchId = dd.id.replace('CoordinatorDropdown', 'CoordinatorSearch');
+                const search = document.getElementById(searchId);
+                if (search && !search.contains(e.target) && !dd.contains(e.target)) {
+                    dd.classList.add('hidden');
+                }
+            });
         });
+
+        function initSiteCoordinatorDropdown(searchId, dropdownId, hiddenId, coordinators, selectedId) {
+            const searchInput = document.getElementById(searchId);
+            const dropdownList = document.getElementById(dropdownId);
+            const hiddenInput = document.getElementById(hiddenId);
+
+            function buildDropdown(filter) {
+                dropdownList.innerHTML = '';
+                const filtered = filter
+                    ? coordinators.filter(c => (c.name || c.username || '').toLowerCase().includes(filter.toLowerCase()))
+                    : coordinators;
+
+                const noneItem = document.createElement('div');
+                noneItem.className = 'p-3 hover:bg-emerald-100 cursor-pointer text-[#11693A] font-semibold border-b border-gray-100 last:border-b-0 transition-colors';
+                noneItem.textContent = 'None (Unassigned)';
+                noneItem.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    searchInput.value = 'None (Unassigned)';
+                    hiddenInput.value = '';
+                    dropdownList.classList.add('hidden');
+                    searchInput.setAttribute('readonly', true);
+                });
+                dropdownList.appendChild(noneItem);
+
+                if (filtered.length === 0 && filter && filter.toLowerCase() !== 'none') {
+                    const empty = document.createElement('div');
+                    empty.className = 'p-3 text-gray-400 text-center';
+                    empty.textContent = 'No coordinators found';
+                    dropdownList.appendChild(empty);
+                    return;
+                }
+
+                filtered.forEach(coord => {
+                    const item = document.createElement('div');
+                    item.className = 'p-3 hover:bg-emerald-100 cursor-pointer text-[#11693A] font-semibold border-b border-gray-100 last:border-b-0 transition-colors';
+                    item.textContent = coord.name || coord.username;
+                    item.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        searchInput.value = coord.name || coord.username;
+                        hiddenInput.value = coord.id;
+                        dropdownList.classList.add('hidden');
+                        searchInput.setAttribute('readonly', true);
+                    });
+                    dropdownList.appendChild(item);
+                });
+            }
+
+            function positionDropdown() {
+                const rect = searchInput.getBoundingClientRect();
+                dropdownList.style.top = (rect.bottom + 4) + 'px';
+                dropdownList.style.left = rect.left + 'px';
+                dropdownList.style.width = rect.width + 'px';
+            }
+
+            function openDropdown() {
+                positionDropdown();
+                buildDropdown(searchInput.value);
+                dropdownList.classList.remove('hidden');
+            }
+
+            searchInput.addEventListener('focus', function() {
+                this.removeAttribute('readonly');
+                buildDropdown(this.value);
+                openDropdown();
+            });
+
+            searchInput.addEventListener('input', function() {
+                buildDropdown(this.value);
+                openDropdown();
+            });
+
+            searchInput.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (dropdownList.classList.contains('hidden')) {
+                    this.removeAttribute('readonly');
+                    this.value = '';
+                    hiddenInput.value = '';
+                    buildDropdown('');
+                    openDropdown();
+                }
+            });
+
+            if (selectedId && coordinators.length) {
+                const coord = coordinators.find(c => c.id === selectedId);
+                if (coord) {
+                    searchInput.value = coord.name || coord.username;
+                    hiddenInput.value = coord.id;
+                    searchInput.setAttribute('readonly', true);
+                }
+            }
+        }
+
+        function rebuildCoordinatorDropdown(searchId, dropdownId, hiddenId, coordinators, selectedId) {
+            const searchInput = document.getElementById(searchId);
+            const dropdownList = document.getElementById(dropdownId);
+            const hiddenInput = document.getElementById(hiddenId);
+            if (!searchInput || !dropdownList || !hiddenInput) return;
+
+            // Clear and rebuild dropdown content
+            dropdownList.innerHTML = '';
+
+            function buildDropdown(filter) {
+                dropdownList.innerHTML = '';
+                const filtered = filter
+                    ? coordinators.filter(c => (c.name || c.username || '').toLowerCase().includes(filter.toLowerCase()))
+                    : coordinators;
+
+                const noneItem = document.createElement('div');
+                noneItem.className = 'p-3 hover:bg-emerald-100 cursor-pointer text-[#11693A] font-semibold border-b border-gray-100 last:border-b-0 transition-colors';
+                noneItem.textContent = 'None (Unassigned)';
+                noneItem.addEventListener('mousedown', function(e) {
+                    e.preventDefault();
+                    searchInput.value = 'None (Unassigned)';
+                    hiddenInput.value = '';
+                    dropdownList.classList.add('hidden');
+                    searchInput.setAttribute('readonly', true);
+                });
+                dropdownList.appendChild(noneItem);
+
+                if (filtered.length === 0 && filter && filter.toLowerCase() !== 'none') {
+                    const empty = document.createElement('div');
+                    empty.className = 'p-3 text-gray-400 text-center';
+                    empty.textContent = 'No coordinators found';
+                    dropdownList.appendChild(empty);
+                    return;
+                }
+
+                filtered.forEach(coord => {
+                    const item = document.createElement('div');
+                    item.className = 'p-3 hover:bg-emerald-100 cursor-pointer text-[#11693A] font-semibold border-b border-gray-100 last:border-b-0 transition-colors';
+                    item.textContent = coord.name || coord.username;
+                    item.addEventListener('mousedown', function(e) {
+                        e.preventDefault();
+                        searchInput.value = coord.name || coord.username;
+                        hiddenInput.value = coord.id;
+                        dropdownList.classList.add('hidden');
+                        searchInput.setAttribute('readonly', true);
+                    });
+                    dropdownList.appendChild(item);
+                });
+            }
+
+            // Re-attach event listeners (replace old ones)
+            const newSearch = searchInput.cloneNode(true);
+            searchInput.parentNode.replaceChild(newSearch, searchInput);
+
+            newSearch.addEventListener('focus', function() {
+                this.removeAttribute('readonly');
+                buildDropdown(this.value);
+                positionDropdown();
+                dropdownList.classList.remove('hidden');
+            });
+
+            newSearch.addEventListener('input', function() {
+                buildDropdown(this.value);
+                positionDropdown();
+                dropdownList.classList.remove('hidden');
+            });
+
+            newSearch.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (dropdownList.classList.contains('hidden')) {
+                    this.removeAttribute('readonly');
+                    this.value = '';
+                    hiddenInput.value = '';
+                    buildDropdown('');
+                    positionDropdown();
+                    dropdownList.classList.remove('hidden');
+                }
+            });
+
+            function positionDropdown() {
+                const rect = newSearch.getBoundingClientRect();
+                dropdownList.style.top = (rect.bottom + 4) + 'px';
+                dropdownList.style.left = rect.left + 'px';
+                dropdownList.style.width = rect.width + 'px';
+            }
+
+            // Set initial value if selected
+            if (selectedId && coordinators.length) {
+                const coord = coordinators.find(c => c.id === selectedId);
+                if (coord) {
+                    newSearch.value = coord.name || coord.username;
+                    hiddenInput.value = coord.id;
+                    newSearch.setAttribute('readonly', true);
+                }
+            } else {
+                newSearch.value = 'None (Unassigned)';
+                hiddenInput.value = '';
+                newSearch.setAttribute('readonly', true);
+            }
+        }
 
         async function openAddSiteModal() {
             document.getElementById('siteName').value = '';
@@ -2156,16 +2369,15 @@
             searchInput.value = '';
             searchInput.setAttribute('readonly', true);
             try {
-                const response = await fetch('/api/admin/courses/', {
-                    headers: {
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
-                    }
+                const coursesRes = await fetch('/api/admin/courses/', {
+                    headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` }
                 });
-                if (!response.ok) return;
-                const courses = await response.json();
-                initSiteCourseDropdown('siteCourseSearch', 'siteCourseDropdown', 'siteCourse', courses, null);
+                if (coursesRes.ok) {
+                    const courses = await coursesRes.json();
+                    initSiteCourseDropdown('siteCourseSearch', 'siteCourseDropdown', 'siteCourse', courses, null, null);
+                }
             } catch (error) {
-                searchInput.value = 'Error loading courses';
+                console.error('Error loading site modal data:', error);
             }
             openModal('addSiteModal');
         }
@@ -2173,7 +2385,7 @@
         async function addNewSite() {
             const name = document.getElementById('siteName').value.trim();
             const course = document.getElementById('siteCourse').value;
-            const contact_person = document.getElementById('siteContactPerson').value.trim();
+            const supervisor_name = document.getElementById('siteContactPerson').value.trim();
             const contact_number = document.getElementById('siteContactNumber').value.trim();
             if (!name) { showAlert('Please enter a site name'); return; }
             const btn = document.getElementById('addSiteBtn');
@@ -2188,7 +2400,7 @@
                         'Content-Type': 'application/json',
                         'Authorization': `Token ${localStorage.getItem('auth_token')}`
                     },
-                    body: JSON.stringify({ name, course: course || null, contact_person, contact_number })
+                    body: JSON.stringify({ name, course: course || null, supervisor_name, contact_number })
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
                 showAlert('Site added successfully');
@@ -2207,7 +2419,7 @@
             if (!site) return;
             document.getElementById('editSiteId').value = id;
             document.getElementById('editSiteName').value = site.name;
-            document.getElementById('editSiteContactPerson').value = site.contact_person || '';
+            document.getElementById('editSiteContactPerson').value = site.supervisor_name || '';
             document.getElementById('editSiteContactNumber').value = site.contact_number || '';
             document.getElementById('editSiteStatus').value = site.is_active ? 'true' : 'false';
             const hiddenInput = document.getElementById('editSiteCourse');
@@ -2215,17 +2427,39 @@
             hiddenInput.value = '';
             searchInput.value = '';
             searchInput.setAttribute('readonly', true);
-            fetch('/api/admin/courses/', {
-                headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` }
-            }).then(r => r.json()).then(courses => {
+            const coordHidden = document.getElementById('editSiteCoordinator');
+            const coordSearch = document.getElementById('editSiteCoordinatorSearch');
+            coordHidden.value = '';
+            coordSearch.value = '';
+            coordSearch.setAttribute('readonly', true);
+            Promise.all([
+                fetch('/api/admin/courses/', { headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` } }).then(r => r.json()),
+                fetch('/api/admin/dashboard/coordinators/', { headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` } }).then(r => r.json())
+            ]).then(([courses, coords]) => {
+                let allCoords = [];
                 if (!site.course) {
                     searchInput.value = 'All Courses';
                     hiddenInput.value = '';
                     searchInput.setAttribute('readonly', true);
                 }
-                initSiteCourseDropdown('editSiteCourseSearch', 'editSiteCourseDropdown', 'editSiteCourse', courses, site.course);
+                allCoords = coords.map(c => ({
+                    id: c.id,
+                    name: c.first_name && c.last_name ? `${c.first_name} ${c.last_name}` : c.username,
+                    course: c.course || null
+                }));
+                initSiteCourseDropdown('editSiteCourseSearch', 'editSiteCourseDropdown', 'editSiteCourse', courses, site.course, function(selectedCourseId) {
+                    const filtered = selectedCourseId
+                        ? allCoords.filter(c => c.course === selectedCourseId)
+                        : allCoords;
+                    rebuildCoordinatorDropdown('editSiteCoordinatorSearch', 'editSiteCoordinatorDropdown', 'editSiteCoordinator', filtered, null);
+                });
+                // Filter coordinators by site's course if set
+                const filteredCoords = site.course
+                    ? allCoords.filter(c => c.course === site.course)
+                    : allCoords;
+                initSiteCoordinatorDropdown('editSiteCoordinatorSearch', 'editSiteCoordinatorDropdown', 'editSiteCoordinator', filteredCoords, site.coordinator || null);
             }).catch(() => {
-                searchInput.value = 'Error loading courses';
+                searchInput.value = 'Error loading data';
             });
             openModal('editSiteModal');
         }
@@ -2234,8 +2468,9 @@
             const id = document.getElementById('editSiteId').value;
             const name = document.getElementById('editSiteName').value.trim();
             const course = document.getElementById('editSiteCourse').value;
-            const contact_person = document.getElementById('editSiteContactPerson').value.trim();
+            const supervisor_name = document.getElementById('editSiteContactPerson').value.trim();
             const contact_number = document.getElementById('editSiteContactNumber').value.trim();
+            const coordinator = document.getElementById('editSiteCoordinator').value;
             const is_active = document.getElementById('editSiteStatus').value === 'true';
             if (!name) { showAlert('Please enter a site name'); return; }
             const btn = document.getElementById('saveSiteBtn');
@@ -2250,7 +2485,7 @@
                         'Content-Type': 'application/json',
                         'Authorization': `Token ${localStorage.getItem('auth_token')}`
                     },
-                    body: JSON.stringify({ name, course: course || null, contact_person, contact_number, is_active })
+                    body: JSON.stringify({ name, course: course || null, supervisor_name, contact_number, coordinator: coordinator || null, is_active })
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
                 showAlert('Site updated successfully');

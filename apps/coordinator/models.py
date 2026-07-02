@@ -82,7 +82,8 @@ class Site(BaseModel):
     """Site/company for OJT placement, managed by admin."""
     name = models.CharField(max_length=255)
     course = models.ForeignKey('core.Course', on_delete=models.SET_NULL, null=True, blank=True, related_name='sites')
-    contact_person = models.CharField(max_length=255, blank=True)
+    coordinator = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_sites', limit_choices_to={'role': 'coordinator'})
+    supervisor_name = models.CharField(max_length=255, blank=True)
     contact_number = models.CharField(max_length=50, blank=True)
     is_active = models.BooleanField(default=True, db_index=True)
 

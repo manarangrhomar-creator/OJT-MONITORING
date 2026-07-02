@@ -6,6 +6,17 @@ from pathlib import Path
 from email.mime.image import MIMEImage
 
 
+def _attach_logo(email):
+    """Attach the ISU logo as an inline image with Content-ID."""
+    logo_path = Path(settings.BASE_DIR) / 'static' / 'images' / 'isu_new_seal_512x512.png'
+    if logo_path.exists():
+        with open(logo_path, 'rb') as f:
+            img = MIMEImage(f.read(), _subtype='png')
+            img.add_header('Content-ID', '<isu_logo>')
+            img.add_header('Content-Disposition', 'inline', filename='isu_logo.png')
+            email.attach(img)
+
+
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
 def send_email_task(self, recipient_email, subject, message, title='', recipient_name='', site_url=None):
     if not recipient_email:
@@ -33,15 +44,7 @@ def send_email_task(self, recipient_email, subject, message, title='', recipient
             to=[recipient_email],
         )
         email.attach_alternative(html_content, 'text/html')
-
-        image_path = Path(settings.BASE_DIR) / 'static' / 'images' / 'isu_new_seal_512x512.png'
-        if image_path.exists():
-            with open(image_path, 'rb') as img_file:
-                img = MIMEImage(img_file.read())
-                img.add_header('Content-ID', '<isu_logo>')
-                img.add_header('Content-Disposition', 'inline', filename='isu_new_seal_512x512.png')
-                email.attach(img)
-
+        _attach_logo(email)
         email.send(fail_silently=False)
     except Exception as exc:
         import logging

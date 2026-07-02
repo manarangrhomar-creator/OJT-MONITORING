@@ -48,6 +48,7 @@ urlpatterns = [
     
     # Student Facial Recognition
     path('student/facial/', TemplateView.as_view(template_name='ojtstudent_facial.html'), name='student-facial'),
+    path('student/attendance/', TemplateView.as_view(template_name='facial.html'), name='student-attendance'),
     
     # Admin panel (Django built-in)
     path('admin/', admin.site.urls),

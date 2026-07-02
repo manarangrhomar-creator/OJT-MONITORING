@@ -25,14 +25,18 @@ class CourseSerializer(serializers.ModelSerializer):
 class SiteSerializer(serializers.ModelSerializer):
     """Serializer for Site model (admin)."""
     course_name = serializers.SerializerMethodField()
+    coordinator_name = serializers.SerializerMethodField()
 
     class Meta:
         model = Site
-        fields = ('id', 'name', 'course', 'course_name', 'contact_person', 'contact_number', 'is_active', 'created_at')
+        fields = ('id', 'name', 'course', 'course_name', 'coordinator', 'coordinator_name', 'supervisor_name', 'contact_number', 'is_active', 'created_at')
         read_only_fields = ('id', 'created_at')
 
     def get_course_name(self, obj):
         return obj.course.name if obj.course else 'All Courses'
+
+    def get_coordinator_name(self, obj):
+        return obj.coordinator.get_full_name() or obj.coordinator.username if obj.coordinator else None
 
 
 class SystemLogSerializer(serializers.ModelSerializer):

@@ -819,6 +819,7 @@
   async function loadDashboard() {
     try {
       const data = await apiFetch('/api/student/dashboard/dashboard/');
+      accountCreatedAt = data.created_at ? new Date(data.created_at) : null;
       const name = data.student_name || 'Student';
       document.getElementById('welcomeHeading').innerText = 'Welcome back, ' + name;
       document.getElementById('profileName').innerText = name;
@@ -842,6 +843,8 @@
       lucide.createIcons();
     } catch (err) { console.error('Failed to load dashboard:', err); }
   }
+
+  let accountCreatedAt = null;
 
   // --- Attendance Calendar ---
   let calendarRecords = [];
@@ -892,7 +895,7 @@
         const status = hasOut ? 'Completed' : 'Pending';
         html += `<div class="${cls}" onclick="calShowDetail('${esc(dateStr)}','${esc(timeIn)}','${esc(timeOut)}','${status}')">
           ${day}<div class="cal-dot ${dotCls}"></div></div>`;
-      } else if (isPast) {
+      } else if (isPast && (!accountCreatedAt || dateStr >= accountCreatedAt.toISOString().slice(0,10))) {
         html += `<div class="${cls} text-[var(--muted)]">${day}<div class="cal-dot absent"></div></div>`;
       } else {
         html += `<div class="${cls} text-[var(--muted)]">${day}</div>`;
