@@ -1237,8 +1237,8 @@
           <span class="completion-badge" style="background: ${color}20; color: ${color};">⚡ ${label}</span>
         </div>
         <div class="grid grid-cols-3 gap-2 pt-2 border-t" style="border-color: var(--card-border);">
-          <div><p class="stat-label">Present</p><p class="stat-value" style="color: var(--success);">0/0</p></div>
-          <div><p class="stat-label">Absent</p><p class="stat-value" style="color: var(--danger);">0/0</p></div>
+          <div><p class="stat-label">Present</p><p class="stat-value" style="color: var(--success);">${s.present_days || 0}</p></div>
+          <div><p class="stat-label">Absent</p><p class="stat-value" style="color: var(--danger);">${s.absent_days || 0}</p></div>
           <div><p class="stat-label">Hours</p><p class="stat-value" style="color: var(--primary);">${s.total_hours ? s.total_hours.toFixed(1) : '0.0'}/480</p></div>
         </div>
       </div>`);

@@ -252,7 +252,7 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['get'], url_path='student-accounts')
     def student_accounts(self, request):
         """Get student accounts with attendance data for this coordinator's course."""
-        from datetime import date, datetime, time
+        from datetime import date, datetime, time, timedelta
 
         coordinator = request.user
         students = User.objects.filter(
@@ -266,7 +266,7 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         coordinator_course = coordinator.course
         if coordinator_course:
             students = students.filter(student_profile__course=coordinator_course)
-        students = students.distinct().order_by('-created_at')
+        students = students.select_related('student_profile').distinct().order_by('-created_at')
 
         today = date.today()
         att_qs = Attendance.objects.filter(student__in=students).select_related('student')
@@ -275,8 +275,10 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         for att in att_qs:
             sid = att.student_id
             if sid not in stats:
-                stats[sid] = {'present_days': 0, 'total_seconds': 0, 'today_status': ''}
+                stats[sid] = {'present_days': 0, 'total_seconds': 0, 'today_status': '', 'last_attendance': None}
             stats[sid]['present_days'] += 1
+            if stats[sid]['last_attendance'] is None or att.date > stats[sid]['last_attendance']:
+                stats[sid]['last_attendance'] = att.date
             if att.time_out:
                 tin = datetime.combine(att.date, att.time_in)
                 tout = datetime.combine(att.date, att.time_out)
@@ -286,8 +288,12 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
 
         students_data = []
         for student in students:
-            s = stats.get(student.id, {'present_days': 0, 'total_seconds': 0, 'today_status': ''})
+            s = stats.get(student.id, {'present_days': 0, 'total_seconds': 0, 'today_status': '', 'last_attendance': None})
             hours = round(s['total_seconds'] / 3600, 2)
+            # ponytail: count weekdays from account creation to today (matches student calendar logic)
+            acct_start = student.date_joined.date() if student.date_joined else today
+            working_days = sum(1 for i in range((today - acct_start).days + 1) if (acct_start + timedelta(days=i)).weekday() < 5)
+            absent_days = max(0, working_days - s['present_days'])
             students_data.append({
                 'id': student.id,
                 'name': student.get_full_name(),
@@ -296,8 +302,10 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
                 'is_active': student.is_active,
                 'created_at': student.created_at,
                 'present_days': s['present_days'],
+                'absent_days': absent_days,
                 'total_hours': hours,
                 'today_status': s['today_status'],
+                'last_attendance': s['last_attendance'].isoformat() if s['last_attendance'] else None,
             })
 
         return Response(students_data)
