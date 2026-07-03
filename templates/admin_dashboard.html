@@ -206,6 +206,7 @@
         <button class="pill-btn" data-section="courses" onclick="switchSection('courses')"><i data-lucide="book-open" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Courses</button>
         <button class="pill-btn" data-section="sites" onclick="switchSection('sites')"><i data-lucide="building" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Sites</button>
         <button class="pill-btn" data-section="programs" onclick="switchSection('programs')"><i data-lucide="briefcase" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Programs</button>
+        <button class="pill-btn" data-section="system-logs" onclick="switchSection('system-logs')"><i data-lucide="scroll-text" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>System Logs</button>
       </nav>
     </div>
     <div class="flex items-center gap-2">
@@ -299,6 +300,54 @@
       </div>
       <div id="systemLogBody" class="divide-y text-xs" style="border-color: var(--card-border);">
         <div class="p-4 text-center" style="color: var(--fg-dim);">Loading...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== SYSTEM LOGS SECTION ===== -->
+  <div id="system-logsSection" class="section-container hidden animate-in">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
+      <h2 class="text-lg font-bold">System Logs</h2>
+      <div class="flex flex-wrap gap-2">
+        <button class="pill-btn !text-[0.6rem] active" onclick="filterSystemLogsByType('all', this)">All</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('user_created', this)">User Created</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('user_deleted', this)">User Deleted</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('program_created', this)">Program Created</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('program_deleted', this)">Program Deleted</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('approval_made', this)">Approval</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('report_generated', this)">Report</button>
+      </div>
+    </div>
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+      <div class="relative w-full sm:w-64">
+        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style="color: var(--fg-dim);"></i>
+        <input type="text" id="systemLogSearchInput" placeholder="Search logs..." class="w-full pl-9 pr-4 py-2.5 !rounded-xl text-xs" oninput="searchSystemLogs()">
+      </div>
+      <div class="flex gap-2">
+        <input type="date" id="systemLogDateFrom" class="!rounded-xl text-xs py-2 px-3" style="border: 1px solid var(--card-border); background: var(--card-bg); color: var(--fg);" onchange="loadSystemLogs()">
+        <input type="date" id="systemLogDateTo" class="!rounded-xl text-xs py-2 px-3" style="border: 1px solid var(--card-border); background: var(--card-bg); color: var(--fg);" onchange="loadSystemLogs()">
+      </div>
+    </div>
+    <div class="bento-card overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead><tr>
+            <th class="table-header">Timestamp</th>
+            <th class="table-header">Type</th>
+            <th class="table-header">Description</th>
+            <th class="table-header">Admin</th>
+          </tr></thead>
+          <tbody id="systemLogTableBody" class="divide-y" style="border-color: var(--card-border);">
+            <tr><td colspan="4" class="py-12 text-center" style="color: var(--fg-dim);">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="p-3 flex items-center justify-between" style="border-top: 1px solid var(--card-border);">
+        <span id="systemLogCount" class="text-[0.6rem] font-semibold" style="color: var(--fg-dim);">—</span>
+        <div class="flex gap-1">
+          <button id="systemLogPrev" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="systemLogsPage(-1)" disabled>&laquo; Prev</button>
+          <button id="systemLogNext" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="systemLogsPage(1)">Next &raquo;</button>
+        </div>
       </div>
     </div>
   </div>
@@ -842,7 +891,7 @@
 
         // ===== SECTION SWITCHING =====
         function resetPills() {
-            document.querySelectorAll('.pill-btn').forEach(b => { b.classList.remove('active'); });
+            document.querySelectorAll('#pillNav .pill-btn').forEach(b => { b.classList.remove('active'); });
         }
 
         function switchSection(section) {
@@ -860,6 +909,7 @@
             if (section === 'sites') loadSitesAdmin();
             if (section === 'programs') loadPrograms();
             if (section === 'student-approvals') loadStudentApprovals();
+            if (section === 'system-logs') loadSystemLogs();
         }
 
         // ===== FILTER FUNCTIONS =====
@@ -1806,7 +1856,8 @@
 
                 const logBody = document.getElementById('systemLogBody');
                 if (Array.isArray(logs) && logs.length > 0) {
-                    logBody.innerHTML = logs.map(log => {
+                    const recent = logs.slice(0, 5);
+                    logBody.innerHTML = recent.map(log => {
                         const ts = log.created_at ? new Date(log.created_at).toLocaleString() : '';
                         const admin = log.admin_username || log.admin_name || 'Admin';
                         return `<div class="p-3 flex items-center justify-between" style="color: var(--fg-muted);">
@@ -1822,6 +1873,86 @@
             }
             lucide.createIcons();
         }
+
+        // ===== SYSTEM LOGS =====
+        let allSystemLogs = [];
+        let systemLogsFiltered = [];
+        let systemLogsCurrentPage = 0;
+        const SYSTEM_LOGS_PER_PAGE = 20;
+        let systemLogsTypeFilter = 'all';
+
+        async function loadSystemLogs() {
+            const tbody = document.getElementById('systemLogTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
+            lucide.createIcons();
+            try {
+                const token = localStorage.getItem('auth_token');
+                const res = await fetch('/api/admin/dashboard/system_logs/', { headers: { 'Authorization': `Token ${token}` } });
+                if (!res.ok) { tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center text-xs" style="color: var(--danger);">Failed to load</td></tr>'; return; }
+                allSystemLogs = await res.json();
+                applySystemLogsFilters();
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center text-xs" style="color: var(--danger);">Error loading</td></tr>';
+            }
+        }
+
+        function applySystemLogsFilters() {
+            const search = (document.getElementById('systemLogSearchInput')?.value || '').toLowerCase();
+            const dateFrom = document.getElementById('systemLogDateFrom')?.value;
+            const dateTo = document.getElementById('systemLogDateTo')?.value;
+            systemLogsFiltered = allSystemLogs.filter(log => {
+                if (systemLogsTypeFilter !== 'all' && log.activity_type !== systemLogsTypeFilter) return false;
+                if (search && !(log.description || '').toLowerCase().includes(search) && !(log.admin_username || '').toLowerCase().includes(search)) return false;
+                if (dateFrom && log.created_at && log.created_at.slice(0, 10) < dateFrom) return false;
+                if (dateTo && log.created_at && log.created_at.slice(0, 10) > dateTo) return false;
+                return true;
+            });
+            systemLogsCurrentPage = 0;
+            renderSystemLogsTable();
+        }
+
+        function renderSystemLogsTable() {
+            const tbody = document.getElementById('systemLogTableBody');
+            if (!tbody) return;
+            const start = systemLogsCurrentPage * SYSTEM_LOGS_PER_PAGE;
+            const page = systemLogsFiltered.slice(start, start + SYSTEM_LOGS_PER_PAGE);
+            const typeLabels = { user_created: 'User Created', user_deleted: 'User Deleted', program_created: 'Program Created', program_deleted: 'Program Deleted', approval_made: 'Approval', report_generated: 'Report' };
+            if (page.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center" style="color: var(--fg-dim);">No logs found</td></tr>';
+            } else {
+                tbody.innerHTML = page.map(log => {
+                    const ts = log.created_at ? new Date(log.created_at).toLocaleString() : '—';
+                    const type = typeLabels[log.activity_type] || log.activity_type || '—';
+                    const admin = log.admin_username || log.admin_name || 'Admin';
+                    return `<tr>
+                      <td class="table-cell whitespace-nowrap">${ts}</td>
+                      <td class="table-cell"><span class="text-[0.6rem] font-semibold px-2 py-0.5 rounded-full" style="background: rgba(17,105,58,0.1); color: var(--primary);">${type}</span></td>
+                      <td class="table-cell">${esc(log.description || '—')}</td>
+                      <td class="table-cell whitespace-nowrap">${esc(admin)}</td>
+                    </tr>`;
+                }).join('');
+            }
+            const total = systemLogsFiltered.length;
+            document.getElementById('systemLogCount').textContent = total > 0 ? `${start + 1}–${Math.min(start + SYSTEM_LOGS_PER_PAGE, total)} of ${total}` : '0 results';
+            document.getElementById('systemLogPrev').disabled = systemLogsCurrentPage === 0;
+            document.getElementById('systemLogNext').disabled = start + SYSTEM_LOGS_PER_PAGE >= total;
+            lucide.createIcons();
+        }
+
+        function systemLogsPage(dir) {
+            systemLogsCurrentPage += dir;
+            renderSystemLogsTable();
+        }
+
+        function filterSystemLogsByType(type, btn) {
+            systemLogsTypeFilter = type;
+            document.querySelectorAll('#system-logsSection .pill-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            applySystemLogsFilters();
+        }
+
+        function searchSystemLogs() { applySystemLogsFilters(); }
 
         // ===== SITE MANAGEMENT =====
         let siteListAdmin = [];
@@ -2633,6 +2764,7 @@
             else if (sec === 'courses') loadCourses();
             else if (sec === 'sites') loadSitesAdmin();
             else if (sec === 'programs') loadPrograms();
+            else if (sec === 'system-logs') loadSystemLogs();
         }, 30000);
 
         // ===== NOTIFICATIONS ENGINE =====
@@ -2836,6 +2968,9 @@
     </button>
     <button class="mobile-drawer-item" data-section="programs" onclick="switchSection('programs')">
       <i data-lucide="briefcase" class="w-4 h-4"></i> Programs
+    </button>
+    <button class="mobile-drawer-item" data-section="system-logs" onclick="switchSection('system-logs')">
+      <i data-lucide="scroll-text" class="w-4 h-4"></i> System Logs
     </button>
   </div>
   <div class="px-5 py-4 border-t mt-2" style="border-color: var(--card-border);">
