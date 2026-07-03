@@ -92,14 +92,17 @@ class AdminProgramStudentSerializer(serializers.Serializer):
             return profile.student_id
         return ''
 
+    def _get_assignment(self, obj):
+        return SiteAssignment.objects.filter(student=obj.student, program=obj.program).first()
+
     def get_site_name(self, obj):
-        assignment = SiteAssignment.objects.filter(student=obj.student, program=obj.program).first()
+        assignment = self._get_assignment(obj)
         if assignment:
             return assignment.site.name if assignment.site else 'Not assigned'
         return 'Not assigned'
 
     def get_supervisor_name(self, obj):
-        assignment = SiteAssignment.objects.filter(student=obj.student, program=obj.program).first()
+        assignment = self._get_assignment(obj)
         return assignment.supervisor_name or '' if assignment else ''
 
 

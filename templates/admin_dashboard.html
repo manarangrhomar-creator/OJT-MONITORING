@@ -750,10 +750,13 @@
 
     <!-- Program Modals -->
 <div id="viewProgramStudentsModal" class="modal">
-  <div class="modal-content wide" style="max-width: 800px;">
+  <div class="modal-content wide" style="max-width: 960px;">
     <div class="modal-header"><h2 id="viewProgramStudentsTitle">Program Students</h2><button class="close-btn" onclick="closeModal('viewProgramStudentsModal')">&times;</button></div>
     <div style="max-height:60vh; overflow-y:auto;">
-      <table class="w-full text-left">
+      <table class="w-full text-left" style="table-layout:fixed;">
+        <colgroup>
+          <col style="width:22%"><col style="width:22%"><col style="width:14%"><col style="width:12%"><col style="width:16%"><col style="width:14%">
+        </colgroup>
         <thead style="background: var(--card-bg-secondary);" class="sticky top-0">
           <tr>
             <th class="table-header">Student Name</th><th class="table-header">Email</th><th class="table-header">Course</th>
@@ -2436,29 +2439,29 @@
             lucide.createIcons();
             openModal('viewProgramStudentsModal');
             try {
-                const response = await fetch(`/api/admin/programs/${id}/students/`, {
-                    headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` }
-                });
-                if (!response.ok) {
+                const res = await fetch(`/api/admin/programs/${id}/students/`, { headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` } });
+                if (!res.ok) {
                     tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-xs" style="color: var(--danger);">Failed to load</td></tr>';
                     return;
                 }
-                const students = await response.json();
+                const students = await res.json();
                 tbody.innerHTML = '';
                 if (!students.length) {
                     tbody.innerHTML = '<tr><td colspan="6" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="users" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No approved students in this program</span></div></td></tr>';
                     return;
                 }
                 students.forEach(s => {
+                    const nowrap = 'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;';
                     tbody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-black/[0.02] transition-colors">
-                        <td class="table-cell font-bold">${esc(s.student_name)}</td>
-                        <td class="table-cell" style="color: var(--fg-muted);">${esc(s.email)}</td>
-                        <td class="table-cell">${esc(s.course || '—')}</td>
-                        <td class="table-cell">${esc(s.student_id_number || '—')}</td>
-                        <td class="table-cell">${esc(s.site_name || '—')}</td>
-                        <td class="table-cell">${esc(s.supervisor_name || '—')}</td>
+                        <td class="table-cell font-bold" style="${nowrap}max-width:0;" title="${esc(s.student_name)}">${esc(s.student_name)}</td>
+                        <td class="table-cell" style="${nowrap}color:var(--fg-muted);max-width:0;" title="${esc(s.email)}">${esc(s.email)}</td>
+                        <td class="table-cell" style="${nowrap}max-width:0;" title="${esc(s.course || '—')}">${esc(s.course || '—')}</td>
+                        <td class="table-cell" style="${nowrap}max-width:0;" title="${esc(s.student_id_number || '—')}">${esc(s.student_id_number || '—')}</td>
+                        <td class="table-cell" style="${nowrap}max-width:0;" title="${esc(s.site_name || '—')}">${esc(s.site_name || '—')}</td>
+                        <td class="table-cell" style="${nowrap}max-width:0;" title="${esc(s.supervisor_name || '—')}">${esc(s.supervisor_name || '—')}</td>
                     </tr>`);
                 });
+                lucide.createIcons();
             } catch (error) {
                 tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-xs" style="color: var(--danger);">Error loading</td></tr>';
                 console.error('Error loading program students:', error);
