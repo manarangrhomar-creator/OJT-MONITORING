@@ -14,8 +14,22 @@ from apps.core.models import User, Course
 from apps.student.models import StudentProfile
 from apps.core.utils import create_notification, broadcast_dashboard_update
 from .serializers import UserRegisterSerializer, UserLoginSerializer, UserSerializer, SendOTPSerializer, VerifyOTPSerializer, ResetPasswordSerializer
-from .models import LoginAttempt, PasswordResetOTP
+from .models import PasswordResetOTP
 import os
+
+RATE_LIMIT_MINUTES = 5
+RATE_LIMIT_MAX = 10  # ponytail: per-IP cap per window; raise if needed
+
+
+def _check_rate_limit(request, action_key):
+    """Simple cache-based rate limit. Returns True if allowed."""
+    ip = request.META.get('REMOTE_ADDR', '0.0.0.0')
+    cache_key = f'rl:{action_key}:{ip}'
+    count = cache.get(cache_key, 0)
+    if count >= RATE_LIMIT_MAX:
+        return False
+    cache.set(cache_key, count + 1, RATE_LIMIT_MINUTES * 60)
+    return True
 
 
 def _attach_logo(email):
@@ -40,7 +54,10 @@ class AuthenticationViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
     def register(self, request):
         """Register a new user."""
+        if not _check_rate_limit(request, 'register'):
+            return Response({'error': 'Too many requests. Try again later.'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
         data = request.data.copy()
+        data['role'] = 'student'  # ponytail: self-registration is always student; admin creates others
         # Ensure file uploads are included in the data dict
         for key in request.FILES:
             data[key] = request.FILES[key]
@@ -130,6 +147,8 @@ class AuthenticationViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
     def login(self, request):
         """User login with token authentication."""
+        if not _check_rate_limit(request, 'login'):
+            return Response({'error': 'Too many requests. Try again later.'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
         serializer = UserLoginSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data['user']
@@ -140,32 +159,11 @@ class AuthenticationViewSet(viewsets.ViewSet):
             # Create Django session for @login_required views
             login(request, user)
             
-            # Log login attempt
-            LoginAttempt.objects.create(
-                user=user,
-                ip_address=self.get_client_ip(request),
-                success=True,
-                user_agent=request.META.get('HTTP_USER_AGENT', '')
-            )
-            
             return Response({
                 'message': 'Login successful',
                 'user': UserSerializer(user).data,
                 'token': token.key
             }, status=status.HTTP_200_OK)
-        
-        # Log failed login attempt
-        username = request.data.get('username', '')
-        try:
-            user = User.objects.get(username=username)
-            LoginAttempt.objects.create(
-                user=user,
-                ip_address=self.get_client_ip(request),
-                success=False,
-                user_agent=request.META.get('HTTP_USER_AGENT', '')
-            )
-        except User.DoesNotExist:
-            pass
         
         return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
     
@@ -220,6 +218,8 @@ class AuthenticationViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
     def send_otp(self, request):
         """Send OTP for password reset."""
+        if not _check_rate_limit(request, 'otp'):
+            return Response({'error': 'Too many requests. Try again later.'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
         serializer = SendOTPSerializer(data=request.data)
         if serializer.is_valid():
             email_addr = serializer.validated_data['email']
@@ -255,6 +255,8 @@ class AuthenticationViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
     def reset_password(self, request):
         """Reset password with OTP verification."""
+        if not _check_rate_limit(request, 'reset'):
+            return Response({'error': 'Too many requests. Try again later.'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
         serializer = ResetPasswordSerializer(data=request.data)
         if serializer.is_valid():
             otp_record = serializer.validated_data['otp_record']
@@ -266,12 +268,4 @@ class AuthenticationViewSet(viewsets.ViewSet):
             return Response({'message': 'Password reset successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    @staticmethod
-    def get_client_ip(request):
-        """Get client IP address from request."""
-        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            ip = x_forwarded_for.split(',')[0]
-        else:
-            ip = request.META.get('REMOTE_ADDR')
-        return ip
+

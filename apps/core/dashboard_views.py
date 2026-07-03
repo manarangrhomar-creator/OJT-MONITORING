@@ -48,10 +48,8 @@ def coordinator_dashboard(request):
 
 def logout_view(request):
     """Logout user and clear authentication token."""
-    try:
+    if hasattr(request.user, 'auth_token'):
         request.user.auth_token.delete()
-    except:
-        pass
     
     logout(request)
     return redirect('home')

@@ -1,4 +1,4 @@
-import random
+import secrets
 from django.db import models
 from django.utils import timezone
 from datetime import timedelta
@@ -25,7 +25,7 @@ class PasswordResetOTP(BaseModel):
 
     @classmethod
     def generate_otp(cls, email):
-        otp_code = f"{random.randint(100000, 999999)}"
+        otp_code = f"{secrets.randbelow(900000) + 100000}"
         return cls.objects.create(
             email=email,
             otp=otp_code,
