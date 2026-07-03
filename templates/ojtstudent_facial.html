@@ -10,6 +10,9 @@
 <script src="https://unpkg.com/lucide@0.344.0"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.min.js"></script>
 
 <style>
 body{
@@ -178,18 +181,47 @@ aside > div{
                 <video id="webcam" autoplay playsinline class="absolute inset-0 w-full h-full object-cover"></video>
                 <canvas id="photoCanvas" class="hidden"></canvas>
 
+                <!-- THUMBS UP COUNTDOWN OVERLAY -->
+                <div id="countdownOverlay" class="absolute inset-0 z-20 hidden flex flex-col items-center justify-center bg-black/40">
+                    <div id="thumbsUpIcon" class="text-6xl mb-4">👍</div>
+                    <div id="countdownNumber" class="text-white text-7xl font-bold drop-shadow-lg">3</div>
+                    <p class="text-white text-sm mt-3 font-medium">Hold your pose...</p>
+                </div>
+
+                <!-- GESTURE STATUS -->
+                <div id="gestureBadge" class="absolute bottom-3 left-3 z-10 hidden bg-amber-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+                    <span>👍</span> Thumbs up detected — Starting countdown
+                </div>
+
             </div>
 
             <div class="mt-2 flex items-center gap-2">
                 <div id="faceIndicator" class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
                 <span id="faceStatus" class="text-sm font-medium text-green-700">
-                    Camera Ready — Capture your face to enroll
+                    Camera Ready — Show 👍 to auto-capture
                 </span>
             </div>
 
-            <button id="captureBtn" class="enroll-btn mt-2 bg-green-700 hover:bg-green-800 text-white px-5 py-2 rounded-lg font-semibold text-sm w-fit">
-                <i data-lucide="camera" class="mr-2" style="width:16px;height:16px;"></i> Capture Face
-            </button>
+            <!-- PRE-CAPTURE CHECKS -->
+            <div id="preCaptureChecks" class="mt-1 flex flex-wrap gap-1.5">
+                <span id="lightStatus" class="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Checking lighting…
+                </span>
+                <span id="faceSizeStatus" class="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Checking position…
+                </span>
+                <span id="accessoryStatus" class="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Checking accessories…
+                </span>
+            </div>
+
+            <div id="captureInstruction" class="mt-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center gap-3">
+                <span class="text-3xl">👍</span>
+                <div>
+                    <p class="text-sm font-semibold text-green-800">Show a thumbs up to auto-capture</p>
+                    <p class="text-[11px] text-green-600">Hold your pose when the countdown starts. 3… 2… 1… done!</p>
+                </div>
+            </div>
 
         </section>
 
@@ -207,16 +239,39 @@ aside > div{
                        value="Status: Waiting for capture..." readonly>
 
                 <input id="captureCountField" class="w-full px-2 py-1 rounded text-black text-xs bg-gray-100"
-                       value="Images captured: 0 / 3" readonly>
+                       value="Image captured: 0 / 3" readonly>
 
                 <div class="h-1 w-full bg-green-600/30 rounded overflow-hidden">
                     <div id="progressBar" class="h-full bg-green-300 w-0 transition-all duration-500"></div>
                 </div>
 
                 <p class="text-[10px] text-green-100">
-                    Capture at least 3 clear face images
+                    Capture at least 1 clear face image
                 </p>
 
+            </div>
+
+            <!-- CAPTURED PREVIEW -->
+            <div id="capturePreviewCard" class="bg-white border border-gray-200 rounded-xl p-3 shadow-sm hidden">
+                <h3 class="font-bold text-gray-700 text-xs mb-2">
+                    <i data-lucide="images" class="mr-1.5" style="width:14px;height:14px;"></i>Captured Images
+                </h3>
+                <div id="captureThumbnails" class="flex gap-2"></div>
+            </div>
+
+            <!-- ENROLLED FACE (shown if already enrolled) -->
+            <div id="enrolledFaceCard" class="bg-white border border-gray-200 rounded-xl p-3 shadow-sm hidden">
+                <h3 class="font-bold text-gray-700 text-xs mb-2 flex items-center justify-between">
+                    <span><i data-lucide="scan-face" class="mr-1.5" style="width:14px;height:14px;"></i>Enrolled Face</span>
+                    <span class="text-[10px] text-green-600 font-semibold" id="enrolledFaceStatus"></span>
+                </h3>
+                <div class="flex items-center gap-3">
+                    <img id="enrolledFaceImg" src="" alt="Enrolled face" class="w-16 h-16 rounded-lg object-cover border-2 border-green-700 bg-gray-100">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-[11px] text-gray-500">Your current face data</p>
+                        <button id="retakeBtn" class="mt-1 text-[11px] text-green-700 hover:text-green-900 font-semibold underline">Retake</button>
+                    </div>
+                </div>
             </div>
 
             <!-- TERMS & REGISTER -->
@@ -294,11 +349,19 @@ aside > div{
     </div>
 </div>
 
+<!-- IMAGE PREVIEW MODAL -->
+<div id="imagePreviewModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onclick="this.classList.add('hidden')">
+    <div class="relative max-w-lg w-full" onclick="event.stopPropagation()">
+        <button onclick="document.getElementById('imagePreviewModal').classList.add('hidden')" class="absolute -top-3 -right-3 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center text-gray-600 hover:text-gray-900 text-lg font-bold z-10">&times;</button>
+        <img id="previewModalImg" src="" alt="Captured face preview" class="w-full rounded-2xl shadow-2xl border-4 border-green-600 object-cover bg-gray-900">
+        <p class="text-center text-white text-xs mt-2 font-medium">Click anywhere to close</p>
+    </div>
+</div>
+
 <script>
     const video = document.getElementById('webcam');
     const canvas = document.getElementById('photoCanvas');
     const wrapper = document.getElementById('cameraFrame');
-    const captureBtn = document.getElementById('captureBtn');
     const regBtn = document.getElementById('regBtn');
     const checkbox = document.getElementById('termsCheckbox');
     const modal = document.getElementById('termsModal');
@@ -309,8 +372,103 @@ aside > div{
     const faceStatusEl = document.getElementById('faceStatus');
 
     let capturedBlobs = [];
+    let capturedUrls = [];
     let studentProfile = null;
+    let isRetaking = false;
     const REQUIRED_CAPTURES = 3;
+
+    function renderPreviews() {
+        const container = document.getElementById('captureThumbnails');
+        const card = document.getElementById('capturePreviewCard');
+        container.innerHTML = '';
+        if (capturedBlobs.length === 0) { card.classList.add('hidden'); return; }
+        card.classList.remove('hidden');
+        capturedBlobs.forEach((blob, i) => {
+            if (!capturedUrls[i]) capturedUrls[i] = URL.createObjectURL(blob);
+            const div = document.createElement('div');
+            div.className = 'relative';
+            div.innerHTML = `
+                <img src="${capturedUrls[i]}" class="w-16 h-16 rounded-lg object-cover border-2 border-green-600 bg-gray-100 cursor-pointer hover:border-green-800 transition-colors" data-preview="${capturedUrls[i]}">
+                <button data-idx="${i}" class="capture-del absolute -top-1.5 -right-1.5 w-5 h-5 bg-red-500 text-white rounded-full text-[10px] leading-none font-bold hover:bg-red-600 flex items-center justify-center">&times;</button>
+                <span class="absolute bottom-0.5 left-1/2 -translate-x-1/2 text-[9px] text-white bg-black/50 rounded px-1">${i+1}</span>`;
+            container.appendChild(div);
+        });
+        container.querySelectorAll('.capture-del').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const idx = parseInt(this.dataset.idx);
+                if (capturedUrls[idx]) URL.revokeObjectURL(capturedUrls[idx]);
+                capturedBlobs.splice(idx, 1);
+                capturedUrls.splice(idx, 1);
+                updateUI();
+                renderPreviews();
+            });
+        });
+        container.querySelectorAll('[data-preview]').forEach(img => {
+            img.addEventListener('click', function() {
+                document.getElementById('previewModalImg').src = this.dataset.preview;
+                document.getElementById('imagePreviewModal').classList.remove('hidden');
+            });
+        });
+    }
+
+    async function loadEnrolledFace() {
+        try {
+            const res = await fetch('/api/student/facial/my-face/', {
+                headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` }
+            });
+            if (res.ok) {
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                document.getElementById('enrolledFaceImg').src = url;
+                document.getElementById('enrolledFaceCard').classList.remove('hidden');
+                document.getElementById('enrolledFaceStatus').textContent = 'Active';
+            }
+        } catch (e) { /* no enrolled face yet */ }
+    }
+
+    async function deleteFaceAndRetake() {
+        const result = await Swal.fire({
+            title: 'Retake Face?',
+            text: 'Your current enrolled face will be deleted. You\'ll need to capture a new image.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#166534',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, retake',
+            cancelButtonText: 'Cancel'
+        });
+        if (!result.isConfirmed) return;
+
+        try {
+            const res = await fetch('/api/student/facial/delete-face/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                }
+            });
+            if (res.ok) {
+                document.getElementById('enrolledFaceCard').classList.add('hidden');
+                capturedBlobs.forEach((_, i) => { if (capturedUrls[i]) URL.revokeObjectURL(capturedUrls[i]); });
+                capturedBlobs = [];
+                capturedUrls = [];
+                renderPreviews();
+                isRetaking = true;
+                regBtn.disabled = true;
+                regBtn.className = 'enroll-btn w-full bg-green-700/40 text-white/70 py-2.5 rounded-lg font-semibold text-sm cursor-not-allowed border border-green-800/20 flex items-center justify-center gap-1.5';
+                regBtn.innerHTML = '<i data-lucide="user-plus" style="width:16px;height:16px;"></i> Register Face';
+                checkbox.checked = false;
+                statusField.value = 'Status: Waiting for capture...';
+                captureCountField.value = `Image captured: 0 / ${REQUIRED_CAPTURES}`;
+                progressBar.style.width = '0%';
+                faceStatusEl.textContent = 'Camera Ready — Show 👍 to auto-capture';
+                faceStatusEl.className = 'text-sm font-medium text-green-700';
+                lucide.createIcons();
+            }
+        } catch (e) {
+            showAlert('Failed to delete face data. Please try again.');
+        }
+    }
 
     async function loadProfile() {
         try {
@@ -353,27 +511,24 @@ aside > div{
             cameraStatusEl.className = 'text-red-600 font-semibold';
             faceStatusEl.textContent = 'Camera access denied';
             faceStatusEl.className = 'text-sm font-medium text-red-600';
-            captureBtn.disabled = true;
-            captureBtn.classList.replace('bg-green-700', 'bg-gray-400');
-            captureBtn.classList.add('cursor-not-allowed');
         }
     }
 
     function updateUI() {
         const count = capturedBlobs.length;
-        captureCountField.value = `Images captured: ${count} / ${REQUIRED_CAPTURES}`;
+        captureCountField.value = `Image captured: ${count} / ${REQUIRED_CAPTURES}`;
         const pct = (count / REQUIRED_CAPTURES) * 100;
         progressBar.style.width = pct + '%';
 
         if (count >= REQUIRED_CAPTURES) {
-            faceStatusEl.textContent = `${count} images captured — Ready to register`;
+            faceStatusEl.textContent = `${count} image captured — Ready to register`;
             faceStatusEl.className = 'text-sm font-medium text-green-700';
-            captureBtn.innerHTML = '<i data-lucide="check-circle" class="mr-2" style="width:16px;height:16px;"></i> Captures Complete';
-            captureBtn.disabled = true;
-            captureBtn.classList.replace('bg-green-700', 'bg-gray-400');
-            captureBtn.classList.add('cursor-not-allowed');
+            countdownOverlay.classList.add('hidden');
+            gestureBadge.classList.add('hidden');
+            if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
+            gestureActive = false;
         } else {
-            faceStatusEl.textContent = `Camera Ready — ${REQUIRED_CAPTURES - count} more needed`;
+            faceStatusEl.textContent = `Show 👍 to auto-capture — ${REQUIRED_CAPTURES - count} more needed`;
             faceStatusEl.className = 'text-sm font-medium text-green-700';
         }
 
@@ -398,6 +553,8 @@ aside > div{
                 capturedBlobs.push(blob);
                 statusField.value = `Status: Image ${capturedBlobs.length} captured`;
                 updateUI();
+                renderPreviews();
+                lucide.createIcons();
             }
         }, 'image/jpeg', 0.92);
     }
@@ -426,9 +583,9 @@ aside > div{
         }
     }
 
-    captureBtn.addEventListener('click', captureImage);
-
     checkbox.addEventListener('change', checkRequirements);
+
+    document.getElementById('retakeBtn').addEventListener('click', deleteFaceAndRetake);
 
     regBtn.addEventListener('click', async function() {
         if (capturedBlobs.length < REQUIRED_CAPTURES) {
@@ -441,42 +598,33 @@ aside > div{
         lucide.createIcons();
 
         try {
-            let successCount = 0;
-            for (let i = 0; i < capturedBlobs.length; i++) {
-                const formData = new FormData();
-                formData.append('image', capturedBlobs[i], `face_${i}.jpg`);
+            const formData = new FormData();
+            capturedBlobs.forEach((blob, i) => formData.append('image', blob, `face_${i}.jpg`));
 
-                const response = await fetch('/api/student/facial/enroll_face/', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': getCookie('csrftoken'),
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
-                    },
-                    body: formData
-                });
+            const response = await fetch('/api/student/facial/enroll_face/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                },
+                body: formData
+            });
 
-                if (response.ok) {
-                    successCount++;
-                } else {
-                    const err = await response.json().catch(() => ({}));
-                    console.error(`Enroll image ${i} failed:`, response.status, err);
-                }
-            }
-
-            if (successCount > 0) {
-                const ud = studentProfile ? (studentProfile.user_details || {}) : {};
-                const name = ud.full_name || ud.username || 'Student';
+            if (response.ok) {
+                const data = await response.json();
+                const name = data.student_name || 'Student';
                 Swal.fire({
                     icon: 'success',
                     title: 'Enrollment Complete',
-                    html: `<strong>${successCount}</strong> face image(s) enrolled successfully!<br><br>Enrolled to: <strong>${name}</strong>`,
+                    html: `<strong>${data.faces_used || capturedBlobs.length}</strong> face image(s) enrolled successfully!<br><br>Enrolled to: <strong>${name}</strong>`,
                     confirmButtonColor: '#166534',
                     confirmButtonText: 'Go to Dashboard',
                 }).then(() => {
                     window.location.href = '/dashboard/student/';
                 });
             } else {
-                showAlert('Failed to enroll face. Please try again.');
+                const err = await response.json().catch(() => ({}));
+                showAlert(err.error || 'Failed to enroll face. Please try again.');
                 regBtn.disabled = false;
                 regBtn.innerHTML = '<i data-lucide="user-plus" class="mr-1.5" style="width:16px;height:16px;"></i> Register Face';
                 lucide.createIcons();
@@ -492,8 +640,208 @@ aside > div{
         }
     });
 
+    // ponytail: thumbs-up auto-capture via MediaPipe Hands
+    let gestureActive = false;
+    let countdownTimer = null;
+    const countdownOverlay = document.getElementById('countdownOverlay');
+    const countdownNumber = document.getElementById('countdownNumber');
+    const gestureBadge = document.getElementById('gestureBadge');
+
+    function isThumbsUp(landmarks) {
+        // thumb tip (4) above thumb IP (3), other fingertips below their PIP joints
+        const thumbUp = landmarks[4].y < landmarks[3].y;
+        const indexDown = landmarks[8].y > landmarks[6].y;
+        const middleDown = landmarks[12].y > landmarks[10].y;
+        const ringDown = landmarks[16].y > landmarks[14].y;
+        const pinkyDown = landmarks[20].y > landmarks[18].y;
+        return thumbUp && indexDown && middleDown && ringDown && pinkyDown;
+    }
+
+    function startCountdown() {
+        if (gestureActive || capturedBlobs.length >= REQUIRED_CAPTURES) return;
+        // ponytail: skip countdown if checks are bad
+        if (lightStatusEl.classList.contains('bg-red-100') || faceSizeStatusEl.classList.contains('bg-red-100') || accessoryStatusEl.classList.contains('bg-red-100')) return;
+        gestureActive = true;
+        gestureBadge.classList.remove('hidden');
+        countdownOverlay.classList.remove('hidden');
+        let count = 3;
+        countdownNumber.textContent = count;
+
+        countdownTimer = setInterval(() => {
+            count--;
+            if (count <= 0) {
+                clearInterval(countdownTimer);
+                countdownOverlay.classList.add('hidden');
+                gestureBadge.classList.add('hidden');
+                gestureActive = false;
+                captureImage();
+            } else {
+                countdownNumber.textContent = count;
+            }
+        }, 1000);
+    }
+
+    function initGestureDetection() {
+        try {
+            const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}` });
+            hands.setOptions({ maxNumHands: 1, modelComplexity: 0, minDetectionConfidence: 0.7, minTrackingConfidence: 0.5 });
+            hands.onResults((results) => {
+                if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                    if (isThumbsUp(results.multiHandLandmarks[0])) {
+                        startCountdown();
+                    }
+                }
+            });
+
+            const faceMesh = new FaceMesh({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/${file}` });
+            faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: false, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+            faceMesh.onResults((results) => {
+                if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                    detectAccessories(results.multiFaceLandmarks[0]);
+                } else {
+                    accessoryStatusEl.className = 'inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500';
+                    accessoryStatusEl.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> No face detected';
+                }
+            });
+
+            // ponytail: single Camera instance feeds both hands + faceMesh
+            const cam = new Camera(video, {
+                onFrame: async () => {
+                    await hands.send({ image: video });
+                    await faceMesh.send({ image: video });
+                },
+                width: 1280, height: 720
+            });
+            cam.start();
+        } catch (e) {
+            console.warn('Gesture/accessory detection unavailable:', e);
+        }
+    }
+
+    // ponytail: frame quality analysis — lighting + face size checks
+    const lightStatusEl = document.getElementById('lightStatus');
+    const faceSizeStatusEl = document.getElementById('faceSizeStatus');
+    const faceCanvas = document.createElement('canvas');
+    const faceCtx = faceCanvas.getContext('2d', { willReadFrequently: true });
+    faceCanvas.width = 160;
+    faceCanvas.height = 120;
+
+    function updateStatus(el, ok, text) {
+        el.className = `inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full ${ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`;
+        el.querySelector('span, i')?.remove();
+        el.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${ok ? 'bg-green-500' : 'bg-red-500'}"></span> ${text}`;
+    }
+
+    function analyzeFrame() {
+        if (video.readyState < 2 || capturedBlobs.length >= REQUIRED_CAPTURES) return;
+        faceCtx.drawImage(video, 0, 0, faceCanvas.width, faceCanvas.height);
+        const data = faceCtx.getImageData(0, 0, faceCanvas.width, faceCanvas.height).data;
+
+        // average brightness (0-255)
+        let sum = 0;
+        for (let i = 0; i < data.length; i += 4) sum += (data[i] + data[i+1] + data[i+2]) / 3;
+        const brightness = sum / (data.length / 4);
+
+        if (brightness < 50) updateStatus(lightStatusEl, false, 'Too dark — move to brighter area');
+        else if (brightness > 220) updateStatus(lightStatusEl, false, 'Too bright — avoid direct light');
+        else updateStatus(lightStatusEl, true, 'Lighting OK');
+
+        // face size: check center region brightness variance (rough proxy)
+        const cx = faceCanvas.width / 2, cy = faceCanvas.height / 2;
+        const regionSize = 40;
+        const regionData = faceCtx.getImageData(cx - regionSize, cy - regionSize, regionSize * 2, regionSize * 2).data;
+        let min = 255, max = 0;
+        for (let i = 0; i < regionData.length; i += 4) {
+            const v = (regionData[i] + regionData[i+1] + regionData[i+2]) / 3;
+            if (v < min) min = v;
+            if (v > max) max = v;
+        }
+        const contrast = max - min;
+        if (contrast < 15) updateStatus(faceSizeStatusEl, false, 'Move closer to camera');
+        else updateStatus(faceSizeStatusEl, true, 'Position OK');
+    }
+
+    setInterval(analyzeFrame, 800);
+
+    // ponytail: FaceMesh-based accessory detection (glasses + hat)
+    const accessoryStatusEl = document.getElementById('accessoryStatus');
+    const accCanvas = document.createElement('canvas');
+    const accCtx = accCanvas.getContext('2d', { willReadFrequently: true });
+    accCanvas.width = 640;
+    accCanvas.height = 480;
+
+    function sampleRegion(ctx, x, y, w, h) {
+        const d = ctx.getImageData(x, y, w, h).data;
+        let r = 0, g = 0, b = 0, brightness = 0, count = 0;
+        for (let i = 0; i < d.length; i += 4) {
+            r += d[i]; g += d[i+1]; b += d[i+2];
+            brightness += (d[i] + d[i+1] + d[i+2]) / 3;
+            count++;
+        }
+        return { r: r/count, g: g/count, b: b/count, brightness: brightness/count };
+    }
+
+    function detectAccessories(faceLandmarks) {
+        if (!faceLandmarks || faceLandmarks.length === 0) {
+            accessoryStatusEl.className = 'inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500';
+            accessoryStatusEl.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> No face detected';
+            return;
+        }
+
+        accCtx.drawImage(video, 0, 0, accCanvas.width, accCanvas.height);
+        const lm = faceLandmarks;
+        const W = accCanvas.width, H = accCanvas.height;
+        const toXY = (p) => ({ x: Math.round(p.x * W), y: Math.round(p.y * H) });
+
+        // glasses detection: sample between eyes (nose bridge) and eye corners
+        const noseBridge = toXY(lm[6]);
+        const leftInner = toXY(lm[133]);
+        const rightInner = toXY(lm[263]);
+        const leftOuter = toXY(lm[33]);
+        const rightOuter = toXY(lm[355]);
+
+        // region between and around eyes
+        const gx1 = Math.max(0, leftOuter.x - 10);
+        const gy1 = Math.max(0, lm[159].y * H - 15);
+        const gx2 = Math.min(W, rightOuter.x + 10);
+        const gy2 = Math.min(H, lm[145].y * H + 15);
+        const eyeRegion = sampleRegion(accCtx, gx1, gy1, gx2 - gx1, gy2 - gy1);
+
+        // cheek samples for skin tone reference
+        const leftCheek = toXY(lm[234]);
+        const rightCheek = toXY(lm[454]);
+        const cheekL = sampleRegion(accCtx, Math.max(0, leftCheek.x - 8), Math.max(0, leftCheek.y - 8), 16, 16);
+        const cheekR = sampleRegion(accCtx, Math.max(0, rightCheek.x - 8), Math.max(0, rightCheek.y - 8), 16, 16);
+        const skinBrightness = (cheekL.brightness + cheekR.brightness) / 2;
+
+        // glasses: eye region significantly darker than cheeks (frames) or different hue
+        const brightnessDiff = skinBrightness - eyeRegion.brightness;
+        const hueShift = Math.abs((eyeRegion.r - eyeRegion.g) - (cheekL.r - cheekL.g));
+        const hasGlasses = brightnessDiff > 25 || hueShift > 30;
+
+        // hat: sample forehead above hairline
+        const forehead = toXY(lm[10]); // top of forehead
+        const fx = Math.max(0, forehead.x - 25);
+        const fy = Math.max(0, forehead.y - 20);
+        const foreheadRegion = sampleRegion(accCtx, fx, fy, 50, 30);
+        const foreheadDarker = skinBrightness - foreheadRegion.brightness;
+        const hasHat = foreheadDarker > 35 && foreheadRegion.brightness < 80;
+
+        if (hasGlasses && hasHat) {
+            updateStatus(accessoryStatusEl, false, 'Remove glasses & hat');
+        } else if (hasGlasses) {
+            updateStatus(accessoryStatusEl, false, 'Remove glasses');
+        } else if (hasHat) {
+            updateStatus(accessoryStatusEl, false, 'Remove hat / headwear');
+        } else {
+            updateStatus(accessoryStatusEl, true, 'No accessories detected');
+        }
+    }
+
     initCamera();
     loadProfile();
+    loadEnrolledFace();
+    initGestureDetection();
     lucide.createIcons();
 </script>
 </body>

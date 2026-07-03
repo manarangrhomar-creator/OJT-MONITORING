@@ -1,6 +1,8 @@
 import logging
+import pickle
 from rest_framework import viewsets, status, permissions
 from rest_framework.exceptions import ValidationError
+from django.http import HttpResponse
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from datetime import datetime, timedelta
@@ -15,7 +17,7 @@ from .models import StudentProfile, FacialRecognition, StudentNarrativeReport
 from .serializers import (StudentProfileSerializer, FacialRecognitionSerializer,
                           StudentNarrativeReportSerializer, StudentProgramSerializer,
                           StudentApplySerializer)
-from .face_utils import detect_face, encode_face, verify_faces
+from .face_utils import detect_face, encode_face, decode_face, verify_faces
 
 logger = logging.getLogger(__name__)
 
@@ -387,38 +389,69 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
     
     @action(detail=False, methods=['post'])
     def enroll_face(self, request):
-        """Enroll facial data for student."""
+        """Enroll facial data for student. Accepts multiple images, averages encodings."""
+        import numpy as np
         student = request.user
-        facial_image = request.FILES.get('image')
+        images = request.FILES.getlist('image')
 
-        if not facial_image:
-            return Response({'error': 'Image is required'}, status=status.HTTP_400_BAD_REQUEST)
+        if not images:
+            return Response({'error': 'At least one image is required'}, status=status.HTTP_400_BAD_REQUEST)
 
-        image_bytes = facial_image.read()
-        face_roi, coords = detect_face(image_bytes)
+        encodings = []
+        for facial_image in images:
+            image_bytes = facial_image.read()
+            face_roi, coords = detect_face(image_bytes)
+            if face_roi is not None:
+                encodings.append(decode_face(encode_face(face_roi)))
 
-        if face_roi is None:
-            return Response({'error': 'No face detected in the image. Please ensure your face is clearly visible.'}, status=status.HTTP_400_BAD_REQUEST)
+        if not encodings:
+            return Response({'error': 'No face detected in any image. Please ensure your face is clearly visible.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        encoding = encode_face(face_roi)
+        # Average all face encodings for better accuracy
+        avg_encoding = pickle.dumps(np.mean(encodings, axis=0).astype(np.uint8))
 
         facial_data, created = FacialRecognition.objects.get_or_create(
             student=student,
             defaults={
-                'facial_encoding': encoding,
+                'facial_encoding': avg_encoding,
                 'is_verified': True,
                 'verification_date': timezone.now()
             }
         )
 
         if not created:
-            facial_data.facial_encoding = encoding
+            facial_data.facial_encoding = avg_encoding
             facial_data.is_verified = True
             facial_data.verification_date = timezone.now()
             facial_data.save()
 
         serializer = self.get_serializer(facial_data)
-        return Response(serializer.data, status=status.HTTP_200_OK if not created else status.HTTP_201_CREATED)
+        data = serializer.data
+        data['student_name'] = student.get_full_name() or student.username
+        data['faces_used'] = len(encodings)
+        return Response(data, status=status.HTTP_200_OK if not created else status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['get'], url_path='my-face')
+    def my_face(self, request):
+        """Return enrolled face image as PNG."""
+        import cv2
+        try:
+            fr = FacialRecognition.objects.get(student=request.user)
+        except FacialRecognition.DoesNotExist:
+            return Response({'error': 'No enrolled face found'}, status=status.HTTP_404_NOT_FOUND)
+        if not fr.facial_encoding:
+            return Response({'error': 'No face data found'}, status=status.HTTP_404_NOT_FOUND)
+        face_roi = decode_face(fr.facial_encoding)
+        _, png = cv2.imencode('.png', face_roi)
+        return HttpResponse(bytes(png), content_type='image/png')
+
+    @action(detail=False, methods=['post'], url_path='delete-face')
+    def delete_face(self, request):
+        """Delete enrolled face data for student."""
+        deleted, _ = FacialRecognition.objects.filter(student=request.user).delete()
+        if deleted:
+            return Response({'detail': 'Face data deleted.'}, status=status.HTTP_200_OK)
+        return Response({'error': 'No face data to delete'}, status=status.HTTP_404_NOT_FOUND)
 
     @action(detail=False, methods=['post'])
     def verify_face(self, request):
