@@ -217,6 +217,30 @@
     <div id="programsGrid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
   </div>
 
+  <!-- PENDING APPROVAL SECTION -->
+  <div id="sectionPending" class="hidden animate-in">
+    <div class="bento-card p-8 text-center max-w-xl mx-auto mb-6">
+      <div class="w-14 h-14 rounded-full bg-amber-50 flex items-center justify-center mx-auto mb-4">
+        <i data-lucide="clock" class="w-7 h-7 text-amber-500"></i>
+      </div>
+      <h2 class="text-lg font-bold text-[var(--fg)] mb-1.5">Application Pending Approval</h2>
+      <p class="text-sm text-[var(--muted)] mb-4 max-w-md mx-auto">Your OJT application is currently awaiting review by your coordinator. You will be able to access the dashboard once it is approved.</p>
+      <div class="bg-amber-50 rounded-xl p-4 max-w-sm mx-auto mb-4">
+        <p class="text-xs font-semibold text-amber-800 uppercase tracking-wider mb-2">Application Status</p>
+        <div class="flex items-center justify-center gap-2">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 text-xs font-semibold">
+            <i data-lucide="hourglass" class="w-3.5 h-3.5"></i>
+            <span id="pendingAppStatus">Pending</span>
+          </span>
+        </div>
+      </div>
+      <p class="text-xs text-[var(--muted)]">You will receive a notification once your application is reviewed.</p>
+    </div>
+    <div class="flex justify-center">
+      <button onclick="logout()" class="px-6 py-2.5 bg-gray-400 hover:bg-gray-500 text-white font-semibold text-sm rounded-xl transition shadow-sm">Back to Login</button>
+    </div>
+  </div>
+
   <!-- DASHBOARD SECTION -->
   <div id="sectionDashboard">
 
@@ -604,8 +628,8 @@
       <div class="w-14 h-14 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mb-4">
         <i data-lucide="briefcase" class="w-7 h-7 text-[var(--primary)]"></i>
       </div>
-      <h2 class="text-lg font-bold text-[var(--fg)] mb-2">Apply for a Program First</h2>
-      <p class="text-sm text-[var(--muted)] leading-relaxed max-w-sm">You need to apply to an OJT program before accessing the dashboard.</p>
+      <h2 class="text-lg font-bold text-[var(--fg)] mb-2" id="applyRequiredTitle">Apply for a Program</h2>
+      <p class="text-sm text-[var(--muted)] leading-relaxed max-w-sm" id="applyRequiredDesc">You need to apply to an OJT program before accessing the dashboard.</p>
     </div>
     <div class="modal-buttons justify-center">
       <button onclick="closeModal('applyRequiredModal'); showApplySection();" class="px-6 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-semibold text-sm rounded-xl transition shadow-sm">OK, Let's Apply</button>
@@ -1189,6 +1213,7 @@ async function loadArchives() {
 
   function showDashboardContent() {
     document.getElementById('sectionApply').classList.add('hidden');
+    document.getElementById('sectionPending').classList.add('hidden');
     document.getElementById('sectionDashboard').classList.remove('hidden');
     switchToDashboard();
     loadDashboard(); loadAttendanceHistory(); loadArchives();
@@ -1200,6 +1225,7 @@ async function loadArchives() {
 
   function showApplySection() {
     document.getElementById('sectionApply').classList.remove('hidden');
+    document.getElementById('sectionPending').classList.add('hidden');
     document.getElementById('sectionDashboard').classList.add('hidden');
     loadAvailablePrograms();
   }
@@ -1224,8 +1250,11 @@ async function loadArchives() {
       });
       if (!res.ok) { const err = await res.json(); const msg = err.detail || Object.values(err).flat().join(', ') || 'Unknown error'; errDiv.textContent = 'Error: ' + msg; errDiv.classList.remove('hidden'); throw new Error(msg); }
       closeModal('applyModal');
-      showAlert('Application submitted successfully! You can now access your dashboard.');
-      showDashboardContent();
+      showAlert('Application submitted successfully! Please wait for coordinator approval.');
+      document.getElementById('sectionApply').classList.add('hidden');
+      document.getElementById('sectionPending').classList.remove('hidden');
+      document.getElementById('sectionDashboard').classList.add('hidden');
+      lucide.createIcons();
     } catch (err) { console.error(err); }
     btn.disabled = false;
     btn.innerHTML = '<i data-lucide="send"></i> Submit Application';
@@ -1235,8 +1264,31 @@ async function loadArchives() {
   async function initApp() {
     try {
       const apps = await apiFetch('/api/student/dashboard/my_applications/');
-      if (apps && apps.length > 0) { showDashboardContent(); }
-      else { openModal('applyRequiredModal'); lucide.createIcons(); }
+      if (apps && apps.length > 0) {
+        const hasApproved = apps.some(a => a.status === 'approved' || a.status === 'completed');
+        const hasPending = apps.some(a => a.status === 'pending');
+        const allRejected = apps.every(a => a.status === 'rejected');
+        if (hasApproved) {
+          showDashboardContent();
+        } else if (hasPending) {
+          document.getElementById('sectionApply').classList.add('hidden');
+          document.getElementById('sectionPending').classList.remove('hidden');
+          document.getElementById('sectionDashboard').classList.add('hidden');
+          lucide.createIcons();
+        } else if (allRejected) {
+          document.getElementById('applyRequiredTitle').textContent = 'Application Rejected';
+          document.getElementById('applyRequiredDesc').textContent = 'Your previous application was rejected. You can apply to a different program or re-apply to the same program.';
+          openModal('applyRequiredModal');
+          lucide.createIcons();
+        } else {
+          showDashboardContent();
+        }
+      } else {
+        document.getElementById('applyRequiredTitle').textContent = 'Apply for a Program';
+        document.getElementById('applyRequiredDesc').textContent = 'You need to apply to an OJT program before accessing the dashboard.';
+        openModal('applyRequiredModal');
+        lucide.createIcons();
+      }
     } catch (err) { showDashboardContent(); }
   }
 

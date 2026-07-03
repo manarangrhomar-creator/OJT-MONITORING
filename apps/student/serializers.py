@@ -78,7 +78,10 @@ class StudentApplySerializer(serializers.Serializer):
         user = self.context['request'].user
         if value.applications.filter(status='approved').count() >= value.max_students:
             raise serializers.ValidationError('This program has reached maximum capacity.')
-        if OJTApplication.objects.filter(student=user, program=value).exists():
+        existing = OJTApplication.objects.filter(student=user, program=value).first()
+        if existing:
+            if existing.status == 'rejected':
+                return value
             raise serializers.ValidationError('You have already applied to this program.')
         return value
 

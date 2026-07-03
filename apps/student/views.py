@@ -254,7 +254,7 @@ class StudentDashboardViewSet(viewsets.ViewSet):
         except StudentProfile.DoesNotExist:
             return Response({'error': 'Student profile not found'}, status=status.HTTP_404_NOT_FOUND)
 
-        applied_programs = OJTApplication.objects.filter(student=student).values_list('program_id', flat=True)
+        applied_programs = OJTApplication.objects.filter(student=student).exclude(status='rejected').values_list('program_id', flat=True)
 
         programs = OJTProgram.objects.filter(
             status='active',
@@ -278,22 +278,37 @@ class StudentDashboardViewSet(viewsets.ViewSet):
             context={'request': request}
         )
         if serializer.is_valid():
-            application = OJTApplication.objects.create(
-                student=request.user,
-                program=serializer.validated_data['program'],
-                application_letter=serializer.validated_data['application_letter'],
-                resume=serializer.validated_data.get('resume', None),
-                status='pending'
-            )
+            program = serializer.validated_data['program']
+            existing = OJTApplication.objects.filter(
+                student=request.user, program=program
+            ).first()
+            if existing and existing.status == 'rejected':
+                existing.status = 'pending'
+                existing.application_letter = serializer.validated_data['application_letter']
+                existing.resume = serializer.validated_data.get('resume', None)
+                existing.rejection_reason = ''
+                existing.approved_date = None
+                existing.save()
+                application = existing
+                is_new = False
+            else:
+                application = OJTApplication.objects.create(
+                    student=request.user,
+                    program=program,
+                    application_letter=serializer.validated_data['application_letter'],
+                    resume=serializer.validated_data.get('resume', None),
+                    status='pending'
+                )
+                is_new = True
             coordinator = application.program.coordinator
             create_and_send_notification(
                 recipient=coordinator,
-                title='New OJT Application',
-                message=f'{request.user.get_full_name() or request.user.username} has applied to {application.program.name}.',
+                title='New OJT Application' if is_new else 'Re-applied to OJT Program',
+                message=f'{request.user.get_full_name() or request.user.username} has {"applied to" if is_new else "re-applied to"} {application.program.name}.',
                 type='application_update',
                 related_object=application,
                 related_object_type='OJTApplication',
-                email_subject='New OJT Application Submitted',
+                email_subject='New OJT Application Submitted' if is_new else 'Re-applied to OJT Program',
             )
             out_serializer = OJTApplicationSerializer(application)
             broadcast_dashboard_update('applications')
