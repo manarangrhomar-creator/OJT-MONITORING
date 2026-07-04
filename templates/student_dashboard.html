@@ -1231,10 +1231,6 @@ async function loadArchives() {
     document.getElementById('sectionDashboard').classList.remove('hidden');
     switchToDashboard();
     loadDashboard(); loadAttendanceHistory(); loadArchives();
-    if (!window._dashboardPollInterval) {
-      window._dashboardPollInterval = setInterval(loadDashboard, 30000);
-      window._attendancePollInterval = setInterval(loadAttendanceHistory, 30000);
-    }
   }
 
   function showApplySection() {
@@ -1368,6 +1364,33 @@ async function loadArchives() {
     notifSocket.onerror = function() { notifSocket.close(); };
   }
   connectNotifSocket();
+
+  // Dashboard real-time updates via WebSocket
+  let dashboardSocket = null;
+  function connectDashboardSocket() {
+    const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const url = proto + '//' + window.location.host + '/ws/dashboard/?token=' + token;
+    dashboardSocket = new WebSocket(url);
+    dashboardSocket.onmessage = function(e) {
+      const data = JSON.parse(e.data);
+      if (data.type === 'dashboard_refresh') {
+        const sec = data.section || '';
+        if (sec === 'attendance' || sec === 'all') {
+          loadDashboard();
+          loadAttendanceHistory();
+        }
+        if (sec === 'reports' || sec === 'all') {
+          loadArchives();
+        }
+        if (sec === 'applications' || sec === 'all') {
+          initApp();
+        }
+      }
+    };
+    dashboardSocket.onclose = function() { setTimeout(connectDashboardSocket, 3000); };
+    dashboardSocket.onerror = function() { if (dashboardSocket) dashboardSocket.close(); };
+  }
+  connectDashboardSocket();
 
   async function loadNotifications() {
     try {

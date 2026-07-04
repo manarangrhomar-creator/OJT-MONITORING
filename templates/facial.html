@@ -209,7 +209,7 @@ aside > div{
             <div class="bg-green-800 rounded-xl p-3 text-white shadow flex flex-col gap-2">
 
                 <h2 class="text-sm font-bold">
-                    <i data-lucide="id-card" class="mr-1.5" style="width:14px;height:14px;"></i>Student Information
+                    <i data-lucide="contact" class="mr-1.5" style="width:14px;height:14px;"></i>Student Information
                 </h2>
 
                 <input class="w-full px-2 py-1 rounded text-black text-xs bg-gray-100"
@@ -337,11 +337,12 @@ aside > div{
         return new Promise((resolve) => {
             const w = video.videoWidth || 640;
             const h = video.videoHeight || 480;
-            canvas.width = w;
-            canvas.height = h;
+            const scale = 320 / w;
+            canvas.width = 320;
+            canvas.height = Math.round(h * scale);
             const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, w, h);
-            canvas.toBlob(resolve, 'image/jpeg', 0.92);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(resolve, 'image/jpeg', 0.8);
         });
     }
 
@@ -391,7 +392,28 @@ aside > div{
             if (data.student_name) {
                 studentNameInput.value = `Name: ${data.student_name}`;
             }
+            if (data.student_id) {
+                studentIdInput.value = `Student ID: ${data.student_id}`;
+            }
+            if (data.course) {
+                studentCourseInput.value = `Course: ${data.course}`;
+            }
         } catch {}
+    }
+
+    function updateDateTime() {
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: '2-digit' });
+        const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        document.querySelector('.attendance-status-value + .text-gray-500') ||
+            (document.querySelectorAll('.text-gray-500'));
+        const timeEls = document.querySelectorAll('.text-gray-500');
+        for (const el of timeEls) {
+            if (el.textContent.includes('•')) {
+                el.textContent = `${dateStr} • ${timeStr}`;
+                break;
+            }
+        }
     }
 
     actionBtn.addEventListener('click', async function () {
@@ -401,7 +423,7 @@ aside > div{
         setTimeout(() => wrapper.classList.remove('flash-effect'), 200);
 
         actionBtn.disabled = true;
-        actionBtn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin mr-2" style="width:16px;height:16px;"></i> Processing...';
+        actionBtn.innerHTML = '<i data-lucide="loader" class="animate-spin mr-2" style="width:16px;height:16px;"></i> Processing...';
         lucide.createIcons();
 
         try {
@@ -424,6 +446,7 @@ aside > div{
                 setStatus(currentAction === 'clock_in' ? 'Clocked In Successfully' : 'Clocked Out Successfully', 'success');
                 const now = new Date();
                 studentTimeInput.value = `Time: ${now.toLocaleTimeString()}`;
+                updateDateTime();
                 await checkTodayStatus();
             } else if (response.status === 404) {
                 setStatus(data.error || 'Facial data not enrolled', 'warning');
@@ -439,9 +462,16 @@ aside > div{
         }
     });
 
+    const token = localStorage.getItem('auth_token');
+    if (!token) {
+        window.location.href = '/login/';
+    }
+
     initCamera();
     checkTodayStatus();
     loadStudentInfo();
+    updateDateTime();
+    setInterval(updateDateTime, 30000);
 lucide.createIcons();
 </script>
 </body>

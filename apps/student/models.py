@@ -49,6 +49,7 @@ class FacialRecognition(BaseModel):
     """Store facial recognition data for students."""
     student = models.OneToOneField(User, on_delete=models.CASCADE, related_name='facial_data', limit_choices_to={'role': 'student'})
     facial_encoding = models.BinaryField()
+    face_image = models.BinaryField(blank=True, null=True)
     is_verified = models.BooleanField(default=False)
     verification_date = models.DateTimeField(blank=True, null=True)
     

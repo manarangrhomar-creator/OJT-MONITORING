@@ -472,7 +472,7 @@ aside > div{
 
     async function loadProfile() {
         try {
-            const res = await fetch('/api/student/my_profile/', {
+            const res = await fetch('/api/student/profile/my_profile/', {
                 headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` }
             });
             if (res.ok) {

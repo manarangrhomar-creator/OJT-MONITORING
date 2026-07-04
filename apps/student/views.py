@@ -1,5 +1,6 @@
 import logging
-import pickle
+import cv2
+import numpy as np
 from rest_framework import viewsets, status, permissions
 from rest_framework.exceptions import ValidationError
 from django.http import HttpResponse
@@ -87,8 +88,19 @@ class StudentDashboardViewSet(viewsets.ViewSet):
                 total_duration += (t_out - t_in)
         total_hours = total_duration.total_seconds() / 3600
         
+        # Get profile info
+        try:
+            profile = StudentProfile.objects.get(user=student)
+            student_id = profile.student_id
+            course_name = profile.course.name if profile.course else ''
+        except StudentProfile.DoesNotExist:
+            student_id = ''
+            course_name = ''
+
         return Response({
             'student_name': student.get_full_name(),
+            'student_id': student_id,
+            'course': course_name,
             'approved_applications': approved_apps,
             'pending_applications': pending_apps,
             'total_attendance_records': attendances.count(),
@@ -146,11 +158,11 @@ class StudentDashboardViewSet(viewsets.ViewSet):
             return Response({'error': 'Facial data not enrolled. Please enroll your face first.'}, status=status.HTTP_404_NOT_FOUND)
 
         image_bytes = facial_image.read()
-        new_face_roi, coords = detect_face(image_bytes)
-        if new_face_roi is None:
+        embedding, _ = detect_face(image_bytes)
+        if embedding is None:
             return Response({'error': 'No face detected in the image.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        is_match, confidence = verify_faces(facial_data.facial_encoding, new_face_roi)
+        is_match, confidence = verify_faces(facial_data.facial_encoding, embedding)
         if not is_match:
             return Response({
                 'verified': False,
@@ -207,11 +219,11 @@ class StudentDashboardViewSet(viewsets.ViewSet):
             return Response({'error': 'Facial data not enrolled.'}, status=status.HTTP_404_NOT_FOUND)
 
         image_bytes = facial_image.read()
-        new_face_roi, coords = detect_face(image_bytes)
-        if new_face_roi is None:
+        embedding, _ = detect_face(image_bytes)
+        if embedding is None:
             return Response({'error': 'No face detected.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        is_match, confidence = verify_faces(facial_data.facial_encoding, new_face_roi)
+        is_match, confidence = verify_faces(facial_data.facial_encoding, embedding)
         if not is_match:
             return Response({
                 'verified': False,
@@ -395,6 +407,7 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
         import numpy as np
         student = request.user
         images = request.FILES.getlist('image')
+        face_thumbnail = request.FILES.get('face_thumbnail')
 
         if not images:
             return Response({'error': 'At least one image is required'}, status=status.HTTP_400_BAD_REQUEST)
@@ -402,27 +415,36 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
         encodings = []
         for facial_image in images:
             image_bytes = facial_image.read()
-            face_roi, coords = detect_face(image_bytes)
-            if face_roi is not None:
-                encodings.append(decode_face(encode_face(face_roi)))
+            embedding, _ = detect_face(image_bytes)
+            if embedding is not None:
+                encodings.append(embedding)
 
         if not encodings:
             return Response({'error': 'No face detected in any image. Please ensure your face is clearly visible.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Average all face encodings for better accuracy
-        avg_encoding = pickle.dumps(np.mean(encodings, axis=0).astype(np.uint8))
+        avg_encoding = np.mean(encodings, axis=0).astype(np.float32)
+        encoded = encode_face(avg_encoding)
+
+        # Save optional face thumbnail for my_face endpoint
+        thumb_bytes = None
+        if face_thumbnail:
+            thumb_bytes = face_thumbnail.read()
 
         facial_data, created = FacialRecognition.objects.get_or_create(
             student=student,
             defaults={
-                'facial_encoding': avg_encoding,
+                'facial_encoding': encoded,
+                'face_image': thumb_bytes,
                 'is_verified': True,
                 'verification_date': timezone.now()
             }
         )
 
         if not created:
-            facial_data.facial_encoding = avg_encoding
+            facial_data.facial_encoding = encoded
+            if thumb_bytes:
+                facial_data.face_image = thumb_bytes
             facial_data.is_verified = True
             facial_data.verification_date = timezone.now()
             facial_data.save()
@@ -436,16 +458,13 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='my-face')
     def my_face(self, request):
         """Return enrolled face image as PNG."""
-        import cv2
         try:
             fr = FacialRecognition.objects.get(student=request.user)
         except FacialRecognition.DoesNotExist:
             return Response({'error': 'No enrolled face found'}, status=status.HTTP_404_NOT_FOUND)
-        if not fr.facial_encoding:
-            return Response({'error': 'No face data found'}, status=status.HTTP_404_NOT_FOUND)
-        face_roi = decode_face(fr.facial_encoding)
-        _, png = cv2.imencode('.png', face_roi)
-        return HttpResponse(bytes(png), content_type='image/png')
+        if not fr.face_image:
+            return Response({'error': 'No face image found'}, status=status.HTTP_404_NOT_FOUND)
+        return HttpResponse(bytes(fr.face_image), content_type='image/png')
 
     @action(detail=False, methods=['post'], url_path='delete-face')
     def delete_face(self, request):
@@ -470,12 +489,12 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Facial data not enrolled. Please enroll your face first.'}, status=status.HTTP_404_NOT_FOUND)
 
         image_bytes = facial_image.read()
-        new_face_roi, coords = detect_face(image_bytes)
+        embedding, _ = detect_face(image_bytes)
 
-        if new_face_roi is None:
+        if embedding is None:
             return Response({'error': 'No face detected in the image. Please ensure your face is clearly visible.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        is_match, confidence = verify_faces(facial_data.facial_encoding, new_face_roi)
+        is_match, confidence = verify_faces(facial_data.facial_encoding, embedding)
 
         if is_match:
             facial_data.is_verified = True
