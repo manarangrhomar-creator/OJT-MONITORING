@@ -252,3 +252,5 @@ os.makedirs(BASE_DIR / 'logs', exist_ok=True)
 
 # Create media directories if they don't exist
 os.makedirs(BASE_DIR / 'media' / 'narratives', exist_ok=True)
+os.makedirs(BASE_DIR / 'media' / 'applications', exist_ok=True)
+os.makedirs(BASE_DIR / 'media' / 'resumes', exist_ok=True)

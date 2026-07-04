@@ -44,7 +44,7 @@ class OJTApplication(BaseModel):
     program = models.ForeignKey(OJTProgram, on_delete=models.CASCADE, related_name='applications')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)
     application_letter = models.FileField(upload_to='applications/')
-    resume = models.FileField(upload_to='resumes/')
+    resume = models.FileField(upload_to='resumes/', blank=True, null=True)
     approved_date = models.DateTimeField(blank=True, null=True)
     rejection_reason = models.TextField(blank=True)
     

@@ -990,8 +990,8 @@
     return res.json();
   }
 
-  function showAlert(msg) {
-    Swal.fire({ icon: 'info', text: msg, confirmButtonColor: '#11693A', confirmButtonText: 'OK', background: '#ffffff', color: '#1A1A2E' });
+  function showAlert(msg, type = 'info') {
+    Swal.fire({ icon: type, text: msg, confirmButtonColor: '#11693A', confirmButtonText: 'OK', background: '#ffffff', color: '#1A1A2E' });
   }
 
   function showConfirm(msg, onConfirm) {
@@ -1122,7 +1122,7 @@
         stopEnrollCamera();
         closeModal('enrollFaceModal');
         closeModal('approveAppModal');
-        showAlert('Face enrolled and application approved!');
+        showAlert('Face enrolled and application approved!', 'success');
         loadApplications();
         loadOverview();
       } else {
@@ -1666,9 +1666,9 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken'), 'Authorization': `Token ${token}` }
       });
-      if (!res.ok) { const err = await res.json().catch(() => ({})); showAlert(err.message || 'Failed'); return; }
-      showAlert('Application approved!'); closeModal('approveAppModal'); loadApplications(); loadOverview();
-    } catch (e) { showAlert('Error'); console.error(e); }
+      if (!res.ok) { const err = await res.json().catch(() => ({})); showAlert(err.detail || Object.values(err).flat().join(', ') || 'Failed', 'error'); return; }
+      showAlert('Application approved!', 'success'); closeModal('approveAppModal'); loadApplications(); loadOverview();
+    } catch (e) { showAlert('Error', 'error'); console.error(e); }
     finally { btn.disabled = false; btn.innerHTML = orig; }
   }
 
@@ -1695,9 +1695,9 @@
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken'), 'Authorization': `Token ${token}` },
         body: JSON.stringify({ reason })
       });
-      if (!res.ok) { const err = await res.json().catch(() => ({})); showAlert(err.message || 'Failed'); return; }
-      showAlert('Application rejected.'); closeModal('rejectAppModal'); loadApplications();
-    } catch (e) { showAlert('Error'); console.error(e); }
+      if (!res.ok) { const err = await res.json().catch(() => ({})); showAlert(err.detail || Object.values(err).flat().join(', ') || 'Failed', 'error'); return; }
+      showAlert('Application rejected successfully!', 'success'); closeModal('rejectAppModal'); loadApplications(); loadOverview();
+    } catch (e) { showAlert('Error', 'error'); console.error(e); }
     finally { btn.disabled = false; btn.innerHTML = orig; }
   }
 

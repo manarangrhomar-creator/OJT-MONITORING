@@ -1173,7 +1173,21 @@ async function loadArchives() {
   }
 
   function showAlert(message) {
-    return Swal.fire({ icon: 'info', text: message, confirmButtonColor: 'var(--primary)', confirmButtonText: 'OK', background: 'var(--primary)', color: '#fff', iconColor: '#fff' });
+    return Swal.fire({ 
+      icon: 'success', 
+      title: 'Success!',
+      text: message, 
+      confirmButtonColor: 'var(--primary)', 
+      confirmButtonText: 'OK', 
+      background: 'var(--primary)', 
+      color: '#fff', 
+      iconColor: '#fff',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      didOpen: () => {
+        console.log('Alert shown with message:', message);
+      }
+    });
   }
 
   document.getElementById('reportDate').value = new Date().toISOString().split('T')[0];
@@ -1248,17 +1262,35 @@ async function loadArchives() {
       const res = await fetch('/api/student/dashboard/apply/', {
         method: 'POST', headers: { 'Authorization': `Token ${token}` }, body: formData
       });
-      if (!res.ok) { const err = await res.json(); const msg = err.detail || Object.values(err).flat().join(', ') || 'Unknown error'; errDiv.textContent = 'Error: ' + msg; errDiv.classList.remove('hidden'); throw new Error(msg); }
+      if (!res.ok) { 
+        let msg = 'Unknown error'; 
+        try { 
+          const err = await res.json(); 
+          msg = err.detail || Object.values(err).flat().join(', ') || 'Unknown error'; 
+        } catch (parseErr) { 
+          msg = `Server error (${res.status}): ${res.statusText}`; 
+        } 
+        errDiv.innerHTML = '<strong>Error:</strong> ' + msg; 
+        errDiv.classList.remove('hidden'); 
+        btn.disabled = false; 
+        btn.innerHTML = '<i data-lucide="send"></i> Submit Application'; 
+        lucide.createIcons(); 
+        return; 
+      }
       closeModal('applyModal');
-      showAlert('Application submitted successfully! Please wait for coordinator approval.');
+      await showAlert('Application submitted successfully! Please wait for coordinator approval.');
       document.getElementById('sectionApply').classList.add('hidden');
       document.getElementById('sectionPending').classList.remove('hidden');
       document.getElementById('sectionDashboard').classList.add('hidden');
       lucide.createIcons();
-    } catch (err) { console.error(err); }
-    btn.disabled = false;
-    btn.innerHTML = '<i data-lucide="send"></i> Submit Application';
-    lucide.createIcons();
+    } catch (err) { 
+      console.error('Application submission error:', err); 
+      errDiv.innerHTML = '<strong>Error:</strong> ' + (err.message || 'Failed to submit application'); 
+      errDiv.classList.remove('hidden'); 
+      btn.disabled = false; 
+      btn.innerHTML = '<i data-lucide="send"></i> Submit Application'; 
+      lucide.createIcons(); 
+    }
   }
 
   async function initApp() {

@@ -101,14 +101,17 @@ class OJTApplicationViewSet(viewsets.ModelViewSet):
         application.status = 'approved'
         application.approved_date = timezone.now()
         application.save()
-        student_name = application.student.get_full_name() or application.student.username
-        send_email_task.delay(
-            recipient_email=application.student.email,
-            subject='OJT Application Approved',
-            message=f'Your OJT application for {application.program.name} has been approved.',
-            title='Application Approved',
-            recipient_name=student_name,
-        )
+        try:
+            student_name = application.student.get_full_name() or application.student.username
+            send_email_task.delay(
+                recipient_email=application.student.email,
+                subject='OJT Application Approved',
+                message=f'Your OJT application for {application.program.name} has been approved.',
+                title='Application Approved',
+                recipient_name=student_name,
+            )
+        except Exception:
+            pass
         broadcast_dashboard_update('applications')
         return Response({'message': 'Application approved'}, status=status.HTTP_200_OK)
     
@@ -120,14 +123,17 @@ class OJTApplicationViewSet(viewsets.ModelViewSet):
         application.rejection_reason = request.data.get('reason', '')
         application.save()
         reason = request.data.get('reason', 'No reason provided')
-        student_name = application.student.get_full_name() or application.student.username
-        send_email_task.delay(
-            recipient_email=application.student.email,
-            subject='OJT Application Rejected',
-            message=f'Your OJT application for {application.program.name} has been rejected. Reason: {reason}',
-            title='Application Rejected',
-            recipient_name=student_name,
-        )
+        try:
+            student_name = application.student.get_full_name() or application.student.username
+            send_email_task.delay(
+                recipient_email=application.student.email,
+                subject='OJT Application Rejected',
+                message=f'Your OJT application for {application.program.name} has been rejected. Reason: {reason}',
+                title='Application Rejected',
+                recipient_name=student_name,
+            )
+        except Exception:
+            pass
         broadcast_dashboard_update('applications')
         return Response({'message': 'Application rejected'}, status=status.HTTP_200_OK)
 

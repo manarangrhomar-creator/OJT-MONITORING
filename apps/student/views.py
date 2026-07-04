@@ -299,7 +299,9 @@ class StudentDashboardViewSet(viewsets.ViewSet):
                     program=program,
                     application_letter=serializer.validated_data['application_letter'],
                     resume=serializer.validated_data.get('resume', None),
-                    status='pending'
+                    status='pending',
+                    created_by=request.user,
+                    updated_by=request.user,
                 )
                 is_new = True
             coordinator = application.program.coordinator

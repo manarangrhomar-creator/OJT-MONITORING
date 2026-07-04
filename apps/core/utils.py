@@ -1,6 +1,7 @@
 """
 Utils for the application
 """
+import logging
 from datetime import datetime, timedelta
 
 from asgiref.sync import async_to_sync
@@ -11,6 +12,8 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from .models import Notification
 from .tasks import send_email_task, _attach_logo
+
+logger = logging.getLogger(__name__)
 
 
 def get_week_range(date=None):
@@ -148,11 +151,14 @@ def create_and_send_notification(recipient, title, message, type='general',
         related_object_type=related_object_type,
     )
     if recipient.email:
-        recipient_name = recipient.get_full_name() or recipient.username
-        send_email_task.delay(
-            recipient_email=recipient.email,
-            subject=email_subject or title,
-            message=message,
-            title=title,
-            recipient_name=recipient_name,
-        )
+        try:
+            recipient_name = recipient.get_full_name() or recipient.username
+            send_email_task.delay(
+                recipient_email=recipient.email,
+                subject=email_subject or title,
+                message=message,
+                title=title,
+                recipient_name=recipient_name,
+            )
+        except Exception:
+            logger.exception('Failed to send email notification to %s', recipient.email)

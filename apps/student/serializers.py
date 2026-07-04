@@ -72,7 +72,7 @@ class StudentApplySerializer(serializers.Serializer):
     """Student application submission."""
     program = serializers.PrimaryKeyRelatedField(queryset=OJTProgram.objects.filter(status='active'))
     application_letter = serializers.FileField()
-    resume = serializers.FileField(required=False)
+    resume = serializers.FileField(required=False, allow_null=True)
 
     def validate_program(self, value):
         user = self.context['request'].user
