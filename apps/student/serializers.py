@@ -68,11 +68,30 @@ class StudentProgramSerializer(serializers.ModelSerializer):
         return obj.applications.filter(status='approved').count()
 
 
+ALLOWED_DOC_EXTENSIONS = {'.pdf'}
+
 class StudentApplySerializer(serializers.Serializer):
     """Student application submission."""
     program = serializers.PrimaryKeyRelatedField(queryset=OJTProgram.objects.filter(status='active'))
     application_letter = serializers.FileField()
     resume = serializers.FileField(required=False, allow_null=True)
+
+    def _validate_file_ext(self, value, field_name):
+        import os
+        ext = os.path.splitext(value.name)[1].lower()
+        if ext not in ALLOWED_DOC_EXTENSIONS:
+            raise serializers.ValidationError(
+                f'{field_name}: File type "{ext}" not allowed. Accepted: PDF only.'
+            )
+        return value
+
+    def validate_application_letter(self, value):
+        return self._validate_file_ext(value, 'Application letter')
+
+    def validate_resume(self, value):
+        if value:
+            return self._validate_file_ext(value, 'Resume')
+        return value
 
     def validate_program(self, value):
         user = self.context['request'].user

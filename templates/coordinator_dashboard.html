@@ -809,16 +809,22 @@
       <div>
         <p class="text-[0.55rem] font-bold uppercase tracking-wider mb-2" style="color: var(--fg-muted);">Submitted Documents</p>
         <div class="space-y-2">
-          <a id="approveAppLetter" href="#" target="_blank" class="flex items-center gap-2.5 p-2.5 rounded-lg text-xs font-semibold" style="background: var(--card-bg); border: 1px solid var(--card-border); color: var(--primary); text-decoration: none;">
-            <i data-lucide="file-text" class="w-4 h-4 shrink-0"></i>
-            <span>Application Letter</span>
-            <i data-lucide="external-link" class="w-3 h-3 ml-auto shrink-0" style="color: var(--fg-dim);"></i>
-          </a>
-          <a id="approveAppResume" href="#" target="_blank" class="flex items-center gap-2.5 p-2.5 rounded-lg text-xs font-semibold" style="background: var(--card-bg); border: 1px solid var(--card-border); color: var(--primary); text-decoration: none;">
-            <i data-lucide="file" class="w-4 h-4 shrink-0"></i>
-            <span>Resume / CV</span>
-            <i data-lucide="external-link" class="w-3 h-3 ml-auto shrink-0" style="color: var(--fg-dim);"></i>
-          </a>
+          <div id="approveAppLetterWrap" class="hidden">
+            <div class="flex items-center gap-2.5 p-2.5 rounded-lg text-xs font-semibold" style="background: var(--card-bg); border: 1px solid var(--card-border);">
+              <i data-lucide="file-text" class="w-4 h-4 shrink-0"></i>
+              <span>Application Letter</span>
+              <a id="approveAppLetter" href="#" target="_blank" class="ml-auto text-[0.55rem] underline" style="color: var(--primary);">Open in new tab</a>
+            </div>
+            <iframe id="approveAppLetterPreview" class="w-full rounded-lg mt-2 hidden" style="height: 400px; border: 1px solid var(--card-border);" src="about:blank"></iframe>
+          </div>
+          <div id="approveAppResumeWrap" class="hidden">
+            <div class="flex items-center gap-2.5 p-2.5 rounded-lg text-xs font-semibold" style="background: var(--card-bg); border: 1px solid var(--card-border);">
+              <i data-lucide="file" class="w-4 h-4 shrink-0"></i>
+              <span>Resume / CV</span>
+              <a id="approveAppResume" href="#" target="_blank" class="ml-auto text-[0.55rem] underline" style="color: var(--primary);">Open in new tab</a>
+            </div>
+            <iframe id="approveAppResumePreview" class="w-full rounded-lg mt-2 hidden" style="height: 400px; border: 1px solid var(--card-border);" src="about:blank"></iframe>
+          </div>
         </div>
       </div>
       <div>
@@ -962,7 +968,13 @@
   if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
   window.scrollTo(0, 0);
   function openModal(id) { document.getElementById(id).classList.add('active'); }
-  function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('active');
+    if (id === 'approveAppModal') {
+      document.getElementById('approveAppLetterPreview').src = 'about:blank';
+      document.getElementById('approveAppResumePreview').src = 'about:blank';
+    }
+  }
 
   const token = localStorage.getItem('auth_token');
   if (!token || token === 'undefined' || token === 'null') {
@@ -1622,19 +1634,29 @@
     document.getElementById('approveAppInitial').textContent = (a.student_name || '?').charAt(0).toUpperCase();
     document.getElementById('approveAppId').value = id;
     document.getElementById('enrollAppStudentId').value = a.student;
+    const letterWrap = document.getElementById('approveAppLetterWrap');
     const letterLink = document.getElementById('approveAppLetter');
+    const letterPreview = document.getElementById('approveAppLetterPreview');
     if (a.application_letter) {
       letterLink.href = a.application_letter;
-      letterLink.style.display = 'flex';
+      letterPreview.src = a.application_letter;
+      letterWrap.classList.remove('hidden');
+      letterPreview.classList.remove('hidden');
     } else {
-      letterLink.style.display = 'none';
+      letterWrap.classList.add('hidden');
+      letterPreview.classList.add('hidden');
     }
+    const resumeWrap = document.getElementById('approveAppResumeWrap');
     const resumeLink = document.getElementById('approveAppResume');
+    const resumePreview = document.getElementById('approveAppResumePreview');
     if (a.resume) {
       resumeLink.href = a.resume;
-      resumeLink.style.display = 'flex';
+      resumePreview.src = a.resume;
+      resumeWrap.classList.remove('hidden');
+      resumePreview.classList.remove('hidden');
     } else {
-      resumeLink.style.display = 'none';
+      resumeWrap.classList.add('hidden');
+      resumePreview.classList.add('hidden');
     }
     document.getElementById('approveAppDate').textContent = a.created_at ? new Date(a.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
     document.getElementById('confirmApproveAppBtn').style.display = 'inline-block';

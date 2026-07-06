@@ -14,7 +14,7 @@ from apps.core.models import User, Course
 from apps.student.models import StudentProfile
 from apps.core.utils import create_notification, broadcast_dashboard_update
 from .serializers import UserRegisterSerializer, UserLoginSerializer, UserSerializer, SendOTPSerializer, VerifyOTPSerializer, ResetPasswordSerializer
-from .models import PasswordResetOTP, EmailVerificationToken
+from .models import PasswordResetOTP, EmailVerificationToken, LoginAttempt
 import os
 
 RATE_LIMIT_MINUTES = 5
@@ -30,6 +30,22 @@ def _check_rate_limit(request, action_key):
         return False
     cache.set(cache_key, count + 1, RATE_LIMIT_MINUTES * 60)
     return True
+
+
+def _log_failed_attempt(identifier, ip, user_agent):
+    """Log a failed login attempt to the database."""
+    user = None
+    try:
+        user = User.objects.get(email=identifier)
+    except User.DoesNotExist:
+        try:
+            from apps.student.models import StudentProfile
+            profile = StudentProfile.objects.get(student_id=identifier)
+            user = profile.user
+        except Exception:
+            pass
+    if user:
+        LoginAttempt.objects.create(user=user, ip_address=ip, success=False, user_agent=user_agent)
 
 
 def _attach_logo(email):
@@ -165,24 +181,37 @@ class AuthenticationViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
     def login(self, request):
         """User login with token authentication."""
-        if not _check_rate_limit(request, 'login'):
+        ip = request.META.get('REMOTE_ADDR', '0.0.0.0')
+        user_agent = request.META.get('HTTP_USER_AGENT', '')
+
+        # Check rate limit (only blocks, doesn't increment yet)
+        rl_key = f'rl:login:{ip}'
+        if cache.get(rl_key, 0) >= RATE_LIMIT_MAX:
             return Response({'error': 'Too many requests. Try again later.'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
+
         serializer = UserLoginSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data['user']
-            
+
             # Get or create token
             token, created = Token.objects.get_or_create(user=user)
-            
+
             # Create Django session for @login_required views
             login(request, user)
-            
+
+            # Log successful attempt
+            LoginAttempt.objects.create(user=user, ip_address=ip, success=True, user_agent=user_agent)
+
             return Response({
                 'message': 'Login successful',
                 'user': UserSerializer(user).data,
                 'token': token.key
             }, status=status.HTTP_200_OK)
-        
+
+        # Failed login — increment rate limit and log
+        cache.set(rl_key, cache.get(rl_key, 0) + 1, RATE_LIMIT_MINUTES * 60)
+        _log_failed_attempt(request.data.get('identifier', ''), ip, user_agent)
+
         return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
     
     @action(detail=False, methods=['post'], permission_classes=[IsAuthenticated])

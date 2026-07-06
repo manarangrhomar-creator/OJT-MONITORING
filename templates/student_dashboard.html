@@ -204,15 +204,15 @@
       <p class="text-xs text-[var(--muted)] mt-3">Loading available programs...</p>
     </div>
     <div id="programsError" class="hidden text-center py-8"><p class="text-red-500 text-xs font-semibold">Failed to load programs.</p></div>
+    <div class="relative mb-4">
+      <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--muted)] w-4 h-4"></i>
+      <input type="text" id="programSearch" oninput="filterPrograms()" placeholder="Search programs..." class="w-full pl-10 pr-4 py-2.5 border border-[var(--border)] rounded-xl text-sm outline-none focus:border-[var(--primary)] transition bg-white">
+    </div>
+
     <div id="noProgramsMsg" class="hidden text-center py-10 bento-card">
       <i data-lucide="frown" class="text-gray-300 w-9 h-9 mx-auto"></i>
       <p class="text-sm font-semibold text-[var(--muted)] mt-3">No programs available for your course at this time.</p>
       <p class="text-xs text-[var(--muted)] mt-1">Please check back later or contact your coordinator.</p>
-    </div>
-
-    <div class="relative mb-4">
-      <i data-lucide="search" class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[var(--muted)] w-4 h-4"></i>
-      <input type="text" id="programSearch" oninput="filterPrograms()" placeholder="Search programs..." class="w-full pl-10 pr-4 py-2.5 border border-[var(--border)] rounded-xl text-sm outline-none focus:border-[var(--primary)] transition bg-white">
     </div>
     <div id="programsGrid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
   </div>
@@ -610,8 +610,8 @@
       </div>
       <div class="flex flex-col">
         <label class="text-[10px] font-semibold text-[var(--muted)] uppercase mb-1">Application Letter <span class="text-red-500">*</span></label>
-        <input type="file" id="applyLetter" required accept=".pdf,.doc,.docx" class="p-2.5 border border-[var(--border)] text-sm outline-none bg-white rounded-xl file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[var(--primary)]/10 file:text-[var(--primary)] hover:file:bg-[var(--primary)]/20">
-        <p class="text-[10px] text-[var(--muted)] mt-1">Upload your application letter (PDF, DOC, DOCX)</p>
+        <input type="file" id="applyLetter" required accept=".pdf" class="p-2.5 border border-[var(--border)] text-sm outline-none bg-white rounded-xl file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[var(--primary)]/10 file:text-[var(--primary)] hover:file:bg-[var(--primary)]/20">
+        <p class="text-[10px] text-[var(--muted)] mt-1">Upload your application letter (PDF only)</p>
       </div>
       <div id="applyError" class="hidden p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-medium rounded-lg"></div>
       <div class="modal-buttons">
