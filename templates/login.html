@@ -47,19 +47,24 @@
     .animate-in > *:nth-child(2) { animation-delay: 0.2s; }
     .animate-in > *:nth-child(3) { animation-delay: 0.35s; }
     .animate-in > *:nth-child(4) { animation-delay: 0.5s; }
-    .bg-seal {
+    .bg-seal-wrap {
       position: fixed;
-      right: -120px;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+    .bg-seal {
+      position: absolute;
+      right: 50px;
       top: 50%;
       transform: translateY(-50%);
       width: 500px;
       height: 500px;
       opacity: 0.04;
-      pointer-events: none;
-      z-index: 0;
     }
     @media (max-width: 767px) {
-      .bg-seal { width: 160px; height: 160px; right: -60px; opacity: 0.025; }
+      .bg-seal { width: 160px; height: 160px; right: 0; opacity: 0.025; }
     }
     .gold-link {
       position: relative;
@@ -132,7 +137,9 @@
 </head>
 <body class="grain min-h-screen flex items-center justify-center p-4 overflow-x-hidden">
 
-  <img class="bg-seal" src="{% static 'images/isu_new_seal_512x512.png' %}" alt="" aria-hidden="true" />
+  <div class="bg-seal-wrap">
+    <img class="bg-seal" src="{% static 'images/isu_new_seal_512x512.png' %}" alt="" aria-hidden="true" />
+  </div>
 
   <div id="loginLoadingMessage" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
     <div class="isu-loader">
