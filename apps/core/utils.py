@@ -2,6 +2,7 @@
 Utils for the application
 """
 import logging
+import math
 from datetime import datetime, timedelta
 
 from asgiref.sync import async_to_sync
@@ -162,3 +163,20 @@ def create_and_send_notification(recipient, title, message, type='general',
             )
         except Exception:
             logger.exception('Failed to send email notification to %s', recipient.email)
+
+
+def haversine(lat1, lon1, lat2, lon2):
+    """Return distance in meters between two lat/lon points."""
+    R = 6371000  # Earth radius in meters
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlam = math.radians(lon2 - lon1)
+    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
+def is_within_geofence(student_lat, student_lon, site_lat, site_lon, radius_m=100):
+    """Check if student coordinates are within radius_m of the site."""
+    if None in (student_lat, student_lon, site_lat, site_lon):
+        return True  # no coords = skip check
+    return haversine(student_lat, student_lon, site_lat, site_lon) <= radius_m

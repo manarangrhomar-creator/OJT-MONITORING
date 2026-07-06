@@ -101,6 +101,14 @@ CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 
+# Celery beat schedule for periodic tasks
+CELERY_BEAT_SCHEDULE = {
+    'auto-clockout-stale-attendances': {
+        'task': 'apps.core.tasks.auto_clockout_stale_attendances',
+        'schedule': 3600,  # every hour; ponytail: hardcoded, move to settings if different sites need different intervals
+    },
+}
+
 # Cache configuration (local memory for dev — Redis needed in production for Celery broker)
 CACHES = {
     'default': {

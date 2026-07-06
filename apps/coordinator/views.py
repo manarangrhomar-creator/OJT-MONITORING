@@ -11,8 +11,8 @@ from apps.core.tasks import send_email_task
 from apps.student.models import StudentNarrativeReport, FacialRecognition
 from apps.student.serializers import StudentNarrativeReportSerializer
 from apps.student.face_utils import detect_face, encode_face
-from .models import OJTProgram, OJTApplication, Attendance, SiteAssignment, Site
-from .serializers import OJTProgramSerializer, OJTApplicationSerializer, AttendanceSerializer, SiteAssignmentSerializer
+from .models import OJTProgram, OJTApplication, Attendance, SiteAssignment, Site, FlagRecord
+from .serializers import OJTProgramSerializer, OJTApplicationSerializer, AttendanceSerializer, SiteAssignmentSerializer, FlagRecordSerializer
 
 
 class IsCoordinator(permissions.BasePermission):
@@ -164,7 +164,12 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             student_id=student_id,
             program_id=program_id,
             date=timezone.now().date(),
-            defaults={'time_in': timezone.now().time()}
+            defaults={
+                'time_in': timezone.now().time(),
+                'latitude': request.data.get('latitude'),
+                'longitude': request.data.get('longitude'),
+                'ip_address': request.META.get('REMOTE_ADDR'),
+            }
         )
         
         if created:
@@ -510,6 +515,95 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
             'contact_number': s.contact_number,
         } for s in sites]
         return Response(data)
+
+    @action(detail=False, methods=['get'], url_path='flagged-records')
+    def flagged_records(self, request):
+        """Get all unresolved flagged attendance records."""
+        coordinator = request.user
+        programs = OJTProgram.objects.filter(coordinator=coordinator)
+        flags = FlagRecord.objects.filter(
+            resolved=False,
+            attendance__program__in=programs
+        ).select_related('attendance', 'attendance__student', 'attendance__program', 'resolved_by')
+        serializer = FlagRecordSerializer(flags, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'], url_path='resolve-flag')
+    def resolve_flag(self, request, pk=None):
+        """Resolve a flagged record."""
+        flag = get_object_or_404(FlagRecord, id=pk)
+        flag.resolved = True
+        flag.resolved_by = request.user
+        flag.resolved_at = timezone.now()
+        flag.save(update_fields=['resolved', 'resolved_by', 'resolved_at'])
+        broadcast_dashboard_update('flags')
+        return Response({'message': 'Flag resolved'}, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'], url_path='report/csv')
+    def report_csv(self, request):
+        """Export attendance CSV for coordinator's students."""
+        import csv
+        from django.http import HttpResponse
+
+        coordinator = request.user
+        programs = OJTProgram.objects.filter(coordinator=coordinator)
+        attendances = Attendance.objects.filter(
+            program__in=programs
+        ).select_related('student', 'program').order_by('-date', 'student__username')
+
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = f'attachment; filename="attendance_report_{timezone.now().date()}.csv"'
+
+        writer = csv.writer(response)
+        writer.writerow(['Student', 'Program', 'Date', 'Time In', 'Time Out', 'Status', 'Facial Recognition', 'Notes'])
+        for att in attendances:
+            writer.writerow([
+                att.student.get_full_name() or att.student.username,
+                att.program.name,
+                att.date,
+                str(att.time_in)[:5] if att.time_in else '',
+                str(att.time_out)[:5] if att.time_out else '',
+                'Completed' if att.time_out else 'Pending',
+                'Yes' if att.facial_recognition_used else 'No',
+                att.notes or '',
+            ])
+        return response
+
+    @action(detail=False, methods=['get'], url_path='report/stats')
+    def report_stats(self, request):
+        """Get aggregate stats for coordinator's programs."""
+        coordinator = request.user
+        programs = OJTProgram.objects.filter(coordinator=coordinator)
+
+        total_students = OJTApplication.objects.filter(
+            program__in=programs, status='approved'
+        ).values('student').distinct().count()
+
+        today = timezone.now().date()
+        total_attendances = Attendance.objects.filter(program__in=programs, date=today).count()
+        total_hours = 0
+        for att in Attendance.objects.filter(program__in=programs, time_out__isnull=False):
+            from datetime import datetime as dt
+            tin = dt.combine(att.date, att.time_in)
+            tout = dt.combine(att.date, att.time_out)
+            total_hours += (tout - tin).total_seconds() / 3600
+
+        pending_applications = OJTApplication.objects.filter(
+            program__in=programs, status='pending'
+        ).count()
+
+        flagged_count = FlagRecord.objects.filter(
+            resolved=False, attendance__program__in=programs
+        ).count()
+
+        return Response({
+            'total_students': total_students,
+            'attendances_today': total_attendances,
+            'total_hours_logged': round(total_hours, 1),
+            'pending_applications': pending_applications,
+            'flagged_records': flagged_count,
+            'active_programs': programs.filter(status='active').count(),
+        })
 
 
 class SiteAssignmentViewSet(viewsets.ModelViewSet):

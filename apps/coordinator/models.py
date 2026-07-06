@@ -67,6 +67,10 @@ class Attendance(BaseModel):
     time_out = models.TimeField(blank=True, null=True)
     facial_recognition_used = models.BooleanField(default=False)
     notes = models.TextField(blank=True)
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    auto_clocked_out = models.BooleanField(default=False)
     
     class Meta:
         verbose_name = 'Attendance'
@@ -76,6 +80,29 @@ class Attendance(BaseModel):
     
     def __str__(self):
         return f"{self.student.username} - {self.date}"
+
+
+class FlagRecord(BaseModel):
+    """Flag records for attendance anomalies (geofence violations, auto-timeout, etc)."""
+    FLAG_TYPES = [
+        ('geofence', 'Geofence Violation'),
+        ('auto_timeout', 'Auto Timeout'),
+        ('suspicious', 'Suspicious Activity'),
+    ]
+    attendance = models.ForeignKey(Attendance, on_delete=models.CASCADE, related_name='flags')
+    flag_type = models.CharField(max_length=20, choices=FLAG_TYPES)
+    reason = models.TextField()
+    resolved = models.BooleanField(default=False, db_index=True)
+    resolved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='resolved_flags')
+    resolved_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Flag Record'
+        verbose_name_plural = 'Flag Records'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.get_flag_type_display()} - {self.attendance}"
 
 
 class Site(BaseModel):

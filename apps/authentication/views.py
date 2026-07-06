@@ -14,7 +14,7 @@ from apps.core.models import User, Course
 from apps.student.models import StudentProfile
 from apps.core.utils import create_notification, broadcast_dashboard_update
 from .serializers import UserRegisterSerializer, UserLoginSerializer, UserSerializer, SendOTPSerializer, VerifyOTPSerializer, ResetPasswordSerializer
-from .models import PasswordResetOTP
+from .models import PasswordResetOTP, EmailVerificationToken
 import os
 
 RATE_LIMIT_MINUTES = 5
@@ -76,6 +76,24 @@ class AuthenticationViewSet(viewsets.ViewSet):
         serializer = UserRegisterSerializer(data=data)
         if serializer.is_valid():
             user = serializer.save()
+
+            # Generate email verification token for students
+            if user.role == 'student':
+                token_obj = EmailVerificationToken.generate(user)
+                try:
+                    verify_url = f"{getattr(settings, 'SITE_URL', 'http://localhost:8000')}/api/auth/verify-email/?token={token_obj.token}"
+                    from apps.core.tasks import send_email_task
+                    send_email_task.delay(
+                        recipient_email=user.email,
+                        subject='Verify your email address',
+                        title='Email Verification',
+                        message=f'Please verify your email by clicking this link: {verify_url}\n\nThis link expires in 24 hours.',
+                        recipient_name=user.get_full_name() or user.username,
+                    )
+                except Exception:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.exception('Failed to send verification email')
 
             # Notify admins when a new coordinator registers
             if user.role == 'coordinator':
@@ -267,5 +285,21 @@ class AuthenticationViewSet(viewsets.ViewSet):
             otp_record.save()
             return Response({'message': 'Password reset successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    @action(detail=False, methods=['get', 'post'], permission_classes=[AllowAny], authentication_classes=[])
+    def verify_email(self, request):
+        """Verify email with token (GET via link or POST with token)."""
+        token_str = request.query_params.get('token') or request.data.get('token')
+        if not token_str:
+            return Response({'error': 'Token is required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            token_obj = EmailVerificationToken.objects.get(token=token_str)
+        except EmailVerificationToken.DoesNotExist:
+            return Response({'error': 'Invalid token'}, status=status.HTTP_400_BAD_REQUEST)
+        if not token_obj.is_valid():
+            return Response({'error': 'Token expired'}, status=status.HTTP_400_BAD_REQUEST)
+        token_obj.verified = True
+        token_obj.save(update_fields=['verified'])
+        return Response({'message': 'Email verified successfully'}, status=status.HTTP_200_OK)
 
 

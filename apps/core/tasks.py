@@ -51,3 +51,43 @@ def send_email_task(self, recipient_email, subject, message, title='', recipient
         logger = logging.getLogger(__name__)
         logger.exception('Failed to send approval email to %s', recipient_email)
         raise self.retry(exc=exc)
+
+
+AUTO_TIMEOUT_HOURS = 10  # ponytail: hardcoded; move to settings if different sites need different thresholds
+
+
+@shared_task(bind=True)
+def auto_clockout_stale_attendances(self):
+    """Auto clock-out students still checked-in after AUTO_TIMEOUT_HOURS and create flags."""
+    from django.utils import timezone
+    from datetime import time
+    from apps.coordinator.models import Attendance, FlagRecord
+    from apps.core.utils import create_notification
+
+    now = timezone.now()
+    cutoff = now - timezone.timedelta(hours=AUTO_TIMEOUT_HOURS)
+    stale = Attendance.objects.filter(
+        time_out__isnull=True,
+        created_at__lte=cutoff,
+    ).select_related('student', 'program')
+
+    count = 0
+    for att in stale:
+        att.time_out = now.time()
+        att.auto_clocked_out = True
+        att.save(update_fields=['time_out', 'auto_clocked_out'])
+
+        FlagRecord.objects.get_or_create(
+            attendance=att,
+            flag_type='auto_timeout',
+            defaults={'reason': f'No clock-out after {AUTO_TIMEOUT_HOURS}h. Auto clocked-out at {att.time_out}.'},
+        )
+        create_notification(
+            recipient=att.student,
+            title='Auto Clock-Out',
+            message=f'You were automatically clocked out at {att.time_out} because no manual clock-out was recorded.',
+            type='general',
+        )
+        count += 1
+
+    return f'Auto clocked-out {count} stale attendances'

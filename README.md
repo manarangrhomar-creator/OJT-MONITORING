@@ -308,6 +308,7 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 | 8 | :camera: Facial recognition enrollment | Webcam capture, LBPH encoding storage |
 | 9 | :camera: Facial recognition verification | Webcam-based identity verification |
 | 10 | :clock3: Attendance time-in/time-out API | Coordinator-side clock in/out |
+| 11 | :eyes: **Coordinator Attendance Monitoring** | Full dashboard with filters, student accounts, attendance records |
 | 12 | :bar_chart: System activity logging | Login attempts, admin actions |
 | 13 | :globe_with_meridians: Swagger API docs | Auto-generated OpenAPI documentation |
 | 14 | :whale: Docker support | Dockerfile + docker-compose.yml |
@@ -317,27 +318,26 @@ ALLOWED_HOSTS=localhost,127.0.0.1
 | 18 | :link: **Site Assignments** | Coordinators assign students to sites with supervisor info |
 | 19 | :memo: **Student Narrative Reports** | Daily accomplishments with topic, content, and up to 4 photo uploads |
 | 20 | :file_cabinet: **Student Narrative Archives** | View, edit, manage submitted narratives with photo gallery |
+| 21 | :round_pushpin: **Geolocation Verification** | GPS lat/lon + IP address captured on clock-in |
+| 22 | :alarm_clock: **Automated Timeout** | Celery task auto-clockouts stale attendances >10h, creates FlagRecord |
+| 23 | :triangular_flag_on_post: **Flagged Records System** | FlagRecord model + coordinator resolve flow |
+| 24 | :bell: **Notification System** | In-app notifications + email via Celery task + WebSocket broadcast |
+| 25 | :arrows_counterclockwise: **Celery/Redis Task Queue** | send_email_task + auto_clockout_stale_attendances tasks defined |
+| 26 | :stopwatch: **Rate Limiting** | Custom throttling classes on auth endpoints |
+| 27 | :e-mail: **Email Verification** | Token-based email verification on student registration |
+| 28 | :chart_with_upwards_trend: **Reporting & Analytics** | CSV attendance export + coordinator dashboard stats endpoint |
 
 ### :yellow_circle: Partially Implemented
 
 | # | Feature | What's Missing |
 |---|---------|----------------|
-| 1 | :eyes: **Coordinator Attendance Monitoring** | API with flexible filters exists but dashboard integration is incomplete |
 
 ### :red_circle: Not Implemented
 
 | # | Feature | Description |
 |---|---------|-------------|
-| 1 | :camera: **Student Webcam Time-Out** | No student-facing clock-out flow via webcam |
-| 2 | :alarm_clock: **Automated Timeout** | No auto-clockout logic when manual time-out is missed |
-| 3 | :triangular_flag_on_post: **Flagged Records System** | No model or logic to flag exceptions for manual review |
-| 4 | :round_pushpin: **Geolocation Verification** | No GPS/IP-based location check during attendance |
-| 5 | :bell: **Notification System** | No email, SMS, or in-app notifications |
-| 6 | :chart_with_upwards_trend: **Reporting & Analytics** | No charts, PDF/CSV exports, or data visualizations |
-| 7 | :arrows_counterclockwise: **Celery/Redis Task Queue** | Dependencies in `requirements.txt` but no tasks defined |
-| 8 | :stopwatch: **Rate Limiting** | No brute-force protection on login endpoints |
-| 9 | :e-mail: **Email Verification** | No email confirmation on registration |
-| 10 | :test_tube: **Test Coverage** | Test files are auto-generated placeholders only |
+| 1 | :camera: **Student Webcam Time-Out** | No student-facing clock-out flow via webcam (student clock-out exists but not via webcam) |
+| 2 | :test_tube: **Test Coverage** | Test files are auto-generated placeholders only |
 
 ---
 

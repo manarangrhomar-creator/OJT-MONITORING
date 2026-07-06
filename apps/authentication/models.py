@@ -1,8 +1,35 @@
 import secrets
+import uuid
 from django.db import models
 from django.utils import timezone
 from datetime import timedelta
 from apps.core.models import User, BaseModel
+
+
+class EmailVerificationToken(BaseModel):
+    """Token for email verification during registration."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='email_tokens')
+    token = models.UUIDField(default=uuid.uuid4, unique=True, db_index=True)
+    expires_at = models.DateTimeField()
+    verified = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = 'Email Verification Token'
+        verbose_name_plural = 'Email Verification Tokens'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.email} - {'Verified' if self.verified else 'Pending'}"
+
+    def is_valid(self):
+        return not self.verified and self.expires_at > timezone.now()
+
+    @classmethod
+    def generate(cls, user, hours=24):
+        return cls.objects.create(
+            user=user,
+            expires_at=timezone.now() + timedelta(hours=hours),
+        )
 
 
 class PasswordResetOTP(BaseModel):

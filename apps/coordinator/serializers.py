@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import OJTProgram, OJTApplication, Attendance, SiteAssignment
+from .models import OJTProgram, OJTApplication, Attendance, SiteAssignment, FlagRecord
 
 
 class OJTProgramSerializer(serializers.ModelSerializer):
@@ -33,7 +33,7 @@ class AttendanceSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Attendance
-        fields = ('id', 'student', 'student_name', 'program', 'date', 'time_in', 'time_out', 'facial_recognition_used', 'notes', 'created_at')
+        fields = ('id', 'student', 'student_name', 'program', 'date', 'time_in', 'time_out', 'facial_recognition_used', 'notes', 'latitude', 'longitude', 'ip_address', 'auto_clocked_out', 'created_at')
         read_only_fields = ('id', 'created_at')
 
 
@@ -49,3 +49,15 @@ class SiteAssignmentSerializer(serializers.ModelSerializer):
         model = SiteAssignment
         fields = ('id', 'student', 'student_name', 'program', 'program_name', 'assigned_date', 'site', 'site_name', 'site_location', 'supervisor_name', 'supervisor_contact', 'created_at', 'updated_at')
         read_only_fields = ('id', 'created_at', 'updated_at', 'assigned_date')
+
+
+class FlagRecordSerializer(serializers.ModelSerializer):
+    """Serializer for Flag Records."""
+    student_name = serializers.CharField(source='attendance.student.get_full_name', read_only=True)
+    program_name = serializers.CharField(source='attendance.program.name', read_only=True)
+    resolved_by_name = serializers.CharField(source='resolved_by.get_full_name', read_only=True, default='')
+
+    class Meta:
+        model = FlagRecord
+        fields = ('id', 'attendance', 'flag_type', 'reason', 'resolved', 'resolved_by', 'resolved_by_name', 'resolved_at', 'student_name', 'program_name', 'created_at')
+        read_only_fields = ('id', 'created_at', 'resolved_at')
