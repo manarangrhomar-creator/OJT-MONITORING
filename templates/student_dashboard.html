@@ -678,21 +678,64 @@
 <div id="applyModal" class="modal">
   <div class="modal-content" style="max-width:550px;">
     <div class="modal-header"><h2>Apply to Program</h2><button class="close-btn" onclick="closeModal('applyModal')">&times;</button></div>
+
+    <!-- Step indicators -->
+    <div class="flex items-center justify-center gap-3 mb-4">
+      <div class="flex items-center gap-2">
+        <div id="applyDot1" class="w-8 h-8 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-xs font-bold">1</div>
+        <span class="text-xs font-semibold text-[var(--primary)]" id="applyLabel1">Details</span>
+      </div>
+      <div class="w-8 h-px bg-[var(--border)]"></div>
+      <div class="flex items-center gap-2">
+        <div id="applyDot2" class="w-8 h-8 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-xs font-bold">2</div>
+        <span class="text-xs font-semibold text-gray-400" id="applyLabel2">Face Photo</span>
+      </div>
+    </div>
+
     <form id="applyForm" onsubmit="submitApplication(event)" class="space-y-4">
       <input type="hidden" id="applyProgramId" value="">
-      <div class="bg-gray-50 p-4 rounded-xl border border-[var(--border)]">
-        <p class="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">Program</p>
-        <p id="applyProgramName" class="text-sm font-bold text-[var(--fg)]"></p>
+
+      <!-- Step 1: Details -->
+      <div id="applyStep1">
+        <div class="bg-gray-50 p-4 rounded-xl border border-[var(--border)]">
+          <p class="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">Program</p>
+          <p id="applyProgramName" class="text-sm font-bold text-[var(--fg)]"></p>
+        </div>
+        <div class="flex flex-col">
+          <label class="text-[10px] font-semibold text-[var(--muted)] uppercase mb-1">Application Letter <span class="text-red-500">*</span></label>
+          <input type="file" id="applyLetter" required accept=".pdf" class="p-2.5 border border-[var(--border)] text-sm outline-none bg-white rounded-xl file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[var(--primary)]/10 file:text-[var(--primary)] hover:file:bg-[var(--primary)]/20">
+          <p class="text-[10px] text-[var(--muted)] mt-1">Upload your application letter (PDF only)</p>
+        </div>
       </div>
-      <div class="flex flex-col">
-        <label class="text-[10px] font-semibold text-[var(--muted)] uppercase mb-1">Application Letter <span class="text-red-500">*</span></label>
-        <input type="file" id="applyLetter" required accept=".pdf" class="p-2.5 border border-[var(--border)] text-sm outline-none bg-white rounded-xl file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[var(--primary)]/10 file:text-[var(--primary)] hover:file:bg-[var(--primary)]/20">
-        <p class="text-[10px] text-[var(--muted)] mt-1">Upload your application letter (PDF only)</p>
+
+      <!-- Step 2: Face Photo -->
+      <div id="applyStep2" class="hidden">
+        <p class="text-[10px] text-[var(--muted)] mb-2">Take a clear photo of your face for attendance verification.</p>
+        <div id="applyCamContainer" class="relative rounded-xl overflow-hidden bg-black" style="height:220px;">
+          <video id="applyCamPreview" autoplay playsinline class="absolute inset-0 w-full h-full object-cover"></video>
+          <canvas id="applyCamCanvas" class="hidden"></canvas>
+          <div class="absolute top-2 left-2 flex items-center gap-1.5 z-10">
+            <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+            <span class="text-[10px] text-white/80 font-semibold">LIVE</span>
+          </div>
+          <img id="applyCamCaptured" class="absolute inset-0 w-full h-full object-cover hidden" alt="Captured face">
+        </div>
+        <div id="applyCamBtns" class="flex items-center gap-2 mt-2">
+          <button type="button" id="applyCamCaptureBtn" onclick="applyCaptureFace()" class="px-4 py-2 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+            <i data-lucide="camera" class="w-3.5 h-3.5"></i> Capture Photo
+          </button>
+          <button type="button" id="applyCamRetakeBtn" onclick="applyRetakeFace()" class="hidden px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Retake
+          </button>
+        </div>
+        <input type="file" id="applyFaceImage" class="hidden" accept="image/*">
       </div>
+
       <div id="applyError" class="hidden p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-medium rounded-lg"></div>
       <div class="modal-buttons">
         <button type="button" onclick="closeModal('applyModal')" class="px-5 py-2 bg-gray-400 text-white font-semibold text-sm rounded-xl hover:bg-gray-500 transition">Cancel</button>
-        <button type="submit" id="applySubmitBtn" class="px-5 py-2 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-semibold text-sm rounded-xl transition shadow-sm flex items-center gap-2"><i data-lucide="send"></i> Submit Application</button>
+        <button type="button" id="applyNextBtn" onclick="applyGoStep2()" class="px-5 py-2 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-semibold text-sm rounded-xl transition shadow-sm flex items-center gap-2"><i data-lucide="arrow-right"></i> Next</button>
+        <button type="submit" id="applySubmitBtn" class="hidden px-5 py-2 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-semibold text-sm rounded-xl transition shadow-sm flex items-center gap-2"><i data-lucide="send"></i> Submit Application</button>
       </div>
     </form>
   </div>
@@ -757,7 +800,7 @@
   if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
   window.scrollTo(0, 0);
   function openModal(id) { document.getElementById(id).classList.add('active'); }
-  function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+  function closeModal(id) { document.getElementById(id).classList.remove('active'); if (id === 'applyModal') applyStopCam(); }
 </script>
 
 <script>
@@ -1498,10 +1541,18 @@ async function loadArchives() {
     e.preventDefault();
     const programId = document.getElementById('applyProgramId').value;
     const letterFile = document.getElementById('applyLetter').files[0];
+    const faceFile = document.getElementById('applyFaceImage').files[0];
     if (!programId || !letterFile) return;
+    if (!faceFile) {
+      const errDiv = document.getElementById('applyError');
+      errDiv.innerHTML = '<strong>Error:</strong> Please capture a face photo before submitting.';
+      errDiv.classList.remove('hidden');
+      return;
+    }
     const formData = new FormData();
     formData.append('program', programId);
     formData.append('application_letter', letterFile);
+    formData.append('face_image', faceFile);
     const btn = document.getElementById('applySubmitBtn');
     const errDiv = document.getElementById('applyError');
     btn.disabled = true;
@@ -1574,13 +1625,104 @@ async function loadArchives() {
     } catch (err) { showDashboardContent(); }
   }
 
+  let applyCamStream = null;
+
   function openApplyModal(programId, programName) {
     document.getElementById('applyProgramId').value = programId;
     document.getElementById('applyProgramName').textContent = programName;
     document.getElementById('applyLetter').value = '';
     document.getElementById('applyError').classList.add('hidden');
+    applyResetFace();
+    applyResetSteps();
     openModal('applyModal');
     lucide.createIcons();
+  }
+
+  function applyResetSteps() {
+    document.getElementById('applyStep1').classList.remove('hidden');
+    document.getElementById('applyStep2').classList.add('hidden');
+    document.getElementById('applyNextBtn').classList.remove('hidden');
+    document.getElementById('applySubmitBtn').classList.add('hidden');
+    document.getElementById('applyDot1').className = 'w-8 h-8 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-xs font-bold';
+    document.getElementById('applyLabel1').className = 'text-xs font-semibold text-[var(--primary)]';
+    document.getElementById('applyDot2').className = 'w-8 h-8 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-xs font-bold';
+    document.getElementById('applyLabel2').className = 'text-xs font-semibold text-gray-400';
+    applyStopCam();
+  }
+
+  function applyGoStep2() {
+    if (!document.getElementById('applyLetter').files[0]) {
+      const errDiv = document.getElementById('applyError');
+      errDiv.innerHTML = '<strong>Error:</strong> Please upload your application letter.';
+      errDiv.classList.remove('hidden');
+      return;
+    }
+    document.getElementById('applyError').classList.add('hidden');
+    document.getElementById('applyStep1').classList.add('hidden');
+    document.getElementById('applyStep2').classList.remove('hidden');
+    document.getElementById('applyNextBtn').classList.add('hidden');
+    document.getElementById('applySubmitBtn').classList.remove('hidden');
+    document.getElementById('applyDot1').className = 'w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-bold';
+    document.getElementById('applyLabel1').className = 'text-xs font-semibold text-green-600';
+    document.getElementById('applyDot2').className = 'w-8 h-8 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-xs font-bold';
+    document.getElementById('applyLabel2').className = 'text-xs font-semibold text-[var(--primary)]';
+    lucide.createIcons();
+    applyInitCam();
+  }
+
+  function applyStopCam() {
+    if (applyCamStream) { applyCamStream.getTracks().forEach(t => t.stop()); applyCamStream = null; }
+    const video = document.getElementById('applyCamPreview');
+    if (video) video.srcObject = null;
+  }
+
+  async function applyInitCam() {
+    const video = document.getElementById('applyCamPreview');
+    applyStopCam();
+    try {
+      applyCamStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } });
+      video.srcObject = applyCamStream;
+    } catch (err) {
+      console.warn('Camera not available:', err);
+      document.getElementById('applyCamContainer').innerHTML = '<div class="flex items-center justify-center h-full text-white/60 text-xs">Camera not available</div>';
+    }
+  }
+
+  function applyCaptureFace() {
+    const video = document.getElementById('applyCamPreview');
+    const canvas = document.getElementById('applyCamCanvas');
+    const captured = document.getElementById('applyCamCaptured');
+    if (!video.srcObject) return;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext('2d').drawImage(video, 0, 0);
+    const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+    captured.src = dataUrl;
+    captured.classList.remove('hidden');
+    video.classList.add('hidden');
+    document.getElementById('applyCamCaptureBtn').classList.add('hidden');
+    document.getElementById('applyCamRetakeBtn').classList.remove('hidden');
+    canvas.toBlob(function(blob) {
+      const dt = new DataTransfer();
+      dt.items.add(new File([blob], 'face_photo.jpg', { type: 'image/jpeg' }));
+      document.getElementById('applyFaceImage').files = dt.files;
+    }, 'image/jpeg', 0.85);
+  }
+
+  function applyRetakeFace() {
+    applyResetFace();
+    document.getElementById('applyCamPreview').classList.remove('hidden');
+  }
+
+  function applyResetFace() {
+    const captured = document.getElementById('applyCamCaptured');
+    if (captured) { captured.classList.add('hidden'); captured.src = ''; }
+    const faceInput = document.getElementById('applyFaceImage');
+    if (faceInput) faceInput.value = '';
+    const captureBtn = document.getElementById('applyCamCaptureBtn');
+    const retakeBtn = document.getElementById('applyCamRetakeBtn');
+    if (captureBtn) captureBtn.classList.remove('hidden');
+    if (retakeBtn) retakeBtn.classList.add('hidden');
   }
 
   initApp();

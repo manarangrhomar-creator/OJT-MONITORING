@@ -316,6 +316,31 @@ class StudentDashboardViewSet(viewsets.ViewSet):
                     updated_by=request.user,
                 )
                 is_new = True
+
+            # Enroll face if provided
+            face_image = request.FILES.get('face_image')
+            if face_image:
+                try:
+                    image_bytes = face_image.read()
+                    embedding, _ = detect_face(image_bytes)
+                    if embedding is not None:
+                        encoded = encode_face(embedding)
+                        facial_data, _ = FacialRecognition.objects.get_or_create(
+                            student=request.user,
+                            defaults={
+                                'facial_encoding': encoded,
+                                'is_verified': True,
+                                'verification_date': timezone.now()
+                            }
+                        )
+                        if not facial_data.is_verified:
+                            facial_data.facial_encoding = encoded
+                            facial_data.is_verified = True
+                            facial_data.verification_date = timezone.now()
+                            facial_data.save()
+                except Exception as e:
+                    logger.warning(f"Face enrollment failed during application: {e}")
+
             coordinator = application.program.coordinator
             create_and_send_notification(
                 recipient=coordinator,

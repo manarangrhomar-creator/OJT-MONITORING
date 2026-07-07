@@ -75,6 +75,7 @@ class StudentApplySerializer(serializers.Serializer):
     program = serializers.PrimaryKeyRelatedField(queryset=OJTProgram.objects.filter(status='active'))
     application_letter = serializers.FileField()
     resume = serializers.FileField(required=False, allow_null=True)
+    face_image = serializers.ImageField(required=False, allow_null=True)
 
     def _validate_file_ext(self, value, field_name):
         import os
