@@ -73,18 +73,18 @@
       box-shadow: 0 4px 24px rgba(0,0,0,0.06);
     }
     .bg-seal {
-      position: absolute;
-      left: 50%;
-      top: 0;
-      transform: translateX(-50%);
-      width: min(640px, 85vw);
-      height: min(640px, 85vw);
-      opacity: 0.08;
+      position: fixed;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 500px;
+      height: 500px;
+      opacity: 0.04;
       pointer-events: none;
       z-index: 0;
     }
     @media (max-width: 639px) {
-      .bg-seal { width: min(220px, 65vw); height: min(220px, 65vw); opacity: 0.06; }
+      .bg-seal { width: 160px; height: 160px; right: 0; opacity: 0.025; }
     }
     .gold-divider {
       height: 1px;
@@ -145,7 +145,7 @@
     }
   </style>
 </head>
-<body class="grain min-h-screen flex flex-col overflow-x-hidden relative">
+<body class="grain min-h-screen flex flex-col overflow-x-hidden">
 
 <div id="isuPageLoader" class="isu-page-loader">
   <div class="loader-logo-wrap">
@@ -165,6 +165,9 @@
   <header class="relative z-10 px-4 sm:px-6 md:px-12 lg:px-24 py-4 sm:py-6 flex items-center justify-between">
     <div class="flex items-center gap-3">
       <img class="seal-img" src="{% static 'images/isu_new_seal_512x512.png' %}" alt="ISU Logo" />
+      <span class="text-sm font-medium text-[var(--charcoal)]/60">
+        OJT Monitoring System
+      </span>
     </div>
     <nav class="flex items-center gap-3 sm:gap-6">
       <a href="{% url 'student-register' %}" class="gold-link text-sm font-medium text-[var(--charcoal)]/70 hover:text-[var(--forest)] transition-colors hidden sm:inline">
