@@ -165,7 +165,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             program_id=program_id,
             date=timezone.now().date(),
             defaults={
-                'time_in': timezone.now().time(),
+                'time_in': timezone.localtime(timezone.now()).time(),
                 'latitude': request.data.get('latitude'),
                 'longitude': request.data.get('longitude'),
                 'ip_address': request.META.get('REMOTE_ADDR'),
@@ -194,7 +194,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
     def clock_out(self, request, pk=None):
         """Clock out for attendance."""
         attendance = self.get_object()
-        attendance.time_out = timezone.now().time()
+        attendance.time_out = timezone.localtime(timezone.now()).time()
         attendance.save()
         
         student = attendance.student

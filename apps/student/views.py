@@ -175,7 +175,7 @@ class StudentDashboardViewSet(viewsets.ViewSet):
             return Response({'error': 'No approved OJT application found.'}, status=status.HTTP_400_BAD_REQUEST)
 
         today = timezone.now().date()
-        now_time = timezone.now().time()
+        now_time = timezone.localtime(timezone.now()).time()
 
         attendance, created = Attendance.objects.get_or_create(
             student=student,
@@ -238,7 +238,7 @@ class StudentDashboardViewSet(viewsets.ViewSet):
         except Attendance.DoesNotExist:
             return Response({'error': 'No active attendance record found for today.'}, status=status.HTTP_404_NOT_FOUND)
 
-        attendance.time_out = timezone.now().time()
+        attendance.time_out = timezone.localtime(timezone.now()).time()
         attendance.facial_recognition_used = True
         attendance.save()
 
