@@ -73,18 +73,16 @@
       box-shadow: 0 4px 24px rgba(0,0,0,0.06);
     }
     .bg-seal {
-      position: absolute;
-      right: 1.5rem;
-      top: 8%;
-      transform: none;
-      width: min(640px, 85vw);
-      height: min(640px, 85vw);
-      opacity: 0.08;
+      position: fixed;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 500px;
+      height: 500px;
+      opacity: 0.04;
       pointer-events: none;
       z-index: 0;
     }
-    @media (min-width: 640px) { .bg-seal { right: 3rem; } }
-    @media (min-width: 1024px) { .bg-seal { right: 6rem; } }
     @media (max-width: 639px) {
       .bg-seal { width: 160px; height: 160px; right: 0; opacity: 0.025; }
     }
