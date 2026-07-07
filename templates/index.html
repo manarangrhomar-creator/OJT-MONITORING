@@ -74,15 +74,17 @@
     }
     .bg-seal {
       position: absolute;
-      left: 50%;
-      top: 0;
-      transform: translateX(-50%);
+      right: 1.5rem;
+      top: 8%;
+      transform: none;
       width: min(640px, 85vw);
       height: min(640px, 85vw);
       opacity: 0.08;
       pointer-events: none;
       z-index: 0;
     }
+    @media (min-width: 640px) { .bg-seal { right: 3rem; } }
+    @media (min-width: 1024px) { .bg-seal { right: 6rem; } }
     @media (max-width: 639px) {
       .bg-seal { width: min(220px, 65vw); height: min(220px, 65vw); opacity: 0.06; }
     }
