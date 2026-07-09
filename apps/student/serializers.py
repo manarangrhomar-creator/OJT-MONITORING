@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from apps.coordinator.models import OJTProgram, OJTApplication
+from apps.coordinator.models import OJTProgram, OJTApplication, Site
 from .models import StudentProfile, FacialRecognition, StudentNarrativeReport
 
 
@@ -76,6 +76,10 @@ class StudentApplySerializer(serializers.Serializer):
     application_letter = serializers.FileField()
     resume = serializers.FileField(required=False, allow_null=True)
     face_image = serializers.ImageField(required=False, allow_null=True)
+    preferred_site = serializers.PrimaryKeyRelatedField(
+        queryset=Site.objects.filter(is_active=True),
+        required=False, allow_null=True
+    )
 
     def _validate_file_ext(self, value, field_name):
         import os

@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 from django.db.models import Q, Count, F
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from apps.coordinator.models import OJTApplication, Attendance, OJTProgram
+from apps.coordinator.models import OJTApplication, Attendance, OJTProgram, Site
 from apps.coordinator.serializers import OJTApplicationSerializer, AttendanceSerializer
 from apps.core.models import Notification
 from apps.core.utils import create_and_send_notification, send_unread_count_update, broadcast_dashboard_update
@@ -284,6 +284,19 @@ class StudentDashboardViewSet(viewsets.ViewSet):
         serializer = StudentProgramSerializer(programs, many=True)
         return Response(serializer.data)
 
+    @action(detail=False, methods=['get'], url_path='available-sites')
+    def available_sites(self, request):
+        """List active sites for student to choose during application."""
+        sites = Site.objects.filter(is_active=True).order_by('name')
+        data = [{
+            'id': str(s.id),
+            'name': s.name,
+            'supervisor_name': s.supervisor_name,
+            'contact_number': s.contact_number,
+            'course': s.course.name if s.course else None,
+        } for s in sites]
+        return Response(data)
+
     @action(detail=False, methods=['post'])
     def apply(self, request):
         """Student applies to an OJT program."""
@@ -300,6 +313,7 @@ class StudentDashboardViewSet(viewsets.ViewSet):
                 existing.status = 'pending'
                 existing.application_letter = serializer.validated_data['application_letter']
                 existing.resume = serializer.validated_data.get('resume', None)
+                existing.preferred_site = serializer.validated_data.get('preferred_site', None)
                 existing.rejection_reason = ''
                 existing.approved_date = None
                 existing.save()
@@ -311,6 +325,7 @@ class StudentDashboardViewSet(viewsets.ViewSet):
                     program=program,
                     application_letter=serializer.validated_data['application_letter'],
                     resume=serializer.validated_data.get('resume', None),
+                    preferred_site=serializer.validated_data.get('preferred_site', None),
                     status='pending',
                     created_by=request.user,
                     updated_by=request.user,

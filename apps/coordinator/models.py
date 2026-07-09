@@ -42,6 +42,7 @@ class OJTApplication(BaseModel):
     
     student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ojt_applications', limit_choices_to={'role': 'student'})
     program = models.ForeignKey(OJTProgram, on_delete=models.CASCADE, related_name='applications')
+    preferred_site = models.ForeignKey('Site', on_delete=models.SET_NULL, null=True, blank=True, related_name='applications')
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)
     application_letter = models.FileField(upload_to='applications/')
     resume = models.FileField(upload_to='resumes/', blank=True, null=True)
