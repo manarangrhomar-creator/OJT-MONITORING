@@ -815,7 +815,6 @@
               <span>Application Letter</span>
               <a id="approveAppLetter" href="#" target="_blank" class="ml-auto text-[0.55rem] underline" style="color: var(--primary);">Open in new tab</a>
             </div>
-            <iframe id="approveAppLetterPreview" class="w-full rounded-lg mt-2 hidden" style="height: 400px; border: 1px solid var(--card-border);" src="about:blank"></iframe>
           </div>
           <div id="approveAppResumeWrap" class="hidden">
             <div class="flex items-center gap-2.5 p-2.5 rounded-lg text-xs font-semibold" style="background: var(--card-bg); border: 1px solid var(--card-border);">
@@ -823,7 +822,6 @@
               <span>Resume / CV</span>
               <a id="approveAppResume" href="#" target="_blank" class="ml-auto text-[0.55rem] underline" style="color: var(--primary);">Open in new tab</a>
             </div>
-            <iframe id="approveAppResumePreview" class="w-full rounded-lg mt-2 hidden" style="height: 400px; border: 1px solid var(--card-border);" src="about:blank"></iframe>
           </div>
         </div>
       </div>
@@ -839,7 +837,7 @@
       <div class="flex items-center gap-2">
         <button class="ghost-btn !py-1.5 !px-3 text-xs" style="border-color: var(--danger); color: var(--danger);" onclick="openRejectFromApprove()">Reject</button>
         <button id="confirmApproveAppBtn" class="accent-btn !py-1.5 !px-3 text-xs" onclick="confirmApproveApplication()">Approve</button>
-        <button id="approveWithFaceBtn" class="accent-btn !py-1.5 !px-3 text-xs" style="background: var(--gold); display: none;" onclick="openFaceEnrollmentAfterApprove()">Approve + Enroll Face</button>
+        
       </div>
     </div>
   </div>
@@ -971,8 +969,6 @@
   function closeModal(id) {
     document.getElementById(id).classList.remove('active');
     if (id === 'approveAppModal') {
-      document.getElementById('approveAppLetterPreview').src = 'about:blank';
-      document.getElementById('approveAppResumePreview').src = 'about:blank';
     }
   }
 
@@ -1636,31 +1632,22 @@
     document.getElementById('enrollAppStudentId').value = a.student;
     const letterWrap = document.getElementById('approveAppLetterWrap');
     const letterLink = document.getElementById('approveAppLetter');
-    const letterPreview = document.getElementById('approveAppLetterPreview');
     if (a.application_letter) {
       letterLink.href = a.application_letter;
-      letterPreview.src = a.application_letter;
       letterWrap.classList.remove('hidden');
-      letterPreview.classList.remove('hidden');
     } else {
       letterWrap.classList.add('hidden');
-      letterPreview.classList.add('hidden');
     }
     const resumeWrap = document.getElementById('approveAppResumeWrap');
     const resumeLink = document.getElementById('approveAppResume');
-    const resumePreview = document.getElementById('approveAppResumePreview');
     if (a.resume) {
       resumeLink.href = a.resume;
-      resumePreview.src = a.resume;
       resumeWrap.classList.remove('hidden');
-      resumePreview.classList.remove('hidden');
     } else {
       resumeWrap.classList.add('hidden');
-      resumePreview.classList.add('hidden');
     }
     document.getElementById('approveAppDate').textContent = a.created_at ? new Date(a.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
     document.getElementById('confirmApproveAppBtn').style.display = 'inline-block';
-    document.getElementById('approveWithFaceBtn').style.display = 'inline-block';
     openModal('approveAppModal');
   }
 
