@@ -202,47 +202,33 @@
 
   <!-- APPLY SECTION -->
   <div id="sectionApply" class="hidden animate-in">
-    <!-- Vertical Step indicator (left sidebar) -->
-    <div class="flex flex-col lg:flex-row gap-6 items-start">
-      <aside class="lg:w-56 shrink-0 lg:sticky lg:top-6 mb-4 lg:mb-0">
-        <div class="flex flex-col gap-0">
-          <div class="flex items-start gap-3">
-            <div class="flex flex-col items-center">
-              <div id="applyDot1" class="w-8 h-8 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-xs font-bold">1</div>
-              <div id="applyLine1" class="w-px h-8 bg-[var(--border)]"></div>
-            </div>
-            <span class="text-xs font-semibold text-[var(--primary)] pt-2" id="applyLabel1">Choose Subject</span>
-          </div>
-          <div class="flex items-start gap-3">
-            <div class="flex flex-col items-center">
-              <div id="applyDot2" class="w-8 h-8 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-xs font-bold">2</div>
-              <div id="applyLine2" class="w-px h-8 bg-[var(--border)]"></div>
-            </div>
-            <span class="text-xs font-semibold text-gray-400 pt-2" id="applyLabel2">Fill Details</span>
-          </div>
-          <div class="flex items-start gap-3">
-            <div class="flex flex-col items-center">
-              <div id="applyDot3" class="w-8 h-8 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-xs font-bold">3</div>
-              <div id="applyLine3" class="w-px h-8 bg-[var(--border)]"></div>
-            </div>
-            <span class="text-xs font-semibold text-gray-400 pt-2" id="applyLabel3">Face Photo</span>
-          </div>
-          <div class="flex items-start gap-3">
-            <div class="flex flex-col items-center">
-              <div id="applyDot4" class="w-8 h-8 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-xs font-bold">4</div>
-              <div id="applyLine4" class="w-px h-8 bg-[var(--border)]"></div>
-            </div>
-            <span class="text-xs font-semibold text-gray-400 pt-2" id="applyLabel4">Select Site</span>
-          </div>
-          <div class="flex items-start gap-3">
-            <div class="flex flex-col items-center">
-              <div id="applyDot5" class="w-8 h-8 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-xs font-bold">5</div>
-            </div>
-            <span class="text-xs font-semibold text-gray-400 pt-2" id="applyLabel5">Done</span>
-          </div>
-        </div>
-      </aside>
-      <div class="flex-1 min-w-0">
+    <!-- Horizontal Step indicator -->
+    <div class="flex items-center justify-center gap-2 sm:gap-3 mb-6">
+      <div class="flex items-center gap-2">
+        <div id="applyDot1" class="w-8 h-8 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-xs font-bold">1</div>
+        <span class="text-xs font-semibold text-[var(--primary)] hidden sm:inline" id="applyLabel1">Choose Subject</span>
+      </div>
+      <div class="w-8 sm:w-12 h-px bg-[var(--border)]" id="applyLine1"></div>
+      <div class="flex items-center gap-2">
+        <div id="applyDot2" class="w-8 h-8 rounded-full bg-gray-200 text-[var(--fg-dim)] flex items-center justify-center text-xs font-bold">2</div>
+        <span class="text-xs font-semibold text-[var(--fg-dim)] hidden sm:inline" id="applyLabel2">Fill Details</span>
+      </div>
+      <div class="w-8 sm:w-12 h-px bg-[var(--border)]" id="applyLine2"></div>
+      <div class="flex items-center gap-2">
+        <div id="applyDot3" class="w-8 h-8 rounded-full bg-gray-200 text-[var(--fg-dim)] flex items-center justify-center text-xs font-bold">3</div>
+        <span class="text-xs font-semibold text-[var(--fg-dim)] hidden sm:inline" id="applyLabel3">Face Photo</span>
+      </div>
+      <div class="w-8 sm:w-12 h-px bg-[var(--border)]" id="applyLine3"></div>
+      <div class="flex items-center gap-2">
+        <div id="applyDot4" class="w-8 h-8 rounded-full bg-gray-200 text-[var(--fg-dim)] flex items-center justify-center text-xs font-bold">4</div>
+        <span class="text-xs font-semibold text-[var(--fg-dim)] hidden sm:inline" id="applyLabel4">Select Site</span>
+      </div>
+      <div class="w-8 sm:w-12 h-px bg-[var(--border)]" id="applyLine4"></div>
+      <div class="flex items-center gap-2">
+        <div id="applyDot5" class="w-8 h-8 rounded-full bg-gray-200 text-[var(--fg-dim)] flex items-center justify-center text-xs font-bold">5</div>
+        <span class="text-xs font-semibold text-[var(--fg-dim)] hidden sm:inline" id="applyLabel5">Done</span>
+      </div>
+    </div>
 
     <!-- Step 1: Choose Subject -->
     <div id="applyWizStep1">
@@ -315,14 +301,14 @@
       </div>
       <div class="bento-card p-5 space-y-4">
         <p class="text-[10px] text-[var(--muted)] mb-2">Take a clear photo of your face for attendance verification. <span class="text-red-500">*</span></p>
-        <div id="applyCamContainer" class="relative rounded-xl overflow-hidden bg-black" style="height:220px;">
-          <video id="applyCamPreview" autoplay playsinline class="absolute inset-0 w-full h-full object-cover"></video>
+        <div id="applyCamContainer" class="relative rounded-xl overflow-hidden bg-black flex items-center justify-center" style="height:340px;">
+          <video id="applyCamPreview" autoplay playsinline class="absolute inset-0 w-full h-full object-contain"></video>
           <canvas id="applyCamCanvas" class="hidden"></canvas>
           <div class="absolute top-2 left-2 flex items-center gap-1.5 z-10">
             <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
             <span class="text-[10px] text-white/80 font-semibold">LIVE</span>
           </div>
-          <img id="applyCamCaptured" class="absolute inset-0 w-full h-full object-cover hidden" alt="Captured face">
+          <img id="applyCamCaptured" class="absolute inset-0 w-full h-full object-contain hidden" alt="Captured face">
         </div>
         <div id="applyCamBtns" class="flex items-center gap-2 mt-2">
           <button type="button" id="applyCamCaptureBtn" onclick="applyCaptureFace()" class="px-4 py-2 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
@@ -390,9 +376,7 @@
         <button type="button" onclick="showApplySection()" class="px-6 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-semibold text-xs rounded-xl transition shadow-sm">Back to Subjects</button>
       </div>
     </div>
-      </div>
-    </div>
-
+  </div>
   <!-- PENDING APPROVAL SECTION -->
   <div id="sectionPending" class="hidden animate-in">
     <div class="bento-card p-8 text-center max-w-xl mx-auto mb-6">
@@ -673,12 +657,12 @@
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <!-- Camera -->
                 <div class="lg:col-span-2 flex flex-col gap-3">
-                  <div id="attCameraFrame" class="att-camera-frame rounded-xl relative" style="height:320px;">
+                  <div id="attCameraFrame" class="att-camera-frame rounded-xl relative flex items-center justify-center" style="height:340px;">
                     <div class="absolute top-3 left-3 flex items-center gap-2 z-10">
                       <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                       <span class="text-xs text-gray-300 font-semibold">LIVE</span>
                     </div>
-                    <video id="attWebcam" autoplay playsinline class="absolute inset-0 w-full h-full object-cover"></video>
+                    <video id="attWebcam" autoplay playsinline class="absolute inset-0 w-full h-full object-contain"></video>
                     <canvas id="attPhotoCanvas" class="hidden"></canvas>
                   </div>
                   <div class="flex items-center gap-2">
@@ -877,14 +861,14 @@
       <!-- Step 2: Face Photo -->
       <div id="applyStep2" class="hidden">
         <p class="text-[10px] text-[var(--muted)] mb-2">Take a clear photo of your face for attendance verification.</p>
-        <div id="applyCamContainer" class="relative rounded-xl overflow-hidden bg-black" style="height:220px;">
-          <video id="applyCamPreview" autoplay playsinline class="absolute inset-0 w-full h-full object-cover"></video>
+        <div id="applyCamContainer" class="relative rounded-xl overflow-hidden bg-black flex items-center justify-center" style="height:340px;">
+          <video id="applyCamPreview" autoplay playsinline class="absolute inset-0 w-full h-full object-contain"></video>
           <canvas id="applyCamCanvas" class="hidden"></canvas>
           <div class="absolute top-2 left-2 flex items-center gap-1.5 z-10">
             <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
             <span class="text-[10px] text-white/80 font-semibold">LIVE</span>
           </div>
-          <img id="applyCamCaptured" class="absolute inset-0 w-full h-full object-cover hidden" alt="Captured face">
+          <img id="applyCamCaptured" class="absolute inset-0 w-full h-full object-contain hidden" alt="Captured face">
         </div>
         <div id="applyCamBtns" class="flex items-center gap-2 mt-2">
           <button type="button" id="applyCamCaptureBtn" onclick="applyCaptureFace()" class="px-4 py-2 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
