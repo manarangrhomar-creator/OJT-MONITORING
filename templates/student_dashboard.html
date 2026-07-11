@@ -38,7 +38,7 @@
       .custom-scroll::-webkit-scrollbar-track { background: transparent; }
       .custom-scroll::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
 
-      .modal { display: none; position: fixed; z-index: 60; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.2); animation: fadeIn 0.2s ease; }
+      .modal { display: none; position: fixed; z-index: 60; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.05); animation: fadeIn 0.2s ease; }
       .modal.active { display: flex; justify-content: center; align-items: center; }
       .modal-content { background-color: #fefefe; padding: 28px; border-radius: 16px; width: 90%; max-width: 520px; box-shadow: var(--shadow-lg); animation: slideUp 0.25s ease; overflow-y: auto; max-height: 90vh; }
       @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -51,6 +51,7 @@
       .animate-in > *:nth-child(4) { animation-delay: 0.44s; }
       .animate-in > *:nth-child(5) { animation-delay: 0.56s; }
       .animate-in > *:nth-child(6) { animation-delay: 0.68s; }
+      #sectionDashboard .animate-in > * { animation: fadeUp 0.7s ease-out forwards; }
       .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 14px; }
       .modal-header h2 { font-family: var(--font-display); color: var(--primary); font-size: 20px; font-weight: 700; }
       .close-btn { background: none; border: none; font-size: 24px; cursor: pointer; color: #999; transition: color 0.2s; line-height: 1; }
@@ -194,7 +195,7 @@
   </div>
 </div>
 
-<script>(function(){var e=document.getElementById('isuPageLoader');if(!e)return;var b=e.querySelector('.loader-progress-bar');function hideLoader(){if(e.style.display==='none')return;if(b){b.style.transition='transform 0.3s ease';b.style.transform='scaleX(1)'}setTimeout(function(){e.style.display='none'},600)}if(b){b.style.transformOrigin='left';var d=2000;var s=Date.now();var r=1;(function a(){if(!r||e.style.display==='none')return;var p=((Date.now()-s)%d)/d;var v=p<.5?p/.5*.85:.85*(1-(p-.5)/.5);b.style.transform='scaleX('+v+')';requestAnimationFrame(a)})();}window.addEventListener('load',function(){r=0;hideLoader()});setTimeout(function(){r=0;hideLoader()},5000)})();</script>
+<script>(function(){var e=document.getElementById('isuPageLoader');if(!e)return;var b=e.querySelector('.loader-progress-bar');if(b){b.style.transformOrigin='left';var d=2000;var s=Date.now();var r=1;(function a(){if(!r||e.style.display==='none')return;var p=((Date.now()-s)%d)/d;var v=p<.5?p/.5*.85:.85*(1-(p-.5)/.5);b.style.transform='scaleX('+v+')';requestAnimationFrame(a)})();}window._hidePageLoader=function(){if(e.style.display==='none')return;e.style.transition='opacity 0.25s ease';e.style.opacity='0';setTimeout(function(){e.style.display='none'},260);r=0}})();</script>
 
 <!-- MAIN CONTENT -->
 <main class="px-4 sm:px-5 lg:px-8">
@@ -1065,7 +1066,7 @@
       attWebcam.srcObject = attStream;
       attVerifyBtn.disabled = false;
       attFaceIndicator.className = 'w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse';
-      attFaceStatus.textContent = 'Camera active — ready';
+      attFaceStatus.textContent = 'Camera active â€” ready';
       attFaceStatus.className = 'text-sm font-medium text-green-700';
     } catch (err) {
       attFaceIndicator.className = 'w-2.5 h-2.5 rounded-full bg-red-500';
@@ -1100,14 +1101,14 @@
         attVerifyBtn.innerHTML = '<i data-lucide="log-out" class="w-4 h-4 inline mr-2"></i> Clock Out';
         attStatusBadge.textContent = 'Clocked In';
         attStatusBadge.className = 'inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700';
-        attStatusDetail.textContent = `In: ${fmtTime12(data.time_in)} — Ready for Time Out`;
+        attStatusDetail.textContent = `In: ${fmtTime12(data.time_in)} â€” Ready for Time Out`;
       } else {
         attCurrentAction = null;
         attVerifyBtn.disabled = true;
         attVerifyBtn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 inline mr-2"></i> Done for Today';
         attStatusBadge.textContent = 'Completed';
         attStatusBadge.className = 'inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700';
-        attStatusDetail.textContent = `In: ${fmtTime12(data.time_in)} • Out: ${fmtTime12(data.time_out)}`;
+        attStatusDetail.textContent = `In: ${fmtTime12(data.time_in)} â€¢ Out: ${fmtTime12(data.time_out)}`;
       }
       lucide.createIcons();
     } catch {
@@ -1410,9 +1411,9 @@
         <th class="text-left py-2 px-3 text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Method</th>
       </tr></thead><tbody>`;
     sorted.forEach(r => {
-      const d = r.date || '—';
-      const ti = r.time_in ? fmtTime12(r.time_in) : '—';
-      const to = r.time_out ? fmtTime12(r.time_out) : '—';
+      const d = r.date || 'â€”';
+      const ti = r.time_in ? fmtTime12(r.time_in) : 'â€”';
+      const to = r.time_out ? fmtTime12(r.time_out) : 'â€”';
       const completed = !!r.time_out;
       const statusCls = completed ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700';
       const statusTxt = completed ? 'Completed' : 'Pending';
@@ -1751,12 +1752,14 @@ async function loadArchives() {
     } catch (err) { loading.classList.add('hidden'); error.classList.remove('hidden'); console.error(err); }
   }
 
-  function showDashboardContent() {
+  async function showDashboardContent() {
     document.getElementById('sectionApply').classList.add('hidden');
     document.getElementById('sectionPending').classList.add('hidden');
     document.getElementById('sectionDashboard').classList.remove('hidden');
     switchToDashboard();
-    loadDashboard(); loadAttendanceHistory(); loadArchives();
+    await loadDashboard();
+    loadAttendanceHistory();
+    loadArchives();
   }
 
   function showApplySection() {
@@ -1954,7 +1957,17 @@ async function loadArchives() {
 
   let applyCamStream = null;
 
+  function openApplyRequiredModal(title, desc) {
+    document.getElementById('applyRequiredTitle').textContent = title;
+    document.getElementById('applyRequiredDesc').textContent = desc;
+    openModal('applyRequiredModal');
+    lucide.createIcons();
+  }
+
   async function initApp() {
+    let showModal = false;
+    let modalTitle = 'Apply for a Subject';
+    let modalDesc = 'You need to apply to an OJT subject before accessing the dashboard.';
     try {
       const apps = await apiFetch('/api/student/dashboard/my_applications/');
       if (apps && apps.length > 0) {
@@ -1962,35 +1975,36 @@ async function loadArchives() {
         const hasPending = apps.some(a => a.status === 'pending');
         const allRejected = apps.every(a => a.status === 'rejected');
         if (hasApproved) {
-          showDashboardContent();
+          await showDashboardContent();
         } else if (hasPending) {
           document.getElementById('sectionApply').classList.add('hidden');
           document.getElementById('sectionPending').classList.remove('hidden');
           document.getElementById('sectionDashboard').classList.add('hidden');
           lucide.createIcons();
         } else if (allRejected) {
-          showDashboardContent();
-          document.getElementById('applyRequiredTitle').textContent = 'Application Rejected';
-          document.getElementById('applyRequiredDesc').textContent = 'Your previous application was rejected. You can apply to a different subject or re-apply to the same subject.';
-          openModal('applyRequiredModal');
-          lucide.createIcons();
+          await showDashboardContent();
+          modalTitle = 'Application Rejected';
+          modalDesc = 'Your previous application was rejected. You can apply to a different subject or re-apply to the same subject.';
+          showModal = true;
         } else {
-          showDashboardContent();
+          await showDashboardContent();
+          showModal = true;
         }
       } else {
-        showDashboardContent();
-        document.getElementById('applyRequiredTitle').textContent = 'Apply for a Subject';
-        document.getElementById('applyRequiredDesc').textContent = 'You need to apply to an OJT subject before accessing the dashboard.';
-        openModal('applyRequiredModal');
-        lucide.createIcons();
+        await showDashboardContent();
+        showModal = true;
       }
     } catch (err) {
       console.error('initApp error:', err);
-      showDashboardContent();
-      document.getElementById('applyRequiredTitle').textContent = 'Welcome to OJT Dashboard';
-      document.getElementById('applyRequiredDesc').textContent = 'An error occurred while loading your applications. The dashboard is ready — you can explore it while we retry.';
-      openModal('applyRequiredModal');
-      lucide.createIcons();
+      await showDashboardContent();
+      modalTitle = 'Welcome to OJT Dashboard';
+      modalDesc = 'An error occurred while loading your applications. The dashboard is ready \u2014 you can explore it while we retry.';
+      showModal = true;
+    }
+    if (typeof window._hidePageLoader === 'function') window._hidePageLoader();
+    if (showModal) {
+      await new Promise(r => setTimeout(r, 500));
+      openApplyRequiredModal(modalTitle, modalDesc);
     }
   }
 
