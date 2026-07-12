@@ -17,18 +17,20 @@
     <script src="/static/js/auth.js"></script>
     <style>
       :root {
-        --primary: #11693A;
-        --primary-dark: #0e5630;
+        --primary: #0D7A42;
+        --primary-dark: #0A6335;
+        --primary-light: #E8F5EE;
         --gold: #C8A44A;
         --gold-light: #E8D5A0;
-        --bg-body: #F4F5F9;
+        --bg-body: #F0F2F7;
         --card-bg: #FFFFFF;
         --fg: #1A1A2E;
         --muted: #7C7C8D;
-        --border: #E8E9F0;
-        --shadow-sm: 0 1px 2px rgba(0,0,0,0.04), 0 2px 8px rgba(0,0,0,0.03);
-        --shadow-md: 0 4px 12px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.03);
-        --shadow-lg: 0 8px 24px rgba(0,0,0,0.06), 0 16px 40px rgba(0,0,0,0.04);
+        --border: #E2E4EA;
+        --shadow-sm: 0 1px 3px rgba(0,0,0,0.05), 0 1px 6px rgba(0,0,0,0.03);
+        --shadow-md: 0 4px 16px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.04);
+        --shadow-lg: 0 12px 40px rgba(0,0,0,0.08), 0 24px 64px rgba(0,0,0,0.05);
+        --shadow-glow: 0 0 24px rgba(13,122,66,0.12);
         --font-display: 'Inter', sans-serif;
         --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
       }
@@ -38,7 +40,7 @@
       .custom-scroll::-webkit-scrollbar-track { background: transparent; }
       .custom-scroll::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
 
-      .modal { display: none; position: fixed; z-index: 60; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.05); animation: fadeIn 0.2s ease; }
+      .modal { display: none; position: fixed; z-index: 60; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); animation: fadeIn 0.2s ease; }
       .modal.active { display: flex; justify-content: center; align-items: center; }
       .modal-content { background-color: #fefefe; padding: 28px; border-radius: 16px; width: 90%; max-width: 520px; box-shadow: var(--shadow-lg); animation: slideUp 0.25s ease; overflow-y: auto; max-height: 90vh; }
       @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
@@ -150,6 +152,242 @@
         pointer-events: none;
       }
 
+      /* ── Modern Stepper ── */
+      .wiz-stepper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0;
+        padding: 16px 0;
+      }
+      .wiz-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        position: relative;
+        z-index: 2;
+      }
+      .wiz-step-dot {
+        width: 36px;
+        height: 36px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
+        transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+      }
+      .wiz-step-dot .step-icon {
+        width: 16px;
+        height: 16px;
+        transition: opacity 0.2s ease;
+      }
+      .wiz-step-dot .step-num {
+        transition: opacity 0.2s ease;
+      }
+      .wiz-step.completed .wiz-step-dot {
+        background: #16a34a;
+        color: white;
+        box-shadow: 0 2px 10px rgba(22, 163, 74, 0.25);
+      }
+      .wiz-step.completed .wiz-step-dot .step-num { display: none; }
+      .wiz-step.completed .wiz-step-dot .step-icon { display: block; }
+      .wiz-step.active .wiz-step-dot {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 4px 16px rgba(13, 122, 66, 0.3);
+        transform: scale(1.08);
+      }
+      .wiz-step.active .wiz-step-dot::after {
+        content: '';
+        position: absolute;
+        inset: -4px;
+        border-radius: 16px;
+        border: 2px solid rgba(13, 122, 66, 0.2);
+        animation: stepPulse 2s ease-in-out infinite;
+      }
+      .wiz-step.pending .wiz-step-dot {
+        background: var(--border);
+        color: var(--muted);
+      }
+      .wiz-step.pending .wiz-step-dot .step-icon { display: none; }
+      .wiz-step.pending .wiz-step-dot .step-num { display: block; }
+      .wiz-step-label {
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        white-space: nowrap;
+        transition: color 0.3s ease;
+      }
+      .wiz-step.completed .wiz-step-label { color: #16a34a; }
+      .wiz-step.active .wiz-step-label { color: var(--primary); font-weight: 700; }
+      .wiz-step.pending .wiz-step-label { color: var(--muted); }
+      .wiz-line {
+        width: 48px;
+        height: 2px;
+        border-radius: 1px;
+        transition: background 0.35s ease;
+        margin: 0 4px;
+        margin-bottom: 20px;
+      }
+      .wiz-line.completed { background: #16a34a; }
+      .wiz-line.pending { background: var(--border); }
+      @keyframes stepPulse {
+        0%, 100% { opacity: 0.6; transform: scale(1); }
+        50% { opacity: 1; transform: scale(1.04); }
+      }
+
+      /* ── Glassmorphism Subject Card ── */
+      .glass-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 16px;
+        padding: 20px;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+      }
+      .glass-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(90deg, var(--primary), var(--gold));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .glass-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg), var(--shadow-glow);
+        border-color: rgba(13, 122, 66, 0.15);
+      }
+      .glass-card:hover::before { opacity: 1; }
+      .glass-card.selected {
+        border-color: var(--primary);
+        background: rgba(13, 122, 66, 0.04);
+        box-shadow: 0 0 0 2px rgba(13, 122, 66, 0.1), var(--shadow-md);
+      }
+      .glass-card.selected::before { opacity: 1; }
+
+      /* ── Filter Chips ── */
+      .filter-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 5px 14px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 600;
+        border: 1px solid var(--border);
+        background: white;
+        color: var(--muted);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        white-space: nowrap;
+      }
+      .filter-chip:hover {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: var(--primary-light);
+      }
+      .filter-chip.active {
+        background: var(--primary);
+        color: white;
+        border-color: var(--primary);
+        box-shadow: 0 2px 8px rgba(13, 122, 66, 0.2);
+      }
+
+      /* ── Enhanced Search Bar ── */
+      .search-enhanced {
+        position: relative;
+        width: 100%;
+      }
+      .search-enhanced input {
+        width: 100%;
+        padding: 12px 16px 12px 44px;
+        border-radius: 14px;
+        border: 1.5px solid var(--border);
+        background: white;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--fg);
+        outline: none;
+        transition: all 0.25s ease;
+        box-shadow: var(--shadow-sm);
+      }
+      .search-enhanced input:focus {
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgba(13, 122, 66, 0.08), var(--shadow-sm);
+      }
+      .search-enhanced input::placeholder { color: var(--muted); font-weight: 400; }
+      .search-enhanced .search-icon {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 18px;
+        height: 18px;
+        color: var(--muted);
+        pointer-events: none;
+        transition: color 0.2s ease;
+      }
+      .search-enhanced input:focus ~ .search-icon { color: var(--primary); }
+      .search-enhanced .search-clear {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 22px;
+        height: 22px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--muted);
+        cursor: pointer;
+        opacity: 0;
+        transition: all 0.2s ease;
+        background: transparent;
+        border: none;
+      }
+      .search-enhanced input:not(:placeholder-shown) ~ .search-clear { opacity: 1; }
+      .search-enhanced .search-clear:hover { background: rgba(0,0,0,0.06); color: var(--fg); }
+
+      /* ── Slots Badge ── */
+      .slots-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 10px;
+        border-radius: 20px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+      }
+      .slots-badge.available {
+        background: rgba(13, 122, 66, 0.08);
+        color: var(--primary);
+        border: 1px solid rgba(13, 122, 66, 0.15);
+      }
+      .slots-badge.limited {
+        background: rgba(234, 179, 8, 0.08);
+        color: #b45309;
+        border: 1px solid rgba(234, 179, 8, 0.15);
+      }
+      .slots-badge.full {
+        background: rgba(239, 68, 68, 0.08);
+        color: #dc2626;
+        border: 1px solid rgba(239, 68, 68, 0.15);
+      }
+
       * {
         scrollbar-width: none;
       }
@@ -184,7 +422,7 @@
       .cal-nav-btn:hover { background: rgba(0,0,0,0.04); color: var(--fg); }
     </style>
 </head>
-<body class="bg-[#F4F5F9] min-h-screen">
+<body class="bg-[#F0F2F7] min-h-screen">
 
 <div id="isuPageLoader" class="isu-page-loader">
   <div class="loader-logo-wrap">
@@ -202,87 +440,149 @@
 
   <!-- APPLY SECTION -->
   <div id="sectionApply" class="hidden animate-in">
-    <!-- Horizontal Step indicator -->
-    <div class="flex items-center justify-center gap-2 sm:gap-3 mb-6">
-      <div class="flex items-center gap-2">
-        <div id="applyDot1" class="w-8 h-8 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-xs font-bold">1</div>
-        <span class="text-xs font-semibold text-[var(--primary)] hidden sm:inline" id="applyLabel1">Choose Subject</span>
+    <!-- Modern Step Indicator -->
+    <div class="wiz-stepper mb-6" id="applyStepper">
+      <div class="wiz-step active" data-step="1">
+        <div class="wiz-step-dot">
+          <span class="step-num">1</span>
+          <i data-lucide="briefcase" class="step-icon"></i>
+        </div>
+        <span class="wiz-step-label hidden sm:block">Choose Subject</span>
       </div>
-      <div class="w-8 sm:w-12 h-px bg-[var(--border)]" id="applyLine1"></div>
-      <div class="flex items-center gap-2">
-        <div id="applyDot2" class="w-8 h-8 rounded-full bg-gray-200 text-[var(--fg-dim)] flex items-center justify-center text-xs font-bold">2</div>
-        <span class="text-xs font-semibold text-[var(--fg-dim)] hidden sm:inline" id="applyLabel2">Fill Details</span>
+      <div class="wiz-line pending" id="applyLine1"></div>
+      <div class="wiz-step pending" data-step="2">
+        <div class="wiz-step-dot">
+          <span class="step-num">2</span>
+          <i data-lucide="file-text" class="step-icon"></i>
+        </div>
+        <span class="wiz-step-label hidden sm:block">Fill Details</span>
       </div>
-      <div class="w-8 sm:w-12 h-px bg-[var(--border)]" id="applyLine2"></div>
-      <div class="flex items-center gap-2">
-        <div id="applyDot3" class="w-8 h-8 rounded-full bg-gray-200 text-[var(--fg-dim)] flex items-center justify-center text-xs font-bold">3</div>
-        <span class="text-xs font-semibold text-[var(--fg-dim)] hidden sm:inline" id="applyLabel3">Face Photo</span>
+      <div class="wiz-line pending" id="applyLine2"></div>
+      <div class="wiz-step pending" data-step="3">
+        <div class="wiz-step-dot">
+          <span class="step-num">3</span>
+          <i data-lucide="camera" class="step-icon"></i>
+        </div>
+        <span class="wiz-step-label hidden sm:block">Face Photo</span>
       </div>
-      <div class="w-8 sm:w-12 h-px bg-[var(--border)]" id="applyLine3"></div>
-      <div class="flex items-center gap-2">
-        <div id="applyDot4" class="w-8 h-8 rounded-full bg-gray-200 text-[var(--fg-dim)] flex items-center justify-center text-xs font-bold">4</div>
-        <span class="text-xs font-semibold text-[var(--fg-dim)] hidden sm:inline" id="applyLabel4">Select Site</span>
+      <div class="wiz-line pending" id="applyLine3"></div>
+      <div class="wiz-step pending" data-step="4">
+        <div class="wiz-step-dot">
+          <span class="step-num">4</span>
+          <i data-lucide="map-pin" class="step-icon"></i>
+        </div>
+        <span class="wiz-step-label hidden sm:block">Select Site</span>
       </div>
-      <div class="w-8 sm:w-12 h-px bg-[var(--border)]" id="applyLine4"></div>
-      <div class="flex items-center gap-2">
-        <div id="applyDot5" class="w-8 h-8 rounded-full bg-gray-200 text-[var(--fg-dim)] flex items-center justify-center text-xs font-bold">5</div>
-        <span class="text-xs font-semibold text-[var(--fg-dim)] hidden sm:inline" id="applyLabel5">Done</span>
+      <div class="wiz-line pending" id="applyLine4"></div>
+      <div class="wiz-step pending" data-step="5">
+        <div class="wiz-step-dot">
+          <span class="step-num">5</span>
+          <i data-lucide="check-circle" class="step-icon"></i>
+        </div>
+        <span class="wiz-step-label hidden sm:block">Done</span>
       </div>
     </div>
 
     <!-- Step 1: Choose Subject -->
     <div id="applyWizStep1">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center">
-            <i data-lucide="briefcase" class="w-4 h-4 text-[var(--primary)]"></i>
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)] flex items-center justify-center shadow-sm">
+            <i data-lucide="briefcase" class="w-5 h-5 text-white"></i>
           </div>
-          <h2 class="text-lg font-bold text-[var(--fg)]">Choose Your OJT Subject</h2>
+          <div>
+            <h2 class="text-lg font-extrabold text-[var(--fg)] tracking-tight">Choose Your OJT Subject</h2>
+            <p class="text-[11px] text-[var(--muted)] font-medium">Select a program that matches your course</p>
+          </div>
         </div>
       </div>
-      <div id="programsLoading" class="text-center py-10">
-        <i data-lucide="loader-circle" class="animate-spin text-[var(--primary)] w-7 h-7 mx-auto"></i>
-        <p class="text-xs text-[var(--muted)] mt-3">Loading available subjects...</p>
+      <div id="programsLoading" class="text-center py-14">
+        <div class="w-12 h-12 rounded-2xl bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-3">
+          <i data-lucide="loader-circle" class="animate-spin text-[var(--primary)] w-6 h-6"></i>
+        </div>
+        <p class="text-xs text-[var(--muted)] font-medium">Loading available subjects...</p>
       </div>
-      <div id="programsError" class="hidden text-center py-8"><p class="text-red-500 text-xs font-semibold">Failed to load subjects.</p></div>
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-        <div class="relative w-full sm:w-64">
-          <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style="color: var(--fg-dim);"></i>
-          <input type="text" id="programSearch" oninput="filterPrograms()" placeholder="Search subjects..." class="w-full pl-9 pr-4 py-2.5 !rounded-xl text-xs">
+      <div id="programsError" class="hidden text-center py-10">
+        <div class="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-3">
+          <i data-lucide="alert-triangle" class="text-red-400 w-6 h-6"></i>
+        </div>
+        <p class="text-sm font-semibold text-red-500">Failed to load subjects.</p>
+        <button onclick="loadAvailablePrograms()" class="mt-2 text-xs text-[var(--primary)] font-semibold hover:underline">Retry</button>
+      </div>
+
+      <!-- Search + Filter Row -->
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-5">
+        <div class="search-enhanced flex-1">
+          <input type="text" id="programSearch" oninput="filterPrograms()" placeholder="Search by program name...">
+          <i data-lucide="search" class="search-icon"></i>
+          <button class="search-clear" onclick="document.getElementById('programSearch').value=''; filterPrograms();">
+            <i data-lucide="x" style="width:14px;height:14px;"></i>
+          </button>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap" id="filterChips">
+          <button class="filter-chip active" data-filter="all" onclick="filterByChip('all', this)">
+            <i data-lucide="layers" style="width:12px;height:12px;"></i> All
+          </button>
+          <button class="filter-chip" data-filter="available" onclick="filterByChip('available', this)">
+            <i data-lucide="check-circle" style="width:12px;height:12px;"></i> Available
+          </button>
+          <button class="filter-chip" data-filter="limited" onclick="filterByChip('limited', this)">
+            <i data-lucide="alert-circle" style="width:12px;height:12px;"></i> Few Slots
+          </button>
         </div>
       </div>
-      <div id="noProgramsMsg" class="hidden bento-card p-8 text-center">
-        <i data-lucide="frown" class="text-gray-300 w-9 h-9 mx-auto"></i>
-        <p class="text-sm font-semibold text-[var(--muted)] mt-3">No subjects available for your course at this time.</p>
-        <p class="text-xs text-[var(--muted)] mt-1">Please check back later or contact your coordinator.</p>
+
+      <div id="noProgramsMsg" class="hidden glass-card p-10 text-center" style="cursor:default;">
+        <div class="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-4">
+          <i data-lucide="frown" class="text-gray-300 w-7 h-7"></i>
+        </div>
+        <p class="text-sm font-bold text-[var(--muted)] mb-1">No subjects found</p>
+        <p class="text-xs text-[var(--muted)]">Try adjusting your search or check back later.</p>
       </div>
       <div id="programsGrid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-      <div class="flex justify-center mt-6">
+      <div class="flex justify-center mt-7">
         <button type="button" id="confirmSubjectBtn" onclick="applySelectSubjectAndNext()" disabled
-                class="inline-flex items-center gap-2 px-6 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-semibold text-xs rounded-xl transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+                class="inline-flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-[var(--primary)] to-[var(--primary-dark)] hover:from-[var(--primary-dark)] hover:to-[var(--primary)] text-white font-bold text-xs rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
           <i data-lucide="check" class="w-4 h-4"></i> Confirm Subject
         </button>
       </div>
     </div>
 
     <!-- Step 2: Fill Details -->
-    <div id="applyWizStep2" class="hidden">
-      <div class="bento-card p-5 mb-4">
+    <div id="applyWizStep2" class="hidden space-y-4">
+      <div class="glass-card p-5 mb-4" style="cursor:default;">
         <p class="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">Selected Subject</p>
         <p id="applySelectedSubject" class="text-sm font-bold text-[var(--fg)]"></p>
       </div>
-      <div class="bento-card p-5 space-y-4">
+      <div class="glass-card p-6 space-y-5" style="cursor:default;">
         <div>
-          <label class="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider block mb-1.5">Application Letter <span class="text-red-500">*</span></label>
-          <input type="file" id="applyLetterWiz" required accept=".pdf" class="w-full p-2.5 border border-[var(--border)] text-sm outline-none bg-white rounded-xl file:mr-3 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-[var(--primary)]/10 file:text-[var(--primary)] hover:file:bg-[var(--primary)]/20">
-          <p class="text-[10px] text-[var(--muted)] mt-1">Upload your application letter (PDF only)</p>
+          <label class="text-[11px] font-semibold text-[var(--fg)] block mb-2">
+            <i data-lucide="file-text" class="w-3.5 h-3.5 inline-block -mt-0.5 mr-1 text-[var(--primary)]"></i>
+            Application Letter <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <input type="file" id="applyLetterWiz" required accept=".pdf"
+                   class="w-full p-3 pr-10 border-2 border-dashed border-[var(--border)] text-sm outline-none bg-[var(--primary-light)]/40 rounded-xl
+                          file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold
+                          file:bg-[var(--primary)] file:text-white hover:file:bg-[var(--primary-dark)]
+                          focus:border-[var(--primary)] transition-colors">
+            <i data-lucide="upload-cloud" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none"></i>
+          </div>
+          <p class="text-[10px] text-[var(--muted)] mt-1.5 flex items-center gap-1">
+            <i data-lucide="info" class="w-3 h-3"></i> Upload your application letter (PDF only)
+          </p>
         </div>
-        <div id="applyErrorWiz" class="hidden p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-medium rounded-lg"></div>
+        <div id="applyErrorWiz" class="hidden p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-medium rounded-xl flex items-center gap-2">
+          <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
+          <span></span>
+        </div>
         <div class="flex items-center gap-3 pt-2">
-          <button type="button" onclick="applyGoStep(1)" class="px-5 py-2 bg-gray-200 text-[var(--fg)] font-semibold text-xs rounded-xl hover:bg-gray-300 transition flex items-center gap-1.5">
+          <button type="button" onclick="applyGoStep(1)"
+                  class="px-5 py-2.5 bg-gray-100 text-[var(--fg)] font-semibold text-xs rounded-xl hover:bg-gray-200 transition flex items-center gap-1.5">
             <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back
           </button>
-          <button type="button" onclick="applyGoStep(3)" class="flex-1 px-5 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-semibold text-xs rounded-xl transition shadow-sm flex items-center justify-center gap-1.5">
+          <button type="button" onclick="applyGoStep(3)"
+                  class="flex-1 px-5 py-2.5 bg-gradient-to-r from-[var(--primary)] to-[var(--primary-dark)] hover:from-[var(--primary-dark)] hover:to-[var(--primary)] text-white font-semibold text-xs rounded-xl transition shadow-md hover:shadow-lg flex items-center justify-center gap-1.5">
             Next: Face Photo <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
           </button>
         </div>
@@ -290,41 +590,43 @@
     </div>
 
     <!-- Step 3: Face Photo -->
-    <div id="applyWizStep3" class="hidden">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center">
-            <i data-lucide="camera" class="w-4 h-4 text-[var(--primary)]"></i>
-          </div>
-          <h2 class="text-lg font-bold text-[var(--fg)]">Capture Face Photo</h2>
-        </div>
-      </div>
-      <div class="bento-card p-5 space-y-4">
-        <p class="text-[10px] text-[var(--muted)] mb-2">Take a clear photo of your face for attendance verification. <span class="text-red-500">*</span></p>
-        <div id="applyCamContainer" class="relative rounded-xl overflow-hidden bg-black flex items-center justify-center" style="height:340px;">
+    <div id="applyWizStep3" class="hidden space-y-4">
+      <div class="glass-card p-6 space-y-4" style="cursor:default;">
+        <p class="text-[11px] text-[var(--muted)] flex items-center gap-1.5">
+          <i data-lucide="info" class="w-3.5 h-3.5 text-[var(--primary)]"></i>
+          Take a clear photo of your face for attendance verification. <span class="text-red-500">*</span>
+        </p>
+        <div id="applyCamContainer" class="relative rounded-2xl overflow-hidden bg-gray-900 flex items-center justify-center" style="height:340px;">
           <video id="applyCamPreview" autoplay playsinline class="absolute inset-0 w-full h-full object-contain"></video>
           <canvas id="applyCamCanvas" class="hidden"></canvas>
-          <div class="absolute top-2 left-2 flex items-center gap-1.5 z-10">
+          <div class="absolute top-3 left-3 flex items-center gap-1.5 z-10 bg-black/50 backdrop-blur-sm rounded-full px-2.5 py-1">
             <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-            <span class="text-[10px] text-white/80 font-semibold">LIVE</span>
+            <span class="text-[10px] text-white font-semibold tracking-wide">LIVE</span>
           </div>
           <img id="applyCamCaptured" class="absolute inset-0 w-full h-full object-contain hidden" alt="Captured face">
         </div>
-        <div id="applyCamBtns" class="flex items-center gap-2 mt-2">
-          <button type="button" id="applyCamCaptureBtn" onclick="applyCaptureFace()" class="px-4 py-2 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+        <div id="applyCamBtns" class="flex items-center gap-2">
+          <button type="button" id="applyCamCaptureBtn" onclick="applyCaptureFace()"
+                  class="px-5 py-2.5 bg-gradient-to-r from-[var(--primary)] to-[var(--primary-dark)] hover:from-[var(--primary-dark)] hover:to-[var(--primary)] text-white text-xs font-semibold rounded-xl shadow-md hover:shadow-lg transition flex items-center gap-1.5">
             <i data-lucide="camera" class="w-3.5 h-3.5"></i> Capture Photo
           </button>
-          <button type="button" id="applyCamRetakeBtn" onclick="applyRetakeFace()" class="hidden px-4 py-2 bg-gray-400 hover:bg-gray-500 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
+          <button type="button" id="applyCamRetakeBtn" onclick="applyRetakeFace()"
+                  class="hidden px-5 py-2.5 bg-gray-400 hover:bg-gray-500 text-white text-xs font-semibold rounded-xl transition flex items-center gap-1.5">
             <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Retake
           </button>
         </div>
         <input type="file" id="applyFaceImageWiz" class="hidden" accept="image/*">
-        <div id="applyFaceError" class="hidden p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-medium rounded-lg"></div>
+        <div id="applyFaceError" class="hidden p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-medium rounded-xl flex items-center gap-2">
+          <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
+          <span></span>
+        </div>
         <div class="flex items-center gap-3 pt-2">
-          <button type="button" onclick="applyGoStep(2)" class="px-5 py-2 bg-gray-200 text-[var(--fg)] font-semibold text-xs rounded-xl hover:bg-gray-300 transition flex items-center gap-1.5">
+          <button type="button" onclick="applyGoStep(2)"
+                  class="px-5 py-2.5 bg-gray-100 text-[var(--fg)] font-semibold text-xs rounded-xl hover:bg-gray-200 transition flex items-center gap-1.5">
             <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back
           </button>
-          <button type="button" onclick="applyGoToSite()" class="flex-1 px-5 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-semibold text-xs rounded-xl transition shadow-sm flex items-center justify-center gap-1.5">
+          <button type="button" onclick="applyGoToSite()"
+                  class="flex-1 px-5 py-2.5 bg-gradient-to-r from-[var(--primary)] to-[var(--primary-dark)] hover:from-[var(--primary-dark)] hover:to-[var(--primary)] text-white font-semibold text-xs rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-1.5">
             Next: Select Site <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
           </button>
         </div>
@@ -332,33 +634,38 @@
     </div>
 
     <!-- Step 4: Select Site -->
-    <div id="applyWizStep4" class="hidden">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
-        <div class="flex items-center gap-2.5">
-          <div class="w-8 h-8 rounded-lg bg-[var(--primary)]/10 flex items-center justify-center">
-            <i data-lucide="map-pin" class="w-4 h-4 text-[var(--primary)]"></i>
-          </div>
-          <h2 class="text-lg font-bold text-[var(--fg)]">Select Deployment Site</h2>
-        </div>
-      </div>
-      <div id="sitesLoading" class="text-center py-10">
+    <div id="applyWizStep4" class="hidden space-y-4">
+      <div id="sitesLoading" class="glass-card p-10 text-center" style="cursor:default;">
         <i data-lucide="loader-circle" class="animate-spin text-[var(--primary)] w-7 h-7 mx-auto"></i>
-        <p class="text-xs text-[var(--muted)] mt-3">Loading available sites...</p>
+        <p class="text-xs text-[var(--muted)] mt-3 font-medium">Loading available sites...</p>
       </div>
-      <div id="sitesError" class="hidden text-center py-8"><p class="text-red-500 text-xs font-semibold">Failed to load sites.</p></div>
-      <div id="noSitesMsg" class="hidden bento-card p-8 text-center">
-        <i data-lucide="frown" class="text-gray-300 w-9 h-9 mx-auto"></i>
-        <p class="text-sm font-semibold text-[var(--muted)] mt-3">No sites available at this time.</p>
-        <p class="text-xs text-[var(--muted)] mt-1">You may still submit your application without choosing a site.</p>
+      <div id="sitesError" class="hidden glass-card p-8 text-center" style="cursor:default;">
+        <div class="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-3">
+          <i data-lucide="alert-triangle" class="text-red-400 w-6 h-6"></i>
+        </div>
+        <p class="text-sm font-bold text-[var(--muted)] mb-1">Failed to load sites</p>
+        <p class="text-xs text-[var(--muted)]">Please try again later.</p>
+      </div>
+      <div id="noSitesMsg" class="hidden glass-card p-10 text-center" style="cursor:default;">
+        <div class="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
+          <i data-lucide="frown" class="text-gray-300 w-6 h-6"></i>
+        </div>
+        <p class="text-sm font-bold text-[var(--muted)] mb-1">No sites available</p>
+        <p class="text-xs text-[var(--muted)]">You may still submit your application without choosing a site.</p>
       </div>
       <div id="sitesGrid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4"></div>
-      <div class="bento-card p-5">
-        <div id="applySiteError" class="hidden p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-medium rounded-lg mb-3"></div>
+      <div class="glass-card p-5" style="cursor:default;">
+        <div id="applySiteError" class="hidden p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-medium rounded-xl flex items-center gap-2 mb-3">
+          <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
+          <span></span>
+        </div>
         <div class="flex items-center gap-3">
-          <button type="button" onclick="applyGoStep(3)" class="px-5 py-2 bg-gray-200 text-[var(--fg)] font-semibold text-xs rounded-xl hover:bg-gray-300 transition flex items-center gap-1.5">
+          <button type="button" onclick="applyGoStep(3)"
+                  class="px-5 py-2.5 bg-gray-100 text-[var(--fg)] font-semibold text-xs rounded-xl hover:bg-gray-200 transition flex items-center gap-1.5">
             <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back
           </button>
-          <button type="button" id="applySubmitWizBtn" onclick="submitApplication(event)" class="flex-1 px-5 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-semibold text-xs rounded-xl transition shadow-sm flex items-center justify-center gap-1.5">
+          <button type="button" id="applySubmitWizBtn" onclick="submitApplication(event)"
+                  class="flex-1 px-5 py-2.5 bg-gradient-to-r from-[var(--primary)] to-[var(--primary-dark)] hover:from-[var(--primary-dark)] hover:to-[var(--primary)] text-white font-semibold text-xs rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-1.5">
             <i data-lucide="send"></i> Submit Application
           </button>
         </div>
@@ -367,13 +674,16 @@
 
     <!-- Step 5: Success -->
     <div id="applyWizStep5" class="hidden">
-      <div class="bento-card p-8 text-center max-w-md mx-auto">
-        <div class="w-16 h-16 rounded-full bg-[var(--primary)]/10 flex items-center justify-center mx-auto mb-4">
-          <i data-lucide="check-circle" class="w-8 h-8 text-[var(--primary)]"></i>
+      <div class="glass-card p-10 text-center max-w-md mx-auto" style="cursor:default;">
+        <div class="w-20 h-20 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)] flex items-center justify-center mx-auto mb-5 shadow-lg">
+          <i data-lucide="check-circle" class="w-10 h-10 text-white"></i>
         </div>
-        <h3 class="text-lg font-bold text-[var(--fg)] mb-2">Application Submitted!</h3>
-        <p class="text-sm text-[var(--muted)] leading-relaxed mb-6">Your application has been submitted successfully. Please wait for your coordinator to review and approve it.</p>
-        <button type="button" onclick="showApplySection()" class="px-6 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-semibold text-xs rounded-xl transition shadow-sm">Back to Subjects</button>
+        <h3 class="text-xl font-bold text-[var(--fg)] mb-2">Application Submitted!</h3>
+        <p class="text-sm text-[var(--muted)] leading-relaxed mb-6 max-w-xs mx-auto">Your application has been submitted successfully. Please wait for your coordinator to review and approve it.</p>
+        <button type="button" onclick="showApplySection()"
+                class="px-7 py-2.5 bg-gradient-to-r from-[var(--primary)] to-[var(--primary-dark)] hover:from-[var(--primary-dark)] hover:to-[var(--primary)] text-white font-semibold text-xs rounded-xl shadow-md hover:shadow-lg transition">
+          <i data-lucide="arrow-left" class="w-3.5 h-3.5 inline-block -mt-0.5 mr-1"></i> Back to Subjects
+        </button>
       </div>
     </div>
   </div>
@@ -1662,18 +1972,18 @@ async function loadArchives() {
     if (!sites || sites.length === 0) { grid.classList.add('hidden'); noMsg.classList.remove('hidden'); return; }
     noMsg.classList.add('hidden');
     grid.innerHTML = sites.map(s => {
-      return '<label class="apply-site-card bento-card p-4 hover:border-[var(--primary)]/30 cursor-pointer transition-all" data-id="' + esc(s.id) + '" data-name="' + esc(s.name) + '"><input type="radio" name="applySite" value="' + esc(s.id) + '" class="hidden"><div class="flex items-start justify-between mb-2"><div class="flex-1"><h4 class="font-bold text-sm text-[var(--fg)] mb-1">' + esc(s.name) + '</h4><p class="text-xs text-[var(--muted)]">' + esc(s.course || 'All courses') + '</p></div><div class="apply-site-radio w-5 h-5 rounded-full border-2 border-[var(--border)] flex-shrink-0 flex items-center justify-center transition-all"><div class="apply-site-radio-dot w-2.5 h-2.5 rounded-full bg-[var(--primary)] hidden"></div></div></div><div class="space-y-1 text-xs text-[var(--muted)]">' + (s.supervisor_name ? '<div class="flex items-center gap-1.5"><i data-lucide="user" class="w-3 h-3"></i><span>Supervisor: <strong>' + esc(s.supervisor_name) + '</strong></span></div>' : '') + (s.contact_number ? '<div class="flex items-center gap-1.5"><i data-lucide="phone" class="w-3 h-3"></i><span>' + esc(s.contact_number) + '</span></div>' : '') + '</div></label>';
+      return '<label class="apply-site-card glass-card p-5 cursor-pointer transition-all" data-id="' + esc(s.id) + '" data-name="' + esc(s.name) + '"><input type="radio" name="applySite" value="' + esc(s.id) + '" class="hidden"><div class="flex items-start justify-between mb-3"><div class="flex-1"><h4 class="font-bold text-sm text-[var(--fg)] mb-1 leading-snug">' + esc(s.name) + '</h4><p class="text-[11px] text-[var(--muted)]">' + esc(s.course || 'All courses') + '</p></div><div class="apply-site-radio w-5 h-5 rounded-full border-2 border-[var(--border)] flex-shrink-0 mt-0.5 flex items-center justify-center transition-all"><div class="apply-site-radio-dot w-2.5 h-2.5 rounded-full bg-[var(--primary)] hidden"></div></div></div><div class="space-y-1.5 text-xs text-[var(--muted)] pt-2 border-t border-[var(--border)]/50">' + (s.supervisor_name ? '<div class="flex items-center gap-1.5"><i data-lucide="user" class="w-3 h-3 text-[var(--primary)]"></i><span>Supervisor: <strong class="text-[var(--fg)]">' + esc(s.supervisor_name) + '</strong></span></div>' : '') + (s.contact_number ? '<div class="flex items-center gap-1.5"><i data-lucide="phone" class="w-3 h-3 text-[var(--primary)]"></i><span class="font-medium">' + esc(s.contact_number) + '</span></div>' : '') + '</div></label>';
     }).join('');
     grid.classList.remove('hidden');
     document.querySelectorAll('.apply-site-card').forEach(card => {
       card.addEventListener('click', () => {
         document.querySelectorAll('.apply-site-card').forEach(c => {
-          c.classList.remove('border-[var(--primary)]', 'bg-[var(--primary)]/5');
+          c.classList.remove('selected');
           c.querySelector('.apply-site-radio').classList.remove('border-[var(--primary)]');
           c.querySelector('.apply-site-radio').classList.add('border-[var(--border)]');
           c.querySelector('.apply-site-radio-dot').classList.add('hidden');
         });
-        card.classList.add('border-[var(--primary)]', 'bg-[var(--primary)]/5');
+        card.classList.add('selected');
         card.querySelector('.apply-site-radio').classList.add('border-[var(--primary)]');
         card.querySelector('.apply-site-radio').classList.remove('border-[var(--border)]');
         card.querySelector('.apply-site-radio-dot').classList.remove('hidden');
@@ -1705,19 +2015,23 @@ async function loadArchives() {
     noMsg.classList.add('hidden');
     grid.innerHTML = programs.map(p => {
       const slotsLeft = p.max_students - p.student_count;
-      const slotsColor = slotsLeft <= 3 ? 'text-red-600 bg-red-50 border-red-200' : 'text-[var(--primary)] bg-[var(--primary)]/10 border-[var(--primary)]/20';
-      return '<label class="apply-subject-card bento-card p-5 hover:border-[var(--primary)]/30 flex flex-col cursor-pointer transition-all" data-id="' + esc(p.id) + '" data-name="' + esc(p.name) + '"><input type="radio" name="applySubject" value="' + esc(p.id) + '" class="hidden"><div class="flex items-start justify-between mb-3"><div class="flex-1"><h4 class="font-bold text-sm text-[var(--fg)] mb-1">' + esc(p.name) + '</h4><p class="text-xs text-[var(--muted)] leading-relaxed line-clamp-3">' + esc(p.description || 'No description provided.') + '</p></div><div class="apply-radio w-5 h-5 rounded-full border-2 border-[var(--border)] flex-shrink-0 mt-0.5 flex items-center justify-center transition-all"><div class="apply-radio-dot w-2.5 h-2.5 rounded-full bg-[var(--primary)] hidden"></div></div></div><div class="space-y-1.5 text-xs text-[var(--muted)]"><div class="flex items-center gap-1.5"><i data-lucide="user" class="w-3 h-3"></i><span>Coordinator: <strong>' + esc(p.coordinator_name) + '</strong></span></div><div class="flex items-center gap-1.5"><i data-lucide="users" class="w-3 h-3"></i><span class="' + slotsColor + ' px-2 py-0.5 rounded-full font-semibold border text-[10px]">' + slotsLeft + ' slot' + (slotsLeft !== 1 ? 's' : '') + ' left</span></div></div></label>';
+      let badgeCls = 'available';
+      if (slotsLeft <= 3 && slotsLeft > 0) badgeCls = 'limited';
+      else if (slotsLeft <= 0) badgeCls = 'full';
+      const slotText = slotsLeft > 0 ? slotsLeft + ' slot' + (slotsLeft !== 1 ? 's' : '') + ' left' : 'Full';
+      const icon = badgeCls === 'full' ? 'x-circle' : badgeCls === 'limited' ? 'alert-circle' : 'check-circle';
+      return '<label class="apply-subject-card glass-card flex flex-col cursor-pointer" data-id="' + esc(p.id) + '" data-name="' + esc(p.name) + '" data-slots="' + badgeCls + '"><input type="radio" name="applySubject" value="' + esc(p.id) + '" class="hidden"><div class="flex items-start justify-between mb-3"><div class="flex-1"><h4 class="font-bold text-sm text-[var(--fg)] mb-1 leading-snug">' + esc(p.name) + '</h4><p class="text-[11px] text-[var(--muted)] leading-relaxed line-clamp-2">' + esc(p.description || 'No description provided.') + '</p></div><div class="apply-radio w-5 h-5 rounded-full border-2 border-[var(--border)] flex-shrink-0 mt-0.5 flex items-center justify-center transition-all"><div class="apply-radio-dot w-2.5 h-2.5 rounded-full bg-[var(--primary)] hidden"></div></div></div><div class="flex items-center justify-between mt-auto pt-2 border-t border-[var(--border)]/50"><div class="flex items-center gap-1.5 text-[11px] text-[var(--muted)]"><i data-lucide="user" class="w-3 h-3"></i><span class="font-medium">' + esc(p.coordinator_name) + '</span></div><span class="slots-badge ' + badgeCls + '"><i data-lucide="' + icon + '" style="width:10px;height:10px;"></i>' + slotText + '</span></div></label>';
     }).join('');
     grid.classList.remove('hidden');
     document.querySelectorAll('.apply-subject-card').forEach(card => {
       card.addEventListener('click', () => {
         document.querySelectorAll('.apply-subject-card').forEach(c => {
-          c.classList.remove('border-[var(--primary)]', 'bg-[var(--primary)]/5');
+          c.classList.remove('selected');
           c.querySelector('.apply-radio').classList.remove('border-[var(--primary)]');
           c.querySelector('.apply-radio').classList.add('border-[var(--border)]');
           c.querySelector('.apply-radio-dot').classList.add('hidden');
         });
-        card.classList.add('border-[var(--primary)]', 'bg-[var(--primary)]/5');
+        card.classList.add('selected');
         card.querySelector('.apply-radio').classList.add('border-[var(--primary)]');
         card.querySelector('.apply-radio').classList.remove('border-[var(--border)]');
         card.querySelector('.apply-radio-dot').classList.remove('hidden');
@@ -1730,9 +2044,27 @@ async function loadArchives() {
     lucide.createIcons();
   }
 
+  let activeFilter = 'all';
+
   function filterPrograms() {
     const q = document.getElementById('programSearch').value.toLowerCase();
-    renderProgramCards(allPrograms.filter(p => p.name.toLowerCase().includes(q)));
+    let filtered = allPrograms.filter(p => p.name.toLowerCase().includes(q));
+    if (activeFilter !== 'all') {
+      filtered = filtered.filter(p => {
+        const left = p.max_students - p.student_count;
+        if (activeFilter === 'available') return left > 3;
+        if (activeFilter === 'limited') return left > 0 && left <= 3;
+        return true;
+      });
+    }
+    renderProgramCards(filtered);
+  }
+
+  function filterByChip(filter, el) {
+    activeFilter = filter;
+    document.querySelectorAll('#filterChips .filter-chip').forEach(c => c.classList.remove('active'));
+    el.classList.add('active');
+    filterPrograms();
   }
 
   async function loadAvailablePrograms() {
@@ -1824,36 +2156,18 @@ async function loadArchives() {
       const sec = document.getElementById(id);
       if (sec) sec.classList.toggle('hidden', i !== n - 1);
     });
-    const dots = [
-      document.getElementById('applyDot1'),
-      document.getElementById('applyDot2'),
-      document.getElementById('applyDot3'),
-      document.getElementById('applyDot4'),
-      document.getElementById('applyDot5')
-    ];
-    const labels = [
-      document.getElementById('applyLabel1'),
-      document.getElementById('applyLabel2'),
-      document.getElementById('applyLabel3'),
-      document.getElementById('applyLabel4'),
-      document.getElementById('applyLabel5')
-    ];
-    dots.forEach((d, i) => {
-      if (!d) return;
-      const line = document.getElementById('applyLine' + (i + 1));
-      if (i < n - 1) {
-        d.className = 'w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center text-xs font-bold';
-        labels[i].className = 'text-xs font-semibold text-green-600 pt-2';
-        if (line) line.className = 'w-px h-8 bg-green-500';
-      } else if (i === n - 1) {
-        d.className = 'w-8 h-8 rounded-full bg-[var(--primary)] text-white flex items-center justify-center text-xs font-bold';
-        labels[i].className = 'text-xs font-semibold text-[var(--primary)] pt-2';
-        if (line) line.className = 'w-px h-8 bg-[var(--border)]';
-      } else {
-        d.className = 'w-8 h-8 rounded-full bg-gray-200 text-gray-400 flex items-center justify-center text-xs font-bold';
-        labels[i].className = 'text-xs font-semibold text-gray-400 pt-2';
-        if (line) line.className = 'w-px h-8 bg-[var(--border)]';
-      }
+    const steps = document.querySelectorAll('#applyStepper .wiz-step');
+    const lines = document.querySelectorAll('#applyStepper .wiz-line');
+    steps.forEach((step, i) => {
+      step.classList.remove('active', 'completed', 'pending');
+      if (i < n - 1) step.classList.add('completed');
+      else if (i === n - 1) step.classList.add('active');
+      else step.classList.add('pending');
+    });
+    lines.forEach((line, i) => {
+      line.classList.remove('completed', 'pending');
+      if (i < n - 1) line.classList.add('completed');
+      else line.classList.add('pending');
     });
     lucide.createIcons();
     if (n === 1) {
