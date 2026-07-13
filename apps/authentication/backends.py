@@ -27,9 +27,10 @@ class CookieTokenAuthentication(TokenAuthentication):
         return super().authenticate(request)
 
     def authenticate_credentials(self, key):
+        model = self.get_model()
         try:
-            token = self.model.objects.select_related('user').get(key=key)
-        except self.model.DoesNotExist:
+            token = model.objects.select_related('user').get(key=key)
+        except model.DoesNotExist:
             raise AuthenticationFailed('Invalid token.')
         
         if not token.user.is_active:

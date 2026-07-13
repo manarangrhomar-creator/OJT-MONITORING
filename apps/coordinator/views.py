@@ -101,6 +101,19 @@ class OJTApplicationViewSet(viewsets.ModelViewSet):
         application.status = 'approved'
         application.approved_date = timezone.now()
         application.save()
+
+        # Auto-assign to preferred site if one was selected
+        if application.preferred_site and not SiteAssignment.objects.filter(
+            student=application.student, program=application.program
+        ).exists():
+            SiteAssignment.objects.create(
+                student=application.student,
+                program=application.program,
+                site=application.preferred_site,
+                supervisor_name=application.preferred_site.supervisor_name,
+                supervisor_contact=application.preferred_site.contact_number,
+            )
+
         try:
             student_name = application.student.get_full_name() or application.student.username
             send_email_task.delay(
@@ -330,6 +343,18 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         application.status = 'approved'
         application.approved_date = timezone.now()
         application.save()
+
+        # Auto-assign to preferred site if one was selected
+        if application.preferred_site and not SiteAssignment.objects.filter(
+            student=application.student, program=application.program
+        ).exists():
+            SiteAssignment.objects.create(
+                student=application.student,
+                program=application.program,
+                site=application.preferred_site,
+                supervisor_name=application.preferred_site.supervisor_name,
+                supervisor_contact=application.preferred_site.contact_number,
+            )
 
         broadcast_dashboard_update('applications')
         return Response({'message': 'Student approved successfully'}, status=status.HTTP_200_OK)

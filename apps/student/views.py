@@ -339,20 +339,31 @@ class StudentDashboardViewSet(viewsets.ViewSet):
                     image_bytes = face_image.read()
                     embedding, _ = detect_face(image_bytes)
                     if embedding is not None:
-                        encoded = encode_face(embedding)
-                        facial_data, _ = FacialRecognition.objects.get_or_create(
-                            student=request.user,
-                            defaults={
-                                'facial_encoding': encoded,
-                                'is_verified': True,
-                                'verification_date': timezone.now()
-                            }
-                        )
-                        if not facial_data.is_verified:
-                            facial_data.facial_encoding = encoded
-                            facial_data.is_verified = True
-                            facial_data.verification_date = timezone.now()
-                            facial_data.save()
+                        # Check if this face is already registered to another student
+                        existing_faces = FacialRecognition.objects.exclude(student=request.user).select_related('student')
+                        face_is_duplicate = False
+                        for existing in existing_faces:
+                            if existing.facial_encoding:
+                                is_match, _ = verify_faces(existing.facial_encoding, embedding, threshold=0.55)
+                                if is_match:
+                                    face_is_duplicate = True
+                                    break
+
+                        if not face_is_duplicate:
+                            encoded = encode_face(embedding)
+                            facial_data, _ = FacialRecognition.objects.get_or_create(
+                                student=request.user,
+                                defaults={
+                                    'facial_encoding': encoded,
+                                    'is_verified': True,
+                                    'verification_date': timezone.now()
+                                }
+                            )
+                            if not facial_data.is_verified:
+                                facial_data.facial_encoding = encoded
+                                facial_data.is_verified = True
+                                facial_data.verification_date = timezone.now()
+                                facial_data.save()
                 except Exception as e:
                     logger.warning(f"Face enrollment failed during application: {e}")
 
@@ -464,6 +475,19 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
 
         # Average all face encodings for better accuracy
         avg_encoding = np.mean(encodings, axis=0).astype(np.float32)
+
+        # Check if this face is already registered to another student
+        existing_faces = FacialRecognition.objects.exclude(student=student).select_related('student')
+        for existing in existing_faces:
+            if existing.facial_encoding:
+                is_match, similarity = verify_faces(existing.facial_encoding, avg_encoding, threshold=0.55)
+                if is_match:
+                    other_name = existing.student.get_full_name() or existing.student.username
+                    return Response({
+                        'error': f'This face is already registered to another student ({other_name}). '
+                                  'If you believe this is an error, please contact your coordinator.'
+                    }, status=status.HTTP_409_CONFLICT)
+
         encoded = encode_face(avg_encoding)
 
         # Save optional face thumbnail for my_face endpoint

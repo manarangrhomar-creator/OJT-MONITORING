@@ -179,6 +179,7 @@ aside > div{
                 </div>
 
                 <video id="webcam" autoplay playsinline class="absolute inset-0 w-full h-full object-cover"></video>
+                <canvas id="faceOverlay" class="absolute inset-0 w-full h-full pointer-events-none z-10"></canvas>
                 <canvas id="photoCanvas" class="hidden"></canvas>
 
                 <!-- THUMBS UP COUNTDOWN OVERLAY -->
@@ -693,11 +694,57 @@ aside > div{
                 }
             });
 
+            const faceOverlay = document.getElementById('faceOverlay');
+            const faceOverlayCtx = faceOverlay.getContext('2d');
+
             const faceMesh = new FaceMesh({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/${file}` });
             faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: false, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
             faceMesh.onResults((results) => {
+                // Sync overlay canvas size with video
+                if (faceOverlay.width !== video.videoWidth || faceOverlay.height !== video.videoHeight) {
+                    faceOverlay.width = video.videoWidth;
+                    faceOverlay.height = video.videoHeight;
+                }
+                faceOverlayCtx.clearRect(0, 0, faceOverlay.width, faceOverlay.height);
+
                 if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
                     detectAccessories(results.multiFaceLandmarks[0]);
+
+                    // Draw face bounding box
+                    const landmarks = results.multiFaceLandmarks[0];
+                    let minX = 1, maxX = 0, minY = 1, maxY = 0;
+                    for (const lm of landmarks) {
+                        if (lm.x < minX) minX = lm.x;
+                        if (lm.x > maxX) maxX = lm.x;
+                        if (lm.y < minY) minY = lm.y;
+                        if (lm.y > maxY) maxY = lm.y;
+                    }
+                    const pad = 0.12;
+                    const padX = (maxX - minX) * pad;
+                    const padY = (maxY - minY) * pad;
+                    const x = (minX - padX) * faceOverlay.width;
+                    const y = (minY - padY) * faceOverlay.height;
+                    const w = (maxX - minX + padX * 2) * faceOverlay.width;
+                    const h = (maxY - minY + padY * 2) * faceOverlay.height;
+
+                    faceOverlayCtx.strokeStyle = '#22c55e';
+                    faceOverlayCtx.lineWidth = 3;
+                    faceOverlayCtx.shadowColor = 'rgba(34,197,94,0.5)';
+                    faceOverlayCtx.shadowBlur = 10;
+                    faceOverlayCtx.strokeRect(x, y, w, h);
+
+                    // Corner accents
+                    const cornerLen = Math.min(w, h) * 0.15;
+                    faceOverlayCtx.lineWidth = 4;
+                    faceOverlayCtx.shadowBlur = 0;
+                    // top-left
+                    faceOverlayCtx.beginPath(); faceOverlayCtx.moveTo(x, y + cornerLen); faceOverlayCtx.lineTo(x, y); faceOverlayCtx.lineTo(x + cornerLen, y); faceOverlayCtx.stroke();
+                    // top-right
+                    faceOverlayCtx.beginPath(); faceOverlayCtx.moveTo(x + w - cornerLen, y); faceOverlayCtx.lineTo(x + w, y); faceOverlayCtx.lineTo(x + w, y + cornerLen); faceOverlayCtx.stroke();
+                    // bottom-left
+                    faceOverlayCtx.beginPath(); faceOverlayCtx.moveTo(x, y + h - cornerLen); faceOverlayCtx.lineTo(x, y + h); faceOverlayCtx.lineTo(x + cornerLen, y + h); faceOverlayCtx.stroke();
+                    // bottom-right
+                    faceOverlayCtx.beginPath(); faceOverlayCtx.moveTo(x + w - cornerLen, y + h); faceOverlayCtx.lineTo(x + w, y + h); faceOverlayCtx.lineTo(x + w, y + h - cornerLen); faceOverlayCtx.stroke();
                 } else {
                     accessoryStatusEl.className = 'inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500';
                     accessoryStatusEl.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> No face detected';

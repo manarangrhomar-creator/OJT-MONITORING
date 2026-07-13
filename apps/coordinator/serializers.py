@@ -20,10 +20,11 @@ class OJTApplicationSerializer(serializers.ModelSerializer):
     """Serializer for OJT Application."""
     student_name = serializers.CharField(source='student.get_full_name', read_only=True)
     program_name = serializers.CharField(source='program.name', read_only=True)
+    preferred_site_name = serializers.CharField(source='preferred_site.name', read_only=True, default=None)
     
     class Meta:
         model = OJTApplication
-        fields = ('id', 'student', 'student_name', 'program', 'program_name', 'status', 'application_letter', 'resume', 'approved_date', 'rejection_reason', 'created_at')
+        fields = ('id', 'student', 'student_name', 'program', 'program_name', 'preferred_site', 'preferred_site_name', 'status', 'application_letter', 'resume', 'approved_date', 'rejection_reason', 'created_at')
         read_only_fields = ('id', 'created_at', 'approved_date')
 
 

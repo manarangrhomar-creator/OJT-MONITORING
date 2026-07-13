@@ -617,7 +617,7 @@
     <div class="bento-card overflow-hidden">
       <div class="overflow-x-auto"><table class="w-full text-left">
         <thead><tr>
-          <th class="table-header">Student</th><th class="table-header">Program</th><th class="table-header">Letter</th>
+          <th class="table-header">Student</th><th class="table-header">Program</th><th class="table-header">Preferred Site</th><th class="table-header">Letter</th>
           <th class="table-header">Date</th><th class="table-header">Status</th><th class="table-header text-center">Action</th>
         </tr></thead>
         <tbody id="applicationTableBody" class="divide-y" style="border-color: var(--card-border);"></tbody>
@@ -1604,7 +1604,7 @@
     tbody.innerHTML = '';
     const filtered = applicationList.filter(a => a.status === 'pending');
     if (!filtered.length) {
-      tbody.innerHTML = `<tr><td colspan="6" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="clipboard-list" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No pending applications</span></div></td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="clipboard-list" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No pending applications</span></div></td></tr>`;
       lucide.createIcons();
     } else {
       filtered.forEach(a => {
@@ -1612,6 +1612,7 @@
         tbody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-black/[0.02] transition-colors">
           <td class="table-cell font-bold">${esc(a.student_name)}</td>
           <td class="table-cell" style="color: var(--fg-muted);">${esc(a.program_name)}</td>
+          <td class="table-cell" style="color: var(--fg-muted);">${a.preferred_site_name ? esc(a.preferred_site_name) : '<span style="color: var(--fg-dim);">—</span>'}</td>
           <td class="table-cell">${a.application_letter ? `<a href="${esc(a.application_letter)}" target="_blank" class="text-[0.6rem] font-semibold" style="color: var(--primary);">View Letter</a>` : '<span style="color: var(--fg-dim);">—</span>'}</td>
           <td class="table-cell" style="color: var(--fg-muted);">${esc(dateStr)}</td>
           <td class="table-cell"><span class="text-[0.6rem] font-bold px-2.5 py-0.5 rounded-full" style="background: var(--gold)20; color: var(--gold);">Pending</span></td>

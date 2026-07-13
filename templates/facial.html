@@ -9,6 +9,8 @@
 
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@0.344.0"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"></script>
 
 <style>
 body{
@@ -186,6 +188,7 @@ aside > div{
 
                 <video id="webcam" autoplay playsinline class="absolute inset-0 w-full h-full object-cover"></video>
                 <canvas id="photoCanvas" class="hidden"></canvas>
+                <canvas id="faceOverlay" class="absolute inset-0 w-full h-full" style="pointer-events:none;"></canvas>
 
             </div>
 
@@ -328,6 +331,71 @@ aside > div{
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
             video.srcObject = stream;
+
+            // Initialize FaceMesh for bounding box overlay
+            const faceOverlay = document.getElementById('faceOverlay');
+            const faceOverlayCtx = faceOverlay.getContext('2d');
+
+            const faceMesh = new FaceMesh({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/${file}` });
+            faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: false, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+            faceMesh.onResults((results) => {
+                // Sync overlay canvas size with video
+                if (faceOverlay.width !== video.videoWidth || faceOverlay.height !== video.videoHeight) {
+                    faceOverlay.width = video.videoWidth;
+                    faceOverlay.height = video.videoHeight;
+                }
+                faceOverlayCtx.clearRect(0, 0, faceOverlay.width, faceOverlay.height);
+
+                if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                    const landmarks = results.multiFaceLandmarks[0];
+                    let minX = 1, maxX = 0, minY = 1, maxY = 0;
+                    for (const lm of landmarks) {
+                        if (lm.x < minX) minX = lm.x;
+                        if (lm.x > maxX) maxX = lm.x;
+                        if (lm.y < minY) minY = lm.y;
+                        if (lm.y > maxY) maxY = lm.y;
+                    }
+                    const pad = 0.12;
+                    const padX = (maxX - minX) * pad;
+                    const padY = (maxY - minY) * pad;
+                    const x = (minX - padX) * faceOverlay.width;
+                    const y = (minY - padY) * faceOverlay.height;
+                    const w = (maxX - minX + padX * 2) * faceOverlay.width;
+                    const h = (maxY - minY + padY * 2) * faceOverlay.height;
+
+                    faceOverlayCtx.strokeStyle = '#22c55e';
+                    faceOverlayCtx.lineWidth = 3;
+                    faceOverlayCtx.shadowColor = 'rgba(34,197,94,0.5)';
+                    faceOverlayCtx.shadowBlur = 10;
+                    faceOverlayCtx.strokeRect(x, y, w, h);
+
+                    // Corner accents
+                    const cornerLen = Math.min(w, h) * 0.15;
+                    faceOverlayCtx.lineWidth = 4;
+                    faceOverlayCtx.shadowBlur = 0;
+                    // top-left
+                    faceOverlayCtx.beginPath(); faceOverlayCtx.moveTo(x, y + cornerLen); faceOverlayCtx.lineTo(x, y); faceOverlayCtx.lineTo(x + cornerLen, y); faceOverlayCtx.stroke();
+                    // top-right
+                    faceOverlayCtx.beginPath(); faceOverlayCtx.moveTo(x + w - cornerLen, y); faceOverlayCtx.lineTo(x + w, y); faceOverlayCtx.lineTo(x + w, y + cornerLen); faceOverlayCtx.stroke();
+                    // bottom-left
+                    faceOverlayCtx.beginPath(); faceOverlayCtx.moveTo(x, y + h - cornerLen); faceOverlayCtx.lineTo(x, y + h); faceOverlayCtx.lineTo(x + cornerLen, y + h); faceOverlayCtx.stroke();
+                    // bottom-right
+                    faceOverlayCtx.beginPath(); faceOverlayCtx.moveTo(x + w - cornerLen, y + h); faceOverlayCtx.lineTo(x + w, y + h); faceOverlayCtx.lineTo(x + w, y + h - cornerLen); faceOverlayCtx.stroke();
+
+                    faceStatusEl.textContent = 'Face Detected — Ready to verify';
+                    faceStatusEl.className = 'face-status text-sm font-medium text-green-700';
+                } else {
+                    faceStatusEl.textContent = 'No face detected — Position yourself in frame';
+                    faceStatusEl.className = 'face-status text-sm font-medium text-yellow-700';
+                }
+            });
+
+            const camera = new Camera(video, {
+                onFrame: async () => { await faceMesh.send({ image: video }); },
+                width: 1280,
+                height: 720
+            });
+            camera.start();
         } catch (err) {
             console.error('Camera error:', err);
         }

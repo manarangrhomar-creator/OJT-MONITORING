@@ -1,6 +1,7 @@
 import os
 
 from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.sessions import CookieMiddleware
 from django.core.asgi import get_asgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ojt_monitoring.settings')
@@ -12,7 +13,9 @@ from apps.core.middleware import TokenAuthMiddleware
 
 application = ProtocolTypeRouter({
     'http': django_asgi_app,
-    'websocket': TokenAuthMiddleware(
-        URLRouter(websocket_urlpatterns)
+    'websocket': CookieMiddleware(
+        TokenAuthMiddleware(
+            URLRouter(websocket_urlpatterns)
+        )
     ),
 })

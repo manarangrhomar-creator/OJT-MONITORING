@@ -433,7 +433,7 @@
   </div>
 </div>
 
-<script>(function(){var e=document.getElementById('isuPageLoader');if(!e)return;var b=e.querySelector('.loader-progress-bar');if(b){b.style.transformOrigin='left';var d=2000;var s=Date.now();var r=1;(function a(){if(!r||e.style.display==='none')return;var p=((Date.now()-s)%d)/d;var v=p<.5?p/.5*.85:.85*(1-(p-.5)/.5);b.style.transform='scaleX('+v+')';requestAnimationFrame(a)})();}window._hidePageLoader=function(){if(e.style.display==='none')return;e.style.transition='opacity 0.25s ease';e.style.opacity='0';setTimeout(function(){e.style.display='none'},260);r=0}})();</script>
+<script>(function(){var e=document.getElementById('isuPageLoader');if(!e)return;var b=e.querySelector('.loader-progress-bar');if(b){b.style.transformOrigin='left';b.style.transition='none';b.style.transform='scaleX(0)';var r=1;var start=Date.now();(function tick(){if(!r||e.style.display==='none')return;var elapsed=Date.now()-start;var pct=Math.min(0.9,elapsed/3000);b.style.transform='scaleX('+pct+')';requestAnimationFrame(tick)})();}window._hidePageLoader=function(){if(e.style.display==='none'||!b)return;r=0;b.style.transition='transform 0.3s ease-out';b.style.transform='scaleX(1)';setTimeout(function(){e.style.transition='opacity 0.3s ease';e.style.opacity='0';setTimeout(function(){e.style.display='none'},300)},350)}})();</script>
 
 <!-- MAIN CONTENT -->
 <main class="px-4 sm:px-5 lg:px-8">
@@ -1264,7 +1264,10 @@
 </script>
 
 <script>
-  if (!protectDashboard('student')) { throw new Error('Access denied'); }
+  {
+    const userRole = localStorage.getItem('user_role');
+    if (userRole !== 'student') { window.location.href = '/auth/login/'; throw new Error('Access denied'); }
+  }
   function esc(str) {
     if (str === null || str === undefined) return '';
     var d = document.createElement('div');
@@ -2087,8 +2090,8 @@ async function loadArchives() {
     document.getElementById('sectionDashboard').classList.remove('hidden');
     switchToDashboard();
     await loadDashboard();
-    loadAttendanceHistory();
-    loadArchives();
+    await loadAttendanceHistory();
+    await loadArchives();
   }
 
   function showApplySection() {
