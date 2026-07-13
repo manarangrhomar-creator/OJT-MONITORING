@@ -1,27 +1,38 @@
 /**
  * Authentication Utility Functions
  * Handles API calls for login, register, and logout
+ * 
+ * Security: Auth tokens are stored in httpOnly cookies (set by the server),
+ * NOT in localStorage. Only non-sensitive user data is stored in localStorage.
  */
 
 const API_BASE_URL = '/api/auth';
-const AUTH_TOKEN_KEY = 'auth_token';
 const USER_ROLE_KEY = 'user_role';
 const USER_DATA_KEY = 'user_data';
 
 /**
- * Store authentication token and user data in localStorage
+ * Store non-sensitive user data in localStorage (token is in httpOnly cookie)
  */
 function storeAuthToken(token, user) {
-    localStorage.setItem(AUTH_TOKEN_KEY, token);
+    // Token is set as httpOnly cookie by the server — do NOT store in localStorage
     localStorage.setItem(USER_ROLE_KEY, user.role);
     localStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
 }
 
 /**
- * Retrieve authentication token from localStorage
+ * Check if user is authenticated by calling /api/auth/me/
+ * (httpOnly cookie is sent automatically)
  */
-function getAuthToken() {
-    return localStorage.getItem(AUTH_TOKEN_KEY);
+async function isAuthenticated() {
+    try {
+        const response = await fetch(`${API_BASE_URL}/me/`, {
+            method: 'GET',
+            credentials: 'same-origin',  // send cookies
+        });
+        return response.ok;
+    } catch {
+        return false;
+    }
 }
 
 /**
@@ -40,23 +51,15 @@ function getUserData() {
 }
 
 /**
- * Check if user is authenticated
- */
-function isAuthenticated() {
-    return !!getAuthToken();
-}
-
-/**
  * Clear authentication data from localStorage
  */
 function clearAuthData() {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(USER_ROLE_KEY);
     localStorage.removeItem(USER_DATA_KEY);
 }
 
 /**
- * Make API request with authentication
+ * Make API request (cookies are sent automatically by browser)
  */
 async function apiRequest(endpoint, method = 'GET', data = null) {
     const options = {
@@ -64,13 +67,8 @@ async function apiRequest(endpoint, method = 'GET', data = null) {
         headers: {
             'Content-Type': 'application/json',
         },
+        credentials: 'same-origin',  // send httpOnly cookies
     };
-
-    const token = getAuthToken();
-    const isAuthEndpoint = endpoint === '/login/' || endpoint === '/register/';
-    if (token && !isAuthEndpoint) {
-        options.headers['Authorization'] = `Token ${token}`;
-    }
 
     if (data) {
         options.body = JSON.stringify(data);
@@ -181,8 +179,8 @@ function redirectByRole(userRole) {
 /**
  * Check authentication and redirect if not authenticated
  */
-function requireAuth() {
-    if (!isAuthenticated()) {
+async function requireAuth() {
+    if (!(await isAuthenticated())) {
         window.location.href = '/auth/login/';
     }
 }
@@ -206,8 +204,8 @@ function showAlert(message) {
 /**
  * Protect dashboard access based on role
  */
-function protectDashboard(requiredRole) {
-    if (!isAuthenticated()) {
+async function protectDashboard(requiredRole) {
+    if (!(await isAuthenticated())) {
         window.location.href = '/auth/login/';
         return false;
     }

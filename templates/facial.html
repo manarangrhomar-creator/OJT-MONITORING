@@ -360,7 +360,7 @@ aside > div{
     async function checkTodayStatus() {
         try {
             const resp = await fetch('/api/student/dashboard/today_status/', {
-                headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` }
+                credentials: 'same-origin'
             });
             const data = await resp.json();
             if (!data.clocked_in) {
@@ -386,7 +386,7 @@ aside > div{
     async function loadStudentInfo() {
         try {
             const resp = await fetch('/api/student/dashboard/dashboard/', {
-                headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` }
+                credentials: 'same-origin'
             });
             const data = await resp.json();
             if (data.student_name) {
@@ -434,9 +434,9 @@ aside > div{
             const response = await fetch(`/api/student/dashboard/${currentAction}/`, {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': getCookie('csrftoken'),
-                    'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    'X-CSRFToken': getCookie('csrftoken')
                 },
+                credentials: 'same-origin',
                 body: formData
             });
 
@@ -461,11 +461,6 @@ aside > div{
             lucide.createIcons();
         }
     });
-
-    const token = localStorage.getItem('auth_token');
-    if (!token) {
-        window.location.href = '/login/';
-    }
 
     initCamera();
     checkTodayStatus();

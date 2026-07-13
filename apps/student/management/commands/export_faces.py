@@ -1,3 +1,4 @@
+import io
 import os
 import pickle
 import cv2
@@ -5,6 +6,28 @@ import numpy as np
 from pathlib import Path
 from django.core.management.base import BaseCommand
 from apps.student.models import FacialRecognition
+
+
+class SafeUnpickler(pickle.Unpickler):
+    """Restrict unpickling to safe types only (numpy arrays)."""
+
+    ALLOWED_CLASSES = {
+        ('numpy', 'ndarray'),
+        ('numpy', 'dtype'),
+        ('numpy', 'scalar'),
+        ('builtins', 'bytes'),
+        ('builtins', 'bytearray'),
+    }
+
+    def find_class(self, module, name):
+        if (module, name) in self.ALLOWED_CLASSES:
+            return super().find_class(module, name)
+        raise pickle.UnpicklingError(f"Disallowed class: {module}.{name}")
+
+
+def safe_loads(data):
+    """Safely unpickle data, allowing only numpy arrays."""
+    return SafeUnpickler(io.BytesIO(data)).load()
 
 
 class Command(BaseCommand):
@@ -25,7 +48,7 @@ class Command(BaseCommand):
         count = 0
         for rec in records:
             try:
-                face = pickle.loads(rec.facial_encoding)
+                face = safe_loads(rec.facial_encoding)
                 filename = f"{rec.student.username}.png"
                 cv2.imwrite(str(out_dir / filename), face)
                 count += 1

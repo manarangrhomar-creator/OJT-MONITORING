@@ -962,10 +962,10 @@
             try {
                 const response = await fetch('/api/admin/dashboard/students/', {
                     method: 'GET',
+                    credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'),
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                        'X-CSRFToken': getCookie('csrftoken')
                     }
                 });
                 if (!response.ok) {
@@ -1057,9 +1057,9 @@
             try {
                 const response = await fetch(`/api/admin/users/${id}/`, {
                     method: 'PATCH',
+                    credentials: 'same-origin',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         first_name: firstName,
@@ -1124,9 +1124,7 @@
             try {
                 const response = await fetch(`/api/admin/users/${id}/`, {
                     method: 'DELETE',
-                    headers: {
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
-                    }
+                    credentials: 'same-origin'
                 });
                 if (!response.ok) {
                     const err = await response.json().catch(() => ({}));
@@ -1158,10 +1156,10 @@
             try {
                 const response = await fetch('/api/admin/dashboard/coordinators/', {
                     method: 'GET',
+                    credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'),
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                        'X-CSRFToken': getCookie('csrftoken')
                     }
                 });
                 if (!response.ok) {
@@ -1271,9 +1269,9 @@
             try {
                 const response = await fetch(`/api/admin/users/${id}/`, {
                     method: 'PATCH',
+                    credentials: 'same-origin',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
                         first_name: firstName,
@@ -1340,9 +1338,7 @@
             try {
                 const response = await fetch(`/api/admin/users/${id}/`, {
                     method: 'DELETE',
-                    headers: {
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
-                    }
+                    credentials: 'same-origin'
                 });
                 if (!response.ok) {
                     const err = await response.json().catch(() => ({}));
@@ -1375,10 +1371,10 @@
             try {
                 const response = await fetch('/api/admin/dashboard/coordinator-approvals/', {
                     method: 'GET',
+                    credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'),
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                        'X-CSRFToken': getCookie('csrftoken')
                     }
                 });
                 if (!response.ok) {
@@ -1477,10 +1473,10 @@
             try {
                 const response = await fetch(`/api/admin/dashboard/coordinators/${coordinatorId}/set-coordinator-approval/`, {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'),
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                        'X-CSRFToken': getCookie('csrftoken')
                     },
                     body: JSON.stringify({ approval_status: statusValue })
                 });
@@ -1516,10 +1512,10 @@
             try {
                 const response = await fetch('/api/admin/dashboard/student-approvals/', {
                     method: 'GET',
+                    credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'),
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                        'X-CSRFToken': getCookie('csrftoken')
                     }
                 });
                 if (!response.ok) {
@@ -1578,10 +1574,10 @@
             try {
                 const response = await fetch(`/api/admin/dashboard/students/${id}/approve/`, {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'),
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                        'X-CSRFToken': getCookie('csrftoken')
                     }
                 });
                 if (!response.ok) {
@@ -1625,10 +1621,10 @@
             try {
                 const response = await fetch(`/api/admin/dashboard/students/${id}/reject/`, {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: {
                         'Content-Type': 'application/json',
-                        'X-CSRFToken': getCookie('csrftoken'),
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                        'X-CSRFToken': getCookie('csrftoken')
                     }
                 });
                 if (!response.ok) {
@@ -1660,9 +1656,9 @@
             try {
                 const response = await fetch('/api/admin/courses/', {
                     method: 'GET',
+                    credentials: 'same-origin',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                        'Content-Type': 'application/json'
                     }
                 });
                 if (!response.ok) {
@@ -1718,9 +1714,9 @@
             try {
                 const response = await fetch('/api/admin/courses/', {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ name })
                 });
@@ -1758,9 +1754,9 @@
             try {
                 const response = await fetch(`/api/admin/courses/${id}/`, {
                     method: 'PUT',
+                    credentials: 'same-origin',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ name, is_active })
                 });
@@ -1807,9 +1803,7 @@
             try {
                 const response = await fetch(`/api/admin/courses/${id}/`, {
                     method: 'DELETE',
-                    headers: {
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
-                    }
+                    credentials: 'same-origin'
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
                 pendingCourseDeleteId = null;
@@ -1828,16 +1822,15 @@
         // ===== DASHBOARD OVERVIEW =====
         async function loadDashboardOverview() {
             try {
-                const token = localStorage.getItem('auth_token');
-                const headers = { 'Authorization': `Token ${token}` };
+                const fetchOpts = { credentials: 'same-origin' };
 
                 const [statsRes, sitesRes, programsRes, studentApprovalsRes, coordApprovalsRes, logsRes] = await Promise.all([
-                    fetch('/api/admin/dashboard/dashboard_stats/', { headers }),
-                    fetch('/api/admin/sites/', { headers }),
-                    fetch('/api/admin/programs/', { headers }),
-                    fetch('/api/admin/dashboard/student-approvals/', { headers }),
-                    fetch('/api/admin/dashboard/coordinator-approvals/', { headers }),
-                    fetch('/api/admin/dashboard/system_logs/', { headers })
+                    fetch('/api/admin/dashboard/dashboard_stats/', fetchOpts),
+                    fetch('/api/admin/sites/', fetchOpts),
+                    fetch('/api/admin/programs/', fetchOpts),
+                    fetch('/api/admin/dashboard/student-approvals/', fetchOpts),
+                    fetch('/api/admin/dashboard/coordinator-approvals/', fetchOpts),
+                    fetch('/api/admin/dashboard/system_logs/', fetchOpts)
                 ]);
 
                 const stats = statsRes.ok ? await statsRes.json() : {};
@@ -1887,8 +1880,7 @@
             tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
             lucide.createIcons();
             try {
-                const token = localStorage.getItem('auth_token');
-                const res = await fetch('/api/admin/dashboard/system_logs/', { headers: { 'Authorization': `Token ${token}` } });
+                const res = await fetch('/api/admin/dashboard/system_logs/', { credentials: 'same-origin' });
                 if (!res.ok) { tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center text-xs" style="color: var(--danger);">Failed to load</td></tr>'; return; }
                 allSystemLogs = await res.json();
                 applySystemLogsFilters();
@@ -1966,9 +1958,9 @@
             try {
                 const response = await fetch('/api/admin/sites/', {
                     method: 'GET',
+                    credentials: 'same-origin',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                        'Content-Type': 'application/json'
                     }
                 });
                 if (!response.ok) {
@@ -2325,7 +2317,7 @@
             searchInput.setAttribute('readonly', true);
             try {
                 const coursesRes = await fetch('/api/admin/courses/', {
-                    headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` }
+                    credentials: 'same-origin'
                 });
                 if (coursesRes.ok) {
                     const courses = await coursesRes.json();
@@ -2351,9 +2343,9 @@
             try {
                 const response = await fetch('/api/admin/sites/', {
                     method: 'POST',
+                    credentials: 'same-origin',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ name, course: course || null, supervisor_name, contact_number })
                 });
@@ -2388,8 +2380,8 @@
             coordSearch.value = '';
             coordSearch.setAttribute('readonly', true);
             Promise.all([
-                fetch('/api/admin/courses/', { headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` } }).then(r => r.json()),
-                fetch('/api/admin/dashboard/coordinators/', { headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` } }).then(r => r.json())
+                fetch('/api/admin/courses/', { credentials: 'same-origin' }).then(r => r.json()),
+                fetch('/api/admin/dashboard/coordinators/', { credentials: 'same-origin' }).then(r => r.json())
             ]).then(([courses, coords]) => {
                 let allCoords = [];
                 if (!site.course) {
@@ -2436,9 +2428,9 @@
             try {
                 const response = await fetch(`/api/admin/sites/${id}/`, {
                     method: 'PUT',
+                    credentials: 'same-origin',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                        'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({ name, course: course || null, supervisor_name, contact_number, coordinator: coordinator || null, is_active })
                 });
@@ -2485,9 +2477,7 @@
             try {
                 const response = await fetch(`/api/admin/sites/${id}/`, {
                     method: 'DELETE',
-                    headers: {
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
-                    }
+                    credentials: 'same-origin'
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
                 pendingSiteDeleteId = null;
@@ -2515,9 +2505,9 @@
             try {
                 const response = await fetch('/api/admin/programs/', {
                     method: 'GET',
+                    credentials: 'same-origin',
                     headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                        'Content-Type': 'application/json'
                     }
                 });
                 if (!response.ok) {
@@ -2570,7 +2560,7 @@
             lucide.createIcons();
             openModal('viewProgramStudentsModal');
             try {
-                const res = await fetch(`/api/admin/programs/${id}/students/`, { headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` } });
+                const res = await fetch(`/api/admin/programs/${id}/students/`, { credentials: 'same-origin' });
                 if (!res.ok) {
                     tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-xs" style="color: var(--danger);">Failed to load</td></tr>';
                     return;
@@ -2630,7 +2620,7 @@
             try {
                 const response = await fetch(`/api/admin/programs/${id}/`, {
                     method: 'DELETE',
-                    headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` }
+                    credentials: 'same-origin'
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
                 pendingProgramDeleteId = null;
@@ -2773,7 +2763,7 @@
         const notifBadge = document.getElementById('notifBadge');
         const notifList = document.getElementById('notifList');
         const markAllReadBtn = document.getElementById('markAllReadBtn');
-        const notifToken = localStorage.getItem('auth_token');
+
 
         function updateBadge(count) {
             if (count > 0) {
@@ -2787,7 +2777,7 @@
         let notifSocket = null;
         function connectNotifSocket() {
             const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const url = `${proto}//${window.location.host}/ws/notifications/?token=${notifToken}`;
+            const url = `${proto}//${window.location.host}/ws/notifications/`;
             notifSocket = new WebSocket(url);
 
             notifSocket.onmessage = function(e) {
@@ -2822,7 +2812,7 @@
             lucide.createIcons();
             try {
                 const res = await fetch('/api/notifications/', {
-                    headers: { 'Authorization': `Token ${notifToken}` }
+                    credentials: 'same-origin'
                 });
                 if (!res.ok) {
                     notifList.innerHTML = '<div class="py-8 text-center text-xs" style="color: var(--danger);">Failed to load notifications.</div>';
@@ -2861,7 +2851,7 @@
             try {
                 await fetch(`/api/notifications/${id}/mark-read/`, {
                     method: 'POST',
-                    headers: { 'Authorization': `Token ${notifToken}` }
+                    credentials: 'same-origin'
                 });
                 loadNotifications();
                 if (notifSocket && notifSocket.readyState === WebSocket.OPEN) {
@@ -2876,7 +2866,7 @@
             try {
                 await fetch('/api/notifications/mark-all-read/', {
                     method: 'POST',
-                    headers: { 'Authorization': `Token ${notifToken}` }
+                    credentials: 'same-origin'
                 });
                 loadNotifications();
             } catch (err) {
@@ -2902,9 +2892,7 @@
 
         // ===== REAL-TIME DASHBOARD SYNC =====
         function connectDashboardSocket() {
-            const token = localStorage.getItem('auth_token');
-            if (!token) return;
-            const wsUrl = `ws://${window.location.host}/ws/dashboard/?token=${token}`;
+            const wsUrl = `ws://${window.location.host}/ws/dashboard/`;
             const socket = new WebSocket(wsUrl);
             socket.onmessage = function(e) {
                 const data = JSON.parse(e.data);

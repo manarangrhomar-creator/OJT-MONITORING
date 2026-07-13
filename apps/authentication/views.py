@@ -5,6 +5,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.authtoken.models import Token
 from django.contrib.auth import authenticate, login, logout
 from django.core.cache import cache
+from django.utils import timezone
+from datetime import timedelta
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.conf import settings
@@ -18,7 +20,18 @@ from .models import PasswordResetOTP, EmailVerificationToken, LoginAttempt
 import os
 
 RATE_LIMIT_MINUTES = 5
-RATE_LIMIT_MAX = 10  # ponytail: per-IP cap per window; raise if needed
+RATE_LIMIT_MAX = 10  # per-IP cap per window
+LOCKOUT_MINUTES = 15
+LOCKOUT_MAX_ATTEMPTS = 5  # lock account after 5 failed attempts
+
+
+def _is_account_locked(user):
+    """Check if user account is locked due to too many failed attempts."""
+    cutoff = timezone.now() - timedelta(minutes=LOCKOUT_MINUTES)
+    recent_failures = LoginAttempt.objects.filter(
+        user=user, success=False, created_at__gte=cutoff
+    ).count()
+    return recent_failures >= LOCKOUT_MAX_ATTEMPTS
 
 
 def _check_rate_limit(request, action_key):
@@ -184,14 +197,34 @@ class AuthenticationViewSet(viewsets.ViewSet):
         ip = request.META.get('REMOTE_ADDR', '0.0.0.0')
         user_agent = request.META.get('HTTP_USER_AGENT', '')
 
-        # Check rate limit (only blocks, doesn't increment yet)
+        # Check IP rate limit
         rl_key = f'rl:login:{ip}'
         if cache.get(rl_key, 0) >= RATE_LIMIT_MAX:
             return Response({'error': 'Too many requests. Try again later.'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
 
+        identifier = request.data.get('identifier', '')
+
+        # Check account lockout before authenticating
+        try:
+            user_obj = User.objects.get(email=identifier)
+            if _is_account_locked(user_obj):
+                return Response(
+                    {'error': f'Account locked due to too many failed attempts. Try again in {LOCKOUT_MINUTES} minutes.'},
+                    status=status.HTTP_423_LOCKED
+                )
+        except User.DoesNotExist:
+            pass
+
         serializer = UserLoginSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.validated_data['user']
+
+            # Check account lockout after user resolution
+            if _is_account_locked(user):
+                return Response(
+                    {'error': f'Account locked due to too many failed attempts. Try again in {LOCKOUT_MINUTES} minutes.'},
+                    status=status.HTTP_423_LOCKED
+                )
 
             # Get or create token
             token, created = Token.objects.get_or_create(user=user)
@@ -202,15 +235,28 @@ class AuthenticationViewSet(viewsets.ViewSet):
             # Log successful attempt
             LoginAttempt.objects.create(user=user, ip_address=ip, success=True, user_agent=user_agent)
 
-            return Response({
+            response = Response({
                 'message': 'Login successful',
                 'user': UserSerializer(user).data,
                 'token': token.key
             }, status=status.HTTP_200_OK)
 
+            # Set auth token in httpOnly cookie (not accessible via JavaScript)
+            is_prod = not settings.DEBUG
+            response.set_cookie(
+                'auth_token',
+                token.key,
+                httponly=True,
+                secure=is_prod,
+                samesite='Lax',
+                max_age=86400 * 7,  # 7 days
+                path='/',
+            )
+            return response
+
         # Failed login — increment rate limit and log
         cache.set(rl_key, cache.get(rl_key, 0) + 1, RATE_LIMIT_MINUTES * 60)
-        _log_failed_attempt(request.data.get('identifier', ''), ip, user_agent)
+        _log_failed_attempt(identifier, ip, user_agent)
 
         return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
     
@@ -224,7 +270,11 @@ class AuthenticationViewSet(viewsets.ViewSet):
             pass
         
         logout(request)
-        return Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
+        
+        response = Response({'message': 'Logout successful'}, status=status.HTTP_200_OK)
+        # Clear the auth token cookie
+        response.delete_cookie('auth_token', path='/')
+        return response
     
     @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
     def me(self, request):
@@ -294,6 +344,8 @@ class AuthenticationViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'], permission_classes=[AllowAny], authentication_classes=[])
     def verify_otp(self, request):
         """Verify OTP code."""
+        if not _check_rate_limit(request, 'verify_otp'):
+            return Response({'error': 'Too many requests. Try again later.'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
         serializer = VerifyOTPSerializer(data=request.data)
         if serializer.is_valid():
             return Response({'message': 'OTP verified successfully'}, status=status.HTTP_200_OK)

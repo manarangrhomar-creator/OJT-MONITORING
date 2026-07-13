@@ -1,9 +1,8 @@
-import ssl
 from django.core.mail.backends.smtp import EmailBackend as DjangoEmailBackend
 
 
 class EmailBackend(DjangoEmailBackend):
-    """SMTP backend that tolerates the environment's certificate issues during development."""
+    """SMTP backend with TLS support."""
 
     def __init__(self, *args, **kwargs):
         kwargs.setdefault('use_tls', True)
@@ -22,7 +21,7 @@ class EmailBackend(DjangoEmailBackend):
 
         if self.use_tls:
             self.connection.ehlo()
-            self.connection.starttls(context=ssl._create_unverified_context())
+            self.connection.starttls()
             self.connection.ehlo()
 
         if self.username and self.password:

@@ -972,10 +972,9 @@
     }
   }
 
-  const token = localStorage.getItem('auth_token');
-  if (!token || token === 'undefined' || token === 'null') {
-    window.location.href = '/auth/logout/';
-  }
+  // Auth token is now in httpOnly cookie — verify session by calling /me
+  fetch('/api/auth/me/', { credentials: 'same-origin' })
+    .then(r => { if (!r.ok) window.location.href = '/auth/logout/'; });
 
   function esc(str) {
     if (str === null || str === undefined) return '';
@@ -992,7 +991,8 @@
   async function apiFetch(url, options) {
     const res = await fetch(url, {
       ...options,
-      headers: { 'Authorization': `Token ${token}`, ...(options?.headers || {}) }
+      credentials: 'same-origin',
+      headers: { ...(options?.headers || {}) }
     });
     if (!res.ok) throw new Error(`API error: ${res.status}`);
     return res.json();
@@ -1113,9 +1113,9 @@
       const res = await fetch('/api/coordinator/dashboard/enroll-student-face/', {
         method: 'POST',
         headers: {
-          'X-CSRFToken': getCookie('csrftoken'),
-          'Authorization': `Token ${token}`
+          'X-CSRFToken': getCookie('csrftoken')
         },
+        credentials: 'same-origin',
         body: formData
       });
       const data = await res.json();
@@ -1124,7 +1124,8 @@
         if (appId) {
           const approveRes = await fetch(`/api/coordinator/applications/${appId}/approve/`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken'), 'Authorization': `Token ${token}` }
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+            credentials: 'same-origin'
           });
         }
         stopEnrollCamera();
@@ -1417,7 +1418,7 @@
     const tbody = document.getElementById('programTableBody');
     tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>'; lucide.createIcons();
     try {
-      const res = await fetch('/api/coordinator/programs/', { headers: { 'Authorization': `Token ${token}` } });
+      const res = await fetch('/api/coordinator/programs/', { credentials: 'same-origin' });
       if (!res.ok) { tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-xs" style="color: var(--danger);">Failed to load</td></tr>'; return; }
       programList = await res.json();
       renderProgramTable();
@@ -1473,7 +1474,8 @@
     try {
       const res = await fetch(`/api/coordinator/programs/${id}/`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken'), 'Authorization': `Token ${token}` },
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        credentials: 'same-origin',
         body: JSON.stringify({ name, description: desc, max_students: max, status })
       });
       if (!res.ok) { const err = await res.json(); showAlert(Object.values(err).flat().join(', ') || 'Failed'); return; }
@@ -1493,7 +1495,8 @@
     try {
       const res = await fetch('/api/coordinator/programs/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken'), 'Authorization': `Token ${token}` },
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        credentials: 'same-origin',
         body: JSON.stringify({ name, description, max_students: maxStudents })
       });
       if (!res.ok) { const err = await res.json(); showAlert(Object.values(err).flat().join(', ') || 'Failed'); return; }
@@ -1521,7 +1524,8 @@
     tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>'; lucide.createIcons();
     try {
       const res = await fetch('/api/coordinator/dashboard/student-accounts/', {
-        headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Authorization': `Token ${token}` }
+        headers: { 'X-CSRFToken': getCookie('csrftoken') },
+        credentials: 'same-origin'
       });
       if (!res.ok) { tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-xs" style="color: var(--danger);">Failed to load</td></tr>'; return; }
       accountList = await res.json();
@@ -1582,7 +1586,7 @@
     const tbody = document.getElementById('applicationTableBody');
     tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>'; lucide.createIcons();
     try {
-      const res = await fetch('/api/coordinator/applications/?status=pending', { headers: { 'Authorization': `Token ${token}` } });
+      const res = await fetch('/api/coordinator/applications/?status=pending', { credentials: 'same-origin' });
       if (!res.ok) { tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-xs" style="color: var(--danger);">Failed to load</td></tr>'; return; }
       const data = await res.json();
       applicationList = Array.isArray(data) ? data : (data.results || []);
@@ -1673,7 +1677,8 @@
     try {
       const res = await fetch(`/api/coordinator/applications/${id}/approve/`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken'), 'Authorization': `Token ${token}` }
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        credentials: 'same-origin'
       });
       if (!res.ok) { const err = await res.json().catch(() => ({})); showAlert(err.detail || Object.values(err).flat().join(', ') || 'Failed', 'error'); return; }
       showAlert('Application approved!', 'success'); closeModal('approveAppModal'); loadApplications(); loadOverview();
@@ -1701,7 +1706,8 @@
     try {
       const res = await fetch(`/api/coordinator/applications/${id}/reject/`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken'), 'Authorization': `Token ${token}` },
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        credentials: 'same-origin',
         body: JSON.stringify({ reason })
       });
       if (!res.ok) { const err = await res.json().catch(() => ({})); showAlert(err.detail || Object.values(err).flat().join(', ') || 'Failed', 'error'); return; }
@@ -1715,7 +1721,7 @@
     const tbody = document.getElementById('studentReportsTableBody');
     tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>'; lucide.createIcons();
     try {
-      const res = await fetch('/api/coordinator/dashboard/student-narratives/', { headers: { 'Authorization': `Token ${token}` } });
+      const res = await fetch('/api/coordinator/dashboard/student-narratives/', { credentials: 'same-origin' });
       if (!res.ok) { tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-xs" style="color: var(--danger);">Failed to load</td></tr>'; return; }
       studentReportList = await res.json();
       renderStudentReports();
@@ -1820,7 +1826,8 @@
     try {
       const res = await fetch('/api/coordinator/dashboard/grade-narrative/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken'), 'Authorization': `Token ${token}` },
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        credentials: 'same-origin',
         body: JSON.stringify({ narrative_id: narrativeId, grade, feedback })
       });
       if (!res.ok) { const err = await res.json(); showAlert(err.error || 'Failed'); return; }
@@ -1841,7 +1848,7 @@
     const tbody = document.getElementById('attendanceTableBody');
     tbody.innerHTML = '<tr><td colspan="7" class="py-12 text-center"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>'; lucide.createIcons();
     try {
-      const res = await fetch(`/api/coordinator/dashboard/attendance-records/?${params.toString()}`, { headers: { 'Authorization': `Token ${token}` } });
+      const res = await fetch(`/api/coordinator/dashboard/attendance-records/?${params.toString()}`, { credentials: 'same-origin' });
       if (!res.ok) { tbody.innerHTML = '<tr><td colspan="7" class="py-12 text-center text-xs" style="color: var(--danger);">Failed to load</td></tr>'; return; }
       const records = await res.json();
       tbody.innerHTML = '';
@@ -1885,7 +1892,7 @@
     const select = document.getElementById('attendanceProgramFilter');
     select.innerHTML = '<option value="">Loading...</option>';
     try {
-      const res = await fetch('/api/coordinator/programs/', { headers: { 'Authorization': `Token ${token}` } });
+      const res = await fetch('/api/coordinator/programs/', { credentials: 'same-origin' });
       if (!res.ok) { select.innerHTML = '<option value="">Failed to load</option>'; return; }
       const programs = await res.json();
       select.innerHTML = '<option value="">All Programs</option>';
@@ -1904,7 +1911,7 @@
     const tbody = document.getElementById('siteTableBody');
     tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-10 text-center" style="color: var(--fg-dim);">Loading...</td></tr>';
     try {
-      const res = await fetch('/api/coordinator/site-assignments/', { headers: { 'Authorization': `Token ${token}` } });
+      const res = await fetch('/api/coordinator/site-assignments/', { credentials: 'same-origin' });
       if (!res.ok) {
         tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-10 text-center" style="color: var(--danger);">Failed to load</td></tr>';
         return;
@@ -1956,7 +1963,7 @@
   async function openAddSiteModal() {
     document.getElementById('siteStudentSelect').innerHTML = '<option value="">Loading...</option>';
     try {
-      const res = await fetch('/api/coordinator/dashboard/my-students/?exclude_assigned=true', { headers: { 'Authorization': `Token ${token}` } });
+      const res = await fetch('/api/coordinator/dashboard/my-students/?exclude_assigned=true', { credentials: 'same-origin' });
       if (res.ok) {
         const students = await res.json();
         approvedStudentsForSite = students;
@@ -1969,7 +1976,7 @@
     const siteSelect = document.getElementById('siteSelect');
     siteSelect.innerHTML = '<option value="">Loading...</option>';
     try {
-      const res = await fetch('/api/coordinator/dashboard/available-sites/', { headers: { 'Authorization': `Token ${token}` } });
+      const res = await fetch('/api/coordinator/dashboard/available-sites/', { credentials: 'same-origin' });
       if (res.ok) {
         const sites = await res.json();
         availableSitesList = sites;
@@ -2013,13 +2020,14 @@
     const orig = btn.textContent;
     btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Saving...'; lucide.createIcons();
     try {
-      const progRes = await fetch('/api/coordinator/programs/', { headers: { 'Authorization': `Token ${token}` } });
+      const progRes = await fetch('/api/coordinator/programs/', { credentials: 'same-origin' });
       if (!progRes.ok) { showAlert('Failed to load programs'); return; }
       const programs = await progRes.json();
       if (!programs.length) { showAlert('No programs available'); return; }
       const res = await fetch('/api/coordinator/site-assignments/', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Token ${token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({
           student: studentId, program: programs[0].id, site: siteId,
           supervisor_name: document.getElementById('siteSupervisorName').value.trim(),
@@ -2046,7 +2054,7 @@
     document.getElementById('editSiteSupervisorContact').value = s.supervisor_contact || '';
     const sel = document.getElementById('editSiteSelect');
     sel.innerHTML = '<option value="">Loading...</option>';
-    fetch('/api/coordinator/dashboard/available-sites/', { headers: { 'Authorization': `Token ${token}` } })
+    fetch('/api/coordinator/dashboard/available-sites/', { credentials: 'same-origin' })
       .then(r => r.ok ? r.json() : [])
       .then(sites => {
         availableSitesList = sites;
@@ -2073,7 +2081,8 @@
     try {
       const res = await fetch(`/api/coordinator/site-assignments/${id}/`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Token ${token}` },
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
         body: JSON.stringify({
           site: siteId,
           supervisor_name: document.getElementById('editSiteSupervisorName').value.trim(),
@@ -2090,7 +2099,7 @@
     showConfirm('Delete this site assignment?', async () => {
       try {
         const res = await fetch(`/api/coordinator/site-assignments/${id}/`, {
-          method: 'DELETE', headers: { 'Authorization': `Token ${token}` }
+          method: 'DELETE', credentials: 'same-origin'
         });
         if (!res.ok) throw new Error('Failed');
         showAlert('Deleted'); loadSiteAssignments();
@@ -2140,7 +2149,6 @@
   const notifBadge = document.getElementById('notifBadge');
   const notifList = document.getElementById('notifList');
   const markAllReadBtn = document.getElementById('markAllReadBtn');
-  const notifToken = token;
 
   function updateBadge(count) {
     if (count > 0) { notifBadge.textContent = count; notifBadge.classList.remove('hidden'); }
@@ -2150,7 +2158,7 @@
   let notifSocket = null;
   function connectNotifSocket() {
     const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const url = `${proto}//${window.location.host}/ws/notifications/?token=${notifToken}`;
+    const url = `${proto}//${window.location.host}/ws/notifications/`;
     notifSocket = new WebSocket(url);
     notifSocket.onmessage = function(e) {
       const data = JSON.parse(e.data);
@@ -2170,9 +2178,8 @@
   // ===== REAL-TIME DASHBOARD SYNC =====
   let dashboardSocket = null;
   function connectDashboardSocket() {
-    const token = localStorage.getItem('auth_token');
-    if (!token) return;
-    const wsUrl = `ws://${window.location.host}/ws/dashboard/?token=${token}`;
+    // Cookie is sent automatically with WebSocket connection
+    const wsUrl = `ws://${window.location.host}/ws/dashboard/`;
     dashboardSocket = new WebSocket(wsUrl);
     dashboardSocket.onmessage = function(e) {
       const data = JSON.parse(e.data);
@@ -2211,7 +2218,7 @@
   async function loadNotifications() {
     notifList.innerHTML = '<p class="text-center py-6"><i data-lucide="loader-circle" class="animate-spin w-4 h-4 mx-auto" style="color: var(--fg-dim);"></i></p>'; lucide.createIcons();
     try {
-      const res = await fetch('/api/notifications/', { headers: { 'Authorization': `Token ${notifToken}` } });
+      const res = await fetch('/api/notifications/', { credentials: 'same-origin' });
       const notifications = await res.json();
       if (!notifications || notifications.length === 0) { notifList.innerHTML = '<p class="text-center py-6 text-xs" style="color: var(--fg-dim);">No notifications yet.</p>'; return; }
       let html = '';
@@ -2233,12 +2240,12 @@
   }
 
   async function markNotifRead(id) {
-    try { await fetch(`/api/notifications/${id}/mark-read/`, { method: 'POST', headers: { 'Authorization': `Token ${notifToken}` } }); loadNotifications(); }
+    try { await fetch(`/api/notifications/${id}/mark-read/`, { method: 'POST', credentials: 'same-origin' }); loadNotifications(); }
     catch (e) {}
   }
 
   markAllReadBtn.addEventListener('click', async () => {
-    try { await fetch('/api/notifications/mark-all-read/', { method: 'POST', headers: { 'Authorization': `Token ${notifToken}` } }); loadNotifications(); }
+    try { await fetch('/api/notifications/mark-all-read/', { method: 'POST', credentials: 'same-origin' }); loadNotifications(); }
     catch (e) {}
   });
 
@@ -2268,7 +2275,7 @@
   async function checkCoordinatorPrograms() {
     try {
       const response = await fetch('/api/coordinator/programs/', {
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Token ${token}` }
+        credentials: 'same-origin'
       });
       if (!response.ok) return true;
       const programs = await response.json();

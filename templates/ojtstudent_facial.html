@@ -414,7 +414,7 @@ aside > div{
     async function loadEnrolledFace() {
         try {
             const res = await fetch('/api/student/facial/my-face/', {
-                headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` }
+                credentials: 'same-origin'
             });
             if (res.ok) {
                 const blob = await res.blob();
@@ -443,9 +443,9 @@ aside > div{
             const res = await fetch('/api/student/facial/delete-face/', {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': getCookie('csrftoken'),
-                    'Authorization': `Token ${localStorage.getItem('auth_token')}`
-                }
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                credentials: 'same-origin'
             });
             if (res.ok) {
                 document.getElementById('enrolledFaceCard').classList.add('hidden');
@@ -473,7 +473,7 @@ aside > div{
     async function loadProfile() {
         try {
             const res = await fetch('/api/student/profile/my_profile/', {
-                headers: { 'Authorization': `Token ${localStorage.getItem('auth_token')}` }
+                credentials: 'same-origin'
             });
             if (res.ok) {
                 studentProfile = await res.json();
@@ -604,9 +604,9 @@ aside > div{
             const response = await fetch('/api/student/facial/enroll_face/', {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': getCookie('csrftoken'),
-                    'Authorization': `Token ${localStorage.getItem('auth_token')}`
+                    'X-CSRFToken': getCookie('csrftoken')
                 },
+                credentials: 'same-origin',
                 body: formData
             });
 

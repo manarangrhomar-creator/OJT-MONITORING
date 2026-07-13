@@ -2,6 +2,7 @@ from urllib.parse import parse_qs
 
 from channels.db import database_sync_to_async
 from django.contrib.auth.models import AnonymousUser
+from django.http import HttpResponse
 from rest_framework.authtoken.models import Token
 
 
@@ -18,9 +19,18 @@ class TokenAuthMiddleware:
         self.inner = inner
 
     async def __call__(self, scope, receive, send):
-        query_string = scope.get('query_string', b'').decode()
-        params = parse_qs(query_string)
-        token_key = params.get('token', [None])[0]
+        token_key = None
+
+        # Try cookie first (httpOnly, sent automatically by browser)
+        cookies = scope.get('cookies', {})
+        if isinstance(cookies, dict):
+            token_key = cookies.get('auth_token')
+
+        # Fallback to query string (for backward compatibility)
+        if not token_key:
+            query_string = scope.get('query_string', b'').decode()
+            params = parse_qs(query_string)
+            token_key = params.get('token', [None])[0]
 
         if token_key:
             scope['user'] = await get_user_from_token(token_key)
@@ -30,4 +40,32 @@ class TokenAuthMiddleware:
         return await self.inner(scope, receive, send)
 
 
+class SecurityHeadersMiddleware:
+    """Add security headers to all HTTP responses."""
+
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        response = self.get_response(request)
+
+        # Content Security Policy - restrict resource loading
+        response['Content-Security-Policy'] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
+            "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
+            "img-src 'self' data: https:; "
+            "connect-src 'self' ws: wss:; "
+            "frame-ancestors 'none'"
+        )
+
+        # Additional security headers
+        response['X-Content-Type-Options'] = 'nosniff'
+        response['X-Frame-Options'] = 'DENY'
+        response['X-XSS-Protection'] = '1; mode=block'
+        response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
+        response['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
+
+        return response
 

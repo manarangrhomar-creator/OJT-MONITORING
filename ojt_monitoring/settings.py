@@ -73,6 +73,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'apps.core.middleware.SecurityHeadersMiddleware',
 ]
 
 ROOT_URLCONF = 'ojt_monitoring.urls'
@@ -184,7 +185,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # REST Framework Configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        'apps.authentication.backends.CookieTokenAuthentication',
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -222,6 +223,12 @@ if not DEBUG:
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 X_FRAME_OPTIONS = 'DENY'
+
+# Cookie security settings
+SESSION_COOKIE_SAMESITE = 'Lax'
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = True
 
 # Logging Configuration
 LOGGING = {
