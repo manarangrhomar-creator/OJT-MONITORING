@@ -31,7 +31,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script>
+<script nonce="{{ csp_nonce }}">
     // Load dashboard data from API
     document.addEventListener('DOMContentLoaded', function() {
         // This will be populated with actual API calls in Phase 4

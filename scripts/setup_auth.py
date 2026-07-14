@@ -16,11 +16,13 @@ from rest_framework.authtoken.models import Token
 
 def create_test_users():
     """Create test users for each role."""
+    import secrets
+    default_pw = secrets.token_urlsafe(12)
     test_data = [
         {
             'username': 'admin_test',
             'email': 'admin@isu.edu.ph',
-            'password': 'AdminTest1234',
+            'password': os.environ.get('ADMIN_TEST_PASSWORD', default_pw),
             'first_name': 'Admin',
             'last_name': 'User',
             'role': 'admin'
@@ -28,7 +30,7 @@ def create_test_users():
         {
             'username': 'coordinator_test',
             'email': 'coordinator@isu.edu.ph',
-            'password': 'CoordinatorTest1234',
+            'password': os.environ.get('COORDINATOR_TEST_PASSWORD', default_pw),
             'first_name': 'Coordinator',
             'last_name': 'User',
             'role': 'coordinator'
@@ -36,7 +38,7 @@ def create_test_users():
         {
             'username': 'student_test',
             'email': 'student@isu.edu.ph',
-            'password': 'StudentTest1234',
+            'password': os.environ.get('STUDENT_TEST_PASSWORD', default_pw),
             'first_name': 'Student',
             'last_name': 'User',
             'role': 'student'

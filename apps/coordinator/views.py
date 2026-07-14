@@ -1,6 +1,7 @@
 from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.throttling import UserRateThrottle
 from django.db import models
 from django.db.models import Exists, OuterRef
 from django.utils import timezone
@@ -155,6 +156,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
     """ViewSet for Attendance management."""
     serializer_class = AttendanceSerializer
     permission_classes = [IsCoordinator]
+    throttle_classes = [UserRateThrottle]
     filterset_fields = ['program', 'student', 'date']
     search_fields = ['student__username']
     
@@ -172,7 +174,19 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         """Clock in for attendance."""
         student_id = request.data.get('student_id')
         program_id = request.data.get('program_id')
-        
+
+        if not student_id or not program_id:
+            return Response({'error': 'student_id and program_id are required'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Verify the program belongs to this coordinator (or user is admin)
+        program = get_object_or_404(OJTProgram, id=program_id)
+        if not request.user.is_admin() and program.coordinator != request.user:
+            return Response({'error': 'You do not have access to this program'}, status=status.HTTP_403_FORBIDDEN)
+
+        # Verify the student has an approved application for this program
+        if not OJTApplication.objects.filter(student_id=student_id, program_id=program_id, status='approved').exists():
+            return Response({'error': 'Student does not have an approved application for this program'}, status=status.HTTP_400_BAD_REQUEST)
+
         attendance, created = Attendance.objects.get_or_create(
             student_id=student_id,
             program_id=program_id,

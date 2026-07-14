@@ -68,3 +68,6 @@ desktop.ini
 *.bak
 *.backup
 *_old.*
+
+# Database (NEVER commit — contains sensitive data)
+db.sqlite3

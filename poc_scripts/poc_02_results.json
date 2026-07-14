@@ -1,0 +1,35 @@
+{
+  "poc": "02",
+  "vulnerability": "F-008",
+  "severity": "CRITICAL",
+  "title": "Unauthenticated Access to Attendance Records (PII)",
+  "conclusion": "NOT VULNERABLE \u2014 endpoint requires authentication",
+  "note": "Attendance model has no photo fields; IsCoordinator permission blocks unauthenticated access",
+  "timestamp": "2026-07-13 19:26:12",
+  "results": [
+    {
+      "id": "F-008.1",
+      "description": "Unauthenticated access to attendance endpoint",
+      "status": "PASS",
+      "detail": "HTTP 403 -- BLOCKED (correct)"
+    },
+    {
+      "id": "F-008.2",
+      "description": "Student token on coordinator attendance endpoint",
+      "status": "PASS",
+      "detail": "HTTP 403 -- BLOCKED (correct)"
+    },
+    {
+      "id": "F-008.3",
+      "description": "Coordinator access (baseline)",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "F-008.4",
+      "description": "Attendance model has no photo fields",
+      "status": "PASS",
+      "detail": "All fields: flags,id,created_at,updated_at,created_by,updated_by,student,program,date,time_in,time_out,facial_recognition_used,notes,latitude,longitude,ip_address,auto_clocked_out | Photo fields: none"
+    }
+  ]
+}

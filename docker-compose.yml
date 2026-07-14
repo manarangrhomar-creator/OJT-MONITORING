@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_DB: ojt_monitoring_db
       POSTGRES_USER: ojt_admin
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-ojt_admin_password}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env before running docker-compose}
     ports:
       - "5432:5432"
     volumes:
@@ -32,12 +32,15 @@ services:
       DB_ENGINE: django.db.backends.postgresql
       DB_NAME: ojt_monitoring_db
       DB_USER: ojt_admin
-      DB_PASSWORD: ${DB_PASSWORD:-ojt_admin_password}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
       DB_HOST: db
       DB_PORT: "5432"
+      REDIS_URL: redis://redis:6379/0
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
 
   redis:
     image: redis:7-alpine
@@ -57,9 +60,10 @@ services:
       DB_ENGINE: django.db.backends.postgresql
       DB_NAME: ojt_monitoring_db
       DB_USER: ojt_admin
-      DB_PASSWORD: ${DB_PASSWORD:-ojt_admin_password}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
       DB_HOST: db
       DB_PORT: "5432"
+      REDIS_URL: redis://redis:6379/0
     depends_on:
       db:
         condition: service_healthy

@@ -31,7 +31,7 @@ response = client.post(
     '/api/auth/login/',
     data=json.dumps({
         'username': 'admin',
-        'password': 'admin'  # Try with 'admin' as password first
+        'password': os.environ.get('ADMIN_PASSWORD', 'changeme')
     }),
     content_type='application/json'
 )
@@ -46,7 +46,7 @@ response = client.post(
     '/api/auth/login/',
     data=json.dumps({
         'username': 'coordinator_test',
-        'password': 'CoordinatorTest1234'
+        'password': os.environ.get('COORDINATOR_TEST_PASSWORD', 'changeme')
     }),
     content_type='application/json'
 )
@@ -89,9 +89,9 @@ The API endpoint is working correctly. If you're still getting 'failed to fetch'
 
 3. The server must be on http://localhost:8000
 
-4. Try these exact test credentials:
+4. Set test credentials via env vars:
+   export COORDINATOR_TEST_PASSWORD=<password>
    Username: coordinator_test
-   Password: CoordinatorTest1234
    (This should work if API is accessible)
 """)
 print("="*70 + "\n")

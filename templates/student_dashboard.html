@@ -433,7 +433,7 @@
   </div>
 </div>
 
-<script>(function(){var e=document.getElementById('isuPageLoader');if(!e)return;var b=e.querySelector('.loader-progress-bar');if(b){b.style.transformOrigin='left';b.style.transition='none';b.style.transform='scaleX(0)';var r=1;var start=Date.now();(function tick(){if(!r||e.style.display==='none')return;var elapsed=Date.now()-start;var pct=Math.min(0.9,elapsed/3000);b.style.transform='scaleX('+pct+')';requestAnimationFrame(tick)})();}window._hidePageLoader=function(){if(e.style.display==='none'||!b)return;r=0;b.style.transition='transform 0.3s ease-out';b.style.transform='scaleX(1)';setTimeout(function(){e.style.transition='opacity 0.3s ease';e.style.opacity='0';setTimeout(function(){e.style.display='none'},300)},350)}})();</script>
+<script nonce="{{ csp_nonce }}">(function(){var e=document.getElementById('isuPageLoader');if(!e)return;var b=e.querySelector('.loader-progress-bar');if(b){b.style.transformOrigin='left';b.style.transition='none';b.style.transform='scaleX(0)';var r=1;var start=Date.now();(function tick(){if(!r||e.style.display==='none')return;var elapsed=Date.now()-start;var pct=Math.min(0.9,elapsed/3000);b.style.transform='scaleX('+pct+')';requestAnimationFrame(tick)})();}window._hidePageLoader=function(){if(e.style.display==='none'||!b)return;r=0;b.style.transition='transform 0.3s ease-out';b.style.transform='scaleX(1)';setTimeout(function(){e.style.transition='opacity 0.3s ease';e.style.opacity='0';setTimeout(function(){e.style.display='none'},300)},350)}})();</script>
 
 <!-- MAIN CONTENT -->
 <main class="px-4 sm:px-5 lg:px-8">
@@ -1256,14 +1256,14 @@
   </div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
   if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
   window.scrollTo(0, 0);
   function openModal(id) { document.getElementById(id).classList.add('active'); }
   function closeModal(id) { document.getElementById(id).classList.remove('active'); if (id === 'applyModal') applyStopCam(); }
 </script>
 
-<script>
+<script nonce="{{ csp_nonce }}">
   {
     const userRole = localStorage.getItem('user_role');
     if (userRole !== 'student') { window.location.href = '/auth/login/'; throw new Error('Access denied'); }

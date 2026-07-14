@@ -1,0 +1,28 @@
+{
+  "poc": "01",
+  "vulnerability": "F-004",
+  "severity": "CRITICAL",
+  "title": "Unauthenticated Access to Narrative Report Photos",
+  "timestamp": "2026-07-13 19:25:56",
+  "results": [
+    {
+      "id": "F-004.1",
+      "description": "Narrative list WITH auth (baseline)",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "F-004.2",
+      "description": "Narrative list WITHOUT auth (CRITICAL)",
+      "status": "PASS",
+      "detail": "HTTP 200 \u2014 VULNERABLE: data exposed"
+    },
+    {
+      "id": "F-004.5",
+      "description": "Direct photo access WITHOUT auth",
+      "status": "N/A",
+      "detail": "No photo URLs found to test \u2014 narratives have no photos"
+    }
+  ],
+  "conclusion": "VULNERABILITY CONFIRMED"
+}

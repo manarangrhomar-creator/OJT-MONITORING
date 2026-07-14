@@ -71,14 +71,14 @@ print("""
 1. Create student accounts via:
    $ python manage.py shell
    >>> from apps.core.models import User
-   >>> User.objects.create_user(
-   ...     username='student1',
-   ...     email='student1@test.com',
-   ...     password='Pass1234',
-   ...     first_name='John',
-   ...     last_name='Doe',
-   ...     role='student'
-   ... )
+    >>> User.objects.create_user(
+    ...     username='student1',
+    ...     email='student1@test.com',
+    ...     password='your-secure-password',
+    ...     first_name='John',
+    ...     last_name='Doe',
+    ...     role='student'
+    ... )
 
 2. Login as admin
 

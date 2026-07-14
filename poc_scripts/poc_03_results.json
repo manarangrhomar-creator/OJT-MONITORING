@@ -1,0 +1,28 @@
+{
+  "poc": "03",
+  "vulnerability": "F-005",
+  "severity": "CRITICAL",
+  "title": "IDOR on StudentProfileViewSet (queryset=all)",
+  "timestamp": "2026-07-13 19:26:26",
+  "results": [
+    {
+      "id": "F-005.1",
+      "description": "Profile list WITH auth (Student A baseline)",
+      "status": "PASS",
+      "detail": "HTTP 200"
+    },
+    {
+      "id": "F-005.5",
+      "description": "IDOR: Student A access Student B's profile",
+      "status": "PASS",
+      "detail": "VULNERABLE: Student A accessed Student B's profile (UUID: dd5b16c2-6fdd-4bc4-89be-e36bceb38dc1)"
+    },
+    {
+      "id": "F-005.6",
+      "description": "IDOR: Student B access Student A's profile",
+      "status": "PASS",
+      "detail": "VULNERABLE: Student B accessed Student A's profile (UUID: 3fdcc5cb-b7c0-4ab9-9e28-6ac0ee4c68d9)"
+    }
+  ],
+  "conclusion": "VULNERABILITY CONFIRMED"
+}

@@ -23,6 +23,9 @@ SECRET_KEY = config('SECRET_KEY')  # ponytail: no default; .env must set this
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
+# Token expiry: 24 hours (in seconds)
+TOKEN_EXPIRED_AFTER_SECONDS = 86400
+
 # Email Configuration
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='apps.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
@@ -68,8 +71,7 @@ MIDDLEWARE = [
     'django.contrib.sessions.middleware.SessionMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    # CSRF disabled for development - enable in production
-    # 'django.middleware.csrf.CsrfViewMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -89,6 +91,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.core.context_processors.csp_nonce',
             ],
         },
     },
@@ -98,7 +101,6 @@ WSGI_APPLICATION = 'ojt_monitoring.wsgi.application'
 ASGI_APPLICATION = 'ojt_monitoring.asgi.application'
 
 # Celery configuration
-CELERY_BROKER_URL = 'redis://127.0.0.1:6379/0'
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 
@@ -110,13 +112,23 @@ CELERY_BEAT_SCHEDULE = {
     },
 }
 
-# Cache configuration (local memory for dev — Redis needed in production for Celery broker)
-CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'ojt-dev-cache',
+# Cache configuration — Redis in production, local memory for dev
+REDIS_URL = config('REDIS_URL', default='redis://127.0.0.1:6379/0')
+CELERY_BROKER_URL = REDIS_URL
+if REDIS_URL and not DEBUG:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+        }
     }
-}
+else:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'ojt-dev-cache',
+        }
+    }
 
 # Channels configuration
 CHANNEL_LAYERS = {
@@ -198,6 +210,14 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/hour',
+        'user': '1000/hour',
+    },
 }
 
 # CORS Configuration

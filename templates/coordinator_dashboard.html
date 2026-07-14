@@ -303,7 +303,7 @@
     <div class="loader-progress-bar" id="loaderBar"></div>
   </div>
 </div>
-<script>
+<script nonce="{{ csp_nonce }}">
 (function(){var e=document.getElementById('isuPageLoader');if(!e)return;var b=document.getElementById('loaderBar');if(b){b.style.transformOrigin='left';var d=2000,s=Date.now(),r=1;(function a(){if(!r||e.style.display==='none')return;var p=((Date.now()-s)%d)/d,v=p<.5?p/.5*.85:.85*(1-(p-.5)/.5);b.style.transform='scaleX('+v+')';requestAnimationFrame(a)})()}window.addEventListener('load',function(){r=0;if(b){b.style.transition='transform 0.3s ease';b.style.transform='scaleX(1)'}setTimeout(function(){e.style.display='none'},600)})})();
 </script>
 
@@ -962,7 +962,7 @@
   </div>
 </div>
 
-<script>
+<script nonce="{{ csp_nonce }}">
   if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
   window.scrollTo(0, 0);
   function openModal(id) { document.getElementById(id).classList.add('active'); }

@@ -6,6 +6,7 @@ from rest_framework.exceptions import ValidationError
 from django.http import HttpResponse
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.throttling import UserRateThrottle
 from datetime import datetime, timedelta
 from django.db.models import Q, Count, F
 from django.utils import timezone
@@ -31,9 +32,11 @@ class IsStudent(permissions.BasePermission):
 
 class StudentProfileViewSet(viewsets.ModelViewSet):
     """ViewSet for Student Profile management."""
-    queryset = StudentProfile.objects.all()
     serializer_class = StudentProfileSerializer
     permission_classes = [IsStudent]
+
+    def get_queryset(self):
+        return StudentProfile.objects.filter(user=self.request.user)
     
     @action(detail=False, methods=['get'])
     def my_profile(self, request):
@@ -62,6 +65,7 @@ class StudentProfileViewSet(viewsets.ModelViewSet):
 class StudentDashboardViewSet(viewsets.ViewSet):
     """ViewSet for student dashboard."""
     permission_classes = [IsStudent]
+    throttle_classes = [UserRateThrottle]
     
     @action(detail=False, methods=['get'])
     def dashboard(self, request):
@@ -448,9 +452,11 @@ class StudentNarrativeViewSet(viewsets.ModelViewSet):
 
 class FacialRecognitionViewSet(viewsets.ModelViewSet):
     """ViewSet for Facial Recognition management."""
-    queryset = FacialRecognition.objects.all()
     serializer_class = FacialRecognitionSerializer
     permission_classes = [IsStudent]
+
+    def get_queryset(self):
+        return FacialRecognition.objects.filter(student=self.request.user)
     
     @action(detail=False, methods=['post'])
     def enroll_face(self, request):

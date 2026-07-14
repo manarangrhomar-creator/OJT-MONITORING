@@ -31,7 +31,7 @@ try:
     test_super = User.objects.create_superuser(
         username='test_superuser',
         email='test_super@test.com',
-        password='TestSuper1234'
+        password=os.environ.get('TEST_SUPERUSER_PASSWORD', 'changeme')
     )
     print(f"✓ Created superuser: {test_super.username}")
     print(f"  Is superuser: {test_super.is_superuser}")

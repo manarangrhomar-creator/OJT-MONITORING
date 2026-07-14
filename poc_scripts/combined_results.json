@@ -1,0 +1,104 @@
+{
+  "pocs": [
+    {
+      "poc": "01",
+      "vulnerability": "F-004",
+      "severity": "CRITICAL",
+      "title": "Unauthenticated Access to Narrative Report Photos",
+      "timestamp": "2026-07-13 19:25:56",
+      "results": [
+        {
+          "id": "F-004.1",
+          "description": "Narrative list WITH auth (baseline)",
+          "status": "PASS",
+          "detail": "HTTP 200"
+        },
+        {
+          "id": "F-004.2",
+          "description": "Narrative list WITHOUT auth (CRITICAL)",
+          "status": "PASS",
+          "detail": "HTTP 200 \u2014 VULNERABLE: data exposed"
+        },
+        {
+          "id": "F-004.5",
+          "description": "Direct photo access WITHOUT auth",
+          "status": "N/A",
+          "detail": "No photo URLs found to test \u2014 narratives have no photos"
+        }
+      ],
+      "conclusion": "VULNERABILITY CONFIRMED"
+    },
+    {
+      "poc": "02",
+      "vulnerability": "F-008",
+      "severity": "CRITICAL",
+      "title": "Unauthenticated Access to Attendance Records (PII)",
+      "conclusion": "NOT VULNERABLE \u2014 endpoint requires authentication",
+      "note": "Attendance model has no photo fields; IsCoordinator permission blocks unauthenticated access",
+      "timestamp": "2026-07-13 19:26:12",
+      "results": [
+        {
+          "id": "F-008.1",
+          "description": "Unauthenticated access to attendance endpoint",
+          "status": "PASS",
+          "detail": "HTTP 403 -- BLOCKED (correct)"
+        },
+        {
+          "id": "F-008.2",
+          "description": "Student token on coordinator attendance endpoint",
+          "status": "PASS",
+          "detail": "HTTP 403 -- BLOCKED (correct)"
+        },
+        {
+          "id": "F-008.3",
+          "description": "Coordinator access (baseline)",
+          "status": "PASS",
+          "detail": "HTTP 200"
+        },
+        {
+          "id": "F-008.4",
+          "description": "Attendance model has no photo fields",
+          "status": "PASS",
+          "detail": "All fields: flags,id,created_at,updated_at,created_by,updated_by,student,program,date,time_in,time_out,facial_recognition_used,notes,latitude,longitude,ip_address,auto_clocked_out | Photo fields: none"
+        }
+      ]
+    },
+    {
+      "poc": "03",
+      "vulnerability": "F-005",
+      "severity": "CRITICAL",
+      "title": "IDOR on StudentProfileViewSet (queryset=all)",
+      "timestamp": "2026-07-13 19:26:26",
+      "results": [
+        {
+          "id": "F-005.1",
+          "description": "Profile list WITH auth (Student A baseline)",
+          "status": "PASS",
+          "detail": "HTTP 200"
+        },
+        {
+          "id": "F-005.5",
+          "description": "IDOR: Student A access Student B's profile",
+          "status": "PASS",
+          "detail": "VULNERABLE: Student A accessed Student B's profile (UUID: dd5b16c2-6fdd-4bc4-89be-e36bceb38dc1)"
+        },
+        {
+          "id": "F-005.6",
+          "description": "IDOR: Student B access Student A's profile",
+          "status": "PASS",
+          "detail": "VULNERABLE: Student B accessed Student A's profile (UUID: 3fdcc5cb-b7c0-4ab9-9e28-6ac0ee4c68d9)"
+        }
+      ],
+      "conclusion": "VULNERABILITY CONFIRMED"
+    }
+  ],
+  "summary": {
+    "total_tests": 10,
+    "total_passed": 9,
+    "vulnerabilities_confirmed": [
+      "F-004 \u2014 Unauthenticated Access to Narrative Report Photos",
+      "F-005 \u2014 IDOR on StudentProfileViewSet (queryset=all)"
+    ],
+    "timestamp": "2026-07-13 19:26:26"
+  }
+}

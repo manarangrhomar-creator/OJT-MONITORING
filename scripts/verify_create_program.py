@@ -19,7 +19,7 @@ course = Course.objects.create(name='BSIT')
 
 # Create coordinator
 u = User.objects.create_user(
-    username='tcoord', email='c@t.com', password='p123',
+    username='tcoord', email='c@t.com', password=os.environ.get('TEST_PASSWORD', 'changeme'),
     role='coordinator', course=course, approval_status='approved',
     first_name='Test', last_name='Coord'
 )
@@ -52,7 +52,7 @@ print('  PASS')
 print()
 print('=== Test 3: New coordinator (no programs) ===')
 u2 = User.objects.create_user(
-    username='tcoord2', email='c2@t.com', password='p123',
+    username='tcoord2', email='c2@t.com', password=os.environ.get('TEST_PASSWORD', 'changeme'),
     role='coordinator', approval_status='approved',
     first_name='New', last_name='Coord'
 )
@@ -73,7 +73,7 @@ print('  PASS')
 print()
 print('=== Test 5: Student blocked ===')
 stu = User.objects.create_user(
-    username='stu1', email='s@t.com', password='p123',
+    username='stu1', email='s@t.com', password=os.environ.get('TEST_PASSWORD', 'changeme'),
     role='student', approval_status='approved'
 )
 t3, _ = Token.objects.get_or_create(user=stu)

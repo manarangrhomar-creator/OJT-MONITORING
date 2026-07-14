@@ -149,7 +149,7 @@
       <span class="loader-text">Creating account…</span>
     </div>
   </div>
-<script>(function(){var e=document.getElementById('registerLoadingMessage');if(!e)return;var b=e.querySelector('.loader-progress-bar');if(b){b.style.transformOrigin='left';var d=2000;var s=Date.now();var r=1;(function a(){if(!r||e.classList.contains('hidden'))return;var p=((Date.now()-s)%d)/d;var v=p<.5?p/.5*.85:.85*(1-(p-.5)/.5);b.style.transform='scaleX('+v+')';requestAnimationFrame(a)})();}window.addEventListener('load',function(){r=0;if(b){b.style.transition='transform 0.3s ease';b.style.transform='scaleX(1)'}setTimeout(function(){e.classList.add('hidden')},600)});})();</script>
+<script nonce="{{ csp_nonce }}">(function(){var e=document.getElementById('registerLoadingMessage');if(!e)return;var b=e.querySelector('.loader-progress-bar');if(b){b.style.transformOrigin='left';var d=2000;var s=Date.now();var r=1;(function a(){if(!r||e.classList.contains('hidden'))return;var p=((Date.now()-s)%d)/d;var v=p<.5?p/.5*.85:.85*(1-(p-.5)/.5);b.style.transform='scaleX('+v+')';requestAnimationFrame(a)})();}window.addEventListener('load',function(){r=0;if(b){b.style.transition='transform 0.3s ease';b.style.transform='scaleX(1)'}setTimeout(function(){e.classList.add('hidden')},600)});})();</script>
   <div class="animate-in w-full max-w-4xl bg-white shadow-2xl flex flex-col md:flex-row min-h-[560px]" style="box-shadow: 0 20px 60px rgba(0,0,0,0.08);">
 
     <!-- Left panel — university branding -->
@@ -267,7 +267,7 @@
     </div>
   </div>
 
-  <script>
+  <script nonce="{{ csp_nonce }}">
     function showAlert(message) {
       return Swal.fire({
         icon: 'info',

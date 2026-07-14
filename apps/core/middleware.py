@@ -1,5 +1,3 @@
-from urllib.parse import parse_qs
-
 from channels.db import database_sync_to_async
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
@@ -26,12 +24,6 @@ class TokenAuthMiddleware:
         if isinstance(cookies, dict):
             token_key = cookies.get('auth_token')
 
-        # Fallback to query string (for backward compatibility)
-        if not token_key:
-            query_string = scope.get('query_string', b'').decode()
-            params = parse_qs(query_string)
-            token_key = params.get('token', [None])[0]
-
         if token_key:
             scope['user'] = await get_user_from_token(token_key)
         else:
@@ -49,10 +41,13 @@ class SecurityHeadersMiddleware:
     def __call__(self, request):
         response = self.get_response(request)
 
-        # Content Security Policy - restrict resource loading
+        # Content Security Policy
+        # NOTE: 'unsafe-inline' is required because templates use 300+ inline
+        # onclick/onsubmit handlers. Per the CSP spec, 'unsafe-inline' is ignored
+        # when a nonce is present, making nonces incompatible with inline event handlers.
         response['Content-Security-Policy'] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.tailwindcss.com https://unpkg.com; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.tailwindcss.com https://unpkg.com; "
             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
             "img-src 'self' data: https:; "
