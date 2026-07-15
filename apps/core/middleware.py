@@ -51,6 +51,7 @@ class SecurityHeadersMiddleware:
             "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
             "img-src 'self' data: https:; "
+            "media-src 'self' blob:; "
             "connect-src 'self' ws: wss: https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
             "frame-ancestors 'none'"
         )
@@ -60,7 +61,7 @@ class SecurityHeadersMiddleware:
         response['X-Frame-Options'] = 'DENY'
         response['X-XSS-Protection'] = '1; mode=block'
         response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-        response['Permissions-Policy'] = 'camera=(), microphone=(), geolocation=()'
+        response['Permissions-Policy'] = 'camera=(self), microphone=(), geolocation=()'
 
         return response
 
