@@ -238,7 +238,7 @@
         <button class="pill-btn" data-section="approvals" onclick="switchSection('approvals')"><i data-lucide="file-text" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Coord. Approval</button>
         <button class="pill-btn" data-section="courses" onclick="switchSection('courses')"><i data-lucide="book-open" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Courses</button>
         <button class="pill-btn" data-section="sites" onclick="switchSection('sites')"><i data-lucide="building" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Sites</button>
-        <button class="pill-btn" data-section="programs" onclick="switchSection('programs')"><i data-lucide="briefcase" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Programs</button>
+        <button class="pill-btn" data-section="programs" onclick="switchSection('programs')"><i data-lucide="book-open" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Subjects</button>
         <button class="pill-btn" data-section="system-logs" onclick="switchSection('system-logs')"><i data-lucide="scroll-text" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>System Logs</button>
       </nav>
     </div>
@@ -274,7 +274,7 @@
   <button class="pill-btn" data-section="approvals" onclick="switchSection('approvals')"><i data-lucide="file-text" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i>Coord. Approval</button>
   <button class="pill-btn" data-section="courses" onclick="switchSection('courses')"><i data-lucide="book-open" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i>Courses</button>
   <button class="pill-btn" data-section="sites" onclick="switchSection('sites')"><i data-lucide="building" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i>Sites</button>
-  <button class="pill-btn" data-section="programs" onclick="switchSection('programs')"><i data-lucide="briefcase" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i>Programs</button>
+  <button class="pill-btn" data-section="programs" onclick="switchSection('programs')"><i data-lucide="book-open" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i>Subjects</button>
   <button class="pill-btn" data-section="system-logs" onclick="switchSection('system-logs')"><i data-lucide="scroll-text" class="w-3.5 h-3.5 inline -mt-0.5 mr-1"></i>System Logs</button>
 </div>
 
@@ -312,11 +312,11 @@
       </div>
       <div class="bento-card stat-card p-5 flex items-center gap-4">
         <div class="w-12 h-12 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(168,85,247,0.1);">
-          <i data-lucide="briefcase" class="w-6 h-6" style="color: #A855F7;"></i>
+          <i data-lucide="book-open" class="w-6 h-6" style="color: #A855F7;"></i>
         </div>
         <div>
           <p class="text-2xl font-black" id="overviewTotalPrograms" style="color: #A855F7;">—</p>
-          <p class="text-[0.55rem] font-bold uppercase tracking-widest" style="color: var(--fg-dim);">Programs</p>
+          <p class="text-[0.55rem] font-bold uppercase tracking-widest" style="color: var(--fg-dim);">Subjects</p>
         </div>
       </div>
     </div>
@@ -358,8 +358,8 @@
         <button class="pill-btn !text-[0.6rem] active" onclick="filterSystemLogsByType('all', this)">All</button>
         <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('user_created', this)">User Created</button>
         <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('user_deleted', this)">User Deleted</button>
-        <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('program_created', this)">Program Created</button>
-        <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('program_deleted', this)">Program Deleted</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('program_created', this)">Subject Created</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('program_deleted', this)">Subject Deleted</button>
         <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('approval_made', this)">Approval</button>
         <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('report_generated', this)">Report</button>
       </div>
@@ -549,21 +549,21 @@
     </div>
   </div>
 
-  <!-- ===== PROGRAMS SECTION ===== -->
+  <!-- ===== SUBJECTS SECTION ===== -->
   <div id="programsSection" class="section-container hidden animate-in">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
-      <h2 class="text-lg font-bold">Manage Programs</h2>
+      <h2 class="text-lg font-bold">Manage Subjects</h2>
     </div>
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
       <div class="relative w-full sm:w-64">
         <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style="color: var(--fg-dim);"></i>
-        <input type="text" id="programSearchInput" placeholder="Search program by name or coordinator..." class="w-full pl-9 pr-4 py-2.5 !rounded-xl text-xs">
+        <input type="text" id="programSearchInput" placeholder="Search subject by name or coordinator..." class="w-full pl-9 pr-4 py-2.5 !rounded-xl text-xs">
       </div>
     </div>
     <div class="bento-card overflow-hidden">
       <div class="overflow-x-auto"><table class="w-full text-left">
         <thead><tr>
-          <th class="table-header">Program Name</th><th class="table-header">Coordinator</th>
+          <th class="table-header">Subject Name</th><th class="table-header">Coordinator</th>
           <th class="table-header">Status</th><th class="table-header">Students</th>
           <th class="table-header text-center">Action</th>
         </tr></thead>
@@ -843,10 +843,10 @@
 
 
 
-    <!-- Program Modals -->
+    <!-- Subject Modals -->
 <div id="viewProgramStudentsModal" class="modal">
   <div class="modal-content wide" style="max-width: 960px;">
-    <div class="modal-header"><h2 id="viewProgramStudentsTitle">Program Students</h2><button class="close-btn" onclick="closeModal('viewProgramStudentsModal')">&times;</button></div>
+    <div class="modal-header"><h2 id="viewProgramStudentsTitle">Subject Students</h2><button class="close-btn" onclick="closeModal('viewProgramStudentsModal')">&times;</button></div>
     <div style="max-height:60vh; overflow-y:auto;">
       <table class="w-full text-left" style="table-layout:fixed;">
         <colgroup>
@@ -867,7 +867,7 @@
 
 <div id="deleteProgramModal" class="modal">
   <div class="modal-content" style="max-width: 480px;">
-    <div class="modal-header"><h2>Delete Program</h2><button class="close-btn" onclick="closeModal('deleteProgramModal')">&times;</button></div>
+    <div class="modal-header"><h2>Delete Subject</h2><button class="close-btn" onclick="closeModal('deleteProgramModal')">&times;</button></div>
     <p class="text-sm mb-4" style="color: var(--fg-muted);">Are you sure you want to delete <strong style="color: var(--fg);" id="deleteProgramName"></strong>? This will also remove all linked records.</p>
     <div class="mb-3"><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Type "<span id="deleteProgramNameConfirm"></span>" to confirm</label><input type="text" id="deleteProgramConfirmInput" placeholder="Type the name to confirm..." class="w-full !p-2.5 !rounded-xl text-sm"></div>
     <div class="modal-buttons">
@@ -1954,7 +1954,7 @@
             if (!tbody) return;
             const start = systemLogsCurrentPage * SYSTEM_LOGS_PER_PAGE;
             const page = systemLogsFiltered.slice(start, start + SYSTEM_LOGS_PER_PAGE);
-            const typeLabels = { user_created: 'User Created', user_deleted: 'User Deleted', program_created: 'Program Created', program_deleted: 'Program Deleted', approval_made: 'Approval', report_generated: 'Report' };
+            const typeLabels = { user_created: 'User Created', user_deleted: 'User Deleted', program_created: 'Subject Created', program_deleted: 'Subject Deleted', approval_made: 'Approval', report_generated: 'Report' };
             if (page.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center" style="color: var(--fg-dim);">No logs found</td></tr>';
             } else {
@@ -2538,7 +2538,7 @@
             }
         }
 
-        // ===== PROGRAM MANAGEMENT =====
+        // ===== SUBJECT MANAGEMENT =====
         let programList = [];
 
         async function loadPrograms() {
@@ -2576,7 +2576,7 @@
                 : programList;
             tbody.innerHTML = '';
             if (!filtered.length) {
-                tbody.innerHTML = '<tr><td colspan="5" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="briefcase" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No programs found</span></div></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="book-open" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No subjects found</span></div></td></tr>';
                 return;
             }
             filtered.forEach(p => {
@@ -2613,7 +2613,7 @@
                 const students = await res.json();
                 tbody.innerHTML = '';
                 if (!students.length) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="users" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No approved students in this program</span></div></td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="6" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="users" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No approved students in this subject</span></div></td></tr>';
                     return;
                 }
                 students.forEach(s => {
@@ -2670,7 +2670,7 @@
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
                 pendingProgramDeleteId = null;
                 pendingProgramDeleteName = '';
-                showAlert('Program deleted successfully');
+                showAlert('Subject deleted successfully');
                 closeModal('deleteProgramModal');
                 loadPrograms();
             } catch (error) {
@@ -3000,7 +3000,7 @@
       <i data-lucide="building" class="w-4 h-4"></i> Sites
     </button>
     <button class="mobile-drawer-item" data-section="programs" onclick="switchSection('programs')">
-      <i data-lucide="briefcase" class="w-4 h-4"></i> Programs
+      <i data-lucide="book-open" class="w-4 h-4"></i> Subjects
     </button>
     <button class="mobile-drawer-item" data-section="system-logs" onclick="switchSection('system-logs')">
       <i data-lucide="scroll-text" class="w-4 h-4"></i> System Logs
