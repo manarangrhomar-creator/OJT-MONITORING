@@ -326,7 +326,7 @@
       <nav class="hidden md:flex items-center gap-1.5 ml-2" id="pillNav">
         <button class="pill-btn active" data-section="overview" onclick="switchSection('overview')"><i data-lucide="layout-dashboard" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Overview</button>
         <button class="pill-btn" data-section="accounts" onclick="switchSection('accounts')"><i data-lucide="users" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Students</button>
-        <button class="pill-btn" data-section="programs" onclick="switchSection('programs')"><i data-lucide="briefcase" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Programs</button>
+        <button class="pill-btn" data-section="programs" onclick="switchSection('programs')"><i data-lucide="book-open" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Subjects</button>
         <button class="pill-btn" data-section="applications" onclick="switchSection('applications')"><i data-lucide="clipboard-list" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Applications</button>
         <button class="pill-btn" data-section="reports" onclick="switchSection('reports')"><i data-lucide="file-text" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Reports</button>
         <button class="pill-btn" data-section="attendance" onclick="switchSection('attendance')"><i data-lucide="clock" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Attendance</button>
@@ -391,7 +391,7 @@
           <div class="flex items-center justify-between mb-4">
             <div>
               <h3 class="text-sm font-bold">Active Students</h3>
-              <p class="text-[0.6rem] font-semibold uppercase tracking-wider mt-0.5" style="color: var(--fg-dim);">Currently enrolled in OJT programs</p>
+              <p class="text-[0.6rem] font-semibold uppercase tracking-wider mt-0.5" style="color: var(--fg-dim);">Currently enrolled in OJT subjects</p>
             </div>
             <div class="flex items-center gap-2">
               <button class="accent-btn flex items-center gap-1.5 !py-1.5" onclick="switchSection('accounts')">
@@ -542,16 +542,16 @@
     </div>
   </div>
 
-  <!-- ===== PROGRAMS SECTION ===== -->
+  <!-- ===== SUBJECTS SECTION ===== -->
   <div id="programsSection" class="section-container hidden animate-in">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
-      <h2 class="text-lg font-bold">OJT Programs</h2>
+      <h2 class="text-lg font-bold">OJT Subjects</h2>
       <button onclick="openCreateProgramModal()" class="accent-btn flex items-center gap-1.5">
-        <i data-lucide="plus" class="w-4 h-4"></i> New Program
+        <i data-lucide="plus" class="w-4 h-4"></i> New Subject
       </button>
     </div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
-      <div class="bento-card p-4"><p class="text-[0.6rem] font-semibold uppercase tracking-wider" style="color: var(--fg-dim);">Total Programs</p><p class="text-2xl font-bold mt-1" id="progStatTotal">0</p></div>
+      <div class="bento-card p-4"><p class="text-[0.6rem] font-semibold uppercase tracking-wider" style="color: var(--fg-dim);">Total Subjects</p><p class="text-2xl font-bold mt-1" id="progStatTotal">0</p></div>
       <div class="bento-card p-4"><p class="text-[0.6rem] font-semibold uppercase tracking-wider" style="color: var(--fg-dim);">Active</p><p class="text-2xl font-bold mt-1" style="color: var(--success);" id="progStatActive">0</p></div>
       <div class="bento-card p-4"><p class="text-[0.6rem] font-semibold uppercase tracking-wider" style="color: var(--fg-dim);">Inactive</p><p class="text-2xl font-bold mt-1" style="color: var(--danger);" id="progStatInactive">0</p></div>
       <div class="bento-card p-4"><p class="text-[0.6rem] font-semibold uppercase tracking-wider" style="color: var(--fg-dim);">Total Students</p><p class="text-2xl font-bold mt-1" style="color: var(--gold);" id="progStatStudents">0</p></div>
@@ -559,7 +559,7 @@
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
       <div class="relative w-full sm:w-64">
         <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style="color: var(--fg-dim);"></i>
-        <input type="text" id="programSearchInput" placeholder="Search programs..." class="w-full pl-9 pr-4 py-2.5 !rounded-xl text-xs">
+        <input type="text" id="programSearchInput" placeholder="Search subjects..." class="w-full pl-9 pr-4 py-2.5 !rounded-xl text-xs">
       </div>
     </div>
     <div class="bento-card overflow-hidden">
@@ -611,13 +611,13 @@
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
       <div class="relative w-full sm:w-64">
         <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style="color: var(--fg-dim);"></i>
-        <input type="text" id="applicationSearchInput" placeholder="Search by student or program..." class="w-full pl-9 pr-4 py-2.5 !rounded-xl text-xs">
+        <input type="text" id="applicationSearchInput" placeholder="Search by student or subject..." class="w-full pl-9 pr-4 py-2.5 !rounded-xl text-xs">
       </div>
     </div>
     <div class="bento-card overflow-hidden">
       <div class="overflow-x-auto"><table class="w-full text-left">
         <thead><tr>
-          <th class="table-header">Student</th><th class="table-header">Program</th><th class="table-header">Preferred Site</th><th class="table-header">Letter</th>
+          <th class="table-header">Student</th><th class="table-header">Subject</th><th class="table-header">Preferred Site</th><th class="table-header">Letter</th>
           <th class="table-header">Date</th><th class="table-header">Status</th><th class="table-header text-center">Action</th>
         </tr></thead>
         <tbody id="applicationTableBody" class="divide-y" style="border-color: var(--card-border);"></tbody>
@@ -650,7 +650,7 @@
     <div class="bento-card overflow-hidden">
       <div class="overflow-x-auto"><table class="w-full text-left">
         <thead><tr>
-          <th class="table-header">Student</th><th class="table-header">Topic</th><th class="table-header">Program</th>
+          <th class="table-header">Student</th><th class="table-header">Topic</th><th class="table-header">Subject</th>
           <th class="table-header">Date</th><th class="table-header">Grade</th><th class="table-header text-center">Action</th>
         </tr></thead>
         <tbody id="studentReportsTableBody" class="divide-y" style="border-color: var(--card-border);"></tbody>
@@ -678,7 +678,7 @@
         <input type="date" id="attendanceDateFrom" class="!py-1.5 !px-2.5 text-xs !rounded-lg">
         <span class="text-[0.6rem]" style="color: var(--fg-dim);">to</span>
         <input type="date" id="attendanceDateTo" class="!py-1.5 !px-2.5 text-xs !rounded-lg">
-        <select id="attendanceProgramFilter" class="!py-1.5 !px-2.5 text-xs !rounded-lg"><option value="">All Programs</option></select>
+        <select id="attendanceProgramFilter" class="!py-1.5 !px-2.5 text-xs !rounded-lg"><option value="">All Subjects</option></select>
         <button onclick="loadAttendance()" class="ghost-btn !py-1.5 flex items-center gap-1"><i data-lucide="filter" class="w-3 h-3"></i> Filter</button>
         <button onclick="clearAttendanceFilters()" class="ghost-btn !py-1.5">Clear</button>
       </div>
@@ -686,7 +686,7 @@
     <div class="bento-card overflow-hidden">
       <div class="overflow-x-auto"><table class="w-full text-left">
         <thead><tr>
-          <th class="table-header">Student</th><th class="table-header">Program</th><th class="table-header">Date</th>
+          <th class="table-header">Student</th><th class="table-header">Subject</th><th class="table-header">Date</th>
           <th class="table-header">In</th><th class="table-header">Out</th><th class="table-header">Status</th><th class="table-header text-center">Face</th>
         </tr></thead>
         <tbody id="attendanceTableBody" class="divide-y" style="border-color: var(--card-border);"></tbody>
@@ -706,7 +706,7 @@
       <div class="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3" style="border-color: var(--card-border);">
         <div class="relative">
           <i data-lucide="search" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style="color: var(--fg-dim);"></i>
-          <input type="text" id="siteSearchInput" placeholder="Search by student, site, or program..." class="w-64 pl-8 pr-3 py-1.5 !rounded-lg text-xs" style="background: var(--card-bg); border: 1px solid var(--card-border);">
+          <input type="text" id="siteSearchInput" placeholder="Search by student, site, or subject..." class="w-64 pl-8 pr-3 py-1.5 !rounded-lg text-xs" style="background: var(--card-bg); border: 1px solid var(--card-border);">
         </div>
         <div class="flex items-center gap-3 text-xs font-semibold" style="color: var(--fg);">
           <span id="siteStatTotal">0</span> total assignments
@@ -718,7 +718,7 @@
             <tr style="border-bottom: 1px solid var(--card-border); color: var(--fg-dim);">
               <th class="text-left px-4 py-2.5 font-semibold uppercase tracking-wider text-[0.6rem]">Student</th>
               <th class="text-left px-4 py-2.5 font-semibold uppercase tracking-wider text-[0.6rem]">Site</th>
-              <th class="text-left px-4 py-2.5 font-semibold uppercase tracking-wider text-[0.6rem]">Program</th>
+              <th class="text-left px-4 py-2.5 font-semibold uppercase tracking-wider text-[0.6rem]">Subject</th>
               <th class="text-left px-4 py-2.5 font-semibold uppercase tracking-wider text-[0.6rem]">Status</th>
               <th class="text-right px-4 py-2.5 font-semibold uppercase tracking-wider text-[0.6rem]">Actions</th>
             </tr>
@@ -873,10 +873,10 @@
 
 <div id="editProgramModal" class="modal">
   <div class="modal-content">
-    <div class="modal-header"><h2>Edit Program</h2><button class="close-btn" onclick="closeModal('editProgramModal')">&times;</button></div>
+    <div class="modal-header"><h2>Edit Subject</h2><button class="close-btn" onclick="closeModal('editProgramModal')">&times;</button></div>
     <input type="hidden" id="editProgramId" value="">
     <div class="space-y-4">
-      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Program Name <span style="color: var(--danger);">*</span></label><input type="text" id="editProgName" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Subject Name <span style="color: var(--danger);">*</span></label><input type="text" id="editProgName" class="w-full !p-2.5 !rounded-xl text-sm"></div>
       <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Description</label><textarea id="editProgDescription" rows="3" class="w-full !p-2.5 !rounded-xl text-sm resize-none"></textarea></div>
       <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Max Students</label><input type="number" id="editProgMaxStudents" min="1" class="w-full !p-2.5 !rounded-xl text-sm"></div>
       <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Status</label><select id="editProgStatus" class="w-full !p-2.5 !rounded-xl text-sm"><option value="active">Active</option><option value="inactive">Inactive</option><option value="completed">Completed</option></select></div>
@@ -1165,7 +1165,7 @@
 
   function switchSection(section) {
     if (!hasPrograms && section !== 'programs' && section !== 'overview') {
-      showAlert('Please create an OJT program first before accessing dashboard sections.');
+      showAlert('Please create an OJT subject first before accessing dashboard sections.');
       return;
     }
     closeMobileDrawer();
@@ -1430,7 +1430,7 @@
     tbody.innerHTML = '';
     let total = 0, active = 0, inactiveCount = 0, totalStudents = 0;
     if (!programList.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="briefcase" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No programs yet</span></div></td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="book-open" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No subjects yet</span></div></td></tr>';
       lucide.createIcons(); updateStats('progStat', { total: 0, active: 0, inactive: 0, students: 0 }); return;
     }
     programList.forEach(p => {
@@ -1479,7 +1479,7 @@
         body: JSON.stringify({ name, description: desc, max_students: max, status })
       });
       if (!res.ok) { const err = await res.json(); showAlert(Object.values(err).flat().join(', ') || 'Failed'); return; }
-      showAlert('Program updated!'); closeModal('editProgramModal'); loadPrograms();
+      showAlert('Subject updated!'); closeModal('editProgramModal'); loadPrograms();
     } catch (e) { showAlert('Error'); console.error(e); }
     finally { btn.disabled = false; btn.innerHTML = orig; }
   }
@@ -1488,7 +1488,7 @@
     const name = document.getElementById('progName').value.trim();
     const description = document.getElementById('progDescription').value.trim();
     const maxStudents = parseInt(document.getElementById('progMaxStudents').value) || 50;
-    if (!name) { showAlert('Please enter a program name'); return; }
+    if (!name) { showAlert('Please enter a subject name'); return; }
     const btn = document.getElementById('createProgramBtn');
     const orig = btn.textContent;
     btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Creating...'; lucide.createIcons();
@@ -1500,14 +1500,14 @@
         body: JSON.stringify({ name, description, max_students: maxStudents })
       });
       if (!res.ok) { const err = await res.json(); showAlert(Object.values(err).flat().join(', ') || 'Failed'); return; }
-      showAlert('Program created successfully!');
+      showAlert('Subject created successfully!');
       closeModal('createProgramModal');
       document.getElementById('noProgramOverlay').classList.add('hidden');
       hasPrograms = true;
       loadPrograms();
       loadStudentAccounts();
       if (currentSection === 'programs' || currentSection === 'overview') switchSection('overview');
-    } catch (e) { showAlert('Error creating program'); console.error(e); }
+    } catch (e) { showAlert('Error creating subject'); console.error(e); }
     finally { btn.disabled = false; btn.innerHTML = orig; }
   }
 
@@ -1896,7 +1896,7 @@
       const res = await fetch('/api/coordinator/programs/', { credentials: 'same-origin' });
       if (!res.ok) { select.innerHTML = '<option value="">Failed to load</option>'; return; }
       const programs = await res.json();
-      select.innerHTML = '<option value="">All Programs</option>';
+      select.innerHTML = '<option value="">All Subjects</option>';
       programs.forEach(p => {
         const opt = document.createElement('option');
         opt.value = p.id; opt.textContent = p.name;
@@ -2022,9 +2022,9 @@
     btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Saving...'; lucide.createIcons();
     try {
       const progRes = await fetch('/api/coordinator/programs/', { credentials: 'same-origin' });
-      if (!progRes.ok) { showAlert('Failed to load programs'); return; }
+      if (!progRes.ok) { showAlert('Failed to load subjects'); return; }
       const programs = await progRes.json();
-      if (!programs.length) { showAlert('No programs available'); return; }
+      if (!programs.length) { showAlert('No subjects available'); return; }
       const res = await fetch('/api/coordinator/site-assignments/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2040,7 +2040,7 @@
     } catch (e) {
       closeModal('addSiteModal');
       let msg = e.message;
-      if (msg.includes('must make a unique set')) msg = 'Student already assigned to a site for this program.';
+      if (msg.includes('must make a unique set')) msg = 'Student already assigned to a site for this subject.';
       showAlert(msg);
     }
     finally { btn.disabled = false; btn.innerHTML = orig; }
@@ -2337,7 +2337,7 @@
       <i data-lucide="users" class="w-4 h-4"></i> Students
     </button>
     <button class="mobile-drawer-item" data-section="programs" onclick="switchSection('programs'); closeMobileDrawer()">
-      <i data-lucide="briefcase" class="w-4 h-4"></i> Programs
+      <i data-lucide="book-open" class="w-4 h-4"></i> Subjects
     </button>
     <button class="mobile-drawer-item" data-section="applications" onclick="switchSection('applications'); closeMobileDrawer()">
       <i data-lucide="clipboard-list" class="w-4 h-4"></i> Applications
