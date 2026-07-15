@@ -83,7 +83,9 @@ class AuthenticationViewSet(viewsets.ViewSet):
         if not _check_rate_limit(request, 'register'):
             return Response({'error': 'Too many requests. Try again later.'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
         data = request.data.copy()
-        data['role'] = 'student'  # ponytail: self-registration is always student; admin creates others
+        # Only allow student or coordinator self-registration
+        if data.get('role') not in ('student', 'coordinator'):
+            data['role'] = 'student'
         # Ensure file uploads are included in the data dict
         for key in request.FILES:
             data[key] = request.FILES[key]
@@ -138,6 +140,12 @@ class AuthenticationViewSet(viewsets.ViewSet):
                     import logging
                     logger = logging.getLogger(__name__)
                     logger.error(f"Failed to create admin notification for new coordinator: {e}")
+
+                broadcast_dashboard_update(section='coordinators')
+                return Response({
+                    'message': 'Coordinator account created successfully. Please wait for an admin to approve your account before logging in.',
+                    'user': UserSerializer(user).data,
+                }, status=status.HTTP_201_CREATED)
 
             # If registering as a student, create StudentProfile
             if user.role == 'student':

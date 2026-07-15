@@ -858,15 +858,15 @@
 
 <div id="createProgramModal" class="modal">
   <div class="modal-content">
-    <div class="modal-header"><h2>Create OJT Program</h2><button class="close-btn" onclick="closeModal('createProgramModal')">&times;</button></div>
+    <div class="modal-header"><h2>Create OJT Subject</h2><button class="close-btn" onclick="closeModal('createProgramModal')">&times;</button></div>
     <div class="space-y-4">
-      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Program Name <span style="color: var(--danger);">*</span></label><input type="text" id="progName" placeholder="e.g. BSIT OJT Program 2026" class="w-full !p-2.5 !rounded-xl text-sm"></div>
-      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Description</label><textarea id="progDescription" rows="3" placeholder="Brief program description..." class="w-full !p-2.5 !rounded-xl text-sm resize-none"></textarea></div>
+      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Subject Name <span style="color: var(--danger);">*</span></label><input type="text" id="progName" placeholder="e.g. BSIT OJT Subject 2026" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Description</label><textarea id="progDescription" rows="3" placeholder="Brief subject description..." class="w-full !p-2.5 !rounded-xl text-sm resize-none"></textarea></div>
       <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Max Students</label><input type="number" id="progMaxStudents" value="50" min="1" class="w-full !p-2.5 !rounded-xl text-sm"></div>
     </div>
     <div class="modal-buttons">
       <button class="ghost-btn" onclick="closeModal('createProgramModal')">Cancel</button>
-      <button id="createProgramBtn" class="accent-btn" onclick="createProgram()">Create Program</button>
+      <button id="createProgramBtn" class="accent-btn" onclick="createProgram()">Create Subject</button>
     </div>
   </div>
 </div>
