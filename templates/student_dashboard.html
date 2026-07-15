@@ -492,7 +492,7 @@
           </div>
           <div>
             <h2 class="text-lg font-extrabold text-[var(--fg)] tracking-tight">Choose Your OJT Subject</h2>
-            <p class="text-[11px] text-[var(--muted)] font-medium">Select a program that matches your course</p>
+            <p class="text-[11px] text-[var(--muted)] font-medium">Select a subject that matches your course</p>
           </div>
         </div>
       </div>
@@ -513,7 +513,7 @@
       <!-- Search + Filter Row -->
       <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-5">
         <div class="search-enhanced flex-1">
-          <input type="text" id="programSearch" oninput="filterPrograms()" placeholder="Search by program name...">
+          <input type="text" id="programSearch" oninput="filterPrograms()" placeholder="Search by subject name...">
           <i data-lucide="search" class="search-icon"></i>
           <button class="search-clear" onclick="document.getElementById('programSearch').value=''; filterPrograms();">
             <i data-lucide="x" style="width:14px;height:14px;"></i>
@@ -1362,7 +1362,7 @@
       attWebcam.srcObject = attStream;
       attVerifyBtn.disabled = false;
       attFaceIndicator.className = 'w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse';
-      attFaceStatus.textContent = 'Camera active â€” ready';
+      attFaceStatus.textContent = 'Camera active - ready';
       attFaceStatus.className = 'text-sm font-medium text-green-700';
     } catch (err) {
       attFaceIndicator.className = 'w-2.5 h-2.5 rounded-full bg-red-500';
@@ -1388,23 +1388,25 @@
       const data = await resp.json();
       if (!data.clocked_in) {
         attCurrentAction = 'clock_in';
+        attVerifyBtn.disabled = false;
         attVerifyBtn.innerHTML = '<i data-lucide="log-in" class="w-4 h-4 inline mr-2"></i> Clock In';
         attStatusBadge.textContent = 'Ready for Time In';
         attStatusBadge.className = 'inline-block px-3 py-1 rounded-full text-xs font-semibold bg-blue-100 text-blue-700';
         attStatusDetail.textContent = '';
       } else if (!data.clocked_out) {
         attCurrentAction = 'clock_out';
+        attVerifyBtn.disabled = false;
         attVerifyBtn.innerHTML = '<i data-lucide="log-out" class="w-4 h-4 inline mr-2"></i> Clock Out';
         attStatusBadge.textContent = 'Clocked In';
         attStatusBadge.className = 'inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700';
-        attStatusDetail.textContent = `In: ${fmtTime12(data.time_in)} â€” Ready for Time Out`;
+        attStatusDetail.textContent = `In: ${fmtTime12(data.time_in)} - Ready for Time Out`;
       } else {
         attCurrentAction = null;
         attVerifyBtn.disabled = true;
         attVerifyBtn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 inline mr-2"></i> Done for Today';
         attStatusBadge.textContent = 'Completed';
         attStatusBadge.className = 'inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700';
-        attStatusDetail.textContent = `In: ${fmtTime12(data.time_in)} â€¢ Out: ${fmtTime12(data.time_out)}`;
+        attStatusDetail.textContent = `In: ${fmtTime12(data.time_in)} | Out: ${fmtTime12(data.time_out)}`;
       }
       lucide.createIcons();
     } catch {
@@ -1721,9 +1723,9 @@
         <th class="text-left py-2 px-3 text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider">Method</th>
       </tr></thead><tbody>`;
     sorted.forEach(r => {
-      const d = r.date || 'â€”';
-      const ti = r.time_in ? fmtTime12(r.time_in) : 'â€”';
-      const to = r.time_out ? fmtTime12(r.time_out) : 'â€”';
+      const d = r.date || '-';
+      const ti = r.time_in ? fmtTime12(r.time_in) : '-';
+      const to = r.time_out ? fmtTime12(r.time_out) : '-';
       const completed = !!r.time_out;
       const statusCls = completed ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700';
       const statusTxt = completed ? 'Completed' : 'Pending';
