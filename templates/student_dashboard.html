@@ -1100,6 +1100,13 @@
           </div>
           <div class="p-5 md:p-6">
             <form id="narrativeForm" class="space-y-4">
+              <div id="narrativeClockWarning" class="bg-amber-50 border border-amber-300 rounded-xl px-4 py-3 flex items-center gap-3">
+                <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-500 flex-shrink-0"></i>
+                <div>
+                  <p class="text-sm font-semibold text-amber-800">Clock out required</p>
+                  <p class="text-xs text-amber-600">You must clock out for the day before submitting your accomplishment report.</p>
+                </div>
+              </div>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-1">
                   <label class="text-[11px] font-semibold text-[var(--muted)] uppercase tracking-wider">Log Date</label>
@@ -1122,7 +1129,7 @@
                 <textarea id="reportContent" required rows="4" placeholder="Describe specific actions performed..." class="w-full p-3 border border-[var(--border)] text-sm outline-none bg-white rounded-lg resize-none focus:border-[var(--primary)] transition"></textarea>
               </div>
               <div class="flex justify-end">
-                <button type="submit" class="px-6 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-semibold text-sm rounded-xl transition shadow-sm flex items-center gap-2">
+                <button type="submit" disabled class="px-6 py-2.5 bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white font-semibold text-sm rounded-xl transition shadow-sm flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed">
                   <i data-lucide="send"></i> Submit Log
                 </button>
               </div>
@@ -1549,6 +1556,7 @@
   const attStatusBadge = document.getElementById('attStatusBadge');
   const attStatusDetail = document.getElementById('attStatusDetail');
   let attCurrentAction = null;
+  let hasClockedOutToday = false;
 
   function getCsrfCookie() {
     const v = document.cookie.split(';').find(c => c.trim().startsWith('csrftoken='));
@@ -1588,6 +1596,7 @@
       const data = await resp.json();
       if (!data.clocked_in) {
         attCurrentAction = 'clock_in';
+        hasClockedOutToday = false;
         attVerifyBtn.disabled = false;
         attVerifyBtn.innerHTML = '<i data-lucide="log-in" class="w-4 h-4 inline mr-2"></i> Clock In';
         attStatusBadge.textContent = 'Ready for Time In';
@@ -1595,6 +1604,7 @@
         attStatusDetail.textContent = '';
       } else if (!data.clocked_out) {
         attCurrentAction = 'clock_out';
+        hasClockedOutToday = false;
         attVerifyBtn.disabled = false;
         attVerifyBtn.innerHTML = '<i data-lucide="log-out" class="w-4 h-4 inline mr-2"></i> Clock Out';
         attStatusBadge.textContent = 'Clocked In';
@@ -1602,17 +1612,32 @@
         attStatusDetail.textContent = `In: ${fmtTime12(data.time_in)} - Ready for Time Out`;
       } else {
         attCurrentAction = null;
+        hasClockedOutToday = true;
         attVerifyBtn.disabled = true;
         attVerifyBtn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 inline mr-2"></i> Done for Today';
         attStatusBadge.textContent = 'Completed';
         attStatusBadge.className = 'inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700';
         attStatusDetail.textContent = `In: ${fmtTime12(data.time_in)} | Out: ${fmtTime12(data.time_out)}`;
       }
+      updateNarrativeFormState();
       lucide.createIcons();
     } catch {
       attStatusBadge.textContent = 'Could not load status';
       attStatusBadge.className = 'inline-block px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700';
     }
+  }
+
+  function updateNarrativeFormState() {
+    const submitBtn = document.querySelector('#narrativeForm button[type="submit"]');
+    const warning = document.getElementById('narrativeClockWarning');
+    if (hasClockedOutToday) {
+      if (submitBtn) submitBtn.disabled = false;
+      if (warning) warning.classList.add('hidden');
+    } else {
+      if (submitBtn) submitBtn.disabled = true;
+      if (warning) warning.classList.remove('hidden');
+    }
+    lucide.createIcons();
   }
 
   async function loadAttStudentInfo() {
@@ -1720,6 +1745,10 @@
 
   document.getElementById('narrativeForm').addEventListener('submit', async (e) => {
     e.preventDefault();
+    if (!hasClockedOutToday) {
+      Swal.fire({ icon: 'warning', title: 'Clock Out Required', text: 'You must clock out for the day before submitting your accomplishment report.', confirmButtonColor: '#11693A' });
+      return;
+    }
     const formData = new FormData();
     formData.append('log_date', document.getElementById('reportDate').value);
     formData.append('topic', document.getElementById('reportTopic').value);
