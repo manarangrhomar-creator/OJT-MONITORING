@@ -24,6 +24,21 @@ class UserRegisterSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         if attrs['password'] != attrs['password2']:
             raise serializers.ValidationError({"password": "Password fields didn't match."})
+
+        # Email uniqueness check (case-insensitive)
+        email = attrs.get('email')
+        if email and User.objects.filter(email__iexact=email).exists():
+            raise serializers.ValidationError({"email": "A user with that email already exists."})
+
+        # Full name uniqueness check (first_name + last_name combination)
+        first_name = attrs.get('first_name', '').strip()
+        last_name = attrs.get('last_name', '').strip()
+        if first_name and last_name:
+            if User.objects.filter(first_name__iexact=first_name, last_name__iexact=last_name).exists():
+                raise serializers.ValidationError({
+                    "full_name": "A user with that full name already exists."
+                })
+
         return attrs
     
     def create(self, validated_data):

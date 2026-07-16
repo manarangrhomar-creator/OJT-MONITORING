@@ -20,6 +20,7 @@ class User(AbstractUser):
     ]
     
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    email = models.EmailField(unique=True, error_messages={'unique': 'A user with that email already exists.'})
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='student', db_index=True)
     approval_status = models.CharField(max_length=20, choices=APPROVAL_STATUS_CHOICES, default='pending', db_index=True)
     phone_number = models.CharField(max_length=20, blank=True, null=True)
@@ -34,6 +35,7 @@ class User(AbstractUser):
         verbose_name = 'User'
         verbose_name_plural = 'Users'
         ordering = ['-created_at']
+        unique_together = [('first_name', 'last_name')]
     
     def __str__(self):
         return f"{self.get_full_name()} ({self.get_role_display()})"

@@ -119,12 +119,71 @@ class RegisterViewTest(TestCase):
         }, format='json')
         self.assertEqual(resp.status_code, 400)
 
+    def test_register_duplicate_email(self):
+        User.objects.create_user(
+            username='emailuser', email='taken@test.com', password='pass123',
+        )
+        resp = self.client.post('/api/auth/register/', {
+            'username': 'emailuser2',
+            'email': 'taken@test.com',
+            'first_name': 'E',
+            'last_name': 'M',
+            'password': 'StrongPass123!',
+            'password2': 'StrongPass123!',
+        }, format='json')
+        self.assertEqual(resp.status_code, 400)
+
+    def test_register_duplicate_email_case_insensitive(self):
+        User.objects.create_user(
+            username='emailuser3', email='Case@Test.com', password='pass123',
+        )
+        resp = self.client.post('/api/auth/register/', {
+            'username': 'emailuser4',
+            'email': 'case@test.com',
+            'first_name': 'C',
+            'last_name': 'I',
+            'password': 'StrongPass123!',
+            'password2': 'StrongPass123!',
+        }, format='json')
+        self.assertEqual(resp.status_code, 400)
+
+    def test_register_duplicate_full_name(self):
+        User.objects.create_user(
+            username='nameuser', email='name@test.com', password='pass123',
+            first_name='Same', last_name='Name',
+        )
+        resp = self.client.post('/api/auth/register/', {
+            'username': 'nameuser2',
+            'email': 'name2@test.com',
+            'first_name': 'Same',
+            'last_name': 'Name',
+            'password': 'StrongPass123!',
+            'password2': 'StrongPass123!',
+        }, format='json')
+        self.assertEqual(resp.status_code, 400)
+
+    def test_register_duplicate_full_name_case_insensitive(self):
+        User.objects.create_user(
+            username='nameuser5', email='name5@test.com', password='pass123',
+            first_name='John', last_name='Doe',
+        )
+        resp = self.client.post('/api/auth/register/', {
+            'username': 'nameuser6',
+            'email': 'name6@test.com',
+            'first_name': 'john',
+            'last_name': 'doe',
+            'password': 'StrongPass123!',
+            'password2': 'StrongPass123!',
+        }, format='json')
+        self.assertEqual(resp.status_code, 400)
+
 
 class VerifyEmailViewTest(TestCase):
     def setUp(self):
         self.client = APIClient()
         self.user = User.objects.create_user(
             username='vuser', email='v@test.com', password='pass123',
+            first_name='Verify', last_name='User',
         )
 
     def test_valid_token_verifies(self):
@@ -147,7 +206,7 @@ class LoginViewTest(TestCase):
         self.client = APIClient()
         self.user = User.objects.create_user(
             username='luser', email='l@test.com', password='pass123',
-            approval_status='approved',
+            approval_status='approved', first_name='Login', last_name='User',
         )
         cache.clear()
 
@@ -174,6 +233,7 @@ class LoginViewTest(TestCase):
         User.objects.create_user(
             username='unapproved', email='ua@test.com',
             password='pass123', role='student', approval_status='pending',
+            first_name='Un', last_name='Approved',
         )
         resp = self.client.post('/api/auth/login/', {
             'identifier': 'unapproved', 'password': 'pass123',
