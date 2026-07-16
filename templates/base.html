@@ -72,15 +72,15 @@
 <script nonce="{{ csp_nonce }}">(function(){var e=document.getElementById('isuPageLoader');if(!e)return;var b=e.querySelector('.loader-progress-bar');if(b){b.style.transformOrigin='left';var d=2000;var s=Date.now();var r=1;(function a(){if(!r||e.style.display==='none')return;var p=((Date.now()-s)%d)/d;var v=p<.5?p/.5*.85:.85*(1-(p-.5)/.5);b.style.transform='scaleX('+v+')';requestAnimationFrame(a)})();}window.addEventListener('load',function(){r=0;if(b){b.style.transition='transform 0.3s ease';b.style.transform='scaleX(1)'}setTimeout(function(){e.style.display='none'},600)});})();</script>
     <!-- Navigation -->
     <nav class="bg-[#11693A] text-white shadow-lg">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between items-center h-16">
-                <div class="flex items-center">
-                    <div class="custom-heading text-xl font-bold">ISU OJT System</div>
+        <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-14 sm:h-16">
+                <div class="flex items-center min-w-0">
+                    <div class="custom-heading text-lg sm:text-xl font-bold truncate">ISU OJT System</div>
                 </div>
-                <div class="flex items-center gap-4">
+                <div class="flex items-center gap-2 sm:gap-4 flex-shrink-0">
                     {% if user.is_authenticated %}
-                        <span>Welcome, {{ user.get_full_name }}</span>
-                        <a href="{% url 'auth-logout' %}" class="bg-red-600 hover:bg-red-700 px-4 py-2 rounded">Logout</a>
+                        <span class="hidden sm:inline text-sm truncate max-w-[120px]">{{ user.get_full_name }}</span>
+                        <a href="{% url 'auth-logout' %}" class="bg-red-600 hover:bg-red-700 px-3 sm:px-4 py-1.5 sm:py-2 rounded text-sm">Logout</a>
                     {% endif %}
                 </div>
             </div>
@@ -89,9 +89,9 @@
 
     <!-- Messages -->
     {% if messages %}
-        <div class="max-w-7xl mx-auto mt-4 px-4">
+        <div class="max-w-7xl mx-auto mt-3 sm:mt-4 px-3 sm:px-4">
             {% for message in messages %}
-                <div class="alert alert-{% if message.tags %}{{ message.tags }}{% endif %} p-4 rounded-lg mb-4">
+                <div class="alert alert-{% if message.tags %}{{ message.tags }}{% endif %} p-3 sm:p-4 rounded-lg mb-3 sm:mb-4 text-sm sm:text-base">
                     {{ message }}
                 </div>
             {% endfor %}
@@ -99,14 +99,14 @@
     {% endif %}
 
     <!-- Content -->
-    <main class="max-w-7xl mx-auto py-8 px-4">
+    <main class="max-w-7xl mx-auto py-6 sm:py-8 px-3 sm:px-4 lg:px-6">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-800 text-white mt-16">
-        <div class="max-w-7xl mx-auto px-4 py-8 text-center">
-            <p>&copy; 2026 Isabela State University - OJT Monitoring System. All rights reserved.</p>
+    <footer class="bg-gray-800 text-white mt-12 sm:mt-16">
+        <div class="max-w-7xl mx-auto px-4 py-6 sm:py-8 text-center">
+            <p class="text-xs sm:text-sm">&copy; 2026 Isabela State University - OJT Monitoring System. All rights reserved.</p>
         </div>
     </footer>
 

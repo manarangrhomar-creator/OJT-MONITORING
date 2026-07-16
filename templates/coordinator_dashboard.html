@@ -291,6 +291,29 @@
       #siteTableBody tr:hover {
         background: rgba(0,0,0,0.02);
       }
+
+      /* ===== RESPONSIVE ===== */
+      @media (max-width: 640px) {
+        .main-content { padding: 1rem 0.75rem !important; }
+        .summary-card { padding: 0.75rem !important; }
+        .summary-card .text-xs { font-size: 0.65rem !important; }
+        .summary-card .text-sm { font-size: 0.75rem !important; }
+        .summary-card .text-base { font-size: 0.85rem !important; }
+        .summary-card .text-lg { font-size: 1rem !important; }
+        .section-title { font-size: 1rem !important; }
+        table { font-size: 0.7rem !important; display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table th, table td { padding: 0.375rem 0.5rem !important; white-space: nowrap; }
+        .modal-content { padding: 16px !important; width: 95% !important; }
+        .modal-content.wide { max-width: 100% !important; }
+      }
+      @media (max-width: 768px) {
+        .summary-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 0.5rem !important; }
+        .summary-grid .text-lg { font-size: 1.125rem !important; }
+      }
+      @media (max-width: 480px) {
+        .summary-grid { grid-template-columns: 1fr !important; }
+        .pill-btn { padding: 0.375rem 0.75rem !important; font-size: 0.65rem !important; }
+      }
     </style>
 </head>
 <body class="min-h-screen">
@@ -309,13 +332,13 @@
 
 <!-- Top Toolbar -->
 <header class="sticky top-0 z-40" style="background: rgba(255,255,255,0.92); backdrop-filter: blur(16px); border-bottom: 1px solid var(--card-border);">
-  <div class="flex items-center justify-between px-4 sm:px-6 lg:px-8 h-16">
-    <div class="flex items-center gap-4">
-      <div class="flex items-center gap-2.5">
-        <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(17,105,58,0.08); border: 1px solid rgba(17,105,58,0.15); display: flex; align-items: center; justify-content: center; overflow: hidden;">
-          <img src="{% static 'images/isu_new_seal_512x512.png' %}" alt="ISU" class="w-6 h-6 object-contain" />
+  <div class="flex items-center justify-between px-3 sm:px-6 lg:px-8 h-14 sm:h-16">
+    <div class="flex items-center gap-2 sm:gap-4 min-w-0">
+      <div class="flex items-center gap-2 sm:gap-2.5">
+        <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full flex items-center justify-center flex-shrink-0" style="background: rgba(17,105,58,0.08); border: 1px solid rgba(17,105,58,0.15);">
+          <img src="{% static 'images/isu_new_seal_512x512.png' %}" alt="ISU" class="w-5 h-5 sm:w-6 sm:h-6 object-contain" />
         </div>
-        <div>
+        <div class="hidden sm:block">
           <h1 class="text-sm font-bold tracking-tight">Coordinator</h1>
           <p style="font-size: 0.55rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--gold);">OJT Portal</p>
         </div>
