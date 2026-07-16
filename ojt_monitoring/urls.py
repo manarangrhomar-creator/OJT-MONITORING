@@ -18,14 +18,30 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import HttpResponse
 from django.views.generic import RedirectView, TemplateView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from apps.core.dashboard_views import admin_dashboard, student_dashboard, coordinator_dashboard, logout_view
 
+
+def service_worker_view(request):
+    """Serve the service worker from the root scope."""
+    import os
+    sw_path = os.path.join(settings.BASE_DIR, 'static', 'sw.js')
+    with open(sw_path, 'r') as f:
+        content = f.read()
+    return HttpResponse(content, content_type='application/javascript', headers={
+        'Service-Worker-Allowed': '/',
+        'Cache-Control': 'no-cache',
+    })
+
 urlpatterns = [
     # Root URL - redirect to home
     path('', TemplateView.as_view(template_name='index.html'), name='home'),
-    
+
+    # PWA - Service worker at root scope
+    path('sw.js', service_worker_view, name='service-worker'),
+
     # Frontend Pages - MUST come before admin/
     # Authentication
     path('auth/login/', TemplateView.as_view(template_name='login.html'), name='login'),

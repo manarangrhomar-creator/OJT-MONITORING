@@ -4,9 +4,19 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>{% block title %}ISU - OJT Monitoring System{% endblock %}</title>
     <link rel="icon" href="{% static 'images/isu_new_seal_512x512.png' %}" sizes="any" type="image/png" />
+
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta name="theme-color" content="#11693A">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="ISU OJT">
+    <link rel="apple-touch-icon" href="{% static 'images/isu_new_seal_512x512.png' %}">
+    <meta name="description" content="On-the-Job Training Monitoring System for Isabela State University">
+    <meta name="mobile-web-app-capable" content="yes">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -110,6 +120,22 @@
         </div>
     </footer>
 
+    <!-- PWA Install Banner -->
+    <div id="pwa-install-banner" class="hidden fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-80 z-50 bg-[#11693A] text-white p-4 rounded-lg shadow-xl">
+        <div class="flex items-center gap-3">
+            <img src="{% static 'images/isu_new_seal_512x512.png' %}" alt="ISU OJT" class="w-10 h-10 rounded-lg">
+            <div class="flex-1">
+                <p class="font-semibold text-sm">Install ISU OJT</p>
+                <p class="text-xs opacity-90">Add to home screen for quick access</p>
+            </div>
+        </div>
+        <div class="flex gap-2 mt-3">
+            <button onclick="PWA.installApp()" class="flex-1 bg-white text-[#11693A] py-2 rounded text-sm font-semibold hover:bg-gray-100">Install</button>
+            <button onclick="PWA.hideInstallBanner()" class="px-3 py-2 text-white/70 hover:text-white text-sm">Later</button>
+        </div>
+    </div>
+
+    <script src="{% static 'js/pwa.js' %}"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>
