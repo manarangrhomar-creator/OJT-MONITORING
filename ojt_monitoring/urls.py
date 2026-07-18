@@ -18,15 +18,15 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseForbidden, FileResponse
 from django.views.generic import RedirectView, TemplateView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from apps.core.dashboard_views import admin_dashboard, student_dashboard, coordinator_dashboard, logout_view
+import os
 
 
 def service_worker_view(request):
     """Serve the service worker from the root scope."""
-    import os
     sw_path = os.path.join(settings.BASE_DIR, 'static', 'sw.js')
     with open(sw_path, 'r') as f:
         content = f.read()
@@ -34,6 +34,21 @@ def service_worker_view(request):
         'Service-Worker-Allowed': '/',
         'Cache-Control': 'no-cache',
     })
+
+
+def serve_protected_media(request, path):
+    """
+    Serve media files only to authenticated users.
+    Returns 403 for unauthenticated requests, 404 for missing files.
+    """
+    if not request.user.is_authenticated:
+        return HttpResponseForbidden('Authentication required to access media files.')
+    
+    file_path = os.path.join(settings.MEDIA_ROOT, path)
+    if not os.path.exists(file_path) or not os.path.isfile(file_path):
+        return HttpResponse('File not found', status=404)
+    
+    return FileResponse(open(file_path, 'rb'))
 
 urlpatterns = [
     # Root URL - redirect to home
@@ -81,7 +96,11 @@ urlpatterns = [
     path('api/', include('apps.core.notification_urls')),
 ]
 
-# Serve media files in development
+# Serve media files in development (with authentication protection)
 if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    # Use protected media view instead of static() to require authentication
+    media_url = settings.MEDIA_URL.rstrip('/')
+    urlpatterns += [
+        path(f'{media_url}/<path:path>', serve_protected_media, name='protected-media'),
+    ]
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

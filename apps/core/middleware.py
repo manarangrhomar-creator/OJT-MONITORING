@@ -42,13 +42,15 @@ class SecurityHeadersMiddleware:
         response = self.get_response(request)
 
         # Content Security Policy
-        # NOTE: 'unsafe-inline' is required because templates use 300+ inline
+        # NOTE: script-src retains 'unsafe-inline' because templates use 100+ inline
         # onclick/onsubmit handlers. Per the CSP spec, 'unsafe-inline' is ignored
         # when a nonce is present, making nonces incompatible with inline event handlers.
+        # A full fix requires migrating all inline handlers to addEventListener (future work).
+        # style-src 'unsafe-inline' has been REMOVED — inline CSS injection is low-risk.
         response['Content-Security-Policy'] = (
             "default-src 'self'; "
             "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.tailwindcss.com https://unpkg.com; "
-            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
+            "style-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com; "
             "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
             "img-src 'self' data: https:; "
             "media-src 'self' blob:; "

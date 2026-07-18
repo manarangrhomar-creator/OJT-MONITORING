@@ -29,6 +29,14 @@ class IsStudent(permissions.BasePermission):
     def has_permission(self, request, view):
         return request.user and request.user.is_authenticated and request.user.is_student()
 
+    def has_object_permission(self, request, view, obj):
+        """Defense-in-depth: ensure students can only access their own objects."""
+        if hasattr(obj, 'user'):
+            return obj.user == request.user
+        if hasattr(obj, 'student'):
+            return obj.student == request.user
+        return False
+
 
 class StudentProfileViewSet(viewsets.ModelViewSet):
     """ViewSet for Student Profile management."""
