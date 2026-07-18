@@ -24,14 +24,24 @@ def role_required(*required_roles):
 @role_required('admin')
 def admin_dashboard(request):
     """Admin dashboard view."""
-    return render(request, 'admin_dashboard.html')
+    user = request.user
+    initials = (user.first_name[0] if user.first_name else user.username[0]).upper()
+    return render(request, 'admin_dashboard.html', {
+        'user_name': user.get_full_name() or user.username,
+        'user_initials': initials,
+    })
 
 
 @login_required(login_url='login')
 @role_required('student')
 def student_dashboard(request):
     """Student dashboard view."""
-    return render(request, 'student_dashboard.html')
+    user = request.user
+    initials = (user.first_name[0] if user.first_name else user.username[0]).upper()
+    return render(request, 'student_dashboard.html', {
+        'user_name': user.get_full_name() or user.username,
+        'user_initials': initials,
+    })
 
 
 @login_required(login_url='login')

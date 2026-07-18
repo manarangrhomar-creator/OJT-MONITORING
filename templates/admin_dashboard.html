@@ -1096,7 +1096,7 @@
         async function loadStudents() {
             const tbody = document.getElementById('studentTableBody');
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
                 lucide.createIcons();
             }
             try {
@@ -1185,7 +1185,7 @@
             const btn = document.getElementById('saveStudentBtn');
             const originalText = btn.textContent;
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Saving...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Saving...';
             lucide.createIcons();
             const id = document.getElementById('editId').value;
             const name = document.getElementById('editName').value.trim();
@@ -1259,7 +1259,7 @@
             const btn = document.getElementById('confirmDeleteBtn');
             const originalText = btn.textContent;
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Deleting...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Deleting...';
             lucide.createIcons();
             try {
                 const response = await fetch(`/api/admin/users/${id}/`, {
@@ -1290,7 +1290,7 @@
         async function loadCoordinators() {
             const tbody = document.getElementById('coordinatorTableBody');
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
                 lucide.createIcons();
             }
             try {
@@ -1395,7 +1395,7 @@
             if (btn) {
                 btn.dataset.originalText = btn.textContent;
                 btn.disabled = true;
-                btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Saving...';
+                btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Saving...';
                 lucide.createIcons();
             }
             const id = document.getElementById('editCoordId').value;
@@ -1473,7 +1473,7 @@
             const btn = document.getElementById('confirmCoordDeleteBtn');
             const originalText = btn.textContent;
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Deleting...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Deleting...';
             lucide.createIcons();
             try {
                 const response = await fetch(`/api/admin/users/${id}/`, {
@@ -1505,7 +1505,7 @@
         async function loadCoordinatorApprovals() {
             const tbody = document.getElementById('approvalTableBody');
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
                 lucide.createIcons();
             }
             try {
@@ -1580,7 +1580,7 @@
             const btn = document.getElementById('saveApprovalBtn');
             btn.dataset.originalText = btn.textContent;
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Processing...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Processing...';
             lucide.createIcons();
             updateApprovalStatus(id, 'approved', btn);
         }
@@ -1604,7 +1604,7 @@
             const btn = document.getElementById('saveRejectionBtn');
             btn.dataset.originalText = btn.textContent;
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Processing...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Processing...';
             lucide.createIcons();
             updateApprovalStatus(rejecterId, 'rejected', btn);
         }
@@ -1646,7 +1646,7 @@
         async function loadStudentApprovals() {
             const tbody = document.getElementById('studentApprovalTableBody');
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
                 lucide.createIcons();
             }
             try {
@@ -1709,7 +1709,7 @@
             const btn = document.getElementById('saveApproveStudentBtn');
             btn.dataset.originalText = btn.textContent;
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Processing...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Processing...';
             lucide.createIcons();
             try {
                 const response = await fetch(`/api/admin/dashboard/students/${id}/approve/`, {
@@ -1756,7 +1756,7 @@
             const btn = document.getElementById('saveRejectStudentBtn');
             btn.dataset.originalText = btn.textContent;
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Processing...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Processing...';
             lucide.createIcons();
             try {
                 const response = await fetch(`/api/admin/dashboard/students/${id}/reject/`, {
@@ -1790,7 +1790,7 @@
         async function loadCourses() {
             const tbody = document.getElementById('courseTableBody');
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="3" class="py-12 text-center"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3" class="py-12 text-center"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
                 lucide.createIcons();
             }
             try {
@@ -1849,7 +1849,7 @@
             const btn = document.getElementById('addCourseBtn');
             const originalText = btn.textContent;
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Saving...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Saving...';
             lucide.createIcons();
             try {
                 const response = await fetch('/api/admin/courses/', {
@@ -1889,7 +1889,7 @@
             const btn = document.getElementById('saveCourseBtn');
             const originalText = btn.textContent;
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Saving...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Saving...';
             lucide.createIcons();
             try {
                 const response = await fetch(`/api/admin/courses/${id}/`, {
@@ -1938,7 +1938,7 @@
             const btn = document.getElementById('confirmDeleteCourseBtn');
             const originalText = btn.textContent;
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Deleting...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Deleting...';
             lucide.createIcons();
             try {
                 const response = await fetch(`/api/admin/courses/${id}/`, {
@@ -1987,6 +1987,23 @@
                 document.getElementById('overviewPendingStudents').textContent = Array.isArray(studentPending) ? studentPending.length : '—';
                 document.getElementById('overviewPendingCoordinators').textContent = Array.isArray(coordPending) ? coordPending.length : '—';
 
+                // User Distribution bars
+                const totalUsers = stats.total_users || 1;
+                const totalSites = Array.isArray(sites) ? sites.length : 0;
+                const totalSubjects = Array.isArray(programs) ? programs.length : 0;
+                const distData = [
+                    { pct: stats.total_students || 0, bar: 'distStudentBar', label: 'distStudentPct' },
+                    { pct: stats.total_coordinators || 0, bar: 'distCoordBar', label: 'distCoordPct' },
+                    { pct: totalSites, bar: 'distSitesBar', label: 'distSitesPct' },
+                    { pct: totalSubjects, bar: 'distSubjectsBar', label: 'distSubjectsPct' },
+                ];
+                const distMax = Math.max(...distData.map(d => d.pct), 1);
+                distData.forEach(d => {
+                    const w = Math.round((d.pct / distMax) * 100);
+                    document.getElementById(d.bar).style.width = w + '%';
+                    document.getElementById(d.label).textContent = d.pct;
+                });
+
                 const logBody = document.getElementById('systemLogBody');
                 if (Array.isArray(logs) && logs.length > 0) {
                     const recent = logs.slice(0, 5);
@@ -2017,7 +2034,7 @@
         async function loadSystemLogs() {
             const tbody = document.getElementById('systemLogTableBody');
             if (!tbody) return;
-            tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
+            tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
             lucide.createIcons();
             try {
                 const res = await fetch('/api/admin/dashboard/system_logs/', { credentials: 'same-origin' });
@@ -2092,7 +2109,7 @@
         async function loadSitesAdmin() {
             const tbody = document.getElementById('siteTableBody');
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
                 lucide.createIcons();
             }
             try {
@@ -2478,7 +2495,7 @@
             const btn = document.getElementById('addSiteBtn');
             const originalText = btn.textContent;
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Saving...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Saving...';
             lucide.createIcons();
             try {
                 const response = await fetch('/api/admin/sites/', {
@@ -2563,7 +2580,7 @@
             const btn = document.getElementById('saveSiteBtn');
             const originalText = btn.textContent;
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Saving...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Saving...';
             lucide.createIcons();
             try {
                 const response = await fetch(`/api/admin/sites/${id}/`, {
@@ -2612,7 +2629,7 @@
             const btn = document.getElementById('confirmDeleteSiteBtn');
             const originalText = btn.textContent;
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Deleting...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Deleting...';
             lucide.createIcons();
             try {
                 const response = await fetch(`/api/admin/sites/${id}/`, {
@@ -2639,7 +2656,7 @@
         async function loadPrograms() {
             const tbody = document.getElementById('programTableBody');
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
                 lucide.createIcons();
             }
             try {
@@ -2696,7 +2713,7 @@
             if (!program) return;
             document.getElementById('viewProgramStudentsTitle').textContent = `Students - ${program.name}`;
             const tbody = document.getElementById('programStudentsBody');
-            tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
             lucide.createIcons();
             openModal('viewProgramStudentsModal');
             try {
@@ -2755,7 +2772,7 @@
             const btn = document.getElementById('confirmDeleteProgramBtn');
             const originalText = btn.textContent;
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Deleting...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Deleting...';
             lucide.createIcons();
             try {
                 const response = await fetch(`/api/admin/programs/${id}/`, {
@@ -2915,6 +2932,22 @@
         }
 
         let notifSocket = null;
+        function playNotifSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(880, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1320, ctx.currentTime + 0.08);
+                gain.gain.setValueAtTime(0.15, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+                osc.start(ctx.currentTime);
+                osc.stop(ctx.currentTime + 0.25);
+            } catch(e) {}
+        }
         function connectNotifSocket() {
             const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const url = `${proto}//${window.location.host}/ws/notifications/`;
@@ -2925,8 +2958,9 @@
                 if (data.type === 'unread_count' || data.type === 'notification_message') {
                     updateBadge(data.count);
                 }
-                if (data.type === 'notification_message' && data.notification) {
-                    const objType = data.notification.related_object_type;
+                if (data.type === 'notification_message') {
+                    playNotifSound();
+                    const objType = data.notification ? data.notification.related_object_type : '';
                     if (objType === 'new_program' || objType === 'OJTProgram') {
                         if (window.currentSection === 'programs') loadPrograms();
                     }
@@ -2948,7 +2982,7 @@
 
         async function loadNotifications() {
             const notifList = document.getElementById('notifList');
-            notifList.innerHTML = '<div class="py-8 text-center" style="color: var(--fg-dim);"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto"></i></div>';
+            notifList.innerHTML = '<div class="py-8 text-center" style="color: var(--fg-dim);"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto"></i></div>';
             lucide.createIcons();
             try {
                 const res = await fetch('/api/notifications/', {
@@ -3038,6 +3072,9 @@
                 const data = JSON.parse(e.data);
                 if (data.type === 'dashboard_refresh') {
                     const sec = data.section || window.currentSection;
+                    if (sec === 'overview' || sec === 'students' || sec === 'coordinators' || sec === 'all') {
+                        loadDashboardOverview();
+                    }
                     if (sec === 'students' || sec === 'coordinators' || sec === 'all') {
                         loadStudents();
                         loadCoordinators();

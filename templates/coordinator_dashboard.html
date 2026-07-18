@@ -1099,7 +1099,7 @@
     const btn = document.getElementById('captureFaceBtn');
     const orig = btn.innerHTML;
     btn.disabled = true;
-    btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Processing...';
+    btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Processing...';
     lucide.createIcons();
 
     let blob;
@@ -1213,7 +1213,7 @@
   async function loadOverview() {
     const grid = document.getElementById('overviewStudentsGrid');
     const pendingBody = document.getElementById('overviewPendingBody');
-    grid.innerHTML = '<div class="col-span-full text-center py-8 text-xs" style="color: var(--fg-dim);"><i data-lucide="loader-circle" class="animate-spin w-4 h-4 mx-auto mb-2"></i></div>'; lucide.createIcons();
+    grid.innerHTML = '<div class="col-span-full text-center py-8 text-xs" style="color: var(--fg-dim);"><i data-lucide="loader-2" class="animate-spin w-4 h-4 mx-auto mb-2"></i></div>'; lucide.createIcons();
     pendingBody.innerHTML = '<tr><td colspan="5" class="table-cell text-center" style="color: var(--fg-dim);">Loading...</td></tr>';
 
     try {
@@ -1439,7 +1439,7 @@
   // ===== PROGRAMS =====
   async function loadPrograms() {
     const tbody = document.getElementById('programTableBody');
-    tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>'; lucide.createIcons();
+    tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>'; lucide.createIcons();
     try {
       const res = await fetch('/api/coordinator/programs/', { credentials: 'same-origin' });
       if (!res.ok) { tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-xs" style="color: var(--danger);">Failed to load</td></tr>'; return; }
@@ -1493,7 +1493,7 @@
     if (!name) { showAlert('Please enter a name'); return; }
     const btn = document.getElementById('updateProgramBtn');
     const orig = btn.textContent;
-    btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Saving...'; lucide.createIcons();
+    btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Saving...'; lucide.createIcons();
     try {
       const res = await fetch(`/api/coordinator/programs/${id}/`, {
         method: 'PUT',
@@ -1514,7 +1514,7 @@
     if (!name) { showAlert('Please enter a subject name'); return; }
     const btn = document.getElementById('createProgramBtn');
     const orig = btn.textContent;
-    btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Creating...'; lucide.createIcons();
+    btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Creating...'; lucide.createIcons();
     try {
       const res = await fetch('/api/coordinator/programs/', {
         method: 'POST',
@@ -1544,7 +1544,7 @@
   // ===== STUDENT ACCOUNTS =====
   async function loadStudentAccounts() {
     const tbody = document.getElementById('accountTableBody');
-    tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>'; lucide.createIcons();
+    tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>'; lucide.createIcons();
     try {
       const res = await fetch('/api/coordinator/dashboard/student-accounts/', {
         headers: { 'X-CSRFToken': getCookie('csrftoken') },
@@ -1607,7 +1607,7 @@
   // ===== APPLICATIONS =====
   async function loadApplications() {
     const tbody = document.getElementById('applicationTableBody');
-    tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>'; lucide.createIcons();
+    tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>'; lucide.createIcons();
     try {
       const res = await fetch('/api/coordinator/applications/?status=pending', { credentials: 'same-origin' });
       if (!res.ok) { tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-xs" style="color: var(--danger);">Failed to load</td></tr>'; return; }
@@ -1697,7 +1697,7 @@
     const id = document.getElementById('approveAppId').value;
     const btn = document.getElementById('confirmApproveAppBtn');
     const orig = btn.textContent;
-    btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Processing...'; lucide.createIcons();
+    btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Processing...'; lucide.createIcons();
     try {
       const res = await fetch(`/api/coordinator/applications/${id}/approve/`, {
         method: 'POST',
@@ -1726,7 +1726,7 @@
     if (!reason) { showAlert('Please provide a reason.'); return; }
     const btn = document.getElementById('confirmRejectAppBtn');
     const orig = btn.textContent;
-    btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Processing...'; lucide.createIcons();
+    btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Processing...'; lucide.createIcons();
     try {
       const res = await fetch(`/api/coordinator/applications/${id}/reject/`, {
         method: 'POST',
@@ -1743,7 +1743,7 @@
   // ===== REPORTS =====
   async function loadStudentReports() {
     const tbody = document.getElementById('studentReportsTableBody');
-    tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>'; lucide.createIcons();
+    tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>'; lucide.createIcons();
     try {
       const res = await fetch('/api/coordinator/dashboard/student-narratives/', { credentials: 'same-origin' });
       if (!res.ok) { tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-xs" style="color: var(--danger);">Failed to load</td></tr>'; return; }
@@ -1846,7 +1846,7 @@
     if (!grade || grade < 1 || grade > 100) { showAlert('Enter a grade between 1 and 100'); return; }
     const btn = document.getElementById('submitGradeBtn');
     const orig = btn.textContent;
-    btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Saving...'; lucide.createIcons();
+    btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Saving...'; lucide.createIcons();
     try {
       const res = await fetch('/api/coordinator/dashboard/grade-narrative/', {
         method: 'POST',
@@ -1870,7 +1870,7 @@
     if (dateTo) params.append('date_to', dateTo);
     if (programId) params.append('program_id', programId);
     const tbody = document.getElementById('attendanceTableBody');
-    tbody.innerHTML = '<tr><td colspan="7" class="py-12 text-center"><i data-lucide="loader-circle" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>'; lucide.createIcons();
+    tbody.innerHTML = '<tr><td colspan="7" class="py-12 text-center"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>'; lucide.createIcons();
     try {
       const res = await fetch(`/api/coordinator/dashboard/attendance-records/?${params.toString()}`, { credentials: 'same-origin' });
       if (!res.ok) { tbody.innerHTML = '<tr><td colspan="7" class="py-12 text-center text-xs" style="color: var(--danger);">Failed to load</td></tr>'; return; }
@@ -2042,7 +2042,7 @@
     if (!siteId) { showAlert('Please select a site'); return; }
     const btn = document.getElementById('submitSiteBtn');
     const orig = btn.textContent;
-    btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Saving...'; lucide.createIcons();
+    btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Saving...'; lucide.createIcons();
     try {
       const progRes = await fetch('/api/coordinator/programs/', { credentials: 'same-origin' });
       if (!progRes.ok) { showAlert('Failed to load subjects'); return; }
@@ -2101,7 +2101,7 @@
     if (!siteId) { showAlert('Please select a site'); return; }
     const btn = document.getElementById('updateSiteBtn');
     const orig = btn.textContent;
-    btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-circle" class="animate-spin"></i> Saving...'; lucide.createIcons();
+    btn.disabled = true; btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Saving...'; lucide.createIcons();
     try {
       const res = await fetch(`/api/coordinator/site-assignments/${id}/`, {
         method: 'PUT',
@@ -2240,7 +2240,7 @@
   connectDashboardSocket();
 
   async function loadNotifications() {
-    notifList.innerHTML = '<p class="text-center py-6"><i data-lucide="loader-circle" class="animate-spin w-4 h-4 mx-auto" style="color: var(--fg-dim);"></i></p>'; lucide.createIcons();
+    notifList.innerHTML = '<p class="text-center py-6"><i data-lucide="loader-2" class="animate-spin w-4 h-4 mx-auto" style="color: var(--fg-dim);"></i></p>'; lucide.createIcons();
     try {
       const res = await fetch('/api/notifications/', { credentials: 'same-origin' });
       const notifications = await res.json();
