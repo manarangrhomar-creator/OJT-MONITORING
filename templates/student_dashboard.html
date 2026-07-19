@@ -15,6 +15,8 @@
     <script src="https://unpkg.com/lucide@0.344.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="/static/js/auth.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"></script>
     <style>
       :root {
         --primary: #0D7A42;
@@ -1156,12 +1158,26 @@
                       <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                       <span class="text-xs text-gray-300 font-semibold">LIVE</span>
                     </div>
+                    <div class="absolute top-3 right-3 z-10 hidden" id="attDetectionBadge">
+                      <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" id="attDetectionBadgeText">FACE DETECTED</span>
+                    </div>
                     <video id="attWebcam" autoplay playsinline class="absolute inset-0 w-full h-full object-contain"></video>
+                    <canvas id="attFaceOverlay" class="absolute inset-0 w-full h-full object-contain pointer-events-none z-5"></canvas>
                     <canvas id="attPhotoCanvas" class="hidden"></canvas>
                   </div>
-                  <div class="flex items-center gap-2">
-                    <div class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" id="attFaceIndicator"></div>
-                    <span class="text-sm font-medium text-green-700" id="attFaceStatus">Camera initializing...</span>
+                  <div class="flex flex-col gap-2">
+                    <div class="flex items-center gap-2">
+                      <div class="w-2.5 h-2.5 rounded-full bg-gray-400" id="attFaceIndicator"></div>
+                      <span class="text-sm font-medium text-gray-500" id="attFaceStatus">Camera initializing...</span>
+                    </div>
+                    <div class="flex items-center gap-3 text-[11px] text-[var(--muted)]">
+                      <span id="attFaceSizeStatus" class="inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                        <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Face size —
+                      </span>
+                      <span id="attLightStatus" class="inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                        <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Lighting —
+                      </span>
+                    </div>
                   </div>
                   <button id="attVerifyBtn" class="att-btn bg-green-700 hover:bg-green-800 text-white px-5 py-2.5 rounded-xl font-semibold text-sm w-fit disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                     <i data-lucide="camera" class="w-4 h-4 inline mr-2"></i> Verify Attendance
@@ -1505,6 +1521,7 @@
   }
 
   function switchToDashboard() {
+    stopAttCamera();
     resetTabPills();
     tabDashboardBtn.className = "tab-pill-active px-3 sm:px-5 py-2 rounded-xl text-[10px] sm:text-xs transition-all flex items-center gap-1.5 sm:gap-2";
     dashboardContent.classList.remove('hidden');
@@ -1514,6 +1531,7 @@
   }
 
   function switchToReport() {
+    stopAttCamera();
     resetTabPills();
     tabReportBtn.className = "tab-pill-active px-3 sm:px-5 py-2 rounded-xl text-[10px] sm:text-xs transition-all flex items-center gap-1.5 sm:gap-2";
     reportPanel.classList.remove('hidden');
@@ -1523,6 +1541,7 @@
   }
 
   function switchToArchives() {
+    stopAttCamera();
     resetTabPills();
     tabArchivesBtn.className = "tab-pill-active px-3 sm:px-5 py-2 rounded-xl text-[10px] sm:text-xs transition-all flex items-center gap-1.5 sm:gap-2";
     archivesContent.classList.remove('hidden');
@@ -1547,12 +1566,23 @@
 
   /* ---- Attendance Camera ---- */
   let attStream = null;
+  let attFaceMeshReady = false;
+  let attFaceMeshInstance = null;
+  let attCameraObj = null;
+  let attAnimId = null;
+  let attLastFaceStatus = 'none';
+  let attDetCount = 0;
   const attWebcam = document.getElementById('attWebcam');
   const attCanvas = document.getElementById('attPhotoCanvas');
   const attFrame = document.getElementById('attCameraFrame');
   const attVerifyBtn = document.getElementById('attVerifyBtn');
   const attFaceIndicator = document.getElementById('attFaceIndicator');
   const attFaceStatus = document.getElementById('attFaceStatus');
+  const attFaceOverlay = document.getElementById('attFaceOverlay');
+  const attDetectionBadge = document.getElementById('attDetectionBadge');
+  const attDetectionBadgeText = document.getElementById('attDetectionBadgeText');
+  const attFaceSizeStatus = document.getElementById('attFaceSizeStatus');
+  const attLightStatus = document.getElementById('attLightStatus');
   const attStatusBadge = document.getElementById('attStatusBadge');
   const attStatusDetail = document.getElementById('attStatusDetail');
   let attCurrentAction = null;
@@ -1563,20 +1593,312 @@
     return v ? decodeURIComponent(v.split('=')[1]) : '';
   }
 
+  function attSampleRegion(ctx, x, y, w, h, sw, sh) {
+    const sx = Math.max(0, Math.floor(x - w / 2));
+    const sy = Math.max(0, Math.floor(y - h / 2));
+    const ex = Math.min(sw, Math.floor(x + w / 2));
+    const ey = Math.min(sh, Math.floor(y + h / 2));
+    if (ex <= sx || ey <= sy) return { r: 0, g: 0, b: 0, brightness: 0 };
+    try {
+      const d = ctx.getImageData(sx, sy, ex - sx, ey - sy).data;
+      let r = 0, g = 0, b = 0, n = d.length / 4;
+      for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; }
+      return { r: r / n, g: g / n, b: b / n, brightness: (r + g + b) / (n * 3) };
+    } catch { return { r: 0, g: 0, b: 0, brightness: 0 }; }
+  }
+
+  function attDetectAccessories(ctx, fw, fh) {
+    const sw = fw * 4, sh = fh * 4;
+    const topCenter = attSampleRegion(ctx, fw * 2, fh * 0.6, fw * 0.9, fh * 0.4, sw, sh);
+    const topLeft = attSampleRegion(ctx, fw * 1.55, fh * 0.6, fw * 0.45, fh * 0.4, sw, sh);
+    const topRight = attSampleRegion(ctx, fw * 2.45, fh * 0.6, fw * 0.45, fh * 0.4, sw, sh);
+    const rightTemple = attSampleRegion(ctx, fw * 3.5, fh * 0.8, fw * 0.5, fh * 0.4, sw, sh);
+    const leftTemple = attSampleRegion(ctx, fw * 0.5, fh * 0.8, fw * 0.5, fh * 0.4, sw, sh);
+    const leftBridge = attSampleRegion(ctx, fw * 1.45, fh * 1.35, fw * 0.35, fh * 0.15, sw, sh);
+    const rightBridge = attSampleRegion(ctx, fw * 2.55, fh * 1.35, fw * 0.35, fh * 0.15, sw, sh);
+    const leftLens = attSampleRegion(ctx, fw * 1.5, fh * 1.25, fw * 0.65, fh * 0.45, sw, sh);
+    const rightLens = attSampleRegion(ctx, fw * 2.5, fh * 1.25, fw * 0.65, fh * 0.45, sw, sh);
+    const nose = attSampleRegion(ctx, fw * 2, fh * 1.45, fw * 0.35, fh * 0.35, sw, sh);
+    const faceColor = (topCenter.brightness + leftLens.brightness + rightLens.brightness) / 3;
+    const results = { glasses: false, sunglasses: false, hat: false, headwear: false, details: [] };
+    const darkLensThresh = 0.22, lightLensThresh = 0.28;
+    const isLensDark = (leftLens.brightness + rightLens.brightness) / 2 < darkLensThresh;
+    const isLensMedium = (leftLens.brightness + rightLens.brightness) / 2 < lightLensThresh;
+    const lensLowVar = Math.abs(leftLens.brightness - rightLens.brightness) < 0.08;
+    const bridgeDark = leftBridge.brightness < 0.18 && rightBridge.brightness < 0.18;
+    const bridgeSimilarToNose = Math.abs(leftBridge.brightness - nose.brightness) < 0.06;
+    if (isLensDark && lensLowVar && bridgeDark) {
+      results.sunglasses = true;
+      results.glasses = true;
+      results.details.push('Sunglasses detected');
+    } else if (isLensMedium && lensLowVar && bridgeDark) {
+      results.glasses = true;
+      results.details.push('Possible glasses detected');
+    } else if (bridgeSimilarToNose && bridgeDark) {
+      results.glasses = true;
+      results.details.push('Possible frame detected');
+    }
+    if (!results.glasses) {
+      const sideLowVar = Math.abs(leftTemple.brightness - rightTemple.brightness) < 0.08;
+      const sideDark = (leftTemple.brightness + rightTemple.brightness) / 2 < 0.25;
+      const templeDiff = Math.abs(leftTemple.brightness - rightTemple.brightness) < 0.06;
+      if (sideDark && sideLowVar && templeDiff) {
+        results.glasses = true;
+        results.details.push('Possible frame detected');
+      }
+    }
+    const hatThresh = 0.18, sideThresh = 0.18, browThresh = 0.25;
+    const topDark = topCenter.brightness < hatThresh;
+    const sideDark2 = (leftTemple.brightness + rightTemple.brightness) / 2 < sideThresh;
+    const browHighlight = topCenter.brightness < nose.brightness * 0.6;
+    const templeDiff2 = Math.abs(leftTemple.brightness - rightTemple.brightness) < 0.08;
+    if (topDark && sideDark2 && browHighlight && templeDiff2) {
+      results.headwear = true;
+      results.hat = true;
+      results.details.push('Hat/cap detected');
+    }
+    return results;
+  }
+
+  function attOnResults(results) {
+    const ctx = attFaceOverlay.getContext('2d');
+    ctx.clearRect(0, 0, attFaceOverlay.width, attFaceOverlay.height);
+
+    if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) {
+      ctx.strokeStyle = 'rgba(239,68,68,0.7)';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([8, 4]);
+      const cx = attFaceOverlay.width / 2, cy = attFaceOverlay.height / 2;
+      const rx = attFaceOverlay.width * 0.2, ry = attFaceOverlay.height * 0.35;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = 'rgba(239,68,68,0.85)';
+      ctx.font = '600 13px system-ui, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Center your face in the oval', attFaceOverlay.width / 2, attFaceOverlay.height - 18);
+
+      attFaceIndicator.className = 'w-2.5 h-2.5 rounded-full bg-red-500';
+      attFaceStatus.textContent = 'Position your face in frame';
+      attFaceStatus.className = 'text-sm font-medium text-red-600';
+      attFaceSizeStatus.className = 'inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500';
+      attFaceSizeStatus.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Face size —';
+      attLightStatus.className = 'inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500';
+      attLightStatus.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Lighting —';
+      attDetectionBadge.classList.add('hidden');
+
+      attLastFaceStatus = 'none';
+      attDetCount = 0;
+      attVerifyBtn.disabled = true;
+      return;
+    }
+
+    const lm = results.multiFaceLandmarks[0];
+    const fw = attFaceOverlay.width, fh = attFaceOverlay.height;
+    const minP = { x: Infinity, y: Infinity }, maxP = { x: -Infinity, y: -Infinity };
+    for (let i = 0; i < lm.length; i++) {
+      if (lm[i].x < minP.x) minP.x = lm[i].x;
+      if (lm[i].y < minP.y) minP.y = lm[i].y;
+      if (lm[i].x > maxP.x) maxP.x = lm[i].x;
+      if (lm[i].y > maxP.y) maxP.y = lm[i].y;
+    }
+    const faceW = maxP.x - minP.x, faceH = maxP.y - minP.y, faceArea = faceW * faceH;
+    const frameArea = fw * fh;
+    const facePercent = faceArea / frameArea;
+    const faceCenterX = (minP.x + maxP.x) / 2 * fw;
+    const faceCenterY = (minP.y + maxP.y) / 2 * fh;
+    const offCenter = Math.sqrt(Math.pow(faceCenterX - fw / 2, 2) + Math.pow(faceCenterY - fh / 2, 2)) / (fw * 0.4);
+    const forehead = lm[10];
+    const chin = lm[152];
+    const leftCheek = lm[234];
+    const rightCheek = lm[454];
+    const nose = lm[1];
+    const leftEyeInner = lm[133], rightEyeInner = lm[362];
+    const leftEyeTop = lm[159], leftEyeBottom = lm[145];
+    const rightEyeTop = lm[386], rightEyeBottom = lm[374];
+    const eyeOpenness = ((leftEyeBottom.y - leftEyeTop.y) + (rightEyeBottom.y - rightEyeTop.y)) / 2;
+    const faceVisW = (rightCheek.x - leftCheek.x) * fw;
+    const faceVisH = (chin.y - forehead.y) * fh;
+    const faceVisArea = faceVisW * faceVisH;
+    const faceVisPercent = faceVisArea / frameArea;
+    const eyeRegionY = ((leftEyeTop.y + rightEyeTop.y) / 2) * fh;
+    const eyeRegionH = Math.max(2, Math.round(fh * 0.012));
+    const eyeRegionW = Math.max(2, Math.round(fw * (rightEyeInner.x - leftEyeInner.x) * 0.7));
+    const eyeRegionX = ((leftEyeInner.x + rightEyeInner.x) / 2) * fw;
+    const eyeData = attSampleRegion(ctx, eyeRegionX, eyeRegionY, eyeRegionW, eyeRegionH, fw, fh);
+    const eyeWhiteBrightness = eyeData.brightness;
+    const foreheadX = forehead.x * fw, foreheadY = forehead.y * fh;
+    const foreheadH = Math.max(2, Math.round(fh * 0.025));
+    const foreheadW = Math.max(2, Math.round(fw * faceW * 0.5));
+    const foreheadData = attSampleRegion(ctx, foreheadX, foreheadY, foreheadW, foreheadH, fw, fh);
+    const foreheadBrightness = foreheadData.brightness;
+    const noseX = nose.x * fw, noseY = nose.y * fh;
+    const noseH = Math.max(2, Math.round(fh * 0.02));
+    const noseW = Math.max(2, Math.round(fw * faceW * 0.18));
+    const noseData = attSampleRegion(ctx, noseX, noseY, noseW, noseH, fw, fh);
+    const noseBrightness = noseData.brightness;
+    const foreheadReflection = foreheadBrightness > 0.55 && Math.abs(foreheadData.r - foreheadData.g) < 0.1 && Math.abs(foreheadData.g - foreheadData.b) < 0.1;
+    const noseHighlight = noseBrightness > 0.55 && Math.abs(noseData.r - noseData.g) < 0.1 && Math.abs(noseData.g - noseData.b) < 0.1;
+    const noseCheekHighlight = noseHighlight && ((foreheadBrightness - noseBrightness) < 0.08);
+
+    let issues = [], warnings = [], tips = [];
+    if (faceVisPercent > 0.25) {
+      issues.push('Too close');
+      tips.push('Move back a bit');
+    } else if (faceVisPercent < 0.02) {
+      issues.push('Too far');
+      tips.push('Move closer');
+    } else if (faceVisPercent < 0.03) {
+      warnings.push('Bit far');
+      tips.push('Move a bit closer');
+    } else if (faceVisPercent > 0.18) {
+      warnings.push('Bit close');
+      tips.push('Lean back slightly');
+    }
+    const eyeOpenNorm = eyeOpenness / faceH;
+    if (eyeOpenNorm < 0.025) {
+      warnings.push('Eyes narrow/closed');
+      tips.push('Open eyes fully');
+    } else if (eyeOpenNorm > 0.15) {
+      warnings.push('Eyes too wide');
+      tips.push('Relax your expression');
+    }
+    const foreheadCheck = foreheadBrightness < 0.12 && Math.abs(foreheadData.r - foreheadData.g) < 0.04 && Math.abs(foreheadData.g - foreheadData.b) < 0.04;
+    const noseCheck = noseBrightness < 0.12 && Math.abs(noseData.r - noseData.g) < 0.04 && Math.abs(noseData.g - noseData.b) < 0.04;
+    const templeDiff = Math.abs(leftTemple.brightness - rightTemple.brightness) < 0.06;
+    const leftTemple = attSampleRegion(ctx, (minP.x - faceW * 0.05) * fw, (minP.y + faceH * 0.2) * fh, faceW * fw * 0.15, faceH * fh * 0.25, fw, fh);
+    const rightTemple = attSampleRegion(ctx, (maxP.x + faceW * 0.05) * fw, (minP.y + faceH * 0.2) * fh, faceW * fw * 0.15, faceH * fh * 0.25, fw, fh);
+    const templeDiffCalc = Math.abs(leftTemple.brightness - rightTemple.brightness) < 0.06;
+    const isSunglasses = foreheadCheck && noseCheck && templeDiffCalc && foreheadBrightness < 0.18;
+
+    let faceStatus = 'good';
+    let faceLabel = 'Face detected';
+    let badgeClass = 'bg-green-100 text-green-700';
+
+    if (issues.length) { faceStatus = 'bad'; faceLabel = issues[0]; badgeClass = 'bg-red-100 text-red-700'; }
+    else if (warnings.length && !issues.length) { faceStatus = 'warn'; faceLabel = warnings[0]; badgeClass = 'bg-yellow-100 text-yellow-700'; }
+
+    if (faceStatus === 'bad') {
+      const cx = fw / 2, cy = fh / 2;
+      const rx = fw * 0.18, ry = fh * 0.33;
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
+      ctx.strokeStyle = 'rgba(239,68,68,0.8)';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([8, 4]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.font = '600 12px system-ui, -apple-system, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = 'rgba(239,68,68,0.85)';
+      ctx.fillText('Please adjust your position', fw / 2, fh - 18);
+      attVerifyBtn.disabled = true;
+      attDetCount = 0;
+    } else {
+      ctx.strokeStyle = 'rgba(34,197,94,0.7)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(fw / 2, fh / 2, fw * 0.18, fh * 0.33, 0, 0, 2 * Math.PI);
+      ctx.stroke();
+      attDetCount++;
+      if (attDetCount >= 15) attVerifyBtn.disabled = false;
+    }
+
+    const indicatorClass = faceStatus === 'good' ? 'bg-green-500 animate-pulse' : faceStatus === 'warn' ? 'bg-yellow-500 animate-pulse' : 'bg-red-500';
+    attFaceIndicator.className = `w-2.5 h-2.5 rounded-full ${indicatorClass}`;
+    attFaceStatus.textContent = faceStatus === 'good' ? (warnings.length ? warnings.join('. ') : 'Face detected - ready') : (issues.length ? issues.join('. ') + ' - ' + tips.join('. ') : warnings.length ? warnings.join('. ') + ' - ' + tips.join('. ') : faceLabel);
+    attFaceStatus.className = `text-sm font-medium ${faceStatus === 'good' ? 'text-green-700' : faceStatus === 'warn' ? 'text-yellow-600' : 'text-red-600'}`;
+
+    const sizeClass = issues.includes('Too close') ? 'bg-red-100 text-red-700' : issues.includes('Too far') ? 'bg-red-100 text-red-700' : warnings.some(w => w.includes('close') || w.includes('far')) ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700';
+    const sizeIcon = issues.includes('Too close') || issues.includes('Too far') ? 'bg-red-500' : warnings.some(w => w.includes('close') || w.includes('far')) ? 'bg-yellow-500' : 'bg-green-500';
+    const sizeText = issues.includes('Too close') ? 'Too close' : issues.includes('Too far') ? 'Too far' : warnings.some(w => w.includes('close')) ? 'Bit close' : warnings.some(w => w.includes('far')) ? 'Bit far' : 'Good';
+    attFaceSizeStatus.className = `inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full ${sizeClass}`;
+    attFaceSizeStatus.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${sizeIcon}"></span> Face size: ${sizeText}`;
+
+    const isGlasses = isSunglasses;
+    const accessoryCheck = foreheadBrightness < 0.18 && noseBrightness < 0.18;
+    let lightLabel, lightClass;
+    if (foreheadReflection && noseCheekHighlight) {
+      lightLabel = 'Glare detected'; lightClass = 'bg-yellow-100 text-yellow-700';
+    } else if (isSunglasses || (accessoryCheck && (Math.abs(leftTemple.brightness - rightTemple.brightness) < 0.06))) {
+      lightLabel = 'Accessory detected'; lightClass = 'bg-yellow-100 text-yellow-700';
+    } else if (eyeWhiteBrightness > 0.62 || foreheadBrightness > 0.62) {
+      lightLabel = 'Too bright'; lightClass = 'bg-yellow-100 text-yellow-700';
+    } else if (eyeWhiteBrightness < 0.14 || foreheadBrightness < 0.14) {
+      lightLabel = 'Too dark'; lightClass = 'bg-red-100 text-red-700';
+    } else { lightLabel = 'Good'; lightClass = 'bg-green-100 text-green-700'; }
+    const lightIcon = lightLabel === 'Good' ? 'bg-green-500' : lightLabel.includes('dark') ? 'bg-red-500' : 'bg-yellow-500';
+    attLightStatus.className = `inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full ${lightClass}`;
+    attLightStatus.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${lightIcon}"></span> Lighting: ${lightLabel}`;
+
+    if (faceStatus === 'good' && !issues.length) {
+      attDetectionBadgeText.textContent = 'FACE DETECTED';
+      attDetectionBadgeText.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700';
+      attDetectionBadge.classList.remove('hidden');
+    } else {
+      attDetectionBadge.classList.add('hidden');
+    }
+  }
+
   async function initAttCamera() {
     if (attStream) return;
     try {
       attStream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
       attWebcam.srcObject = attStream;
-      attVerifyBtn.disabled = false;
-      attFaceIndicator.className = 'w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse';
-      attFaceStatus.textContent = 'Camera active - ready';
-      attFaceStatus.className = 'text-sm font-medium text-green-700';
+
+      const fw = attFaceOverlay.width = attWebcam.videoWidth || 1280;
+      const fh = attFaceOverlay.height = attWebcam.videoHeight || 720;
+
+      try {
+        attFaceMeshInstance = new FaceMesh({
+          locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/${file}`
+        });
+        attFaceMeshInstance.setOptions({
+          maxNumFaces: 1,
+          refineLandmarks: true,
+          minDetectionConfidence: 0.5,
+          minTrackingConfidence: 0.5
+        });
+        attFaceMeshInstance.onResults(attOnResults);
+        attFaceMeshReady = true;
+      } catch (e) {
+        console.warn('FaceMesh init failed:', e);
+        attFaceMeshReady = false;
+      }
+
+      attVerifyBtn.disabled = true;
+      attDetCount = 0;
+      attLastFaceStatus = 'none';
+      attFaceIndicator.className = 'w-2.5 h-2.5 rounded-full bg-yellow-500 animate-pulse';
+      attFaceStatus.textContent = 'Loading face detection model...';
+      attFaceStatus.className = 'text-sm font-medium text-yellow-600';
+
+      if (attFaceMeshReady && attWebcam.readyState >= 2) {
+        const sendFrame = async () => {
+          if (!attStream || attWebcam.paused || attWebcam.ended) return;
+          try { await attFaceMeshInstance.send({ image: attWebcam }); } catch {}
+          attAnimId = requestAnimationFrame(sendFrame);
+        };
+        sendFrame();
+      } else {
+        attFaceIndicator.className = 'w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse';
+        attFaceStatus.textContent = 'Camera active - ready';
+        attFaceStatus.className = 'text-sm font-medium text-green-700';
+        attVerifyBtn.disabled = false;
+      }
     } catch (err) {
       attFaceIndicator.className = 'w-2.5 h-2.5 rounded-full bg-red-500';
       attFaceStatus.textContent = 'Camera access denied';
       attFaceStatus.className = 'text-sm font-medium text-red-600';
     }
+  }
+
+  function stopAttCamera() {
+    if (attAnimId) { cancelAnimationFrame(attAnimId); attAnimId = null; }
+    if (attStream) { attStream.getTracks().forEach(t => t.stop()); attStream = null; }
+    if (attWebcam) attWebcam.srcObject = null;
   }
 
   function captureAttBlob() {
