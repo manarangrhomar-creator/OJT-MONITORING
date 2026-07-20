@@ -23,8 +23,8 @@ SECRET_KEY = config('SECRET_KEY')  # ponytail: no default; .env must set this
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-# Token expiry: 24 hours (in seconds)
-TOKEN_EXPIRED_AFTER_SECONDS = 86400
+# Token expiry: 7 days (in seconds) — must match auth_token cookie max_age
+TOKEN_EXPIRED_AFTER_SECONDS = 86400 * 7
 
 # Email Configuration
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='apps.core.mail.backends.smtp.EmailBackend')
@@ -248,7 +248,7 @@ X_FRAME_OPTIONS = 'DENY'
 SESSION_COOKIE_SAMESITE = 'Lax'
 CSRF_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_HTTPONLY = True
-CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_HTTPONLY = False
 
 # Logging Configuration
 LOGGING = {

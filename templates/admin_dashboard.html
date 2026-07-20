@@ -13,6 +13,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@0.344.0"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
       :root {
         --primary: #11693A;
@@ -629,9 +631,29 @@
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
       <div class="relative w-full sm:w-64">
         <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style="color: var(--fg-dim);"></i>
-        <input type="text" id="siteSearchInput" placeholder="Search site by name..." class="w-full pl-9 pr-4 py-2.5 !rounded-xl text-xs">
+        <input type="text" id="siteSearchInput" placeholder="Search site by name..." class="w-full pl-9 pr-10 py-2.5 !rounded-xl text-xs">
+        <button id="siteMicBtn" onclick="toggleSiteVoiceSearch()" class="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full transition-all" style="background: transparent; border: none; color: var(--fg-dim); cursor: pointer;" title="Voice search">
+          <i data-lucide="mic" class="w-3.5 h-3.5"></i>
+        </button>
       </div>
     </div>
+
+    <!-- Interactive Map -->
+    <div class="bento-card overflow-hidden mb-5">
+      <div class="flex items-center gap-2 mb-3">
+        <i data-lucide="map-pin" class="w-4 h-4" style="color: var(--accent);"></i>
+        <span class="text-xs font-semibold" style="color: var(--fg-muted);">Site Locations Overview</span>
+      </div>
+      <div id="sitesMap" class="w-full rounded-xl overflow-hidden" style="border: 1px solid var(--card-border); height: 320px;"></div>
+    </div>
+    <style>
+      .leaflet-popup-content-wrapper { border-radius: 12px !important; }
+      .leaflet-popup-content { margin: 10px 14px !important; font-family: 'Inter', sans-serif; }
+      .leaflet-popup-content b { font-size: 0.75rem; color: var(--fg); }
+      .leaflet-popup-content span { font-size: 0.65rem; color: var(--fg-muted); }
+    </style>
+
+    <!-- Sites Table -->
     <div class="bento-card overflow-hidden">
       <div class="overflow-x-auto"><table class="w-full text-left">
         <thead><tr>
@@ -875,6 +897,11 @@
       </div>
       <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Supervisor Name</label><input type="text" id="siteContactPerson" placeholder="Full name of supervisor" class="w-full !p-2.5 !rounded-xl text-sm"></div>
       <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Contact Number</label><input type="text" id="siteContactNumber" placeholder="Phone number" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Address</label><input type="text" id="siteAddress" placeholder="Full address of the site" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Latitude</label><input type="number" step="any" id="siteLat" placeholder="e.g. 10.3157" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Longitude</label><input type="number" step="any" id="siteLng" placeholder="e.g. 123.8854" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+      </div>
     </div>
     <div class="modal-buttons">
       <button class="ghost-btn" onclick="closeModal('addSiteModal')">Cancel</button>
@@ -903,6 +930,11 @@
       </div>
       <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Supervisor Name</label><input type="text" id="editSiteContactPerson" class="w-full !p-2.5 !rounded-xl text-sm"></div>
       <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Contact Number</label><input type="text" id="editSiteContactNumber" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Address</label><input type="text" id="editSiteAddress" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+      <div class="grid grid-cols-2 gap-3">
+        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Latitude</label><input type="number" step="any" id="editSiteLat" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Longitude</label><input type="number" step="any" id="editSiteLng" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+      </div>
       <div>
         <label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Assigned Coordinator</label>
         <input type="hidden" id="editSiteCoordinator" value="">
@@ -1046,7 +1078,7 @@
 
             if (section === 'overview') loadDashboardOverview();
             if (section === 'courses') loadCourses();
-            if (section === 'sites') loadSitesAdmin();
+            if (section === 'sites') { loadSitesAdmin(); setTimeout(() => { if (sitesMap) sitesMap.invalidateSize(); }, 100); }
             if (section === 'programs') loadPrograms();
             if (section === 'student-approvals') loadStudentApprovals();
             if (section === 'system-logs') loadSystemLogs();
@@ -2105,6 +2137,38 @@
 
         // ===== SITE MANAGEMENT =====
         let siteListAdmin = [];
+        let sitesMap = null;
+        let siteMarkers = [];
+
+        function initSitesMap() {
+            if (sitesMap) return;
+            sitesMap = L.map('sitesMap', { zoomControl: true, scrollWheelZoom: true }).setView([10.3157, 123.8854], 12);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(sitesMap);
+            setTimeout(() => sitesMap.invalidateSize(), 300);
+        }
+
+        function updateSitesMapMarkers() {
+            if (!sitesMap) return;
+            siteMarkers.forEach(m => sitesMap.removeLayer(m));
+            siteMarkers = [];
+            const bounds = [];
+            siteListAdmin.forEach(s => {
+                const lat = parseFloat(s.latitude);
+                const lng = parseFloat(s.longitude);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    const marker = L.marker([lat, lng]).addTo(sitesMap);
+                    const status = s.is_active ? 'Active' : 'Inactive';
+                    marker.bindPopup(`<b>${esc(s.name)}</b><br><span>${esc(s.address || 'No address')}</span><br><span>${esc(s.course_name || 'All Courses')}</span> · <span>${status}</span>`);
+                    siteMarkers.push(marker);
+                    bounds.push([lat, lng]);
+                }
+            });
+            if (bounds.length > 0) {
+                sitesMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
+            }
+        }
 
         async function loadSitesAdmin() {
             const tbody = document.getElementById('siteTableBody');
@@ -2126,6 +2190,8 @@
                 }
                 siteListAdmin = await response.json();
                 renderSiteTableAdmin();
+                initSitesMap();
+                updateSitesMapMarkers();
             } catch (error) {
                 if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-xs" style="color: var(--danger);">Error loading</td></tr>';
                 console.error('Error loading sites:', error);
@@ -2491,6 +2557,9 @@
             const course = document.getElementById('siteCourse').value;
             const supervisor_name = document.getElementById('siteContactPerson').value.trim();
             const contact_number = document.getElementById('siteContactNumber').value.trim();
+            const address = document.getElementById('siteAddress').value.trim();
+            const latitude = document.getElementById('siteLat').value || null;
+            const longitude = document.getElementById('siteLng').value || null;
             if (!name) { showAlert('Please enter a site name'); return; }
             const btn = document.getElementById('addSiteBtn');
             const originalText = btn.textContent;
@@ -2504,7 +2573,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ name, course: course || null, supervisor_name, contact_number })
+                    body: JSON.stringify({ name, course: course || null, supervisor_name, contact_number, address, latitude: latitude ? parseFloat(latitude) : null, longitude: longitude ? parseFloat(longitude) : null })
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
                 showAlert('Site added successfully');
@@ -2525,6 +2594,9 @@
             document.getElementById('editSiteName').value = site.name;
             document.getElementById('editSiteContactPerson').value = site.supervisor_name || '';
             document.getElementById('editSiteContactNumber').value = site.contact_number || '';
+            document.getElementById('editSiteAddress').value = site.address || '';
+            document.getElementById('editSiteLat').value = site.latitude || '';
+            document.getElementById('editSiteLng').value = site.longitude || '';
             document.getElementById('editSiteStatus').value = site.is_active ? 'true' : 'false';
             const hiddenInput = document.getElementById('editSiteCourse');
             const searchInput = document.getElementById('editSiteCourseSearch');
@@ -2574,6 +2646,9 @@
             const course = document.getElementById('editSiteCourse').value;
             const supervisor_name = document.getElementById('editSiteContactPerson').value.trim();
             const contact_number = document.getElementById('editSiteContactNumber').value.trim();
+            const address = document.getElementById('editSiteAddress').value.trim();
+            const latitude = document.getElementById('editSiteLat').value || null;
+            const longitude = document.getElementById('editSiteLng').value || null;
             const coordinator = document.getElementById('editSiteCoordinator').value;
             const is_active = document.getElementById('editSiteStatus').value === 'true';
             if (!name) { showAlert('Please enter a site name'); return; }
@@ -2589,7 +2664,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ name, course: course || null, supervisor_name, contact_number, coordinator: coordinator || null, is_active })
+                    body: JSON.stringify({ name, course: course || null, supervisor_name, contact_number, address, latitude: latitude ? parseFloat(latitude) : null, longitude: longitude ? parseFloat(longitude) : null, coordinator: coordinator || null, is_active })
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
                 showAlert('Site updated successfully');
@@ -2948,10 +3023,18 @@
                 osc.stop(ctx.currentTime + 0.25);
             } catch(e) {}
         }
+        let notifRetries = 0;
+        const MAX_WS_RETRIES = 5;
         function connectNotifSocket() {
+            if (notifRetries >= MAX_WS_RETRIES) return;
+            notifRetries++;
             const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
             const url = `${proto}//${window.location.host}/ws/notifications/`;
             notifSocket = new WebSocket(url);
+
+            notifSocket.onopen = function() {
+                notifRetries = 0;
+            };
 
             notifSocket.onmessage = function(e) {
                 const data = JSON.parse(e.data);
@@ -3065,9 +3148,16 @@
         lucide.createIcons();
 
         // ===== REAL-TIME DASHBOARD SYNC =====
+        let dashboardRetries = 0;
         function connectDashboardSocket() {
-            const wsUrl = `ws://${window.location.host}/ws/dashboard/`;
+            if (dashboardRetries >= MAX_WS_RETRIES) return;
+            dashboardRetries++;
+            const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = `${proto}//${window.location.host}/ws/dashboard/`;
             const socket = new WebSocket(wsUrl);
+            socket.onopen = function() {
+                dashboardRetries = 0;
+            };
             socket.onmessage = function(e) {
                 const data = JSON.parse(e.data);
                 if (data.type === 'dashboard_refresh') {
