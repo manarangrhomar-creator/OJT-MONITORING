@@ -98,6 +98,7 @@
       .modal { display: none; position: fixed; z-index: 60; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.4); animation: fadeIn 0.2s ease; }
       .modal.active { display: flex; justify-content: center; align-items: center; }
       .modal-content { background: #fefefe; border-radius: var(--radius-lg); padding: 28px; width: 90%; max-width: 540px; box-shadow: var(--shadow-lg); animation: slideUp 0.25s ease; overflow-y: auto; max-height: 90vh; }
+      .modal-content.wide { max-width: 780px; }
       @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
       @keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
       @keyframes fadeUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
@@ -631,22 +632,13 @@
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
       <div class="relative w-full sm:w-64">
         <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style="color: var(--fg-dim);"></i>
-        <input type="text" id="siteSearchInput" placeholder="Search site by name..." class="w-full pl-9 pr-10 py-2.5 !rounded-xl text-xs">
-        <button id="siteMicBtn" onclick="toggleSiteVoiceSearch()" class="absolute right-2 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-full transition-all" style="background: transparent; border: none; color: var(--fg-dim); cursor: pointer;" title="Voice search">
-          <i data-lucide="mic" class="w-3.5 h-3.5"></i>
-        </button>
+        <input type="text" id="siteSearchInput" placeholder="Search site by name..." class="w-full pl-9 pr-4 py-2.5 !rounded-xl text-xs">
       </div>
     </div>
 
-    <!-- Interactive Map -->
-    <div class="bento-card overflow-hidden mb-5">
-      <div class="flex items-center gap-2 mb-3">
-        <i data-lucide="map-pin" class="w-4 h-4" style="color: var(--accent);"></i>
-        <span class="text-xs font-semibold" style="color: var(--fg-muted);">Site Locations Overview</span>
-      </div>
-      <div id="sitesMap" class="w-full rounded-xl overflow-hidden" style="border: 1px solid var(--card-border); height: 320px;"></div>
-    </div>
     <style>
+      .site-map { width: 100%; height: 180px; border-radius: 12px; border: 1px solid var(--card-border); }
+      .site-map .leaflet-container { width: 100%; height: 100%; }
       .leaflet-popup-content-wrapper { border-radius: 12px !important; }
       .leaflet-popup-content { margin: 10px 14px !important; font-family: 'Inter', sans-serif; }
       .leaflet-popup-content b { font-size: 0.75rem; color: var(--fg); }
@@ -879,28 +871,35 @@
 </div>
 
 <div id="addSiteModal" class="modal">
-  <div class="modal-content">
+  <div class="modal-content wide">
     <div class="modal-header"><h2>Add Site</h2><button class="close-btn" onclick="closeModal('addSiteModal')">&times;</button></div>
-    <div class="space-y-3">
-      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Site Name</label><input type="text" id="siteName" placeholder="e.g. University Library" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+    <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Course</label>
-        <input type="hidden" id="siteCourse" value="">
-        <div class="relative">
-          <input type="text" id="siteCourseSearch" placeholder="Search course..." autocomplete="off" readonly
-            class="w-full !p-2.5 !rounded-xl text-sm cursor-pointer">
-          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3" style="color: var(--fg-dim);">
-            <i data-lucide="chevron-down" class="h-5 w-5 transition-transform"></i>
-          </div>
-          <div id="siteCourseDropdown" class="hidden fixed z-[70] dropdown-menu"></div>
-        </div>
+        <label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Pick Location on Map</label>
+        <div id="addSiteMap" class="site-map" style="height: 420px;"></div>
       </div>
-      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Supervisor Name</label><input type="text" id="siteContactPerson" placeholder="Full name of supervisor" class="w-full !p-2.5 !rounded-xl text-sm"></div>
-      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Contact Number</label><input type="text" id="siteContactNumber" placeholder="Phone number" class="w-full !p-2.5 !rounded-xl text-sm"></div>
-      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Address</label><input type="text" id="siteAddress" placeholder="Full address of the site" class="w-full !p-2.5 !rounded-xl text-sm"></div>
-      <div class="grid grid-cols-2 gap-3">
-        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Latitude</label><input type="number" step="any" id="siteLat" placeholder="e.g. 10.3157" class="w-full !p-2.5 !rounded-xl text-sm"></div>
-        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Longitude</label><input type="number" step="any" id="siteLng" placeholder="e.g. 123.8854" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+      <div class="space-y-3">
+        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Site Name</label><input type="text" id="siteName" placeholder="e.g. University Library" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+        <div>
+          <label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Course</label>
+          <input type="hidden" id="siteCourse" value="">
+          <div class="relative">
+            <input type="text" id="siteCourseSearch" placeholder="Search course..." autocomplete="off" readonly
+              class="w-full !p-2.5 !rounded-xl text-sm cursor-pointer">
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3" style="color: var(--fg-dim);">
+              <i data-lucide="chevron-down" class="h-5 w-5 transition-transform"></i>
+            </div>
+            <div id="siteCourseDropdown" class="hidden fixed z-[70] dropdown-menu"></div>
+          </div>
+        </div>
+        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Supervisor Name</label><input type="text" id="siteContactPerson" placeholder="Full name of supervisor" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Contact Number</label><input type="text" id="siteContactNumber" placeholder="Phone number" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Address</label><input type="text" id="siteAddress" placeholder="Full address of the site" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Latitude</label><input type="number" step="any" id="siteLat" placeholder="e.g. 10.3157" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+          <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Longitude</label><input type="number" step="any" id="siteLng" placeholder="e.g. 123.8854" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+        </div>
+        <p class="text-[0.55rem]" style="color: var(--fg-dim);">Click on the map or enter coordinates manually.</p>
       </div>
     </div>
     <div class="modal-buttons">
@@ -911,43 +910,37 @@
 </div>
 
 <div id="editSiteModal" class="modal">
-  <div class="modal-content">
+  <div class="modal-content wide">
     <div class="modal-header"><h2>Edit Site</h2><button class="close-btn" onclick="closeModal('editSiteModal')">&times;</button></div>
     <input type="hidden" id="editSiteId" value="">
-    <div class="space-y-3">
-      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Site Name</label><input type="text" id="editSiteName" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+    <div class="grid grid-cols-2 gap-4">
       <div>
-        <label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Course</label>
-        <input type="hidden" id="editSiteCourse" value="">
-        <div class="relative">
-          <input type="text" id="editSiteCourseSearch" placeholder="Search course..." autocomplete="off" readonly
-            class="w-full !p-2.5 !rounded-xl text-sm cursor-pointer">
-          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3" style="color: var(--fg-dim);">
-            <i data-lucide="chevron-down" class="h-5 w-5 transition-transform"></i>
+        <label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Pick Location on Map</label>
+        <div id="editSiteMap" class="site-map" style="height: 420px;"></div>
+      </div>
+      <div class="space-y-3">
+        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Site Name</label><input type="text" id="editSiteName" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+        <div>
+          <label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Course</label>
+          <input type="hidden" id="editSiteCourse" value="">
+          <div class="relative">
+            <input type="text" id="editSiteCourseSearch" placeholder="Search course..." autocomplete="off" readonly
+              class="w-full !p-2.5 !rounded-xl text-sm cursor-pointer">
+            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3" style="color: var(--fg-dim);">
+              <i data-lucide="chevron-down" class="h-5 w-5 transition-transform"></i>
+            </div>
+            <div id="editSiteCourseDropdown" class="hidden fixed z-[70] dropdown-menu"></div>
           </div>
-          <div id="editSiteCourseDropdown" class="hidden fixed z-[70] dropdown-menu"></div>
         </div>
-      </div>
-      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Supervisor Name</label><input type="text" id="editSiteContactPerson" class="w-full !p-2.5 !rounded-xl text-sm"></div>
-      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Contact Number</label><input type="text" id="editSiteContactNumber" class="w-full !p-2.5 !rounded-xl text-sm"></div>
-      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Address</label><input type="text" id="editSiteAddress" class="w-full !p-2.5 !rounded-xl text-sm"></div>
-      <div class="grid grid-cols-2 gap-3">
-        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Latitude</label><input type="number" step="any" id="editSiteLat" class="w-full !p-2.5 !rounded-xl text-sm"></div>
-        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Longitude</label><input type="number" step="any" id="editSiteLng" class="w-full !p-2.5 !rounded-xl text-sm"></div>
-      </div>
-      <div>
-        <label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Assigned Coordinator</label>
-        <input type="hidden" id="editSiteCoordinator" value="">
-        <div class="relative">
-          <input type="text" id="editSiteCoordinatorSearch" placeholder="Search coordinator..." autocomplete="off" readonly
-            class="w-full !p-2.5 !rounded-xl text-sm cursor-pointer">
-          <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3" style="color: var(--fg-dim);">
-            <i data-lucide="chevron-down" class="h-5 w-5 transition-transform"></i>
-          </div>
-          <div id="editSiteCoordinatorDropdown" class="hidden fixed z-[70] dropdown-menu"></div>
+        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Supervisor Name</label><input type="text" id="editSiteContactPerson" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Contact Number</label><input type="text" id="editSiteContactNumber" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+        <div class="grid grid-cols-2 gap-3">
+          <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Latitude</label><input type="number" step="any" id="editSiteLat" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+          <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Longitude</label><input type="number" step="any" id="editSiteLng" class="w-full !p-2.5 !rounded-xl text-sm"></div>
         </div>
+        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Status</label><select id="editSiteStatus" class="w-full !p-2.5 !rounded-xl text-sm"><option value="true">Active</option><option value="false">Inactive</option></select></div>
+        <p class="text-[0.55rem]" style="color: var(--fg-dim);">Click on the map or enter coordinates manually.</p>
       </div>
-      <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Status</label><select id="editSiteStatus" class="w-full !p-2.5 !rounded-xl text-sm"><option value="true">Active</option><option value="false">Inactive</option></select></div>
     </div>
     <div class="modal-buttons">
       <button class="ghost-btn" onclick="closeModal('editSiteModal')">Cancel</button>
@@ -1041,6 +1034,11 @@
             if (modal) {
                 modal.classList.add('active');
                 document.body.style.overflow = 'hidden';
+                if (modalId === 'addSiteModal') {
+                    setTimeout(() => initAddSiteMap(), 100);
+                } else if (modalId === 'editSiteModal') {
+                    setTimeout(() => initEditSiteMap(), 100);
+                }
             }
         }
 
@@ -1049,6 +1047,19 @@
             if (modal) {
                 modal.classList.remove('active');
                 document.body.style.overflow = 'auto';
+                if (modalId === 'addSiteModal' && addSiteMapObj) {
+                    addSiteMapObj.remove();
+                    addSiteMapObj = null;
+                    addSiteMapMarker = null;
+                    const mapEl = document.getElementById('addSiteMap');
+                    if (mapEl) mapEl.innerHTML = '';
+                } else if (modalId === 'editSiteModal' && editSiteMapObj) {
+                    editSiteMapObj.remove();
+                    editSiteMapObj = null;
+                    editSiteMapMarker = null;
+                    const mapEl = document.getElementById('editSiteMap');
+                    if (mapEl) mapEl.innerHTML = '';
+                }
             }
         }
 
@@ -1078,7 +1089,7 @@
 
             if (section === 'overview') loadDashboardOverview();
             if (section === 'courses') loadCourses();
-            if (section === 'sites') { loadSitesAdmin(); setTimeout(() => { if (sitesMap) sitesMap.invalidateSize(); }, 100); }
+            if (section === 'sites') { loadSitesAdmin().then(() => { setTimeout(() => { if (sitesMap) sitesMap.invalidateSize(); }, 300); setTimeout(() => { if (sitesMap) sitesMap.invalidateSize(); }, 1000); }); }
             if (section === 'programs') loadPrograms();
             if (section === 'student-approvals') loadStudentApprovals();
             if (section === 'system-logs') loadSystemLogs();
@@ -2137,37 +2148,67 @@
 
         // ===== SITE MANAGEMENT =====
         let siteListAdmin = [];
-        let sitesMap = null;
-        let siteMarkers = [];
+        let addSiteMapObj = null;
+        let addSiteMapMarker = null;
+        let editSiteMapObj = null;
+        let editSiteMapMarker = null;
 
-        function initSitesMap() {
-            if (sitesMap) return;
-            sitesMap = L.map('sitesMap', { zoomControl: true, scrollWheelZoom: true }).setView([10.3157, 123.8854], 12);
+        function initAddSiteMap() {
+            const container = document.getElementById('addSiteMap');
+            if (!container) return;
+            if (addSiteMapObj) {
+                addSiteMapObj.invalidateSize();
+                return;
+            }
+            addSiteMapObj = L.map('addSiteMap', { zoomControl: true, scrollWheelZoom: true }).setView([16.9380, 121.7645], 16);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors'
-            }).addTo(sitesMap);
-            setTimeout(() => sitesMap.invalidateSize(), 300);
-        }
-
-        function updateSitesMapMarkers() {
-            if (!sitesMap) return;
-            siteMarkers.forEach(m => sitesMap.removeLayer(m));
-            siteMarkers = [];
-            const bounds = [];
-            siteListAdmin.forEach(s => {
-                const lat = parseFloat(s.latitude);
-                const lng = parseFloat(s.longitude);
+            }).addTo(addSiteMapObj);
+            siteListAdmin.forEach(site => {
+                const lat = parseFloat(site.latitude);
+                const lng = parseFloat(site.longitude);
                 if (!isNaN(lat) && !isNaN(lng)) {
-                    const marker = L.marker([lat, lng]).addTo(sitesMap);
-                    const status = s.is_active ? 'Active' : 'Inactive';
-                    marker.bindPopup(`<b>${esc(s.name)}</b><br><span>${esc(s.address || 'No address')}</span><br><span>${esc(s.course_name || 'All Courses')}</span> · <span>${status}</span>`);
-                    siteMarkers.push(marker);
-                    bounds.push([lat, lng]);
+                    L.marker([lat, lng]).addTo(addSiteMapObj)
+                        .bindPopup(`<strong>${esc(site.name)}</strong>`);
                 }
             });
-            if (bounds.length > 0) {
-                sitesMap.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
+            addSiteMapObj.on('click', function(e) {
+                document.getElementById('siteLat').value = e.latlng.lat.toFixed(6);
+                document.getElementById('siteLng').value = e.latlng.lng.toFixed(6);
+                if (addSiteMapMarker) addSiteMapObj.removeLayer(addSiteMapMarker);
+                addSiteMapMarker = L.marker(e.latlng).addTo(addSiteMapObj)
+                    .bindPopup('Selected location').openPopup();
+            });
+            setTimeout(() => addSiteMapObj.invalidateSize(), 300);
+        }
+
+        function initEditSiteMap() {
+            const container = document.getElementById('editSiteMap');
+            if (!container) return;
+            if (editSiteMapObj) {
+                editSiteMapObj.invalidateSize();
+                return;
             }
+            const lat = parseFloat(document.getElementById('editSiteLat').value);
+            const lng = parseFloat(document.getElementById('editSiteLng').value);
+            const center = (!isNaN(lat) && !isNaN(lng)) ? [lat, lng] : [16.9380, 121.7645];
+            const zoom = 16;
+            editSiteMapObj = L.map('editSiteMap', { zoomControl: true, scrollWheelZoom: true }).setView(center, zoom);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; OpenStreetMap contributors'
+            }).addTo(editSiteMapObj);
+            if (!isNaN(lat) && !isNaN(lng)) {
+                editSiteMapMarker = L.marker(center).addTo(editSiteMapObj)
+                    .bindPopup('Current location').openPopup();
+            }
+            editSiteMapObj.on('click', function(e) {
+                document.getElementById('editSiteLat').value = e.latlng.lat.toFixed(6);
+                document.getElementById('editSiteLng').value = e.latlng.lng.toFixed(6);
+                if (editSiteMapMarker) editSiteMapObj.removeLayer(editSiteMapMarker);
+                editSiteMapMarker = L.marker(e.latlng).addTo(editSiteMapObj)
+                    .bindPopup('Selected location').openPopup();
+            });
+            setTimeout(() => editSiteMapObj.invalidateSize(), 300);
         }
 
         async function loadSitesAdmin() {
@@ -2190,8 +2231,6 @@
                 }
                 siteListAdmin = await response.json();
                 renderSiteTableAdmin();
-                initSitesMap();
-                updateSitesMapMarkers();
             } catch (error) {
                 if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-xs" style="color: var(--danger);">Error loading</td></tr>';
                 console.error('Error loading sites:', error);
@@ -2328,217 +2367,22 @@
                     dd.classList.add('hidden');
                 }
             });
-            document.querySelectorAll('[id$="CoordinatorDropdown"]:not(.hidden)').forEach(dd => {
-                const searchId = dd.id.replace('CoordinatorDropdown', 'CoordinatorSearch');
-                const search = document.getElementById(searchId);
-                if (search && !search.contains(e.target) && !dd.contains(e.target)) {
-                    dd.classList.add('hidden');
-                }
-            });
         });
-
-        function initSiteCoordinatorDropdown(searchId, dropdownId, hiddenId, coordinators, selectedId) {
-            const searchInput = document.getElementById(searchId);
-            const dropdownList = document.getElementById(dropdownId);
-            const hiddenInput = document.getElementById(hiddenId);
-
-            function buildDropdown(filter) {
-                dropdownList.innerHTML = '';
-                const filtered = filter
-                    ? coordinators.filter(c => (c.name || c.username || '').toLowerCase().includes(filter.toLowerCase()))
-                    : coordinators;
-
-                const noneItem = document.createElement('div');
-                noneItem.className = 'dropdown-item';
-                noneItem.textContent = 'None (Unassigned)';
-                noneItem.addEventListener('mousedown', function(e) {
-                    e.preventDefault();
-                    searchInput.value = 'None (Unassigned)';
-                    hiddenInput.value = '';
-                    dropdownList.classList.add('hidden');
-                    searchInput.setAttribute('readonly', true);
-                });
-                dropdownList.appendChild(noneItem);
-
-                if (filtered.length === 0 && filter && filter.toLowerCase() !== 'none') {
-                    const empty = document.createElement('div');
-                    empty.className = 'dropdown-item';
-                    empty.textContent = 'No coordinators found';
-                    dropdownList.appendChild(empty);
-                    return;
-                }
-
-                filtered.forEach(coord => {
-                    const item = document.createElement('div');
-                    item.className = 'dropdown-item';
-                    item.textContent = coord.name || coord.username;
-                    item.addEventListener('mousedown', function(e) {
-                        e.preventDefault();
-                        searchInput.value = coord.name || coord.username;
-                        hiddenInput.value = coord.id;
-                        dropdownList.classList.add('hidden');
-                        searchInput.setAttribute('readonly', true);
-                    });
-                    dropdownList.appendChild(item);
-                });
-            }
-
-            function positionDropdown() {
-                const rect = searchInput.getBoundingClientRect();
-                dropdownList.style.top = (rect.bottom + 4) + 'px';
-                dropdownList.style.left = rect.left + 'px';
-                dropdownList.style.width = rect.width + 'px';
-            }
-
-            function openDropdown() {
-                positionDropdown();
-                buildDropdown(searchInput.value);
-                dropdownList.classList.remove('hidden');
-            }
-
-            searchInput.addEventListener('focus', function() {
-                this.removeAttribute('readonly');
-                buildDropdown(this.value);
-                openDropdown();
-            });
-
-            searchInput.addEventListener('input', function() {
-                buildDropdown(this.value);
-                openDropdown();
-            });
-
-            searchInput.addEventListener('click', function(e) {
-                e.stopPropagation();
-                if (dropdownList.classList.contains('hidden')) {
-                    this.removeAttribute('readonly');
-                    this.value = '';
-                    hiddenInput.value = '';
-                    buildDropdown('');
-                    openDropdown();
-                }
-            });
-
-            if (selectedId && coordinators.length) {
-                const coord = coordinators.find(c => c.id === selectedId);
-                if (coord) {
-                    searchInput.value = coord.name || coord.username;
-                    hiddenInput.value = coord.id;
-                    searchInput.setAttribute('readonly', true);
-                }
-            }
-        }
-
-        function rebuildCoordinatorDropdown(searchId, dropdownId, hiddenId, coordinators, selectedId) {
-            const searchInput = document.getElementById(searchId);
-            const dropdownList = document.getElementById(dropdownId);
-            const hiddenInput = document.getElementById(hiddenId);
-            if (!searchInput || !dropdownList || !hiddenInput) return;
-
-            // Clear and rebuild dropdown content
-            dropdownList.innerHTML = '';
-
-            function buildDropdown(filter) {
-                dropdownList.innerHTML = '';
-                const filtered = filter
-                    ? coordinators.filter(c => (c.name || c.username || '').toLowerCase().includes(filter.toLowerCase()))
-                    : coordinators;
-
-                const noneItem = document.createElement('div');
-                noneItem.className = 'dropdown-item';
-                noneItem.textContent = 'None (Unassigned)';
-                noneItem.addEventListener('mousedown', function(e) {
-                    e.preventDefault();
-                    searchInput.value = 'None (Unassigned)';
-                    hiddenInput.value = '';
-                    dropdownList.classList.add('hidden');
-                    searchInput.setAttribute('readonly', true);
-                });
-                dropdownList.appendChild(noneItem);
-
-                if (filtered.length === 0 && filter && filter.toLowerCase() !== 'none') {
-                    const empty = document.createElement('div');
-                    empty.className = 'dropdown-item';
-                    empty.textContent = 'No coordinators found';
-                    dropdownList.appendChild(empty);
-                    return;
-                }
-
-                filtered.forEach(coord => {
-                    const item = document.createElement('div');
-                    item.className = 'dropdown-item';
-                    item.textContent = coord.name || coord.username;
-                    item.addEventListener('mousedown', function(e) {
-                        e.preventDefault();
-                        searchInput.value = coord.name || coord.username;
-                        hiddenInput.value = coord.id;
-                        dropdownList.classList.add('hidden');
-                        searchInput.setAttribute('readonly', true);
-                    });
-                    dropdownList.appendChild(item);
-                });
-            }
-
-            // Re-attach event listeners (replace old ones)
-            const newSearch = searchInput.cloneNode(true);
-            searchInput.parentNode.replaceChild(newSearch, searchInput);
-
-            newSearch.addEventListener('focus', function() {
-                this.removeAttribute('readonly');
-                buildDropdown(this.value);
-                positionDropdown();
-                dropdownList.classList.remove('hidden');
-            });
-
-            newSearch.addEventListener('input', function() {
-                buildDropdown(this.value);
-                positionDropdown();
-                dropdownList.classList.remove('hidden');
-            });
-
-            newSearch.addEventListener('click', function(e) {
-                e.stopPropagation();
-                if (dropdownList.classList.contains('hidden')) {
-                    this.removeAttribute('readonly');
-                    this.value = '';
-                    hiddenInput.value = '';
-                    buildDropdown('');
-                    positionDropdown();
-                    dropdownList.classList.remove('hidden');
-                }
-            });
-
-            function positionDropdown() {
-                const rect = newSearch.getBoundingClientRect();
-                dropdownList.style.top = (rect.bottom + 4) + 'px';
-                dropdownList.style.left = rect.left + 'px';
-                dropdownList.style.width = rect.width + 'px';
-            }
-
-            // Set initial value if selected
-            if (selectedId && coordinators.length) {
-                const coord = coordinators.find(c => c.id === selectedId);
-                if (coord) {
-                    newSearch.value = coord.name || coord.username;
-                    hiddenInput.value = coord.id;
-                    newSearch.setAttribute('readonly', true);
-                }
-            } else {
-                newSearch.value = 'None (Unassigned)';
-                hiddenInput.value = '';
-                newSearch.setAttribute('readonly', true);
-            }
-        }
 
         async function openAddSiteModal() {
             document.getElementById('siteName').value = '';
             document.getElementById('siteContactPerson').value = '';
             document.getElementById('siteContactNumber').value = '';
+            document.getElementById('siteLat').value = '';
+            document.getElementById('siteLng').value = '';
+            document.getElementById('siteAddress').value = '';
             const hiddenInput = document.getElementById('siteCourse');
             const searchInput = document.getElementById('siteCourseSearch');
             hiddenInput.value = '';
             searchInput.value = '';
             searchInput.setAttribute('readonly', true);
             try {
+                await loadSitesAdmin();
                 const coursesRes = await fetch('/api/admin/courses/', {
                     credentials: 'same-origin'
                 });
@@ -2594,7 +2438,6 @@
             document.getElementById('editSiteName').value = site.name;
             document.getElementById('editSiteContactPerson').value = site.supervisor_name || '';
             document.getElementById('editSiteContactNumber').value = site.contact_number || '';
-            document.getElementById('editSiteAddress').value = site.address || '';
             document.getElementById('editSiteLat').value = site.latitude || '';
             document.getElementById('editSiteLng').value = site.longitude || '';
             document.getElementById('editSiteStatus').value = site.is_active ? 'true' : 'false';
@@ -2603,37 +2446,15 @@
             hiddenInput.value = '';
             searchInput.value = '';
             searchInput.setAttribute('readonly', true);
-            const coordHidden = document.getElementById('editSiteCoordinator');
-            const coordSearch = document.getElementById('editSiteCoordinatorSearch');
-            coordHidden.value = '';
-            coordSearch.value = '';
-            coordSearch.setAttribute('readonly', true);
             Promise.all([
                 fetch('/api/admin/courses/', { credentials: 'same-origin' }).then(r => r.json()),
-                fetch('/api/admin/dashboard/coordinators/', { credentials: 'same-origin' }).then(r => r.json())
-            ]).then(([courses, coords]) => {
-                let allCoords = [];
+            ]).then(([courses]) => {
                 if (!site.course) {
                     searchInput.value = 'All Courses';
                     hiddenInput.value = '';
                     searchInput.setAttribute('readonly', true);
                 }
-                allCoords = coords.map(c => ({
-                    id: c.id,
-                    name: c.first_name && c.last_name ? `${c.first_name} ${c.last_name}` : c.username,
-                    course: c.course || null
-                }));
-                initSiteCourseDropdown('editSiteCourseSearch', 'editSiteCourseDropdown', 'editSiteCourse', courses, site.course, function(selectedCourseId) {
-                    const filtered = selectedCourseId
-                        ? allCoords.filter(c => c.course === selectedCourseId)
-                        : allCoords;
-                    rebuildCoordinatorDropdown('editSiteCoordinatorSearch', 'editSiteCoordinatorDropdown', 'editSiteCoordinator', filtered, null);
-                });
-                // Filter coordinators by site's course if set
-                const filteredCoords = site.course
-                    ? allCoords.filter(c => c.course === site.course)
-                    : allCoords;
-                initSiteCoordinatorDropdown('editSiteCoordinatorSearch', 'editSiteCoordinatorDropdown', 'editSiteCoordinator', filteredCoords, site.coordinator || null);
+                initSiteCourseDropdown('editSiteCourseSearch', 'editSiteCourseDropdown', 'editSiteCourse', courses, site.course, null);
             }).catch(() => {
                 searchInput.value = 'Error loading data';
             });
@@ -2646,10 +2467,8 @@
             const course = document.getElementById('editSiteCourse').value;
             const supervisor_name = document.getElementById('editSiteContactPerson').value.trim();
             const contact_number = document.getElementById('editSiteContactNumber').value.trim();
-            const address = document.getElementById('editSiteAddress').value.trim();
             const latitude = document.getElementById('editSiteLat').value || null;
             const longitude = document.getElementById('editSiteLng').value || null;
-            const coordinator = document.getElementById('editSiteCoordinator').value;
             const is_active = document.getElementById('editSiteStatus').value === 'true';
             if (!name) { showAlert('Please enter a site name'); return; }
             const btn = document.getElementById('saveSiteBtn');
@@ -2664,7 +2483,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ name, course: course || null, supervisor_name, contact_number, address, latitude: latitude ? parseFloat(latitude) : null, longitude: longitude ? parseFloat(longitude) : null, coordinator: coordinator || null, is_active })
+                    body: JSON.stringify({ name, course: course || null, supervisor_name, contact_number, latitude: latitude ? parseFloat(latitude) : null, longitude: longitude ? parseFloat(longitude) : null, is_active })
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
                 showAlert('Site updated successfully');
