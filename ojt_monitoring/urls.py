@@ -96,11 +96,11 @@ urlpatterns = [
     path('api/', include('apps.core.notification_urls')),
 ]
 
-# Serve media files in development (with authentication protection)
+# Serve media files (with authentication protection)
+media_url = settings.MEDIA_URL.strip('/')
+urlpatterns += [
+    path(f'{media_url}/<path:path>', serve_protected_media, name='protected-media'),
+]
+
 if settings.DEBUG:
-    # Use protected media view instead of static() to require authentication
-    media_url = settings.MEDIA_URL.rstrip('/')
-    urlpatterns += [
-        path(f'{media_url}/<path:path>', serve_protected_media, name='protected-media'),
-    ]
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
