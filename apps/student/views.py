@@ -213,7 +213,7 @@ class StudentDashboardViewSet(viewsets.ViewSet):
         )
 
         serializer = AttendanceSerializer(attendance)
-        broadcast_dashboard_update('attendance')
+        broadcast_dashboard_update('attendance', data={'action': 'create', 'item': serializer.data})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(detail=False, methods=['post'])
@@ -267,7 +267,7 @@ class StudentDashboardViewSet(viewsets.ViewSet):
             )
 
         serializer = AttendanceSerializer(attendance)
-        broadcast_dashboard_update('attendance')
+        broadcast_dashboard_update('attendance', data={'action': 'update', 'item': serializer.data})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'])
@@ -390,7 +390,7 @@ class StudentDashboardViewSet(viewsets.ViewSet):
                 email_subject='New OJT Application Submitted' if is_new else 'Re-applied to OJT Program',
             )
             out_serializer = OJTApplicationSerializer(application)
-            broadcast_dashboard_update('applications')
+            broadcast_dashboard_update('applications', data={'action': 'create', 'item': out_serializer.data})
             return Response(out_serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
@@ -421,7 +421,8 @@ class StudentNarrativeViewSet(viewsets.ModelViewSet):
                 related_object_type='StudentNarrativeReport',
                 email_subject='New Narrative Report Submitted',
             )
-        broadcast_dashboard_update('reports')
+        serializer = self.get_serializer(instance)
+        broadcast_dashboard_update('reports', data={'action': 'create', 'item': serializer.data})
 
     def perform_update(self, serializer):
         if serializer.instance.grade is not None:
@@ -453,7 +454,7 @@ class StudentNarrativeViewSet(viewsets.ModelViewSet):
                     related_object_type='StudentNarrativeReport',
                     email_subject='New Narrative Report Submitted',
                 )
-            broadcast_dashboard_update('reports')
+            broadcast_dashboard_update('reports', data={'action': 'create', 'item': serializer.data})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

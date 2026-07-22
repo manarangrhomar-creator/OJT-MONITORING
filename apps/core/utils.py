@@ -124,16 +124,19 @@ def send_notification_email(recipient, subject, message, title='', site_url=None
     email.send(fail_silently=True)
 
 
-def broadcast_dashboard_update(section=''):
-    """Broadcast a dashboard refresh event to all connected dashboards."""
+def broadcast_dashboard_update(section='', data=None):
+    """Broadcast a dashboard refresh event with full data payload to all connected dashboards."""
     try:
         channel_layer = get_channel_layer()
+        message = {
+            'type': 'dashboard_refresh',
+            'section': section,
+        }
+        if data is not None:
+            message['data'] = data
         async_to_sync(channel_layer.group_send)(
             'dashboard_updates',
-            {
-                'type': 'dashboard_refresh',
-                'section': section,
-            }
+            message
         )
     except Exception:
         pass

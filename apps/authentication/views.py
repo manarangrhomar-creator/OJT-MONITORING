@@ -141,7 +141,7 @@ class AuthenticationViewSet(viewsets.ViewSet):
                     logger = logging.getLogger(__name__)
                     logger.error(f"Failed to create admin notification for new coordinator: {e}")
 
-                broadcast_dashboard_update(section='coordinators')
+                broadcast_dashboard_update('coordinators', data={'action': 'create', 'item': UserSerializer(user).data})
                 return Response({
                     'message': 'Coordinator account created successfully. Please wait for an admin to approve your account before logging in.',
                     'user': UserSerializer(user).data,
@@ -174,7 +174,7 @@ class AuthenticationViewSet(viewsets.ViewSet):
                             related_object=user,
                             related_object_type='student_registration',
                         )
-                    broadcast_dashboard_update(section='students')
+                    broadcast_dashboard_update('students', data={'action': 'create', 'item': UserSerializer(user).data})
                 except Exception as e:
                     import logging
                     logger = logging.getLogger(__name__)

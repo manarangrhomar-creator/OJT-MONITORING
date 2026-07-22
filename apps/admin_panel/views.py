@@ -92,12 +92,11 @@ class AdminDashboardViewSet(viewsets.ViewSet):
                 recipient_name=coordinator_name,
             )
             coordinator.delete()
-            broadcast_dashboard_update(section='coordinators')
+            broadcast_dashboard_update('coordinators', data={'action': 'delete'})
             return Response({"message": "Coordinator rejected and deleted permanently"})
 
-        broadcast_dashboard_update(section='coordinators')
-
         serializer = AdminUserSerializer(coordinator)
+        broadcast_dashboard_update('coordinators', data={'action': 'update', 'item': serializer.data})
         return Response(serializer.data)
     
     @action(detail=False, methods=["get"], url_path="student-approvals")
@@ -128,9 +127,8 @@ class AdminDashboardViewSet(viewsets.ViewSet):
             title="Account Approved",
             recipient_name=student_name,
         )
-        broadcast_dashboard_update(section="students")
-
         serializer = AdminUserSerializer(student)
+        broadcast_dashboard_update('students', data={'action': 'update', 'item': serializer.data})
         return Response(serializer.data)
 
     @action(detail=True, methods=["post"], url_path="reject-student")
@@ -153,9 +151,8 @@ class AdminDashboardViewSet(viewsets.ViewSet):
             message="Your OJT student account has been rejected. Please contact the administrator for further information.",
             recipient_name=student_name,
         )
-        broadcast_dashboard_update(section="students")
-
         serializer = AdminUserSerializer(student)
+        broadcast_dashboard_update('students', data={'action': 'update', 'item': serializer.data})
         return Response(serializer.data)
 
     @action(detail=False, methods=["get"])

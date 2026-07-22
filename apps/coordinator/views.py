@@ -126,7 +126,7 @@ class OJTApplicationViewSet(viewsets.ModelViewSet):
             )
         except Exception:
             pass
-        broadcast_dashboard_update('applications')
+        broadcast_dashboard_update('applications', data={'action': 'update', 'item': OJTApplicationSerializer(application).data})
         return Response({'message': 'Application approved'}, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['post'])
@@ -148,7 +148,7 @@ class OJTApplicationViewSet(viewsets.ModelViewSet):
             )
         except Exception:
             pass
-        broadcast_dashboard_update('applications')
+        broadcast_dashboard_update('applications', data={'action': 'update', 'item': OJTApplicationSerializer(application).data})
         return Response({'message': 'Application rejected'}, status=status.HTTP_200_OK)
 
 
@@ -214,7 +214,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 )
         
         serializer = self.get_serializer(attendance)
-        broadcast_dashboard_update('attendance')
+        broadcast_dashboard_update('attendance', data={'action': 'create', 'item': serializer.data})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'])
@@ -238,7 +238,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             )
 
         serializer = self.get_serializer(attendance)
-        broadcast_dashboard_update('attendance')
+        broadcast_dashboard_update('attendance', data={'action': 'update', 'item': serializer.data})
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
@@ -370,7 +370,7 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
                 supervisor_contact=application.preferred_site.contact_number,
             )
 
-        broadcast_dashboard_update('applications')
+        broadcast_dashboard_update('applications', data={'action': 'update', 'item': OJTApplicationSerializer(application).data})
         return Response({'message': 'Student approved successfully'}, status=status.HTTP_200_OK)
     
     @action(detail=False, methods=['post'], url_path='reject-student')
@@ -384,7 +384,7 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         application.rejection_reason = reason
         application.save()
 
-        broadcast_dashboard_update('applications')
+        broadcast_dashboard_update('applications', data={'action': 'update', 'item': OJTApplicationSerializer(application).data})
         return Response({'message': 'Student rejected'}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['post'], url_path='enroll-student-face')
@@ -575,7 +575,7 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         flag.resolved_by = request.user
         flag.resolved_at = timezone.now()
         flag.save(update_fields=['resolved', 'resolved_by', 'resolved_at'])
-        broadcast_dashboard_update('flags')
+        broadcast_dashboard_update('flags', data={'action': 'update', 'item': FlagRecordSerializer(flag).data})
         return Response({'message': 'Flag resolved'}, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='report/csv')

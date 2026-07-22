@@ -60,7 +60,10 @@ class DashboardConsumer(AsyncWebsocketConsumer):
             await self.channel_layer.group_discard(self.group_name, self.channel_name)
 
     async def dashboard_refresh(self, event):
-        await self.send(text_data=json.dumps({
+        message = {
             'type': 'dashboard_refresh',
             'section': event.get('section', ''),
-        }))
+        }
+        if 'data' in event:
+            message['data'] = event['data']
+        await self.send(text_data=json.dumps(message))

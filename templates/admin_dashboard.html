@@ -2981,21 +2981,15 @@
                 const data = JSON.parse(e.data);
                 if (data.type === 'dashboard_refresh') {
                     const sec = data.section || window.currentSection;
-                    if (sec === 'overview' || sec === 'students' || sec === 'coordinators' || sec === 'all') {
+                    if (sec === 'all') {
                         loadDashboardOverview();
-                    }
-                    if (sec === 'students' || sec === 'coordinators' || sec === 'all') {
                         loadStudents();
                         loadCoordinators();
                         loadCoordinatorApprovals();
                     }
-                    if (sec === 'coordinators') {
-                        loadCoordinators();
-                        loadCoordinatorApprovals();
-                    }
-                    if (sec === 'students') {
-                        loadStudents();
-                    }
+                    if (sec === 'overview') loadDashboardOverview();
+                    if (sec === 'students') loadStudents();
+                    if (sec === 'coordinators') { loadCoordinators(); loadCoordinatorApprovals(); }
                 }
             };
             socket.onclose = function() {
