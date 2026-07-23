@@ -52,10 +52,28 @@ class FacialRecognition(BaseModel):
     face_image = models.BinaryField(blank=True, null=True)
     is_verified = models.BooleanField(default=False)
     verification_date = models.DateTimeField(blank=True, null=True)
-    
+
+    # --- Consent & quality tracking (Step 1 & 6) ---
+    consent_given = models.BooleanField(
+        default=False,
+        help_text="Whether the student explicitly consented to facial data collection"
+    )
+    consent_date = models.DateTimeField(
+        null=True, blank=True,
+        help_text="Timestamp when consent was recorded"
+    )
+    quality_score = models.FloatField(
+        default=0.0,
+        help_text="Composite face image quality score (0-100) at enrollment time"
+    )
+    liveness_confirmed = models.BooleanField(
+        default=False,
+        help_text="Whether a liveness check passed at enrollment time"
+    )
+
     class Meta:
         verbose_name = 'Facial Recognition'
         verbose_name_plural = 'Facial Recognition Records'
-    
+
     def __str__(self):
         return f"{self.student.username} - {'Verified' if self.is_verified else 'Unverified'}"

@@ -471,7 +471,14 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
     def enroll_face(self, request):
         """Enroll facial data for student. Accepts multiple images, averages encodings."""
         import numpy as np
+        from .face_quality import quality_gate, check_liveness
         student = request.user
+
+        # Step 1: Consent enforcement
+        consent = request.data.get('consent_given', 'false')
+        if consent != 'true':
+            return Response({'error': 'Facial recognition consent is required to enroll.'}, status=status.HTTP_400_BAD_REQUEST)
+
         images = request.FILES.getlist('image')
         face_thumbnail = request.FILES.get('face_thumbnail')
 
@@ -479,14 +486,34 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
             return Response({'error': 'At least one image is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         encodings = []
+        best_score = 0
         for facial_image in images:
             image_bytes = facial_image.read()
-            embedding, _ = detect_face(image_bytes)
+
+            # Step 3: Quality gate per image
+            quality = quality_gate(image_bytes)
+            if not quality['passed']:
+                return Response({
+                    'error': f'Image quality too low: {"; ".join(quality["issues"])}',
+                    'quality': quality,
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            embedding, face_img = detect_face(image_bytes)
             if embedding is not None:
                 encodings.append(embedding)
+                best_score = max(best_score, quality['score'])
 
         if not encodings:
             return Response({'error': 'No face detected in any image. Please ensure your face is clearly visible.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Step 4: Liveness check — use the first detected face image
+        face_img = cv2.imdecode(np.frombuffer(images[0].read(), np.uint8), cv2.IMREAD_COLOR)
+        liveness_result = check_liveness(face_img)
+        if not liveness_result['live']:
+            return Response({
+                'error': 'Liveness check failed. Please use a real photo (not a screen or printed image).',
+                'liveness': liveness_result,
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         # Average all face encodings for better accuracy
         avg_encoding = np.mean(encodings, axis=0).astype(np.float32)
@@ -516,7 +543,11 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
                 'facial_encoding': encoded,
                 'face_image': thumb_bytes,
                 'is_verified': True,
-                'verification_date': timezone.now()
+                'verification_date': timezone.now(),
+                'consent_given': True,
+                'consent_date': timezone.now(),
+                'quality_score': best_score,
+                'liveness_confirmed': True,
             }
         )
 
@@ -526,12 +557,17 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
                 facial_data.face_image = thumb_bytes
             facial_data.is_verified = True
             facial_data.verification_date = timezone.now()
+            facial_data.consent_given = True
+            facial_data.consent_date = timezone.now()
+            facial_data.quality_score = best_score
+            facial_data.liveness_confirmed = True
             facial_data.save()
 
         serializer = self.get_serializer(facial_data)
         data = serializer.data
         data['student_name'] = student.get_full_name() or student.username
         data['faces_used'] = len(encodings)
+        data['quality_score'] = best_score
         return Response(data, status=status.HTTP_200_OK if not created else status.HTTP_201_CREATED)
 
     @action(detail=False, methods=['get'], url_path='my-face')
@@ -556,6 +592,7 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['post'])
     def verify_face(self, request):
         """Verify student using facial recognition."""
+        from .face_quality import quality_gate
         student = request.user
         facial_image = request.FILES.get('image')
 
@@ -568,6 +605,15 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
             return Response({'error': 'Facial data not enrolled. Please enroll your face first.'}, status=status.HTTP_404_NOT_FOUND)
 
         image_bytes = facial_image.read()
+
+        # Reject blurry/dark images
+        quality = quality_gate(image_bytes)
+        if not quality['passed']:
+            return Response({
+                'error': f'Image quality too low: {"; ".join(quality["issues"])}',
+                'verified': False,
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         embedding, _ = detect_face(image_bytes)
 
         if embedding is None:

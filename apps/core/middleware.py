@@ -24,6 +24,17 @@ class TokenAuthMiddleware:
         if isinstance(cookies, dict):
             token_key = cookies.get('auth_token')
 
+        # Fallback: query string token (for JS WebSocket when cookie is absent)
+        if not token_key:
+            qs = scope.get('query_string', b'')
+            if isinstance(qs, bytes):
+                try:
+                    qs_decoded = qs.decode('utf-8', errors='replace')
+                    params = dict(p.split('=', 1) for p in qs_decoded.split('&') if '=' in p)
+                    token_key = params.get('token')
+                except Exception:
+                    pass
+
         if token_key:
             scope['user'] = await get_user_from_token(token_key)
         else:

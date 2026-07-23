@@ -113,8 +113,12 @@ class StudentApplySerializer(serializers.Serializer):
 class FacialRecognitionSerializer(serializers.ModelSerializer):
     """Serializer for Facial Recognition."""
     student_name = serializers.CharField(source='student.get_full_name', read_only=True)
-    
+
     class Meta:
         model = FacialRecognition
-        fields = ('id', 'student', 'student_name', 'is_verified', 'verification_date', 'created_at')
+        fields = (
+            'id', 'student', 'student_name', 'is_verified', 'verification_date',
+            'consent_given', 'consent_date', 'quality_score', 'liveness_confirmed',
+            'created_at',
+        )
         read_only_fields = ('id', 'created_at', 'verification_date', 'facial_encoding')

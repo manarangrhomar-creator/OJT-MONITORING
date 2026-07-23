@@ -9,14 +9,23 @@
 const API_BASE_URL = '/api/auth';
 const USER_ROLE_KEY = 'user_role';
 const USER_DATA_KEY = 'user_data';
+const AUTH_TOKEN_KEY = 'auth_token';
 
 /**
  * Store non-sensitive user data in localStorage (token is in httpOnly cookie)
+ * Token is also stored for WebSocket fallback (query param on WS URL)
  */
 function storeAuthToken(token, user) {
-    // Token is set as httpOnly cookie by the server — do NOT store in localStorage
+    localStorage.setItem(AUTH_TOKEN_KEY, token);
     localStorage.setItem(USER_ROLE_KEY, user.role);
     localStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
+}
+
+/**
+ * Get auth token from localStorage (for WebSocket connections)
+ */
+function getAuthToken() {
+    return localStorage.getItem(AUTH_TOKEN_KEY);
 }
 
 /**
@@ -54,6 +63,7 @@ function getUserData() {
  * Clear authentication data from localStorage
  */
 function clearAuthData() {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(USER_ROLE_KEY);
     localStorage.removeItem(USER_DATA_KEY);
 }

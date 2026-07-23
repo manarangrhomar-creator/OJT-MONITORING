@@ -390,6 +390,7 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
     @action(detail=False, methods=['post'], url_path='enroll-student-face')
     def enroll_student_face(self, request):
         """Enroll a student's face during face-to-face approval meeting."""
+        from apps.student.face_quality import quality_gate, check_liveness
         student_id = request.data.get('student_id')
         facial_image = request.FILES.get('image')
 
@@ -408,10 +409,30 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
             return Response({'error': 'Student application not found or not authorized'}, status=status.HTTP_404_NOT_FOUND)
 
         image_bytes = facial_image.read()
+
+        # Quality gate
+        quality = quality_gate(image_bytes)
+        if not quality['passed']:
+            return Response({
+                'error': f'Image quality too low: {"; ".join(quality["issues"])}',
+                'quality': quality,
+            }, status=status.HTTP_400_BAD_REQUEST)
+
         face_roi, coords = detect_face(image_bytes)
 
         if face_roi is None:
             return Response({'error': 'No face detected in the image. Please ensure the student\'s face is clearly visible.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Liveness check
+        import cv2
+        import numpy as np
+        face_img = cv2.imdecode(np.frombuffer(image_bytes, np.uint8), cv2.IMREAD_COLOR)
+        liveness_result = check_liveness(face_img)
+        if not liveness_result['live']:
+            return Response({
+                'error': 'Liveness check failed. Please capture a real photo (not a screen or printed image).',
+                'liveness': liveness_result,
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         encoding = encode_face(face_roi)
 
@@ -420,7 +441,9 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
             defaults={
                 'facial_encoding': encoding,
                 'is_verified': True,
-                'verification_date': timezone.now()
+                'verification_date': timezone.now(),
+                'quality_score': quality['score'],
+                'liveness_confirmed': True,
             }
         )
 
@@ -428,12 +451,16 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
             facial_data.facial_encoding = encoding
             facial_data.is_verified = True
             facial_data.verification_date = timezone.now()
+            facial_data.quality_score = quality['score']
+            facial_data.liveness_confirmed = True
             facial_data.save()
 
         return Response({
             'message': 'Face enrolled successfully',
             'student_name': application.student.get_full_name() or application.student.username,
-            'verified': True
+            'verified': True,
+            'quality_score': quality['score'],
+            'liveness_confirmed': True,
         }, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='attendance-records')

@@ -13,6 +13,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@0.344.0"></script>
+    <script src="{% static 'js/auth.js' %}"></script>
     <!-- Leaflet removed — table-based site view -->
     <style>
       :root {
@@ -960,6 +961,10 @@
     <div class="modal-header"><h2>Enroll Student Face</h2><button class="close-btn" onclick="closeEnrollFaceModal()">&times;</button></div>
     <div class="space-y-4">
       <p class="text-xs" style="color: var(--fg-muted);">Capture the student's face during the face-to-face approval meeting.</p>
+      <p class="text-[0.65rem] text-amber-600 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 flex items-center gap-1.5">
+        <i data-lucide="eye" class="w-3 h-3"></i>
+        Ensure good lighting and remove glasses/hat. The system checks image quality and liveness automatically.
+      </p>
       <div class="flex items-center gap-3 pb-3 border-b" style="border-color: var(--card-border);">
         <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style="background: rgba(17,105,58,0.1); color: var(--primary);" id="enrollFaceInitial">?</div>
         <div>
@@ -1017,6 +1022,7 @@
       credentials: 'same-origin',
       headers: { ...(options?.headers || {}) }
     });
+    if (res.status === 401) { window.location.href = '/login/'; throw new Error('Unauthorized'); }
     if (!res.ok) throw new Error(`API error: ${res.status}`);
     return res.json();
   }
@@ -1048,6 +1054,7 @@
 
   function confirmLogout() {
     closeModal('confirmLogoutModal');
+    if (typeof clearAuthData === 'function') clearAuthData();
     window.location.href = '/auth/logout/';
   }
 
@@ -1154,7 +1161,15 @@
         stopEnrollCamera();
         closeModal('enrollFaceModal');
         closeModal('approveAppModal');
-        showAlert('Face enrolled and application approved!', 'success');
+        let qualityNote = '';
+        if (data.quality_score !== undefined && data.quality_score !== null) {
+          const qs = Number(data.quality_score);
+          qualityNote += `\nImage quality: ${qs >= 80 ? 'Excellent' : qs >= 60 ? 'Good' : 'Acceptable'} (${qs}/100)`;
+        }
+        if (data.liveness_confirmed) {
+          qualityNote += `\nLiveness check: Passed`;
+        }
+        showAlert('Face enrolled and application approved!' + qualityNote, 'success');
         loadApplications();
         loadOverview();
       } else {
@@ -2186,7 +2201,8 @@
     if (coordNotifRetries >= MAX_COORD_WS_RETRIES) return;
     coordNotifRetries++;
     const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const url = `${proto}//${window.location.host}/ws/notifications/`;
+    const token = getAuthToken();
+    const url = `${proto}//${window.location.host}/ws/notifications/` + (token ? '?token=' + encodeURIComponent(token) : '');
     notifSocket = new WebSocket(url);
     notifSocket.onopen = function() { coordNotifRetries = 0; };
     notifSocket.onmessage = function(e) {
@@ -2211,7 +2227,8 @@
     if (coordDashRetries >= MAX_COORD_WS_RETRIES) return;
     coordDashRetries++;
     const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const wsUrl = `${proto}//${window.location.host}/ws/dashboard/`;
+    const token = getAuthToken();
+    const wsUrl = `${proto}//${window.location.host}/ws/dashboard/` + (token ? '?token=' + encodeURIComponent(token) : '');
     dashboardSocket = new WebSocket(wsUrl);
     dashboardSocket.onopen = function() { coordDashRetries = 0; };
     dashboardSocket.onmessage = function(e) {

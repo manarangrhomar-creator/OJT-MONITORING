@@ -216,6 +216,7 @@
       .pill-nav-scroll::-webkit-scrollbar { display: none; }
       .pill-nav-scroll .pill-btn { white-space: nowrap; flex-shrink: 0; }
     </style>
+    <script src="{% static 'js/auth.js' %}"></script>
 </head>
 <body class="min-h-screen">
 
@@ -2701,6 +2702,7 @@
         // ===== LOGOUT =====
         function confirmLogout() {
             closeModal('confirmLogoutModal');
+            if (typeof clearAuthData === 'function') clearAuthData();
             window.location.href = "/auth/logout/";
         }
 
@@ -2848,7 +2850,8 @@
             if (notifRetries >= MAX_WS_RETRIES) return;
             notifRetries++;
             const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const url = `${proto}//${window.location.host}/ws/notifications/`;
+            const token = getAuthToken();
+            const url = `${proto}//${window.location.host}/ws/notifications/` + (token ? '?token=' + encodeURIComponent(token) : '');
             notifSocket = new WebSocket(url);
 
             notifSocket.onopen = function() {
@@ -2972,7 +2975,8 @@
             if (dashboardRetries >= MAX_WS_RETRIES) return;
             dashboardRetries++;
             const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-            const wsUrl = `${proto}//${window.location.host}/ws/dashboard/`;
+            const token = getAuthToken();
+            const wsUrl = `${proto}//${window.location.host}/ws/dashboard/` + (token ? '?token=' + encodeURIComponent(token) : '');
             const socket = new WebSocket(wsUrl);
             socket.onopen = function() {
                 dashboardRetries = 0;
