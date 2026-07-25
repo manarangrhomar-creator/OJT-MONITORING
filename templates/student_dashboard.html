@@ -2000,12 +2000,12 @@
         loadAttendanceHistory();
       } else {
         Swal.fire({ icon: 'error', title: 'Error', text: data.error || 'Verification failed', confirmButtonColor: '#11693A' });
-        attVerifyBtn.disabled = false;
+        await checkAttTodayStatus();
         lucide.createIcons();
       }
     } catch (err) {
       Swal.fire({ icon: 'error', title: 'Connection Error', text: 'Could not connect to server', confirmButtonColor: '#11693A' });
-      attVerifyBtn.disabled = false;
+      await checkAttTodayStatus();
       lucide.createIcons();
     }
   });

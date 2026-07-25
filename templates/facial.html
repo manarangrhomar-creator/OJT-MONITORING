@@ -519,15 +519,15 @@ aside > div{
                 await checkTodayStatus();
             } else if (response.status === 404) {
                 setStatus(data.error || 'Facial data not enrolled', 'warning');
+                await checkTodayStatus();
             } else if (data.error) {
                 setStatus(data.error, 'error');
+                await checkTodayStatus();
             }
         } catch (err) {
             console.error('Action error:', err);
             setStatus('Connection Error', 'error');
-        } finally {
-            actionBtn.disabled = false;
-            lucide.createIcons();
+            await checkTodayStatus();
         }
     });
 
