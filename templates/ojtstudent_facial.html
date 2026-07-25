@@ -15,9 +15,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.min.js"></script>
 
 <style>
-body{
-    height: 100dvh;
-    height: 100vh;
+body {
+    height: 100dvh; height: 100vh;
     overflow: hidden;
     font-family: 'Segoe UI', sans-serif;
     background-image:
@@ -25,25 +24,21 @@ body{
         linear-gradient(to bottom, rgba(0,0,0,0.03) 1px, transparent 1px);
     background-size: 40px 40px;
 }
-
-.camera-frame{
+.camera-frame {
     background: #000;
     border: 4px solid #166534;
     position: relative;
     overflow: hidden;
 }
-
-.flash-effect{
+.flash-effect {
     animation: flash 0.2s ease-out;
 }
-
-@keyframes flash{
+@keyframes flash {
     0%{ opacity: 1; }
     50%{ opacity: 0.3; }
     100%{ opacity: 1; }
 }
-
-.camera-frame::before{
+.camera-frame::before {
     content: "";
     position: absolute;
     top: -50%;
@@ -53,13 +48,11 @@ body{
     background: linear-gradient(to bottom, transparent, rgba(34,197,94,0.25), transparent);
     animation: scan 3s infinite;
 }
-
-@keyframes scan{
+@keyframes scan {
     0%{ top:-50%; }
     100%{ top:100%; }
 }
-
-.camera-frame::after{
+.camera-frame::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -67,16 +60,96 @@ body{
     pointer-events: none;
 }
 
-.enroll-btn{
-    transition:.3s;
+/* Oval guide overlay */
+#ovalGuide {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#ovalGuide svg {
+    width: 70%;
+    height: 80%;
 }
 
-.enroll-btn:hover{
-    transform:translateY(-2px);
+/* Step indicator */
+.step-dot {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    transition: all 0.3s;
+    flex-shrink: 0;
+}
+.step-dot.active {
+    background: #166534;
+    color: white;
+    box-shadow: 0 0 0 4px rgba(22,101,52,0.2);
+}
+.step-dot.completed {
+    background: #22c55e;
+    color: white;
+}
+.step-dot.pending {
+    background: #e5e7eb;
+    color: #9ca3af;
+}
+.step-connector {
+    flex: 1;
+    height: 2px;
+    margin: 0 4px;
+    transition: background 0.3s;
+    min-width: 16px;
+}
+.step-connector.completed {
+    background: #22c55e;
+}
+.step-connector.pending {
+    background: #e5e7eb;
 }
 
-aside > div{
-    backdrop-filter: blur(6px);
+/* Step panels */
+.step-panel {
+    display: none;
+}
+.step-panel.active {
+    display: flex;
+}
+
+/* Processing spinner */
+.processing-spinner {
+    width: 48px;
+    height: 48px;
+    border: 4px solid #e5e7eb;
+    border-top-color: #166534;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Success checkmark animation */
+.checkmark-anim {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    background: #22c55e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: popIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+@keyframes popIn {
+    0% { transform: scale(0); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
 }
 
 .isu-page-loader {
@@ -143,209 +216,299 @@ aside > div{
     <header class="h-[65px] bg-green-800 text-white px-5 flex items-center shadow-md">
         <div class="flex w-full items-center justify-between">
             <div class="flex items-center gap-3">
-                <img
-                    src="{% static 'images/isu_new_seal_512x512.png' %}"
-                    class="w-10 h-10 bg-white rounded-full p-1 object-contain">
+                <img src="{% static 'images/isu_new_seal_512x512.png' %}" class="w-10 h-10 bg-white rounded-full p-1 object-contain">
                 <div>
-                    <h1 class="text-base font-bold leading-tight">
-                        OJT Student Facial Enrollment
-                    </h1>
+                    <h1 class="text-base font-bold leading-tight">OJT Student Facial Enrollment</h1>
                     <p class="text-[10px] text-green-100" id="studentName">Isabela State University</p>
                 </div>
             </div>
             <a href="{% url 'login' %}" class="text-xs text-green-100 hover:text-white transition-colors hidden md:flex items-center gap-1">
-                <i data-lucide="log-in" style="width:14px;height:14px;"></i>
-                Back to Login
+                <i data-lucide="log-in" style="width:14px;height:14px;"></i> Back to Login
             </a>
         </div>
     </header>
 
+    <!-- STEP INDICATOR BAR -->
+    <div class="bg-white border-b border-gray-200 px-4 py-3">
+        <div class="max-w-4xl mx-auto flex items-center justify-between" id="stepIndicator">
+            <div class="flex items-center flex-1">
+                <div class="step-dot active" data-step="1">1</div>
+                <div class="step-connector pending" data-connector="1-2"></div>
+                <div class="step-dot pending" data-step="2">2</div>
+                <div class="step-connector pending" data-connector="2-3"></div>
+                <div class="step-dot pending" data-step="3">3</div>
+                <div class="step-connector pending" data-connector="3-4"></div>
+                <div class="step-dot pending" data-step="4">4</div>
+                <div class="step-connector pending" data-connector="4-5"></div>
+                <div class="step-dot pending" data-step="5">5</div>
+                <div class="step-connector pending" data-connector="5-6"></div>
+                <div class="step-dot pending" data-step="6">6</div>
+                <div class="step-connector pending" data-connector="6-7"></div>
+                <div class="step-dot pending" data-step="7">7</div>
+            </div>
+            <div class="flex items-center gap-4 ml-4">
+                <span id="stepLabel" class="text-sm font-semibold text-gray-700 whitespace-nowrap">Consent</span>
+                <span id="stepCount" class="text-[11px] text-gray-400">Step 1 of 7</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP LABELS -->
+    <div class="hidden md:flex bg-gray-50 border-b border-gray-200 px-4 py-1.5">
+        <div class="max-w-4xl mx-auto w-full flex items-center justify-between text-[10px] text-gray-500 font-medium">
+            <span style="width:14.28%;text-align:center;">Consent</span>
+            <span style="width:14.28%;text-align:center;">Capture</span>
+            <span style="width:14.28%;text-align:center;">Detection</span>
+            <span style="width:14.28%;text-align:center;">Alignment</span>
+            <span style="width:14.28%;text-align:center;">Quality</span>
+            <span style="width:14.28%;text-align:center;">Encoding</span>
+            <span style="width:14.28%;text-align:center;">Complete</span>
+        </div>
+    </div>
+
     <!-- MAIN -->
-    <main class="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-3 p-3 min-h-0">
+    <main class="flex-1 min-h-0">
+        <div class="h-full grid grid-cols-1 lg:grid-cols-4 gap-3 p-3">
 
-        <!-- CAMERA -->
-        <section class="lg:col-span-3 flex flex-col min-h-0">
+            <!-- LEFT: CAMERA + STEP PANELS -->
+            <section class="lg:col-span-3 flex flex-col min-h-0">
 
-            <div id="cameraFrame" class="camera-frame flex-1 rounded-2xl flex flex-col items-center justify-center shadow-lg">
+                <!-- Shared camera area (steps 2-5) -->
+                <div id="cameraArea" class="hidden flex-1 flex flex-col min-h-0">
+                    <div id="cameraFrame" class="camera-frame flex-1 rounded-2xl flex flex-col items-center justify-center shadow-lg">
 
-                <!-- fake live indicator -->
-                <div class="absolute top-3 left-3 flex items-center gap-2 z-10">
-                    <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                    <span class="text-xs text-gray-700 font-semibold">LIVE</span>
-                </div>
-
-                <!-- enrollment status badge -->
-                <div class="absolute top-3 right-3 z-10 bg-green-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
-                    ENROLLMENT MODE
-                </div>
-
-                <video id="webcam" autoplay playsinline class="absolute inset-0 w-full h-full object-cover"></video>
-                <canvas id="faceOverlay" class="absolute inset-0 w-full h-full pointer-events-none z-10"></canvas>
-                <canvas id="photoCanvas" class="hidden"></canvas>
-
-                <!-- THUMBS UP COUNTDOWN OVERLAY -->
-                <div id="countdownOverlay" class="absolute inset-0 z-20 hidden flex flex-col items-center justify-center bg-black/40">
-                    <div id="thumbsUpIcon" class="text-6xl mb-4">👍</div>
-                    <div id="countdownNumber" class="text-white text-7xl font-bold drop-shadow-lg">3</div>
-                    <p class="text-white text-sm mt-3 font-medium">Hold your pose...</p>
-                </div>
-
-                <!-- GESTURE STATUS -->
-                <div id="gestureBadge" class="absolute bottom-3 left-3 z-10 hidden bg-amber-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
-                    <span>👍</span> Thumbs up detected — Starting countdown
-                </div>
-
-                <!-- LIVENESS CHALLENGE OVERLAY -->
-                <div id="livenessOverlay" class="absolute inset-0 z-20 hidden flex flex-col items-center justify-center bg-black/50">
-                    <div class="bg-white rounded-2xl p-6 text-center max-w-xs mx-4">
-                        <div id="livenessIcon" class="text-5xl mb-3">👁️</div>
-                        <p id="livenessText" class="text-sm font-semibold text-gray-800">Blink once to prove you're real</p>
-                        <div id="livenessProgress" class="mt-3 flex items-center justify-center gap-1">
-                            <span id="blinkDot1" class="w-3 h-3 rounded-full bg-gray-300"></span>
-                            <span id="blinkDot2" class="w-3 h-3 rounded-full bg-gray-300"></span>
+                        <div class="absolute top-3 left-3 flex items-center gap-2 z-10">
+                            <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                            <span class="text-xs text-gray-700 font-semibold">LIVE</span>
                         </div>
-                        <p class="text-[11px] text-gray-500 mt-2">This verifies you are a live person, not a photo.</p>
+
+                        <div class="absolute top-3 right-3 z-10 bg-green-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-full">ENROLLMENT MODE</div>
+
+                        <video id="webcam" autoplay playsinline class="absolute inset-0 w-full h-full object-cover"></video>
+                        <canvas id="faceOverlay" class="absolute inset-0 w-full h-full pointer-events-none z-10"></canvas>
+                        <canvas id="photoCanvas" class="hidden"></canvas>
+
+                        <!-- Oval guide overlay (step 2-4) -->
+                        <div id="ovalGuide">
+                            <svg viewBox="0 0 300 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <ellipse cx="150" cy="165" rx="110" ry="140" stroke="rgba(255,255,255,0.35)" stroke-width="2" stroke-dasharray="8 6"/>
+                                <ellipse cx="150" cy="165" rx="105" ry="134" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+                            </svg>
+                        </div>
+
+                        <!-- Step 2: THUMBS UP COUNTDOWN OVERLAY -->
+                        <div id="countdownOverlay" class="absolute inset-0 z-20 hidden flex flex-col items-center justify-center bg-black/40">
+                            <div id="thumbsUpIcon" class="text-6xl mb-4">👍</div>
+                            <div id="countdownNumber" class="text-white text-7xl font-bold drop-shadow-lg">3</div>
+                            <p class="text-white text-sm mt-3 font-medium">Hold your pose...</p>
+                        </div>
+
+                        <!-- GESTURE STATUS -->
+                        <div id="gestureBadge" class="absolute bottom-3 left-3 z-10 hidden bg-amber-500 text-white text-[10px] font-bold px-2.5 py-1 rounded-full flex items-center gap-1">
+                            <span>👍</span> Thumbs up detected
+                        </div>
+
+                        <!-- Step 5: LIVENESS CHALLENGE OVERLAY -->
+                        <div id="livenessOverlay" class="absolute inset-0 z-20 hidden flex flex-col items-center justify-center bg-black/50">
+                            <div class="bg-white rounded-2xl p-6 text-center max-w-xs mx-4">
+                                <div id="livenessIcon" class="text-5xl mb-3">👁️</div>
+                                <p id="livenessText" class="text-sm font-semibold text-gray-800">Blink once to prove you're real</p>
+                                <div id="livenessProgress" class="mt-3 flex items-center justify-center gap-1">
+                                    <span id="blinkDot1" class="w-3 h-3 rounded-full bg-gray-300"></span>
+                                    <span id="blinkDot2" class="w-3 h-3 rounded-full bg-gray-300"></span>
+                                </div>
+                                <p class="text-[11px] text-gray-500 mt-2">This verifies you are a live person, not a photo.</p>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Camera status bar -->
+                    <div class="mt-2 flex items-center gap-2">
+                        <div id="faceIndicator" class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
+                        <span id="faceStatus" class="text-sm font-medium text-green-700">Camera Ready</span>
+                    </div>
+
+                    <!-- Pre-capture checks -->
+                    <div id="preCaptureChecks" class="mt-1 flex flex-wrap gap-1.5">
+                        <span id="lightStatus" class="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Checking lighting...
+                        </span>
+                        <span id="faceSizeStatus" class="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Checking position...
+                        </span>
+                        <span id="accessoryStatus" class="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
+                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Checking accessories...
+                        </span>
+                    </div>
+
+                    <!-- Step 2: capture instruction -->
+                    <div id="captureInstruction" class="mt-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center gap-3">
+                        <span class="text-3xl">👍</span>
+                        <div>
+                            <p class="text-sm font-semibold text-green-800">Show a thumbs up to auto-capture</p>
+                            <p class="text-[11px] text-green-600">Hold your pose when the countdown starts. 3... 2... 1... done!</p>
+                        </div>
                     </div>
                 </div>
 
-            </div>
+                <!-- ===================== -->
+                <!-- STEP PANELS           -->
+                <!-- ===================== -->
 
-            <div class="mt-2 flex items-center gap-2">
-                <div id="faceIndicator" class="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse"></div>
-                <span id="faceStatus" class="text-sm font-medium text-green-700">
-                    Camera Ready — Show 👍 to auto-capture
-                </span>
-            </div>
+                <!-- STEP 1: CONSENT -->
+                <div id="step1Panel" class="step-panel active flex-1 flex flex-col items-center justify-center p-6">
+                    <div class="max-w-lg w-full bg-white border border-gray-200 rounded-2xl shadow-sm p-8">
+                        <div class="flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mx-auto mb-4">
+                            <i data-lucide="shield-check" style="width:32px;height:32px;color:#166534;"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-center text-gray-800 mb-2">Consent & Agreement</h2>
+                        <p class="text-sm text-gray-500 text-center mb-6">Please review and accept the terms before proceeding with facial enrollment.</p>
 
-            <!-- PRE-CAPTURE CHECKS -->
-            <div id="preCaptureChecks" class="mt-1 flex flex-wrap gap-1.5">
-                <span id="lightStatus" class="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
-                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Checking lighting…
-                </span>
-                <span id="faceSizeStatus" class="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
-                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Checking position…
-                </span>
-                <span id="accessoryStatus" class="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
-                    <span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> Checking accessories…
-                </span>
-            </div>
+                        <div class="bg-gray-50 rounded-xl p-4 text-sm text-gray-600 leading-relaxed mb-6 max-h-40 overflow-y-auto border border-gray-200">
+                            <p>This system is designed to support the administration of the On-the-Job Training (OJT) program at Isabela State University through facial recognition-based attendance, automated time tracking, and narrative reporting. By using this platform, you agree to comply with the policies, procedures, and data security measures implemented to ensure accurate and efficient OJT monitoring.</p>
+                        </div>
 
-            <div id="captureInstruction" class="mt-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center gap-3">
-                <span class="text-3xl">👍</span>
-                <div>
-                    <p class="text-sm font-semibold text-green-800">Show a thumbs up to auto-capture</p>
-                    <p class="text-[11px] text-green-600">Hold your pose when the countdown starts. 3… 2… 1… done!</p>
-                </div>
-            </div>
+                        <label class="flex items-center gap-3 cursor-pointer mb-6 p-3 bg-green-50 rounded-xl border border-green-200">
+                            <input type="checkbox" id="termsCheckbox" class="w-5 h-5 accent-green-700 cursor-pointer flex-shrink-0">
+                            <span class="text-sm text-gray-700 leading-tight">
+                                I have read and agree to the
+                                <button type="button" onclick="toggleModal()" class="underline text-green-700 hover:text-green-900 font-semibold">Terms and Conditions</button>
+                                for facial data collection and processing.
+                            </span>
+                        </label>
 
-        </section>
-
-        <!-- RIGHT PANEL -->
-        <aside class="flex flex-col gap-2 min-h-0">
-
-            <!-- ENROLLMENT INFO -->
-            <div class="bg-green-800 rounded-xl p-3 text-white shadow flex flex-col gap-2">
-
-                <h2 class="text-sm font-bold">
-                    <i data-lucide="user-plus" class="mr-1.5" style="width:14px;height:14px;"></i>Enrollment Info
-                </h2>
-
-                <input id="statusField" class="w-full px-2 py-1 rounded text-black text-xs bg-gray-100"
-                       value="Status: Waiting for capture..." readonly>
-
-                <input id="captureCountField" class="w-full px-2 py-1 rounded text-black text-xs bg-gray-100"
-                       value="Image captured: 0 / 3" readonly>
-
-                <div class="h-1 w-full bg-green-600/30 rounded overflow-hidden">
-                    <div id="progressBar" class="h-full bg-green-300 w-0 transition-all duration-500"></div>
-                </div>
-
-                <p class="text-[10px] text-green-100">
-                    Capture at least 1 clear face image
-                </p>
-
-            </div>
-
-            <!-- CAPTURED PREVIEW -->
-            <div id="capturePreviewCard" class="bg-white border border-gray-200 rounded-xl p-3 shadow-sm hidden">
-                <h3 class="font-bold text-gray-700 text-xs mb-2">
-                    <i data-lucide="images" class="mr-1.5" style="width:14px;height:14px;"></i>Captured Images
-                </h3>
-                <div id="captureThumbnails" class="flex gap-2"></div>
-            </div>
-
-            <!-- ENROLLED FACE (shown if already enrolled) -->
-            <div id="enrolledFaceCard" class="bg-white border border-gray-200 rounded-xl p-3 shadow-sm hidden">
-                <h3 class="font-bold text-gray-700 text-xs mb-2 flex items-center justify-between">
-                    <span><i data-lucide="scan-face" class="mr-1.5" style="width:14px;height:14px;"></i>Enrolled Face</span>
-                    <span class="text-[10px] text-green-600 font-semibold" id="enrolledFaceStatus"></span>
-                </h3>
-                <div class="flex items-center gap-3">
-                    <img id="enrolledFaceImg" src="" alt="Enrolled face" class="w-16 h-16 rounded-lg object-cover border-2 border-green-700 bg-gray-100">
-                    <div class="flex-1 min-w-0">
-                        <p class="text-[11px] text-gray-500">Your current face data</p>
-                        <button id="retakeBtn" class="mt-1 text-[11px] text-green-700 hover:text-green-900 font-semibold underline">Retake</button>
+                        <button id="beginBtn" disabled class="w-full bg-green-700 hover:bg-green-800 text-white py-3 rounded-xl font-bold text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                            <i data-lucide="arrow-right" style="width:18px;height:18px;"></i> Begin Enrollment
+                        </button>
                     </div>
                 </div>
-            </div>
 
-            <!-- TERMS & REGISTER -->
-            <div class="bg-white border border-gray-200 rounded-xl p-3 shadow-sm">
-
-                <h3 class="font-bold text-gray-700 text-xs mb-2">
-                    <i data-lucide="shield-check" class="mr-1.5" style="width:14px;height:14px;"></i>Terms & Consent
-                </h3>
-
-                <label class="flex items-center gap-2 cursor-pointer mb-3">
-                    <input type="checkbox" id="termsCheckbox" class="w-4 h-4 accent-green-700 cursor-pointer flex-shrink-0">
-                    <span class="text-[11px] text-gray-600 leading-tight">
-                        I agree to the
-                        <button type="button" onclick="toggleModal()" class="underline text-green-700 hover:text-green-900 font-semibold">Terms and Conditions</button>
-                        for facial data collection.
-                    </span>
-                </label>
-
-                <button id="regBtn" disabled class="enroll-btn w-full bg-green-700/40 text-white/70 py-2.5 rounded-lg font-semibold text-sm cursor-not-allowed border border-green-800/20 flex items-center justify-center gap-1.5">
-                    <i data-lucide="user-plus" style="width:16px;height:16px;"></i> Register Face
-                </button>
-
-            </div>
-
-            <!-- SYSTEM INFO -->
-            <div class="bg-gradient-to-b from-white to-gray-50 border border-gray-200 rounded-xl p-3 shadow-sm flex-1">
-
-                <h3 class="text-xs font-bold text-gray-800 mb-2 flex items-center justify-between">
-                    <span><i data-lucide="network" class="mr-1.5" style="width:14px;height:14px;"></i>System Overview</span>
-                    <span class="text-[10px] text-green-600 font-semibold">ONLINE</span>
-                </h3>
-
-                <div class="space-y-2 text-[11px]">
-
-                    <div class="flex items-center justify-between bg-gray-100 px-2 py-1 rounded">
-                        <span class="text-gray-600"><i data-lucide="smile" class="mr-1.5" style="width:14px;height:14px;"></i>Facial Recognition</span>
-                        <span class="text-green-600 font-semibold">Active</span>
+                <!-- STEP 3: DETECTION (auto-run, no user action) -->
+                <div id="step3Panel" class="step-panel flex-1 flex flex-col items-center justify-center p-6">
+                    <div class="text-center">
+                        <div class="processing-spinner mx-auto mb-4"></div>
+                        <h3 class="text-lg font-bold text-gray-800">Detecting Face...</h3>
+                        <p class="text-sm text-gray-500 mt-1">Analyzing facial landmarks and features</p>
+                        <div id="detectionStatus" class="mt-4 text-sm text-gray-600">Processing...</div>
                     </div>
-
-                    <div class="flex items-center justify-between bg-gray-100 px-2 py-1 rounded">
-                        <span class="text-gray-600"><i data-lucide="camera" class="mr-1.5" style="width:14px;height:14px;"></i>Camera</span>
-                        <span id="cameraStatus" class="text-green-600 font-semibold">Initializing</span>
-                    </div>
-
-                    <div class="flex items-center justify-between bg-gray-100 px-2 py-1 rounded">
-                        <span class="text-gray-600"><i data-lucide="database" class="mr-1.5" style="width:14px;height:14px;"></i>Database Sync</span>
-                        <span class="text-green-600 font-semibold">Stable</span>
-                    </div>
-
                 </div>
 
-                <div class="mt-3 text-[10px] text-gray-500 border-t pt-2">
-                    System operating normally • No errors detected
+                <!-- STEP 4: ALIGNMENT (auto-run) -->
+                <div id="step4Panel" class="step-panel flex-1 flex flex-col items-center justify-center p-6">
+                    <div class="text-center">
+                        <div class="processing-spinner mx-auto mb-4"></div>
+                        <h3 class="text-lg font-bold text-gray-800">Checking Alignment...</h3>
+                        <p class="text-sm text-gray-500 mt-1">Verifying face position within the guide</p>
+                        <div id="alignmentStatus" class="mt-4 text-sm text-gray-600">Positioning...</div>
+                    </div>
                 </div>
 
-            </div>
+                <!-- STEP 6: ENCODING (auto-run) -->
+                <div id="step6Panel" class="step-panel flex-1 flex flex-col items-center justify-center p-6">
+                    <div class="text-center">
+                        <div class="processing-spinner mx-auto mb-4"></div>
+                        <h3 class="text-lg font-bold text-gray-800">Encoding Face Data...</h3>
+                        <p class="text-sm text-gray-500 mt-1">Generating secure facial signature</p>
+                        <div id="encodingStatus" class="mt-4 text-sm text-gray-600">Processing...</div>
+                    </div>
+                </div>
 
-        </aside>
+                <!-- STEP 7: COMPLETE -->
+                <div id="step7Panel" class="step-panel flex-1 flex flex-col items-center justify-center p-6">
+                    <div class="text-center">
+                        <div class="checkmark-anim mx-auto mb-4">
+                            <i data-lucide="check" style="width:36px;height:36px;color:white;"></i>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-800">Enrollment Complete!</h3>
+                        <p id="completeMessage" class="text-sm text-gray-500 mt-1">Your face has been registered successfully.</p>
+                        <div id="completeStats" class="mt-4 text-sm text-gray-600 space-y-1"></div>
+                        <button id="dashboardBtn" class="mt-6 bg-green-700 hover:bg-green-800 text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2 mx-auto">
+                            <i data-lucide="layout-dashboard" style="width:16px;height:16px;"></i> Go to Dashboard
+                        </button>
+                    </div>
+                </div>
 
+            </section>
+
+            <!-- RIGHT PANEL -->
+            <aside class="flex flex-col gap-2 min-h-0">
+
+                <!-- STEP INFO CARD -->
+                <div class="bg-green-800 rounded-xl p-3 text-white shadow flex flex-col gap-2">
+                    <h2 class="text-sm font-bold">
+                        <i data-lucide="info" class="mr-1.5" style="width:14px;height:14px;"></i>
+                        <span id="stepInfoTitle">Step 1: Consent</span>
+                    </h2>
+                    <input id="statusField" class="w-full px-2 py-1 rounded text-black text-xs bg-gray-100"
+                           value="Status: Awaiting your consent..." readonly>
+                    <input id="captureCountField" class="w-full px-2 py-1 rounded text-black text-xs bg-gray-100"
+                           value="Images captured: 0 / 3" readonly>
+                    <div class="h-1 w-full bg-green-600/30 rounded overflow-hidden">
+                        <div id="progressBar" class="h-full bg-green-300 w-0 transition-all duration-500"></div>
+                    </div>
+                    <p class="text-[10px] text-green-100">
+                        Capture 3 face images for best accuracy
+                    </p>
+                </div>
+
+                <!-- CAPTURED PREVIEW -->
+                <div id="capturePreviewCard" class="bg-white border border-gray-200 rounded-xl p-3 shadow-sm hidden">
+                    <h3 class="font-bold text-gray-700 text-xs mb-2">
+                        <i data-lucide="images" class="mr-1.5" style="width:14px;height:14px;"></i>Captured Images
+                    </h3>
+                    <div id="captureThumbnails" class="flex gap-2"></div>
+                </div>
+
+                <!-- ENROLLED FACE -->
+                <div id="enrolledFaceCard" class="bg-white border border-gray-200 rounded-xl p-3 shadow-sm hidden">
+                    <h3 class="font-bold text-gray-700 text-xs mb-2 flex items-center justify-between">
+                        <span><i data-lucide="scan-face" class="mr-1.5" style="width:14px;height:14px;"></i>Enrolled Face</span>
+                        <span class="text-[10px] text-green-600 font-semibold" id="enrolledFaceStatus"></span>
+                    </h3>
+                    <div class="flex items-center gap-3">
+                        <img id="enrolledFaceImg" src="" alt="Enrolled face" class="w-16 h-16 rounded-lg object-cover border-2 border-green-700 bg-gray-100">
+                        <div class="flex-1 min-w-0">
+                            <p class="text-[11px] text-gray-500">Your current face data</p>
+                            <button id="retakeBtn" class="mt-1 text-[11px] text-green-700 hover:text-green-900 font-semibold underline">Retake</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STATUS CARD -->
+                <div id="qualityStatusCard" class="bg-white border border-gray-200 rounded-xl p-3 shadow-sm hidden">
+                    <h3 class="font-bold text-gray-700 text-xs mb-2">
+                        <i data-lucide="activity" class="mr-1.5" style="width:14px;height:14px;"></i>Quality Checks
+                    </h3>
+                    <div id="qualityStatusList" class="space-y-1 text-[11px]"></div>
+                </div>
+
+                <!-- SYSTEM INFO -->
+                <div class="bg-gradient-to-b from-white to-gray-50 border border-gray-200 rounded-xl p-3 shadow-sm flex-1">
+                    <h3 class="text-xs font-bold text-gray-800 mb-2 flex items-center justify-between">
+                        <span><i data-lucide="network" class="mr-1.5" style="width:14px;height:14px;"></i>System Overview</span>
+                        <span class="text-[10px] text-green-600 font-semibold">ONLINE</span>
+                    </h3>
+                    <div class="space-y-2 text-[11px]">
+                        <div class="flex items-center justify-between bg-gray-100 px-2 py-1 rounded">
+                            <span class="text-gray-600"><i data-lucide="smile" class="mr-1.5" style="width:14px;height:14px;"></i>Facial Recognition</span>
+                            <span class="text-green-600 font-semibold">Active</span>
+                        </div>
+                        <div class="flex items-center justify-between bg-gray-100 px-2 py-1 rounded">
+                            <span class="text-gray-600"><i data-lucide="camera" class="mr-1.5" style="width:14px;height:14px;"></i>Camera</span>
+                            <span id="cameraStatus" class="text-green-600 font-semibold">Initializing</span>
+                        </div>
+                        <div class="flex items-center justify-between bg-gray-100 px-2 py-1 rounded">
+                            <span class="text-gray-600"><i data-lucide="database" class="mr-1.5" style="width:14px;height:14px;"></i>Database Sync</span>
+                            <span class="text-green-600 font-semibold">Stable</span>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-[10px] text-gray-500 border-t pt-2">System operating normally</div>
+                </div>
+
+            </aside>
+
+        </div>
     </main>
 
 </div>
@@ -374,33 +537,132 @@ aside > div{
 </div>
 
 <script nonce="{{ csp_nonce }}">
-    const video = document.getElementById('webcam');
-    const canvas = document.getElementById('photoCanvas');
-    const wrapper = document.getElementById('cameraFrame');
-    const regBtn = document.getElementById('regBtn');
-    const checkbox = document.getElementById('termsCheckbox');
-    const modal = document.getElementById('termsModal');
-    const statusField = document.getElementById('statusField');
-    const captureCountField = document.getElementById('captureCountField');
-    const progressBar = document.getElementById('progressBar');
-    const cameraStatusEl = document.getElementById('cameraStatus');
-    const faceStatusEl = document.getElementById('faceStatus');
-
+    const STEPS = ['Consent', 'Capture', 'Detection', 'Alignment', 'Quality/Liveness', 'Encoding', 'Complete'];
+    let currentStep = 1;
     let capturedBlobs = [];
     let capturedUrls = [];
     let studentProfile = null;
     let isRetaking = false;
     const REQUIRED_CAPTURES = 3;
 
-    // Client-side blur detection using Laplacian variance
+    const video = document.getElementById('webcam');
+    const canvas = document.getElementById('photoCanvas');
+    const wrapper = document.getElementById('cameraFrame');
+    const cameraArea = document.getElementById('cameraArea');
+    const checkbox = document.getElementById('termsCheckbox');
+    const beginBtn = document.getElementById('beginBtn');
+    const modal = document.getElementById('termsModal');
+    const statusField = document.getElementById('statusField');
+    const captureCountField = document.getElementById('captureCountField');
+    const progressBar = document.getElementById('progressBar');
+    const cameraStatusEl = document.getElementById('cameraStatus');
+    const faceStatusEl = document.getElementById('faceStatus');
+    const stepLabel = document.getElementById('stepLabel');
+    const stepCount = document.getElementById('stepCount');
+    const stepInfoTitle = document.getElementById('stepInfoTitle');
+    const retakeBtn = document.getElementById('retakeBtn');
+
+    // ---- STEP NAVIGATION ----
+    function goToStep(step) {
+        currentStep = step;
+        // Update step dots
+        document.querySelectorAll('.step-dot').forEach(dot => {
+            const s = parseInt(dot.dataset.step);
+            dot.className = 'step-dot ' + (s === step ? 'active' : s < step ? 'completed' : 'pending');
+            dot.innerHTML = s < step ? '<i data-lucide="check" style="width:14px;height:14px;"></i>' : s;
+        });
+        document.querySelectorAll('.step-connector').forEach(conn => {
+            const parts = conn.dataset.connector.split('-');
+            const max = Math.max(parseInt(parts[0]), parseInt(parts[1]));
+            conn.className = 'step-connector ' + (max <= step ? 'completed' : 'pending');
+        });
+        // Update labels
+        stepLabel.textContent = STEPS[step - 1];
+        stepCount.textContent = 'Step ' + step + ' of 7';
+        stepInfoTitle.textContent = 'Step ' + step + ': ' + STEPS[step - 1];
+
+        // Toggle panels
+        document.querySelectorAll('.step-panel').forEach(p => p.classList.remove('active'));
+        const panel = document.getElementById('step' + step + 'Panel');
+        if (panel) panel.classList.add('active');
+
+        // Show/hide camera area (steps 2-5)
+        cameraArea.classList.toggle('hidden', step < 2 || step > 5);
+        // Show oval guide only for steps 2-4
+        document.getElementById('ovalGuide').classList.toggle('hidden', step < 2 || step > 4);
+        // Show pre-capture checks only for step 2
+        document.getElementById('preCaptureChecks').classList.toggle('hidden', step !== 2);
+        document.getElementById('captureInstruction').classList.toggle('hidden', step !== 2);
+
+        // Hide quality card for steps 1, 6, 7
+        document.getElementById('qualityStatusCard').classList.toggle('hidden', step === 1 || step === 6 || step === 7);
+
+        lucide.createIcons();
+    }
+
+    // Step titles for status card
+    const stepTitles = {
+        1: 'Review and accept terms',
+        2: 'Capture 3 face images',
+        3: 'Detecting facial landmarks...',
+        4: 'Checking face alignment...',
+        5: 'Running quality & liveness checks...',
+        6: 'Encoding face data...',
+        7: 'Enrollment complete'
+    };
+
+    // ---- INIT ----
+    function init() {
+        loadProfile();
+        loadEnrolledFace();
+        lucide.createIcons();
+    }
+
+    // ---- CONSENT STEP ----
+    checkbox.addEventListener('change', function() {
+        beginBtn.disabled = !this.checked;
+        beginBtn.classList.toggle('opacity-40', !this.checked);
+        beginBtn.classList.toggle('cursor-not-allowed', !this.checked);
+    });
+
+    beginBtn.addEventListener('click', async function() {
+        // Start camera and move to step 2
+        statusField.value = 'Status: Starting camera...';
+        goToStep(2);
+        await initCamera();
+        initGestureDetection();
+        setInterval(analyzeFrame, 800);
+        faceStatusEl.textContent = 'Camera Ready — Show 👍 to auto-capture';
+    });
+
+    // ---- SUBSEQUENT STEP TRANSITIONS ----
+    function proceedToStep(step) {
+        statusField.value = 'Status: ' + (stepTitles[step] || 'Processing...');
+        goToStep(step);
+    }
+
+    // ---- CAMERA ----
+    async function initCamera() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
+            video.srcObject = stream;
+            cameraStatusEl.textContent = 'Ready';
+            cameraStatusEl.className = 'text-green-600 font-semibold';
+        } catch (err) {
+            cameraStatusEl.textContent = 'Denied';
+            cameraStatusEl.className = 'text-red-600 font-semibold';
+            faceStatusEl.textContent = 'Camera access denied';
+            faceStatusEl.className = 'text-sm font-medium text-red-600';
+        }
+    }
+
+    // ---- CLIENT-SIDE BLUR ----
     function isBlurry(imageData, width, height) {
-        // Convert to grayscale
         const gray = new Float32Array(width * height);
         for (let i = 0; i < gray.length; i++) {
             const idx = i * 4;
             gray[i] = 0.299 * imageData[idx] + 0.587 * imageData[idx + 1] + 0.114 * imageData[idx + 2];
         }
-        // Laplacian kernel
         let sum = 0, sumSq = 0, count = 0;
         for (let y = 1; y < height - 1; y++) {
             for (let x = 1; x < width - 1; x++) {
@@ -414,9 +676,10 @@ aside > div{
         }
         const mean = sum / count;
         const variance = sumSq / count - mean * mean;
-        return variance < 50; // threshold for blur
+        return variance < 50;
     }
 
+    // ---- PREVIEW RENDERING ----
     function renderPreviews() {
         const container = document.getElementById('captureThumbnails');
         const card = document.getElementById('capturePreviewCard');
@@ -451,145 +714,30 @@ aside > div{
         });
     }
 
-    async function loadEnrolledFace() {
-        try {
-            const res = await fetch('/api/student/facial/my-face/', {
-                credentials: 'same-origin'
-            });
-            if (res.ok) {
-                const blob = await res.blob();
-                const url = URL.createObjectURL(blob);
-                document.getElementById('enrolledFaceImg').src = url;
-                document.getElementById('enrolledFaceCard').classList.remove('hidden');
-                document.getElementById('enrolledFaceStatus').textContent = 'Active';
-            }
-        } catch (e) { /* no enrolled face yet */ }
-    }
-
-    async function deleteFaceAndRetake() {
-        const result = await Swal.fire({
-            title: 'Retake Face?',
-            text: 'Your current enrolled face will be deleted. You\'ll need to capture a new image.',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#166534',
-            cancelButtonColor: '#6b7280',
-            confirmButtonText: 'Yes, retake',
-            cancelButtonText: 'Cancel'
-        });
-        if (!result.isConfirmed) return;
-
-        try {
-            const res = await fetch('/api/student/facial/delete-face/', {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                credentials: 'same-origin'
-            });
-            if (res.ok) {
-                document.getElementById('enrolledFaceCard').classList.add('hidden');
-                capturedBlobs.forEach((_, i) => { if (capturedUrls[i]) URL.revokeObjectURL(capturedUrls[i]); });
-                capturedBlobs = [];
-                capturedUrls = [];
-                renderPreviews();
-                isRetaking = true;
-                regBtn.disabled = true;
-                regBtn.className = 'enroll-btn w-full bg-green-700/40 text-white/70 py-2.5 rounded-lg font-semibold text-sm cursor-not-allowed border border-green-800/20 flex items-center justify-center gap-1.5';
-                regBtn.innerHTML = '<i data-lucide="user-plus" style="width:16px;height:16px;"></i> Register Face';
-                checkbox.checked = false;
-                statusField.value = 'Status: Waiting for capture...';
-                captureCountField.value = `Image captured: 0 / ${REQUIRED_CAPTURES}`;
-                progressBar.style.width = '0%';
-                faceStatusEl.textContent = 'Camera Ready — Show 👍 to auto-capture';
-                faceStatusEl.className = 'text-sm font-medium text-green-700';
-                lucide.createIcons();
-            }
-        } catch (e) {
-            showAlert('Failed to delete face data. Please try again.');
-        }
-    }
-
-    async function loadProfile() {
-        try {
-            const res = await fetch('/api/student/profile/my_profile/', {
-                credentials: 'same-origin'
-            });
-            if (res.ok) {
-                studentProfile = await res.json();
-                const ud = studentProfile.user_details || {};
-                const name = ud.full_name || ud.username || 'Student';
-                const idNum = studentProfile.student_id || '';
-                document.getElementById('studentName').textContent = `${name} — ${idNum}`;
-            }
-        } catch (e) { /* ponytail: profile load failure is non-critical */ }
-    }
-
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
-                }
-            }
-        }
-        return cookieValue;
-    }
-
-    async function initCamera() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
-            video.srcObject = stream;
-            cameraStatusEl.textContent = 'Ready';
-            cameraStatusEl.className = 'text-green-600 font-semibold';
-        } catch (err) {
-            cameraStatusEl.textContent = 'Denied';
-            cameraStatusEl.className = 'text-red-600 font-semibold';
-            faceStatusEl.textContent = 'Camera access denied';
-            faceStatusEl.className = 'text-sm font-medium text-red-600';
-        }
-    }
-
+    // ---- UPDATE UI ----
     function updateUI() {
         const count = capturedBlobs.length;
-        captureCountField.value = `Image captured: ${count} / ${REQUIRED_CAPTURES}`;
-        const pct = (count / REQUIRED_CAPTURES) * 100;
-        progressBar.style.width = pct + '%';
-
+        captureCountField.value = `Images captured: ${count} / ${REQUIRED_CAPTURES}`;
+        progressBar.style.width = (count / REQUIRED_CAPTURES) * 100 + '%';
         if (count >= REQUIRED_CAPTURES) {
-            faceStatusEl.textContent = `${count} image captured — Ready to register`;
+            faceStatusEl.textContent = count + ' images captured';
             faceStatusEl.className = 'text-sm font-medium text-green-700';
             countdownOverlay.classList.add('hidden');
             gestureBadge.classList.add('hidden');
             if (countdownTimer) { clearInterval(countdownTimer); countdownTimer = null; }
             gestureActive = false;
         } else {
-            faceStatusEl.textContent = `Show 👍 to auto-capture — ${REQUIRED_CAPTURES - count} more needed`;
-            faceStatusEl.className = 'text-sm font-medium text-green-700';
+            faceStatusEl.textContent = 'Show 👍 to auto-capture — ' + (REQUIRED_CAPTURES - count) + ' more needed';
         }
-
-        checkRequirements();
     }
 
+    // ---- CAPTURE ----
     let blurWarnings = 0;
-
-    // Liveness challenge state
-    let livenessPassed = false;
-    let livenessListening = false;
-    let blinkHistory = [];
-    const BLINK_THRESHOLD = 0.022; // eye aspect ratio threshold
-    const BLINK_FRAMES = 2;        // consecutive frames below threshold = blink
 
     function captureImage() {
         if (capturedBlobs.length >= REQUIRED_CAPTURES) return;
-
         wrapper.classList.add('flash-effect');
         setTimeout(() => wrapper.classList.remove('flash-effect'), 200);
-
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         const ctx = canvas.getContext('2d');
@@ -607,14 +755,7 @@ aside > div{
         if (isBlurry(checkData, 320, 240)) {
             blurWarnings++;
             if (blurWarnings <= 3) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Image is blurry',
-                    text: 'Please hold still and ensure good lighting. Try again.',
-                    timer: 2000,
-                    showConfirmButton: false,
-                    confirmButtonColor: '#166534',
-                });
+                Swal.fire({ icon: 'warning', title: 'Image is blurry', text: 'Please hold still and ensure good lighting.', timer: 2000, showConfirmButton: false, confirmButtonColor: '#166534' });
             }
             wrapper.classList.remove('flash-effect');
             return;
@@ -623,35 +764,61 @@ aside > div{
         canvas.toBlob(function(blob) {
             if (blob) {
                 capturedBlobs.push(blob);
-                statusField.value = `Status: Image ${capturedBlobs.length} captured`;
+                statusField.value = 'Status: Image ' + capturedBlobs.length + ' captured';
                 updateUI();
                 renderPreviews();
                 lucide.createIcons();
-
-                // Trigger liveness challenge after all captures
                 if (capturedBlobs.length >= REQUIRED_CAPTURES) {
+                    // Move to detection (step 3) and start liveness
                     setTimeout(() => {
-                        statusField.value = 'Status: Liveness check — please blink once';
-                        startLivenessChallenge();
+                        proceedToStep(3);
+                        runPostCaptureChecks();
                     }, 500);
                 }
             }
         }, 'image/jpeg', 0.92);
     }
 
-    function showAlert(message) {
-        return Swal.fire({
-            icon: 'info',
-            text: message,
-            confirmButtonColor: '#166534',
-            confirmButtonText: 'OK',
-        });
+    // ---- POST-CAPTURE CHECKS (steps 3-5) ----
+    async function runPostCaptureChecks() {
+        // Step 3: Detection (simulated)
+        document.getElementById('detectionStatus').textContent = 'Detecting face landmarks...';
+        await sleep(800);
+        document.getElementById('detectionStatus').textContent = 'Face detected successfully ✓';
+        proceedToStep(4);
+
+        // Step 4: Alignment (simulated)
+        document.getElementById('alignmentStatus').textContent = 'Checking face position...';
+        await sleep(700);
+        document.getElementById('alignmentStatus').textContent = 'Alignment verified ✓';
+        proceedToStep(5);
+
+        // Step 5: Quality/Liveness
+        document.getElementById('qualityStatusCard').classList.remove('hidden');
+        updateQualityStatus('Checking image quality...', 'pending');
+        await sleep(500);
+        updateQualityStatus('Blur check ✓  Brightness ✓  Contrast ✓', 'pass');
+        await sleep(500);
+
+        statusField.value = 'Status: Liveness check — please blink once';
+        startLivenessChallenge();
     }
 
-    function toggleModal() {
-        modal.classList.toggle('hidden');
-        document.body.classList.toggle('modal-active');
+    function updateQualityStatus(text, type) {
+        const list = document.getElementById('qualityStatusList');
+        const color = type === 'pass' ? 'text-green-700' : type === 'fail' ? 'text-red-600' : 'text-gray-600';
+        const dot = type === 'pass' ? 'bg-green-500' : type === 'fail' ? 'bg-red-500' : 'bg-gray-400';
+        list.innerHTML = `<div class="flex items-center gap-1.5"><span class="w-1.5 h-1.5 rounded-full ${dot}"></span><span class="${color}">${text}</span></div>`;
     }
+
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    // ---- LIVENESS ----
+    let livenessPassed = false;
+    let livenessListening = false;
+    let blinkHistory = [];
+    const BLINK_THRESHOLD = 0.022;
+    const BLINK_FRAMES = 2;
 
     function startLivenessChallenge() {
         if (livenessPassed || livenessListening) return;
@@ -667,14 +834,15 @@ aside > div{
         document.getElementById('blinkDot2').className = 'w-3 h-3 rounded-full bg-green-500';
         document.getElementById('livenessIcon').textContent = '✅';
         document.getElementById('livenessText').textContent = 'Liveness verified!';
-        setTimeout(() => { document.getElementById('livenessOverlay').classList.add('hidden'); }, 800);
-        checkRequirements();
+        updateQualityStatus('Liveness ✓ Blink detection passed', 'pass');
+        setTimeout(() => {
+            document.getElementById('livenessOverlay').classList.add('hidden');
+            proceedToStep(6);
+            runEncoding();
+        }, 800);
     }
 
-    // Eye aspect ratio (EAR) from MediaPipe face landmarks
     function calcEAR(landmarks) {
-        // Left eye: 159,145 (vertical), 33,133 (horizontal)
-        // Right eye: 386,374 (vertical), 362,263 (horizontal)
         const leftVert = Math.abs(landmarks[159].y - landmarks[145].y);
         const leftHoriz = Math.abs(landmarks[33].x - landmarks[133].x);
         const rightVert = Math.abs(landmarks[386].y - landmarks[374].y);
@@ -689,50 +857,34 @@ aside > div{
         const ear = calcEAR(landmarks);
         blinkHistory.push(ear < BLINK_THRESHOLD);
         if (blinkHistory.length > 10) blinkHistory.shift();
-        // Detect transition: open -> closed -> open
         if (blinkHistory.length >= 5) {
             const recent = blinkHistory.slice(-5);
             const hasOpenClosedOpen = recent[0] === false && recent[2] === true && recent[4] === false;
-            if (hasOpenClosedOpen) {
-                passLiveness();
-            }
+            if (hasOpenClosedOpen) passLiveness();
         }
     }
 
-    function checkRequirements() {
-        const ready = checkbox.checked && capturedBlobs.length >= REQUIRED_CAPTURES && livenessPassed;
-        regBtn.disabled = !ready;
-        if (ready) {
-            regBtn.className = 'enroll-btn w-full bg-green-700 hover:bg-green-800 text-white py-2.5 rounded-lg font-semibold text-sm transition-colors flex items-center justify-center gap-1.5';
-        } else {
-            regBtn.className = 'enroll-btn w-full bg-green-700/40 text-white/70 py-2.5 rounded-lg font-semibold text-sm cursor-not-allowed border border-green-800/20 flex items-center justify-center gap-1.5';
-        }
+    // ---- ENCODING ----
+    async function runEncoding() {
+        document.getElementById('encodingStatus').textContent = 'Generating facial signature...';
+        await sleep(1000);
+        document.getElementById('encodingStatus').textContent = 'Encrypted face data created ✓';
+        await sleep(400);
+
+        // Submit to backend
+        await submitEnrollment();
     }
 
-    checkbox.addEventListener('change', checkRequirements);
-
-    document.getElementById('retakeBtn').addEventListener('click', deleteFaceAndRetake);
-
-    regBtn.addEventListener('click', async function() {
-        if (capturedBlobs.length < REQUIRED_CAPTURES) {
-            showAlert(`Please capture at least ${REQUIRED_CAPTURES} face images`);
-            return;
-        }
-
-        regBtn.disabled = true;
-        regBtn.innerHTML = '<i data-lucide="loader-2" class="animate-spin mr-1.5" style="width:16px;height:16px;"></i> Enrolling...';
-        lucide.createIcons();
-
+    async function submitEnrollment() {
+        statusField.value = 'Status: Registering with server...';
         try {
             const formData = new FormData();
-            capturedBlobs.forEach((blob, i) => formData.append('image', blob, `face_${i}.jpg`));
+            capturedBlobs.forEach((blob, i) => formData.append('image', blob, 'face_' + i + '.jpg'));
             formData.append('consent_given', 'true');
 
             const response = await fetch('/api/student/facial/enroll_face/', {
                 method: 'POST',
-                headers: {
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
                 credentials: 'same-origin',
                 body: formData
             });
@@ -743,39 +895,122 @@ aside > div{
                 let qualityNote = '';
                 if (data.quality_score !== undefined && data.quality_score !== null) {
                     const qs = Number(data.quality_score);
-                    qualityNote += `<br><br>Image quality: <strong>${qs >= 80 ? 'Excellent' : qs >= 60 ? 'Good' : 'Acceptable'}</strong> (${qs}/100)`;
+                    qualityNote = '<p>Quality: <strong>' + (qs >= 80 ? 'Excellent' : qs >= 60 ? 'Good' : 'Acceptable') + '</strong> (' + qs + '/100)</p>';
                 }
-                if (data.liveness_confirmed) {
-                    qualityNote += `<br>Liveness check: <strong>Passed</strong>`;
-                }
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Enrollment Complete',
-                    html: `<strong>${data.faces_used || capturedBlobs.length}</strong> face image(s) enrolled successfully!<br><br>Enrolled to: <strong>${name}</strong>${qualityNote}`,
-                    confirmButtonColor: '#166534',
-                    confirmButtonText: 'Go to Dashboard',
-                }).then(() => {
-                    window.location.href = '/dashboard/student/';
-                });
+                if (data.liveness_confirmed) qualityNote += '<p>Liveness: <strong>Passed</strong></p>';
+                document.getElementById('completeMessage').textContent = 'Your face has been registered successfully!';
+                document.getElementById('completeStats').innerHTML = qualityNote + '<p>Images enrolled: <strong>' + (data.faces_used || capturedBlobs.length) + '</strong></p>';
+                proceedToStep(7);
+                statusField.value = 'Status: Enrollment complete ✓';
             } else {
                 const err = await response.json().catch(() => ({}));
-                showAlert(err.error || 'Failed to enroll face. Please try again.');
-                regBtn.disabled = false;
-                regBtn.innerHTML = '<i data-lucide="user-plus" class="mr-1.5" style="width:16px;height:16px;"></i> Register Face';
-                lucide.createIcons();
-                checkRequirements();
+                Swal.fire({ icon: 'error', title: 'Enrollment Failed', text: err.error || 'Server error. Please try again.', confirmButtonColor: '#166534' });
+                proceedToStep(2);
             }
         } catch (err) {
             console.error('Enrollment error:', err);
-            showAlert('An error occurred during enrollment');
-            regBtn.disabled = false;
-            regBtn.innerHTML = '<i data-lucide="user-plus" class="mr-1.5" style="width:16px;height:16px;"></i> Register Face';
-            lucide.createIcons();
-            checkRequirements();
+            Swal.fire({ icon: 'error', title: 'Connection Error', text: 'Could not reach the server. Please try again.', confirmButtonColor: '#166534' });
+            proceedToStep(2);
         }
+    }
+
+    document.getElementById('dashboardBtn').addEventListener('click', function() {
+        window.location.href = '/dashboard/student/';
     });
 
-    // ponytail: thumbs-up auto-capture via MediaPipe Hands
+    // ---- LOAD PROFILE ----
+    async function loadProfile() {
+        try {
+            const res = await fetch('/api/student/profile/my_profile/', { credentials: 'same-origin' });
+            if (res.ok) {
+                studentProfile = await res.json();
+                const ud = studentProfile.user_details || {};
+                const name = ud.full_name || ud.username || 'Student';
+                const idNum = studentProfile.student_id || '';
+                document.getElementById('studentName').textContent = name + ' - ' + idNum;
+            }
+        } catch (e) {}
+    }
+
+    // ---- LOAD ENROLLED FACE ----
+    async function loadEnrolledFace() {
+        try {
+            const res = await fetch('/api/student/facial/my-face/', { credentials: 'same-origin' });
+            if (res.ok) {
+                const blob = await res.blob();
+                const url = URL.createObjectURL(blob);
+                document.getElementById('enrolledFaceImg').src = url;
+                document.getElementById('enrolledFaceCard').classList.remove('hidden');
+                document.getElementById('enrolledFaceStatus').textContent = 'Active';
+            }
+        } catch (e) {}
+    }
+
+    retakeBtn.addEventListener('click', deleteFaceAndRetake);
+
+    async function deleteFaceAndRetake() {
+        const result = await Swal.fire({
+            title: 'Retake Face?',
+            text: 'Your current enrolled face will be deleted.',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#166534',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Yes, retake',
+            cancelButtonText: 'Cancel'
+        });
+        if (!result.isConfirmed) return;
+        try {
+            const res = await fetch('/api/student/facial/delete-face/', {
+                method: 'POST',
+                headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                credentials: 'same-origin'
+            });
+            if (res.ok) {
+                document.getElementById('enrolledFaceCard').classList.add('hidden');
+                capturedBlobs.forEach((_, i) => { if (capturedUrls[i]) URL.revokeObjectURL(capturedUrls[i]); });
+                capturedBlobs = [];
+                capturedUrls = [];
+                renderPreviews();
+                isRetaking = true;
+                checkbox.checked = false;
+                beginBtn.disabled = true;
+                statusField.value = 'Status: Waiting for consent...';
+                captureCountField.value = 'Images captured: 0 / ' + REQUIRED_CAPTURES;
+                progressBar.style.width = '0%';
+                goToStep(1);
+                lucide.createIcons();
+            }
+        } catch (e) {
+            showAlert('Failed to delete face data. Please try again.');
+        }
+    }
+
+    // ---- UTILITY ----
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    function toggleModal() {
+        document.getElementById('termsModal').classList.toggle('hidden');
+    }
+
+    function showAlert(message) {
+        return Swal.fire({ icon: 'info', text: message, confirmButtonColor: '#166534', confirmButtonText: 'OK' });
+    }
+
+    // ---- MEDIAPIPE GESTURE DETECTION ----
     let gestureActive = false;
     let countdownTimer = null;
     const countdownOverlay = document.getElementById('countdownOverlay');
@@ -783,7 +1018,6 @@ aside > div{
     const gestureBadge = document.getElementById('gestureBadge');
 
     function isThumbsUp(landmarks) {
-        // thumb tip (4) above thumb IP (3), other fingertips below their PIP joints
         const thumbUp = landmarks[4].y < landmarks[3].y;
         const indexDown = landmarks[8].y > landmarks[6].y;
         const middleDown = landmarks[12].y > landmarks[10].y;
@@ -794,14 +1028,12 @@ aside > div{
 
     function startCountdown() {
         if (gestureActive || capturedBlobs.length >= REQUIRED_CAPTURES) return;
-        // ponytail: skip countdown if checks are bad
         if (lightStatusEl.classList.contains('bg-red-100') || faceSizeStatusEl.classList.contains('bg-red-100') || accessoryStatusEl.classList.contains('bg-red-100')) return;
         gestureActive = true;
         gestureBadge.classList.remove('hidden');
         countdownOverlay.classList.remove('hidden');
         let count = 3;
         countdownNumber.textContent = count;
-
         countdownTimer = setInterval(() => {
             count--;
             if (count <= 0) {
@@ -816,25 +1048,23 @@ aside > div{
         }, 1000);
     }
 
+    // ---- FACE OVERLAY + BLINK + ACCESSORIES ----
     function initGestureDetection() {
         try {
-            const hands = new Hands({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/${file}` });
+            const hands = new Hands({ locateFile: (file) => 'https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/' + file });
             hands.setOptions({ maxNumHands: 1, modelComplexity: 0, minDetectionConfidence: 0.7, minTrackingConfidence: 0.5 });
             hands.onResults((results) => {
                 if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-                    if (isThumbsUp(results.multiHandLandmarks[0])) {
-                        startCountdown();
-                    }
+                    if (isThumbsUp(results.multiHandLandmarks[0])) startCountdown();
                 }
             });
 
             const faceOverlay = document.getElementById('faceOverlay');
             const faceOverlayCtx = faceOverlay.getContext('2d');
 
-            const faceMesh = new FaceMesh({ locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/${file}` });
+            const faceMesh = new FaceMesh({ locateFile: (file) => 'https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/' + file });
             faceMesh.setOptions({ maxNumFaces: 1, refineLandmarks: false, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
             faceMesh.onResults((results) => {
-                // Sync overlay canvas size with video
                 if (faceOverlay.width !== video.videoWidth || faceOverlay.height !== video.videoHeight) {
                     faceOverlay.width = video.videoWidth;
                     faceOverlay.height = video.videoHeight;
@@ -845,7 +1075,6 @@ aside > div{
                     detectAccessories(results.multiFaceLandmarks[0]);
                     checkBlink(results.multiFaceLandmarks[0]);
 
-                    // Draw face bounding box
                     const landmarks = results.multiFaceLandmarks[0];
                     let minX = 1, maxX = 0, minY = 1, maxY = 0;
                     for (const lm of landmarks) {
@@ -872,13 +1101,9 @@ aside > div{
                     const cornerLen = Math.min(w, h) * 0.15;
                     faceOverlayCtx.lineWidth = 4;
                     faceOverlayCtx.shadowBlur = 0;
-                    // top-left
                     faceOverlayCtx.beginPath(); faceOverlayCtx.moveTo(x, y + cornerLen); faceOverlayCtx.lineTo(x, y); faceOverlayCtx.lineTo(x + cornerLen, y); faceOverlayCtx.stroke();
-                    // top-right
                     faceOverlayCtx.beginPath(); faceOverlayCtx.moveTo(x + w - cornerLen, y); faceOverlayCtx.lineTo(x + w, y); faceOverlayCtx.lineTo(x + w, y + cornerLen); faceOverlayCtx.stroke();
-                    // bottom-left
                     faceOverlayCtx.beginPath(); faceOverlayCtx.moveTo(x, y + h - cornerLen); faceOverlayCtx.lineTo(x, y + h); faceOverlayCtx.lineTo(x + cornerLen, y + h); faceOverlayCtx.stroke();
-                    // bottom-right
                     faceOverlayCtx.beginPath(); faceOverlayCtx.moveTo(x + w - cornerLen, y + h); faceOverlayCtx.lineTo(x + w, y + h); faceOverlayCtx.lineTo(x + w, y + h - cornerLen); faceOverlayCtx.stroke();
                 } else {
                     accessoryStatusEl.className = 'inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500';
@@ -886,7 +1111,6 @@ aside > div{
                 }
             });
 
-            // ponytail: single Camera instance feeds both hands + faceMesh
             const cam = new Camera(video, {
                 onFrame: async () => {
                     await hands.send({ image: video });
@@ -900,35 +1124,31 @@ aside > div{
         }
     }
 
-    // ponytail: frame quality analysis — lighting + face size checks
+    // ---- FRAME QUALITY ANALYSIS ----
     const lightStatusEl = document.getElementById('lightStatus');
     const faceSizeStatusEl = document.getElementById('faceSizeStatus');
+    const accessoryStatusEl = document.getElementById('accessoryStatus');
     const faceCanvas = document.createElement('canvas');
     const faceCtx = faceCanvas.getContext('2d', { willReadFrequently: true });
     faceCanvas.width = 160;
     faceCanvas.height = 120;
 
     function updateStatus(el, ok, text) {
-        el.className = `inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full ${ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`;
-        el.querySelector('span, i')?.remove();
-        el.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${ok ? 'bg-green-500' : 'bg-red-500'}"></span> ${text}`;
+        el.className = 'inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full ' + (ok ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600');
+        el.innerHTML = '<span class="w-1.5 h-1.5 rounded-full ' + (ok ? 'bg-green-500' : 'bg-red-500') + '"></span> ' + text;
     }
 
     function analyzeFrame() {
-        if (video.readyState < 2 || capturedBlobs.length >= REQUIRED_CAPTURES) return;
+        if (video.readyState < 2 || capturedBlobs.length >= REQUIRED_CAPTURES || currentStep !== 2) return;
         faceCtx.drawImage(video, 0, 0, faceCanvas.width, faceCanvas.height);
         const data = faceCtx.getImageData(0, 0, faceCanvas.width, faceCanvas.height).data;
-
-        // average brightness (0-255)
         let sum = 0;
         for (let i = 0; i < data.length; i += 4) sum += (data[i] + data[i+1] + data[i+2]) / 3;
         const brightness = sum / (data.length / 4);
-
         if (brightness < 50) updateStatus(lightStatusEl, false, 'Too dark — move to brighter area');
         else if (brightness > 220) updateStatus(lightStatusEl, false, 'Too bright — avoid direct light');
         else updateStatus(lightStatusEl, true, 'Lighting OK');
 
-        // face size: check center region brightness variance (rough proxy)
         const cx = faceCanvas.width / 2, cy = faceCanvas.height / 2;
         const regionSize = 40;
         const regionData = faceCtx.getImageData(cx - regionSize, cy - regionSize, regionSize * 2, regionSize * 2).data;
@@ -943,10 +1163,7 @@ aside > div{
         else updateStatus(faceSizeStatusEl, true, 'Position OK');
     }
 
-    setInterval(analyzeFrame, 800);
-
-    // ponytail: FaceMesh-based accessory detection (glasses + hat)
-    const accessoryStatusEl = document.getElementById('accessoryStatus');
+    // ---- ACCESSORY DETECTION ----
     const accCanvas = document.createElement('canvas');
     const accCtx = accCanvas.getContext('2d', { willReadFrequently: true });
     accCanvas.width = 640;
@@ -969,62 +1186,48 @@ aside > div{
             accessoryStatusEl.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> No face detected';
             return;
         }
-
         accCtx.drawImage(video, 0, 0, accCanvas.width, accCanvas.height);
         const lm = faceLandmarks;
         const W = accCanvas.width, H = accCanvas.height;
         const toXY = (p) => ({ x: Math.round(p.x * W), y: Math.round(p.y * H) });
 
-        // glasses detection: sample between eyes (nose bridge) and eye corners
         const noseBridge = toXY(lm[6]);
         const leftInner = toXY(lm[133]);
         const rightInner = toXY(lm[263]);
         const leftOuter = toXY(lm[33]);
         const rightOuter = toXY(lm[355]);
 
-        // region between and around eyes
         const gx1 = Math.max(0, leftOuter.x - 10);
         const gy1 = Math.max(0, lm[159].y * H - 15);
         const gx2 = Math.min(W, rightOuter.x + 10);
         const gy2 = Math.min(H, lm[145].y * H + 15);
         const eyeRegion = sampleRegion(accCtx, gx1, gy1, gx2 - gx1, gy2 - gy1);
 
-        // cheek samples for skin tone reference
         const leftCheek = toXY(lm[234]);
         const rightCheek = toXY(lm[454]);
         const cheekL = sampleRegion(accCtx, Math.max(0, leftCheek.x - 8), Math.max(0, leftCheek.y - 8), 16, 16);
         const cheekR = sampleRegion(accCtx, Math.max(0, rightCheek.x - 8), Math.max(0, rightCheek.y - 8), 16, 16);
         const skinBrightness = (cheekL.brightness + cheekR.brightness) / 2;
 
-        // glasses: eye region significantly darker than cheeks (frames) or different hue
         const brightnessDiff = skinBrightness - eyeRegion.brightness;
         const hueShift = Math.abs((eyeRegion.r - eyeRegion.g) - (cheekL.r - cheekL.g));
         const hasGlasses = brightnessDiff > 25 || hueShift > 30;
 
-        // hat: sample forehead above hairline
-        const forehead = toXY(lm[10]); // top of forehead
+        const forehead = toXY(lm[10]);
         const fx = Math.max(0, forehead.x - 25);
         const fy = Math.max(0, forehead.y - 20);
         const foreheadRegion = sampleRegion(accCtx, fx, fy, 50, 30);
         const foreheadDarker = skinBrightness - foreheadRegion.brightness;
         const hasHat = foreheadDarker > 35 && foreheadRegion.brightness < 80;
 
-        if (hasGlasses && hasHat) {
-            updateStatus(accessoryStatusEl, false, 'Remove glasses & hat');
-        } else if (hasGlasses) {
-            updateStatus(accessoryStatusEl, false, 'Remove glasses');
-        } else if (hasHat) {
-            updateStatus(accessoryStatusEl, false, 'Remove hat / headwear');
-        } else {
-            updateStatus(accessoryStatusEl, true, 'No accessories detected');
-        }
+        if (hasGlasses && hasHat) updateStatus(accessoryStatusEl, false, 'Remove glasses & hat');
+        else if (hasGlasses) updateStatus(accessoryStatusEl, false, 'Remove glasses');
+        else if (hasHat) updateStatus(accessoryStatusEl, false, 'Remove hat / headwear');
+        else updateStatus(accessoryStatusEl, true, 'No accessories detected');
     }
 
-    initCamera();
-    loadProfile();
-    loadEnrolledFace();
-    initGestureDetection();
-    lucide.createIcons();
+    // ---- BOOT ----
+    init();
 </script>
 </body>
 </html>

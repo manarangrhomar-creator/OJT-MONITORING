@@ -487,14 +487,17 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
 
         encodings = []
         best_score = 0
+        first_image_bytes = None
         for facial_image in images:
             image_bytes = facial_image.read()
+            if first_image_bytes is None:
+                first_image_bytes = image_bytes
 
             # Step 3: Quality gate per image
-            quality = quality_gate(image_bytes)
-            if not quality['passed']:
+            passed, quality = quality_gate(image_bytes)
+            if not passed:
                 return Response({
-                    'error': f'Image quality too low: {"; ".join(quality["issues"])}',
+                    'error': f'Image quality too low: {"; ".join(quality["messages"])}',
                     'quality': quality,
                 }, status=status.HTTP_400_BAD_REQUEST)
 
@@ -507,12 +510,11 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
             return Response({'error': 'No face detected in any image. Please ensure your face is clearly visible.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Step 4: Liveness check — use the first detected face image
-        face_img = cv2.imdecode(np.frombuffer(images[0].read(), np.uint8), cv2.IMREAD_COLOR)
-        liveness_result = check_liveness(face_img)
-        if not liveness_result['live']:
+        liveness_passed, liveness_msg = check_liveness(first_image_bytes)
+        if not liveness_passed:
             return Response({
-                'error': 'Liveness check failed. Please use a real photo (not a screen or printed image).',
-                'liveness': liveness_result,
+                'error': f'Liveness check failed: {liveness_msg}',
+                'liveness': {'passed': liveness_passed, 'message': liveness_msg},
             }, status=status.HTTP_400_BAD_REQUEST)
 
         # Average all face encodings for better accuracy
@@ -607,10 +609,10 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
         image_bytes = facial_image.read()
 
         # Reject blurry/dark images
-        quality = quality_gate(image_bytes)
-        if not quality['passed']:
+        passed, quality = quality_gate(image_bytes)
+        if not passed:
             return Response({
-                'error': f'Image quality too low: {"; ".join(quality["issues"])}',
+                'error': f'Image quality too low: {"; ".join(quality["messages"])}',
                 'verified': False,
             }, status=status.HTTP_400_BAD_REQUEST)
 
