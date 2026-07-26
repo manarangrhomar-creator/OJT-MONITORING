@@ -187,7 +187,7 @@ aside > div{
                     <span class="text-xs text-gray-700 font-semibold">LIVE</span>
                 </div>
 
-                <video id="webcam" autoplay playsinline class="absolute inset-0 w-full h-full object-cover"></video>
+                <video id="webcam" autoplay playsinline class="absolute inset-0 w-full h-full object-cover" style="transform: scaleX(-1);"></video>
                 <canvas id="photoCanvas" class="hidden"></canvas>
                 <canvas id="faceOverlay" class="absolute inset-0 w-full h-full" style="pointer-events:none;"></canvas>
 
@@ -312,6 +312,7 @@ aside > div{
     const faceStatusEl = document.querySelector('.face-status');
 
     let currentAction = null; /* 'clock_in' or 'clock_out' */
+    let faceDetected = false;
 
     function getCookie(name) {
         let cookieValue = null;
@@ -348,6 +349,7 @@ aside > div{
                 faceOverlayCtx.clearRect(0, 0, faceOverlay.width, faceOverlay.height);
 
                 if (results.multiFaceLandmarks && results.multiFaceLandmarks.length > 0) {
+                    faceDetected = true;
                     const landmarks = results.multiFaceLandmarks[0];
                     let minX = 1, maxX = 0, minY = 1, maxY = 0;
                     for (const lm of landmarks) {
@@ -386,6 +388,7 @@ aside > div{
                     faceStatusEl.textContent = 'Face Detected — Ready to verify';
                     faceStatusEl.className = 'face-status text-sm font-medium text-green-700';
                 } else {
+                    faceDetected = false;
                     faceStatusEl.textContent = 'No face detected — Position yourself in frame';
                     faceStatusEl.className = 'face-status text-sm font-medium text-yellow-700';
                 }
@@ -487,6 +490,10 @@ aside > div{
 
     actionBtn.addEventListener('click', async function () {
         if (!currentAction) return;
+        if (!faceDetected) {
+            setStatus('No face detected — Please position your face in the camera', 'warning');
+            return;
+        }
 
         wrapper.classList.add('flash-effect');
         setTimeout(() => wrapper.classList.remove('flash-effect'), 200);
