@@ -781,16 +781,33 @@ body {
 
     // ---- POST-CAPTURE CHECKS (steps 3-5) ----
     async function runPostCaptureChecks() {
-        // Step 3: Detection (simulated)
-        document.getElementById('detectionStatus').textContent = 'Detecting face landmarks...';
-        await sleep(800);
-        document.getElementById('detectionStatus').textContent = 'Face detected successfully ✓';
+        // Step 3: Detection — validate with backend face detection
+        document.getElementById('detectionStatus').textContent = 'Validating face in captured images...';
+        let faceFound = false;
+        if (capturedBlobs.length > 0) {
+            try {
+                const formData = new FormData();
+                formData.append('image', capturedBlobs[0], 'face_check.jpg');
+                const res = await fetch('/api/student/facial/check-face/', {
+                    method: 'POST', credentials: 'same-origin', body: formData
+                });
+                const data = await res.json();
+                faceFound = data.face_detected === true;
+            } catch (e) {}
+        }
+        await sleep(500);
+        document.getElementById('detectionStatus').textContent = faceFound ? 'Face detected ✓' : 'No face detected — please retake';
+        if (!faceFound) {
+            showAlert('No face was detected in your images. Please retake with your face clearly visible.');
+            proceedToStep(2);
+            return;
+        }
         proceedToStep(4);
 
-        // Step 4: Alignment (simulated)
-        document.getElementById('alignmentStatus').textContent = 'Checking face position...';
-        await sleep(700);
-        document.getElementById('alignmentStatus').textContent = 'Alignment verified ✓';
+        // Step 4: Processing (simplified)
+        document.getElementById('alignmentStatus').textContent = 'Processing images...';
+        await sleep(500);
+        document.getElementById('alignmentStatus').textContent = 'Images ready ✓';
         proceedToStep(5);
 
         // Step 5: Quality/Liveness

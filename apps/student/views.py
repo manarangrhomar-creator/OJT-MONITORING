@@ -350,34 +350,40 @@ class StudentDashboardViewSet(viewsets.ViewSet):
                 try:
                     image_bytes = face_image.read()
                     embedding, _ = detect_face(image_bytes)
-                    if embedding is not None:
-                        # Check if this face is already registered to another student
-                        existing_faces = FacialRecognition.objects.exclude(student=request.user).select_related('student')
-                        face_is_duplicate = False
-                        for existing in existing_faces:
-                            if existing.facial_encoding:
-                                is_match, _ = verify_faces(existing.facial_encoding, embedding, threshold=0.55)
-                                if is_match:
-                                    face_is_duplicate = True
-                                    break
+                    if embedding is None:
+                        return Response({
+                            'error': 'No face detected in the image. Please ensure your face is clearly visible.'
+                        }, status=status.HTTP_400_BAD_REQUEST)
+                    # Check if this face is already registered to another student
+                    existing_faces = FacialRecognition.objects.exclude(student=request.user).select_related('student')
+                    face_is_duplicate = False
+                    for existing in existing_faces:
+                        if existing.facial_encoding:
+                            is_match, _ = verify_faces(existing.facial_encoding, embedding, threshold=0.55)
+                            if is_match:
+                                face_is_duplicate = True
+                                break
 
-                        if not face_is_duplicate:
-                            encoded = encode_face(embedding)
-                            facial_data, _ = FacialRecognition.objects.get_or_create(
-                                student=request.user,
-                                defaults={
-                                    'facial_encoding': encoded,
-                                    'is_verified': True,
-                                    'verification_date': timezone.now()
-                                }
-                            )
-                            if not facial_data.is_verified:
-                                facial_data.facial_encoding = encoded
-                                facial_data.is_verified = True
-                                facial_data.verification_date = timezone.now()
-                                facial_data.save()
+                    if not face_is_duplicate:
+                        encoded = encode_face(embedding)
+                        facial_data, _ = FacialRecognition.objects.get_or_create(
+                            student=request.user,
+                            defaults={
+                                'facial_encoding': encoded,
+                                'is_verified': True,
+                                'verification_date': timezone.now()
+                            }
+                        )
+                        if not facial_data.is_verified:
+                            facial_data.facial_encoding = encoded
+                            facial_data.is_verified = True
+                            facial_data.verification_date = timezone.now()
+                            facial_data.save()
                 except Exception as e:
                     logger.warning(f"Face enrollment failed during application: {e}")
+                    return Response({
+                        'error': 'Face enrollment failed. Please try again with a clearer image.'
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             coordinator = application.program.coordinator
             create_and_send_notification(
@@ -571,6 +577,21 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
         data['faces_used'] = len(encodings)
         data['quality_score'] = best_score
         return Response(data, status=status.HTTP_200_OK if not created else status.HTTP_201_CREATED)
+
+    @action(detail=False, methods=['post'], url_path='check-face')
+    def check_face(self, request):
+        """Validate that an uploaded image contains a face. Does not save anything."""
+        image_file = request.FILES.get('image')
+        if not image_file:
+            return Response({'error': 'No image provided'}, status=status.HTTP_400_BAD_REQUEST)
+        image_bytes = image_file.read()
+        embedding, bbox = detect_face(image_bytes)
+        if embedding is None:
+            return Response({'face_detected': False, 'error': 'No face detected in the image.'}, status=status.HTTP_200_OK)
+        return Response({
+            'face_detected': True,
+            'bbox': bbox,
+        }, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='my-face')
     def my_face(self, request):
