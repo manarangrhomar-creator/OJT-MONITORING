@@ -307,7 +307,20 @@
         justify-content: center;
         height: 320px;
       }
-      .face-reg-cam-wrap video,
+      @media (min-width: 768px) {
+        .face-reg-cam-wrap { height: 440px; max-width: 600px; margin-left: auto; margin-right: auto; }
+      }
+      @media (min-width: 1280px) {
+        .face-reg-cam-wrap { height: 500px; max-width: 680px; }
+      }
+      .face-reg-cam-wrap video {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        transform: scaleX(-1);
+      }
       .face-reg-cam-wrap img {
         position: absolute;
         inset: 0;
@@ -1218,7 +1231,7 @@
                   class="px-5 py-2.5 bg-gray-100 text-[var(--fg)] font-semibold text-xs rounded-xl hover:bg-gray-200 transition flex items-center gap-1.5">
             <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back
           </button>
-          <button type="button" onclick="applyGoStep(3)"
+          <button type="button" onclick="applyGoStep2To3()"
                   class="flex-1 px-5 py-2.5 bg-gradient-to-r from-[var(--primary)] to-[var(--primary-dark)] hover:from-[var(--primary-dark)] hover:to-[var(--primary)] text-white font-semibold text-xs rounded-xl transition shadow-md hover:shadow-lg flex items-center justify-center gap-1.5">
             Next: Face Photo <i data-lucide="arrow-right" class="w-3.5 h-3.5"></i>
           </button>
@@ -1868,7 +1881,7 @@
                     <div class="absolute top-3 right-3 z-10 hidden" id="attDetectionBadge">
                       <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" id="attDetectionBadgeText">FACE DETECTED</span>
                     </div>
-                    <video id="attWebcam" autoplay playsinline class="absolute inset-0 w-full h-full object-contain"></video>
+                    <video id="attWebcam" autoplay playsinline class="absolute inset-0 w-full h-full object-contain" style="transform: scaleX(-1);"></video>
                     <canvas id="attFaceOverlay" class="absolute inset-0 w-full h-full object-contain pointer-events-none z-5"></canvas>
                     <canvas id="attPhotoCanvas" class="hidden"></canvas>
                   </div>
@@ -2079,7 +2092,7 @@
       <div id="applyStep2" class="hidden">
         <p class="text-[10px] text-[var(--muted)] mb-2">Take a clear photo of your face for attendance verification.</p>
         <div id="applyCamContainer" class="relative rounded-xl overflow-hidden bg-black flex items-center justify-center" style="height:340px;">
-          <video id="applyCamPreview" autoplay playsinline class="absolute inset-0 w-full h-full object-contain"></video>
+          <video id="applyCamPreview" autoplay playsinline class="absolute inset-0 w-full h-full object-contain" style="transform: scaleX(-1);"></video>
           <canvas id="applyCamCanvas" class="hidden"></canvas>
           <div class="absolute top-2 left-2 flex items-center gap-1.5 z-10">
             <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
@@ -3503,7 +3516,12 @@ async function loadArchives() {
     e.preventDefault();
     const letterFile = document.getElementById('applyLetterWiz').files[0];
     const faceBlob = window._faceRegBlob;
-    if (!selectedSubjectId || !letterFile) return;
+    if (!selectedSubjectId || !letterFile) {
+      const errDiv = document.getElementById('applySiteError');
+      errDiv.innerHTML = '<strong>Error:</strong> Please upload your application letter before submitting.';
+      errDiv.classList.remove('hidden');
+      return;
+    }
     if (!faceBlob) {
       const errDiv = document.getElementById('applySiteError');
       errDiv.innerHTML = '<strong>Error:</strong> Please complete facial registration before submitting.';
@@ -3540,7 +3558,6 @@ async function loadArchives() {
         lucide.createIcons();
         return;
       }
-      applyStopCam();
       applyGoStep(5);
     } catch (err) {
       console.error('Application submission error:', err);
@@ -3597,6 +3614,7 @@ async function loadArchives() {
   function faceRegResetAndGoStage(n) {
     faceRegCurrentStage = 1;
     faceRegCapturedDataUrl = null;
+    window._faceRegBlob = null;
     // Reset sub-step dots
     document.querySelectorAll('#faceRegSteps .face-reg-dot').forEach((d, i) => {
       d.classList.remove('active', 'completed');
@@ -3620,8 +3638,9 @@ async function loadArchives() {
 
   function faceRegGoStage(n) {
     if (n === faceRegCurrentStage) return;
-    // If going backward, just show stage
+    // If going backward, stop camera and show stage
     if (n < faceRegCurrentStage) {
+      if (faceRegCurrentStage === 2) faceRegStopCam();
       faceRegShowStage(n);
       faceRegCurrentStage = n;
       lucide.createIcons();
@@ -3651,6 +3670,10 @@ async function loadArchives() {
       faceRegShowStage(n);
       faceRegCurrentStage = n;
       faceRegRunStorage();
+    } else if (current === 1 && n === 2) {
+      faceRegShowStage(n);
+      faceRegCurrentStage = n;
+      faceRegInitCam();
     } else {
       faceRegShowStage(n);
       faceRegCurrentStage = n;
@@ -3689,6 +3712,20 @@ async function loadArchives() {
     const video = document.getElementById('faceRegCamPreview');
     if (!video) return;
     faceRegStopCam();
+    // Reset capture UI to initial state
+    document.getElementById('faceRegCaptureBtn').classList.remove('hidden');
+    document.getElementById('faceRegRetakeBtn').classList.add('hidden');
+    document.getElementById('faceRegCaptureNext').disabled = true;
+    const captured = document.getElementById('faceRegCaptured');
+    if (captured) { captured.classList.add('hidden'); captured.src = ''; }
+    video.classList.remove('hidden');
+    const wrap = video.closest('.face-reg-cam-wrap');
+    if (wrap) {
+      const live = wrap.querySelector('.face-reg-live');
+      if (live) live.classList.remove('hidden');
+      const oval = wrap.querySelector('.face-reg-oval');
+      if (oval) oval.classList.remove('hidden');
+    }
     try {
       faceRegStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } });
       video.srcObject = faceRegStream;
@@ -3976,7 +4013,6 @@ async function loadArchives() {
 
   /* ── Stage 7 Complete → advance to wizard step 4 ── */
   function faceRegComplete() {
-    faceRegStopCam();
     applyGoStep(4);
   }
 
@@ -3990,6 +4026,18 @@ async function loadArchives() {
     document.getElementById('applyLetterWiz').value = '';
     document.getElementById('applyErrorWiz').classList.add('hidden');
     applyGoStep(2);
+  }
+
+  function applyGoStep2To3() {
+    const letterFile = document.getElementById('applyLetterWiz').files[0];
+    if (!letterFile) {
+      const err = document.getElementById('applyErrorWiz');
+      err.querySelector('span').textContent = 'Please upload your application letter (PDF) before proceeding.';
+      err.classList.remove('hidden');
+      return;
+    }
+    document.getElementById('applyErrorWiz').classList.add('hidden');
+    applyGoStep(3);
   }
 
   function openApplyRequiredModal(title, desc) {
