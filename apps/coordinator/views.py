@@ -391,6 +391,7 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
     def enroll_student_face(self, request):
         """Enroll a student's face during face-to-face approval meeting."""
         from apps.student.face_quality import quality_gate, check_liveness
+        from apps.student.face_utils import detect_face, encode_face
         student_id = request.data.get('student_id')
         facial_image = request.FILES.get('image')
 
@@ -411,30 +412,27 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         image_bytes = facial_image.read()
 
         # Quality gate
-        quality = quality_gate(image_bytes)
-        if not quality['passed']:
+        passed, quality = quality_gate(image_bytes)
+        if not passed:
             return Response({
-                'error': f'Image quality too low: {"; ".join(quality["issues"])}',
+                'error': f'Image quality too low: {"; ".join(quality["messages"])}',
                 'quality': quality,
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        face_roi, coords = detect_face(image_bytes)
+        embedding, bbox = detect_face(image_bytes)
 
-        if face_roi is None:
+        if embedding is None:
             return Response({'error': 'No face detected in the image. Please ensure the student\'s face is clearly visible.'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Liveness check
-        import cv2
-        import numpy as np
-        face_img = cv2.imdecode(np.frombuffer(image_bytes, np.uint8), cv2.IMREAD_COLOR)
-        liveness_result = check_liveness(face_img)
-        if not liveness_result['live']:
+        liveness_passed, liveness_msg = check_liveness(image_bytes)
+        if not liveness_passed:
             return Response({
                 'error': 'Liveness check failed. Please capture a real photo (not a screen or printed image).',
-                'liveness': liveness_result,
+                'liveness': {'passed': liveness_passed, 'message': liveness_msg},
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        encoding = encode_face(face_roi)
+        encoding = encode_face(embedding)
 
         facial_data, created = FacialRecognition.objects.get_or_create(
             student=application.student,
