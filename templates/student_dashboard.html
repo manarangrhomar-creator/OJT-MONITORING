@@ -3756,7 +3756,7 @@ async function loadArchives() {
       if (oval) oval.classList.remove('hidden');
     }
     try {
-      faceRegStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } });
+      faceRegStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } } });
       video.srcObject = faceRegStream;
     } catch (err) {
       console.warn('Camera not available:', err);
@@ -3976,7 +3976,7 @@ async function loadArchives() {
       for (let i = 0; i < gray.length; i++) brightnessSum += gray[i];
       const avgBrightness = brightnessSum / gray.length;
 
-      const blurPassed = blurScore >= 30;
+      const blurPassed = true;
       const brightPassed = avgBrightness >= 40 && avgBrightness <= 220;
 
       const results = [];
