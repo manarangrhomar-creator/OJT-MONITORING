@@ -391,18 +391,45 @@
       .face-reg-consent-box label {
         display: flex;
         align-items: flex-start;
-        gap: 10px;
+        gap: 12px;
         cursor: pointer;
-        font-size: 12px;
+        font-size: 13px;
         color: var(--fg);
-        line-height: 1.5;
+        line-height: 1.6;
+      }
+      .face-reg-consent-check {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        min-width: 20px;
+        border: 2px solid var(--primary);
+        border-radius: 5px;
+        margin-top: 2px;
+        background: white;
+        transition: all 0.2s;
+        position: relative;
+      }
+      .face-reg-consent-check svg {
+        width: 12px;
+        height: 12px;
+        opacity: 0;
+        transition: opacity 0.2s;
+        color: white;
+      }
+      .face-reg-consent-box input[type="checkbox"]:checked + .face-reg-consent-check {
+        background: var(--primary);
+        border-color: var(--primary);
+      }
+      .face-reg-consent-box input[type="checkbox"]:checked + .face-reg-consent-check svg {
+        opacity: 1;
       }
       .face-reg-consent-box input[type="checkbox"] {
-        width: 16px;
-        height: 16px;
-        accent-color: var(--primary);
-        flex-shrink: 0;
-        margin-top: 2px;
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
       }
       .face-reg-stage-title {
         font-size: 13px;
@@ -1269,6 +1296,7 @@
           <div class="face-reg-consent-box mb-3">
             <label>
               <input type="checkbox" id="faceRegConsentCheck">
+              <span class="face-reg-consent-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg></span>
               <span>I understand that my facial data will be captured, processed, and stored as a mathematical faceprint (feature vector) for attendance verification purposes only. I consent to the collection and processing of my biometric data as described. My original photo will be discarded after feature extraction.</span>
             </label>
           </div>
