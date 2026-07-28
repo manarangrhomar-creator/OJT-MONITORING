@@ -370,7 +370,8 @@
             <h3 class="text-[0.6rem] font-bold uppercase tracking-wider" style="color: var(--fg-dim);">Notifications</h3>
             <button id="markAllReadBtn" class="text-[0.55rem] font-bold" style="color: var(--primary);" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">Mark all read</button>
           </div>
-          <div id="notifList" class="max-h-72 overflow-y-auto text-xs" style="color: var(--fg-muted);"></div>
+          <div id="notifList" class="overflow-y-auto text-xs" style="max-height: 360px; color: var(--fg-muted);"></div>
+          <button id="notifPrevBtn" onclick="loadOlderNotifications()" class="w-full text-[0.55rem] font-bold py-2 border-t text-center" style="display: none; color: var(--primary); border-color: var(--card-border);" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">See previous notifications</button>
         </div>
       </div>
       <div class="w-8 h-8 rounded-full flex items-center justify-center relative" style="background: var(--primary); cursor: pointer;" onclick="document.getElementById('btnLogout').click()" title="{{ user_name }}">
@@ -2262,12 +2263,16 @@
   }
   connectDashboardSocket();
 
+  let notifOffset = 0;
+
   async function loadNotifications() {
     notifList.innerHTML = '<p class="text-center py-6"><i data-lucide="loader-2" class="animate-spin w-4 h-4 mx-auto" style="color: var(--fg-dim);"></i></p>'; lucide.createIcons();
     try {
-      const res = await fetch('/api/notifications/', { credentials: 'same-origin' });
-      const notifications = await res.json();
-      if (!notifications || notifications.length === 0) { notifList.innerHTML = '<p class="text-center py-6 text-xs" style="color: var(--fg-dim);">No notifications yet.</p>'; return; }
+      const res = await fetch(`/api/notifications/?limit=10&offset=${notifOffset}`, { credentials: 'same-origin' });
+      const data = await res.json();
+      const notifications = data.results;
+      const hasMore = data.has_more;
+      if (!notifications || notifications.length === 0) { notifList.innerHTML = '<p class="text-center py-6 text-xs" style="color: var(--fg-dim);">No notifications yet.</p>'; document.getElementById('notifPrevBtn').style.display = 'none'; return; }
       let html = '';
       notifications.forEach(n => {
         const time = new Date(n.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
@@ -2283,7 +2288,22 @@
         </div>`;
       });
       notifList.innerHTML = html;
+      const unreadCount = notifications.filter(n => !n.is_read).length;
+      updateBadge(unreadCount);
+      const prevBtn = document.getElementById('notifPrevBtn');
+      if (hasMore) {
+        prevBtn.textContent = 'See previous notifications';
+        prevBtn.style.display = 'block';
+      } else {
+        prevBtn.style.display = 'none';
+      }
     } catch (e) { notifList.innerHTML = '<p class="text-center py-6 text-xs" style="color: var(--danger);">Failed to load</p>'; }
+  }
+
+  function loadOlderNotifications() {
+    notifOffset += 10;
+    loadNotifications();
+    document.getElementById('notifPrevBtn').textContent = '← Back to latest';
   }
 
   async function markNotifRead(id) {
@@ -2299,7 +2319,7 @@
   notifBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     notifDropdown.classList.toggle('hidden');
-    if (!notifDropdown.classList.contains('hidden')) loadNotifications();
+    if (!notifDropdown.classList.contains('hidden')) { notifOffset = 0; loadNotifications(); }
   });
 
   document.addEventListener('click', (e) => {

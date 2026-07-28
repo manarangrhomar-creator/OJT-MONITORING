@@ -9,7 +9,11 @@ class NotificationViewSet(viewsets.ViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
     def list(self, request):
-        notifications = Notification.objects.filter(recipient=request.user)
+        notifications = Notification.objects.filter(recipient=request.user).order_by('-created_at')
+        limit = int(request.query_params.get('limit', 10))
+        offset = int(request.query_params.get('offset', 0))
+        total = notifications.count()
+        notifications = notifications[offset:offset + limit]
         data = [{
             'id': str(n.id),
             'title': n.title,
@@ -20,7 +24,7 @@ class NotificationViewSet(viewsets.ViewSet):
             'related_object_id': str(n.related_object_id) if n.related_object_id else None,
             'related_object_type': n.related_object_type,
         } for n in notifications]
-        return Response(data)
+        return Response({'results': data, 'has_more': offset + limit < total})
 
     @action(detail=False, methods=['get'])
     def unread_count(self, request):

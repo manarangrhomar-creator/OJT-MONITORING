@@ -834,6 +834,8 @@
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
       }
+      #notifList { scrollbar-width: none; -ms-overflow-style: none; }
+      #notifList::-webkit-scrollbar { display: none; }
       @media (max-width: 640px) {
         #notifDropdown {
           position: fixed !important;
@@ -1656,7 +1658,8 @@
                   <h3 class="font-semibold text-xs text-[var(--muted)] uppercase tracking-wider">Notifications</h3>
                   <button id="markAllReadBtn" class="text-[10px] font-semibold text-[var(--primary)] hover:underline">Mark all read</button>
                 </div>
-                <div id="notifList" class="max-h-72 overflow-y-auto custom-scroll text-xs text-[var(--muted)] p-4">Loading...</div>
+                <div id="notifList" class="overflow-y-auto custom-scroll text-xs text-[var(--muted)] p-4" style="max-height: 360px;">Loading...</div>
+                <button id="notifPrevBtn" onclick="loadOlderNotifications()" class="w-full text-[10px] font-semibold py-2 border-t border-[var(--border)] text-center text-[var(--primary)] hover:underline" style="display: none;">See previous notifications</button>
               </div>
             </div>
             <div class="relative" id="profileWrap">
@@ -4280,18 +4283,37 @@ async function loadArchives() {
   }
   connectDashboardSocket();
 
+  let notifOffset = 0;
+
   async function loadNotifications() {
     try {
-      const res = await fetch('/api/student/notifications/', { credentials: 'same-origin' });
-      const notifications = await res.json();
-      if (!notifications || notifications.length === 0) { notifList.innerHTML = '<p class="text-center text-[var(--muted)] py-6">No notifications yet.</p>'; return; }
+      const res = await fetch('/api/student/notifications/?limit=10&offset=' + notifOffset, { credentials: 'same-origin' });
+      const data = await res.json();
+      const notifications = data.results;
+      const hasMore = data.has_more;
+      if (!notifications || notifications.length === 0) { notifList.innerHTML = '<p class="text-center text-[var(--muted)] py-6">No notifications yet.</p>'; document.getElementById('notifPrevBtn').style.display = 'none'; return; }
       let html = '';
       notifications.forEach(n => {
         const time = new Date(n.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
         html += '<div class="p-3 border-b border-[var(--border)] hover:bg-gray-50 transition ' + (n.is_read ? '' : 'bg-blue-50/50') + '"><div class="flex justify-between items-start gap-2"><div class="flex-1 min-w-0"><p class="font-semibold text-[var(--fg)] text-xs">' + esc(n.title) + '</p><p class="text-xs text-[var(--muted)] mt-0.5">' + esc(n.message) + '</p><p class="text-[10px] text-[var(--muted)] mt-1">' + esc(time) + '</p></div>' + (!n.is_read ? '<button onclick="markNotifRead(\'' + esc(n.id) + '\')" class="shrink-0 bg-[var(--primary)] text-white text-[9px] font-semibold px-2 py-1 rounded hover:bg-[var(--primary-dark)] transition">Read</button>' : '') + '</div></div>';
       });
       notifList.innerHTML = html;
+      const unreadCount = notifications.filter(n => !n.is_read).length;
+      updateBadge(unreadCount);
+      const prevBtn = document.getElementById('notifPrevBtn');
+      if (hasMore) {
+        prevBtn.textContent = 'See previous notifications';
+        prevBtn.style.display = 'block';
+      } else {
+        prevBtn.style.display = 'none';
+      }
     } catch (err) { notifList.innerHTML = '<p class="text-center text-red-500 py-6">Failed to load notifications.</p>'; console.error(err); }
+  }
+
+  function loadOlderNotifications() {
+    notifOffset += 10;
+    loadNotifications();
+    document.getElementById('notifPrevBtn').textContent = '← Back to latest';
   }
 
   async function markNotifRead(id) {
@@ -4302,11 +4324,11 @@ async function loadArchives() {
     try { await fetch('/api/student/notifications/mark-all-read/', { method: 'POST', credentials: 'same-origin' }); loadNotifications(); } catch (err) { console.error(err); }
   });
 
-  notifBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    notifDropdown.classList.toggle('hidden');
-    if (!notifDropdown.classList.contains('hidden')) loadNotifications();
-  });
+    notifBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      notifDropdown.classList.toggle('hidden');
+      if (!notifDropdown.classList.contains('hidden')) { notifOffset = 0; loadNotifications(); }
+    });
 
   document.addEventListener('click', (e) => {
     if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) notifDropdown.classList.add('hidden');
