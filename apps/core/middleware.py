@@ -1,3 +1,6 @@
+import base64
+import secrets
+
 from channels.db import database_sync_to_async
 from django.contrib.auth.models import AnonymousUser
 from django.http import HttpResponse
@@ -39,16 +42,21 @@ class SecurityHeadersMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
+        # Generate per-request nonce for inline <script> tags (context_processor reads this)
+        request.csp_nonce = base64.b64encode(secrets.token_bytes(16)).decode('ascii')
+
         response = self.get_response(request)
 
+        nonce = request.csp_nonce
         # Content Security Policy
-        # NOTE: Nonce-based CSP is used for script-src. Inline event handlers
-        # (onclick/onsubmit) in templates are migrated to addEventListener with nonces.
-        # style-src 'unsafe-inline' has been REMOVED — inline CSS injection is low-risk.
+        # 'unsafe-inline' is required for ~200+ inline event handlers (onclick/onsubmit/onchange)
+        # across templates and for inline styles (~550+ style="..." attributes).
+        # The nonce is exposed via context_processor for <script nonce="{{ csp_nonce }}">
+        # tags — future migration can remove 'unsafe-inline' from script-src incrementally.
         response['Content-Security-Policy'] = (
             "default-src 'self'; "
-            "script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.tailwindcss.com https://unpkg.com; "
-            "style-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://cdn.tailwindcss.com https://unpkg.com; "
+            f"script-src 'self' 'unsafe-inline' 'nonce-{nonce}' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.tailwindcss.com https://unpkg.com; "
+            f"style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://cdn.tailwindcss.com https://unpkg.com; "
             "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
             "img-src 'self' data: https:; "
             "media-src 'self' blob:; "
