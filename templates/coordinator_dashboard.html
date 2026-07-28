@@ -2201,8 +2201,7 @@
     if (coordNotifRetries >= MAX_COORD_WS_RETRIES) return;
     coordNotifRetries++;
     const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const token = getAuthToken();
-    const url = `${proto}//${window.location.host}/ws/notifications/` + (token ? '?token=' + encodeURIComponent(token) : '');
+    const url = `${proto}//${window.location.host}/ws/notifications/`;
     notifSocket = new WebSocket(url);
     notifSocket.onopen = function() { coordNotifRetries = 0; };
     notifSocket.onmessage = function(e) {
@@ -2227,8 +2226,7 @@
     if (coordDashRetries >= MAX_COORD_WS_RETRIES) return;
     coordDashRetries++;
     const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const token = getAuthToken();
-    const wsUrl = `${proto}//${window.location.host}/ws/dashboard/` + (token ? '?token=' + encodeURIComponent(token) : '');
+    const wsUrl = `${proto}//${window.location.host}/ws/dashboard/`;
     dashboardSocket = new WebSocket(wsUrl);
     dashboardSocket.onopen = function() { coordDashRetries = 0; };
     dashboardSocket.onmessage = function(e) {

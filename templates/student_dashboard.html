@@ -4213,8 +4213,7 @@ async function loadArchives() {
   function connectNotifSocket() {
     if (document.visibilityState === 'hidden') return;
     const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const token = getAuthToken();
-    const url = proto + '//' + window.location.host + '/ws/notifications/' + (token ? '?token=' + encodeURIComponent(token) : '');
+    const url = proto + '//' + window.location.host + '/ws/notifications/';
     notifSocket = new WebSocket(url);
     notifSocket.onopen = function() {
       notifReconnectDelay = 1000;
@@ -4248,8 +4247,7 @@ async function loadArchives() {
   function connectDashboardSocket() {
     if (document.visibilityState === 'hidden') return;
     const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const token = getAuthToken();
-    const url = proto + '//' + window.location.host + '/ws/dashboard/' + (token ? '?token=' + encodeURIComponent(token) : '');
+    const url = proto + '//' + window.location.host + '/ws/dashboard/';
     dashboardSocket = new WebSocket(url);
     dashboardSocket.onopen = function() {
       dashReconnectDelay = 1000;

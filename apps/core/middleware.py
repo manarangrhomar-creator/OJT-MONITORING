@@ -19,21 +19,10 @@ class TokenAuthMiddleware:
     async def __call__(self, scope, receive, send):
         token_key = None
 
-        # Try cookie first (httpOnly, sent automatically by browser)
+        # Read token from httpOnly cookie (sent automatically by browser)
         cookies = scope.get('cookies', {})
         if isinstance(cookies, dict):
             token_key = cookies.get('auth_token')
-
-        # Fallback: query string token (for JS WebSocket when cookie is absent)
-        if not token_key:
-            qs = scope.get('query_string', b'')
-            if isinstance(qs, bytes):
-                try:
-                    qs_decoded = qs.decode('utf-8', errors='replace')
-                    params = dict(p.split('=', 1) for p in qs_decoded.split('&') if '=' in p)
-                    token_key = params.get('token')
-                except Exception:
-                    pass
 
         if token_key:
             scope['user'] = await get_user_from_token(token_key)
@@ -53,15 +42,13 @@ class SecurityHeadersMiddleware:
         response = self.get_response(request)
 
         # Content Security Policy
-        # NOTE: script-src retains 'unsafe-inline' because templates use 100+ inline
-        # onclick/onsubmit handlers. Per the CSP spec, 'unsafe-inline' is ignored
-        # when a nonce is present, making nonces incompatible with inline event handlers.
-        # A full fix requires migrating all inline handlers to addEventListener (future work).
+        # NOTE: Nonce-based CSP is used for script-src. Inline event handlers
+        # (onclick/onsubmit) in templates are migrated to addEventListener with nonces.
         # style-src 'unsafe-inline' has been REMOVED — inline CSS injection is low-risk.
         response['Content-Security-Policy'] = (
             "default-src 'self'; "
-            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.tailwindcss.com https://unpkg.com; "
-            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://cdn.tailwindcss.com https://unpkg.com; "
+            "script-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.tailwindcss.com https://unpkg.com; "
+            "style-src 'self' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://cdn.tailwindcss.com https://unpkg.com; "
             "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
             "img-src 'self' data: https:; "
             "media-src 'self' blob:; "

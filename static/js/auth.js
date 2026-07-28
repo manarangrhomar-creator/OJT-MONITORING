@@ -9,23 +9,13 @@
 const API_BASE_URL = '/api/auth';
 const USER_ROLE_KEY = 'user_role';
 const USER_DATA_KEY = 'user_data';
-const AUTH_TOKEN_KEY = 'auth_token';
 
 /**
  * Store non-sensitive user data in localStorage (token is in httpOnly cookie)
- * Token is also stored for WebSocket fallback (query param on WS URL)
  */
-function storeAuthToken(token, user) {
-    localStorage.setItem(AUTH_TOKEN_KEY, token);
+function storeUserData(user) {
     localStorage.setItem(USER_ROLE_KEY, user.role);
     localStorage.setItem(USER_DATA_KEY, JSON.stringify(user));
-}
-
-/**
- * Get auth token from localStorage (for WebSocket connections)
- */
-function getAuthToken() {
-    return localStorage.getItem(AUTH_TOKEN_KEY);
 }
 
 /**
@@ -63,7 +53,6 @@ function getUserData() {
  * Clear authentication data from localStorage
  */
 function clearAuthData() {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(USER_ROLE_KEY);
     localStorage.removeItem(USER_DATA_KEY);
 }
@@ -131,7 +120,7 @@ async function login(identifier, password) {
         const response = await apiRequest('/login/', 'POST', { identifier, password });
         
         if (response.token && response.user) {
-            storeAuthToken(response.token, response.user);
+            storeUserData(response.user);
             return response;
         }
         throw new Error('Invalid response from server');

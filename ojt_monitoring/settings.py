@@ -26,6 +26,9 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 # Token expiry: 7 days (in seconds) — must match auth_token cookie max_age
 TOKEN_EXPIRED_AFTER_SECONDS = 86400 * 7
 
+# Data retention: auto-delete expired login attempts, OTPs, and old tokens
+DATA_RETENTION_DAYS = config('DATA_RETENTION_DAYS', default=30, cast=int)
+
 # Email Configuration
 EMAIL_BACKEND = config('EMAIL_BACKEND', default='apps.core.mail.backends.smtp.EmailBackend')
 EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
@@ -109,6 +112,10 @@ CELERY_BEAT_SCHEDULE = {
     'auto-clockout-stale-attendances': {
         'task': 'apps.core.tasks.auto_clockout_stale_attendances',
         'schedule': 3600,  # every hour; ponytail: hardcoded, move to settings if different sites need different intervals
+    },
+    'cleanup-expired-security-records': {
+        'task': 'apps.core.tasks.cleanup_expired_security_records',
+        'schedule': 86400,  # daily — purge old OTPs, login attempts, verification tokens
     },
 }
 

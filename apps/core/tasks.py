@@ -2,6 +2,7 @@ from celery import shared_task
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 from django.template.loader import render_to_string
+from django.db import models
 from pathlib import Path
 from email.mime.image import MIMEImage
 
@@ -91,3 +92,41 @@ def auto_clockout_stale_attendances(self):
         count += 1
 
     return f'Auto clocked-out {count} stale attendances'
+
+
+@shared_task
+def cleanup_expired_security_records():
+    """Delete expired/old security records based on DATA_RETENTION_DAYS.
+
+    Cleans up:
+    - PasswordResetOTP: used or expired records
+    - LoginAttempt: records older than retention period
+    - EmailVerificationToken: verified or expired records
+    """
+    from django.utils import timezone
+    from django.conf import settings
+    from apps.authentication.models import PasswordResetOTP, LoginAttempt, EmailVerificationToken
+
+    retention_days = getattr(settings, 'DATA_RETENTION_DAYS', 30)
+    cutoff = timezone.now() - timezone.timedelta(days=retention_days)
+
+    otp_deleted, _ = PasswordResetOTP.objects.filter(
+        models.Q(is_used=True) | models.Q(expires_at__lt=cutoff)
+    ).delete()
+
+    login_deleted, _ = LoginAttempt.objects.filter(
+        created_at__lt=cutoff
+    ).delete()
+
+    token_deleted, _ = EmailVerificationToken.objects.filter(
+        models.Q(verified=True) | models.Q(expires_at__lt=cutoff)
+    ).delete()
+
+    import logging
+    logger = logging.getLogger(__name__)
+    logger.info(
+        'Security record cleanup: %d OTPs, %d login attempts, %d verification tokens deleted',
+        otp_deleted, login_deleted, token_deleted,
+    )
+
+    return f'Cleaned up {otp_deleted} OTPs, {login_deleted} login attempts, {token_deleted} verification tokens'

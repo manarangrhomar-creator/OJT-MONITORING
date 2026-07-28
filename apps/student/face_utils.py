@@ -1,6 +1,10 @@
 import cv2
 import numpy as np
 import logging
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+import base64
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +23,32 @@ def _get_face_app():
         )
         _face_app.prepare(ctx_id=0, det_size=(640, 640))
     return _face_app
+
+
+def _get_fernet():
+    """Derive a Fernet key from Django SECRET_KEY for biometric encryption."""
+    from django.conf import settings
+    secret = settings.SECRET_KEY.encode()
+    kdf = PBKDF2HMAC(
+        algorithm=hashes.SHA256(),
+        length=32,
+        salt=b'ojt-biometric-encryption-salt',
+        iterations=480000,
+    )
+    key = base64.urlsafe_b64encode(kdf.derive(secret))
+    return Fernet(key)
+
+
+def encrypt_embedding(raw_bytes):
+    """Encrypt embedding bytes with Fernet before storing."""
+    f = _get_fernet()
+    return f.encrypt(raw_bytes)
+
+
+def decrypt_embedding(encrypted_bytes):
+    """Decrypt Fernet-encrypted embedding bytes."""
+    f = _get_fernet()
+    return f.decrypt(encrypted_bytes)
 
 
 def detect_face(image_bytes):
@@ -46,13 +76,19 @@ def detect_face(image_bytes):
 
 
 def encode_face(embedding):
-    """Serialize 512-d embedding to bytes."""
-    return embedding.astype(np.float32).tobytes()
+    """Serialize 512-d embedding to encrypted bytes for secure storage."""
+    raw = embedding.astype(np.float32).tobytes()
+    return encrypt_embedding(raw)
 
 
 def decode_face(encoding_bytes):
-    """Deserialize bytes to 512-d embedding."""
-    return np.frombuffer(encoding_bytes, dtype=np.float32).copy()
+    """Decrypt and deserialize encrypted bytes to 512-d embedding."""
+    try:
+        raw = decrypt_embedding(encoding_bytes)
+    except Exception:
+        # Fallback: treat as unencrypted raw bytes (legacy data migration)
+        raw = encoding_bytes
+    return np.frombuffer(raw, dtype=np.float32).copy()
 
 
 def verify_faces(stored_encoding, new_embedding, threshold=0.35):
