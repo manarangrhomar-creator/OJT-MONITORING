@@ -2308,6 +2308,7 @@
 
   // ===== INIT =====
   document.addEventListener('DOMContentLoaded', async function() {
+    if (!(await protectDashboard('coordinator'))) return;
     const btn = document.getElementById('overviewStudentSortBtn');
     if (btn) btn.dataset.sort = 'name';
     const hasProgs = await checkCoordinatorPrograms();

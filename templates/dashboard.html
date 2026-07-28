@@ -31,9 +31,11 @@
 {% endblock %}
 
 {% block extra_js %}
+<script src="/static/js/auth.js"></script>
 <script nonce="{{ csp_nonce }}">
     // Load dashboard data from API
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', async function() {
+        if (!(await protectDashboard('admin'))) return;
         // This will be populated with actual API calls in Phase 4
         // Dashboard initialized
     });

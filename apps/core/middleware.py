@@ -51,11 +51,12 @@ class SecurityHeadersMiddleware:
         # Content Security Policy
         # 'unsafe-inline' is required for ~200+ inline event handlers (onclick/onsubmit/onchange)
         # across templates and for inline styles (~550+ style="..." attributes).
-        # The nonce is exposed via context_processor for <script nonce="{{ csp_nonce }}">
-        # tags — future migration can remove 'unsafe-inline' from script-src incrementally.
+        # Per CSP Level 3, 'unsafe-inline' is ignored when a nonce is present in script-src.
+        # Removing nonce allows 'unsafe-inline' to take effect for inline event handlers.
+        # The nonce context_processor is preserved (harmless) in case of future migration.
         response['Content-Security-Policy'] = (
             "default-src 'self'; "
-            f"script-src 'self' 'unsafe-inline' 'nonce-{nonce}' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.tailwindcss.com https://unpkg.com; "
+            f"script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://cdn.tailwindcss.com https://unpkg.com; "
             f"style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://fonts.googleapis.com https://cdn.tailwindcss.com https://unpkg.com; "
             "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
             "img-src 'self' data: https:; "

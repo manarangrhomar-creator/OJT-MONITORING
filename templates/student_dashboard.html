@@ -2276,10 +2276,9 @@
 </script>
 
 <script nonce="{{ csp_nonce }}">
-  {
-    const userRole = localStorage.getItem('user_role');
-    if (userRole !== 'student') { window.location.href = '/auth/login/'; throw new Error('Access denied'); }
-  }
+  (async () => {
+    if (!(await protectDashboard('student'))) return;
+  })();
   function esc(str) {
     if (str === null || str === undefined) return '';
     var d = document.createElement('div');
