@@ -543,6 +543,7 @@
         <span id="studentPageCount" class="text-[0.6rem] font-semibold" style="color: var(--fg-dim);">—</span>
         <div class="flex gap-1">
           <button id="studentPrev" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="studentPage(-1)" disabled>&laquo; Prev</button>
+          <div id="studentPageButtons" class="flex gap-1 items-center"></div>
           <button id="studentNext" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="studentPage(1)">Next &raquo;</button>
         </div>
       </div>
@@ -607,6 +608,7 @@
         <span id="coordinatorPageCount" class="text-[0.6rem] font-semibold" style="color: var(--fg-dim);">—</span>
         <div class="flex gap-1">
           <button id="coordinatorPrev" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="coordinatorPage(-1)" disabled>&laquo; Prev</button>
+          <div id="coordinatorPageButtons" class="flex gap-1 items-center"></div>
           <button id="coordinatorNext" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="coordinatorPage(1)">Next &raquo;</button>
         </div>
       </div>
@@ -1073,6 +1075,20 @@
         let approvals = {};
         let approvalList = [];
 
+        // ===== STUDENT TABLE PAGINATION STATE =====
+        let filteredStudents = [];
+        let studentCurrentPage = 0;
+        const STUDENTS_PER_PAGE = 10;
+        let studentStatusFilter = 'all';
+        let studentSearchFilter = '';
+
+        // ===== COORDINATOR TABLE PAGINATION STATE =====
+        let filteredCoordinators = [];
+        let coordinatorCurrentPage = 0;
+        const COORDINATORS_PER_PAGE = 10;
+        let coordinatorStatusFilter = 'all';
+        let coordinatorSearchFilter = '';
+
         // ===== UTILITY FUNCTIONS =====
         // Safely escape HTML to prevent XSS
         function esc(str) {
@@ -1165,29 +1181,137 @@
 
         // ===== FILTER FUNCTIONS =====
         function filterStudentsByStatus(status) {
-            const tbody = document.getElementById('studentTableBody');
-            if (!tbody) return;
-            const rows = tbody.getElementsByTagName('tr');
-            Array.from(rows).forEach(row => {
-                const statusCell = row.querySelector('td:nth-child(4)');
-                if (statusCell) {
-                    const rowStatus = statusCell.textContent.trim().toLowerCase();
-                    row.style.display = status === 'all' || rowStatus === status ? '' : 'none';
+            studentStatusFilter = status;
+            studentSearchFilter = (document.getElementById('studentSearchInput')?.value || '').toLowerCase();
+            applyStudentFilters();
+        }
+
+        function applyStudentFilters() {
+            filteredStudents = Object.values(students).filter(s => {
+                if (studentStatusFilter !== 'all' && s.status.toLowerCase() !== studentStatusFilter) return false;
+                if (studentSearchFilter) {
+                    const name = (s.name || '').toLowerCase();
+                    const email = (s.email || '').toLowerCase();
+                    if (!name.includes(studentSearchFilter) && !email.includes(studentSearchFilter)) return false;
                 }
+                return true;
             });
+            studentCurrentPage = 0;
+            renderStudentTable();
+        }
+
+        function studentPage(dir) {
+            const totalPages = Math.ceil(filteredStudents.length / STUDENTS_PER_PAGE);
+            const next = studentCurrentPage + dir;
+            if (next < 0 || next >= totalPages) return;
+            studentCurrentPage = next;
+            renderStudentTable();
+        }
+
+        function renderStudentPagination() {
+            const total = filteredStudents.length;
+            const totalPages = Math.ceil(total / STUDENTS_PER_PAGE);
+            const current = studentCurrentPage;
+            const countEl = document.getElementById('studentPageCount');
+            const prevBtn = document.getElementById('studentPrev');
+            const nextBtn = document.getElementById('studentNext');
+            const container = document.getElementById('studentPageButtons');
+
+            if (countEl) {
+                countEl.textContent = total === 0 ? '—' : `${current * STUDENTS_PER_PAGE + 1}–${Math.min((current + 1) * STUDENTS_PER_PAGE, total)} of ${total}`;
+            }
+            if (prevBtn) prevBtn.disabled = current === 0;
+            if (nextBtn) nextBtn.disabled = current >= totalPages - 1;
+
+            if (!container) return;
+            container.innerHTML = '';
+            if (totalPages <= 1) return;
+
+            const addBtn = (page) => {
+                const btn = document.createElement('button');
+                btn.className = `pill-btn !text-[0.6rem] !px-2.5 !py-1${page === current ? ' active' : ''}`;
+                btn.textContent = page + 1;
+                btn.onclick = () => { studentCurrentPage = page; renderStudentTable(); };
+                container.appendChild(btn);
+            };
+            const addEllipsis = () => {
+                const span = document.createElement('span');
+                span.className = 'text-[0.6rem] px-1 self-center';
+                span.style.color = 'var(--fg-dim)';
+                span.textContent = '...';
+                container.appendChild(span);
+            };
+
+            if (current > 2) { addBtn(0); if (current > 3) addEllipsis(); }
+            for (let i = Math.max(0, current - 1); i <= Math.min(totalPages - 1, current + 1); i++) addBtn(i);
+            if (current < totalPages - 3) { if (current < totalPages - 4) addEllipsis(); addBtn(totalPages - 1); }
         }
 
         function filterCoordinatorsByStatus(status) {
-            const tbody = document.getElementById('coordinatorTableBody');
-            if (!tbody) return;
-            const rows = tbody.getElementsByTagName('tr');
-            Array.from(rows).forEach(row => {
-                const statusCell = row.querySelector('td:nth-child(3)');
-                if (statusCell) {
-                    const rowStatus = statusCell.textContent.trim().toLowerCase();
-                    row.style.display = status === 'all' || rowStatus === status ? '' : 'none';
+            coordinatorStatusFilter = status;
+            coordinatorSearchFilter = (document.getElementById('coordinatorSearchInput')?.value || '').toLowerCase();
+            applyCoordinatorFilters();
+        }
+
+        function applyCoordinatorFilters() {
+            filteredCoordinators = Object.values(coordinators).filter(c => {
+                if (coordinatorStatusFilter !== 'all' && c.status.toLowerCase() !== coordinatorStatusFilter) return false;
+                if (coordinatorSearchFilter) {
+                    const name = (c.name || '').toLowerCase();
+                    const email = (c.email || '').toLowerCase();
+                    if (!name.includes(coordinatorSearchFilter) && !email.includes(coordinatorSearchFilter)) return false;
                 }
+                return true;
             });
+            coordinatorCurrentPage = 0;
+            renderCoordinatorTable();
+        }
+
+        function coordinatorPage(dir) {
+            const totalPages = Math.ceil(filteredCoordinators.length / COORDINATORS_PER_PAGE);
+            const next = coordinatorCurrentPage + dir;
+            if (next < 0 || next >= totalPages) return;
+            coordinatorCurrentPage = next;
+            renderCoordinatorTable();
+        }
+
+        function renderCoordinatorPagination() {
+            const total = filteredCoordinators.length;
+            const totalPages = Math.ceil(total / COORDINATORS_PER_PAGE);
+            const current = coordinatorCurrentPage;
+            const countEl = document.getElementById('coordinatorPageCount');
+            const prevBtn = document.getElementById('coordinatorPrev');
+            const nextBtn = document.getElementById('coordinatorNext');
+            const container = document.getElementById('coordinatorPageButtons');
+
+            if (countEl) {
+                countEl.textContent = total === 0 ? '—' : `${current * COORDINATORS_PER_PAGE + 1}–${Math.min((current + 1) * COORDINATORS_PER_PAGE, total)} of ${total}`;
+            }
+            if (prevBtn) prevBtn.disabled = current === 0;
+            if (nextBtn) nextBtn.disabled = current >= totalPages - 1;
+
+            if (!container) return;
+            container.innerHTML = '';
+            if (totalPages <= 1) return;
+
+            const addBtn = (page) => {
+                const btn = document.createElement('button');
+                btn.className = `pill-btn !text-[0.6rem] !px-2.5 !py-1${page === current ? ' active' : ''}`;
+                btn.textContent = page + 1;
+                btn.onclick = () => { coordinatorCurrentPage = page; renderCoordinatorTable(); };
+                container.appendChild(btn);
+            };
+            const addEllipsis = () => {
+                const span = document.createElement('span');
+                span.className = 'text-[0.6rem] px-1 self-center';
+                span.style.color = 'var(--fg-dim)';
+                span.textContent = '...';
+                container.appendChild(span);
+            };
+
+            if (current > 2) { addBtn(0); if (current > 3) addEllipsis(); }
+            for (let i = Math.max(0, current - 1); i <= Math.min(totalPages - 1, current + 1); i++) addBtn(i);
+            if (current < totalPages - 3) { if (current < totalPages - 4) addEllipsis(); addBtn(totalPages - 1); }
         }
 
         function filterApprovalsByStatus(status) {
@@ -1235,8 +1359,10 @@
                         year: item.year || 'N/A'
                     };
                 });
-                renderStudentTable();
+                applyStudentFilters();
             } catch (error) {
+                filteredStudents = [];
+                renderStudentTable();
                 if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-xs" style="color: var(--danger);">Error loading</td></tr>';
                 console.error('Error loading students:', error);
             }
@@ -1246,11 +1372,14 @@
             const tbody = document.getElementById('studentTableBody');
             if (!tbody) return;
             tbody.innerHTML = '';
-            if (Object.keys(students).length === 0) {
+            if (filteredStudents.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="5" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="users" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No students found</span></div></td></tr>';
+                renderStudentPagination();
                 return;
             }
-            Object.values(students).forEach(student => {
+            const start = studentCurrentPage * STUDENTS_PER_PAGE;
+            const page = filteredStudents.slice(start, start + STUDENTS_PER_PAGE);
+            page.forEach(student => {
                 const sc = student.status === 'Active' ? 'var(--success)' : 'var(--gold)';
                 tbody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-black/[0.02] transition-colors">
                     <td class="table-cell font-bold">${esc(student.name)}</td>
@@ -1264,6 +1393,7 @@
                 </tr>`);
             });
             lucide.createIcons();
+            renderStudentPagination();
         }
 
         function viewStudent(id) {
@@ -1331,7 +1461,7 @@
                     role: updated.role,
                     status: updated.is_active ? 'Active' : 'Inactive'
                 };
-                renderStudentTable();
+                applyStudentFilters();
                 showAlert('✓ Student updated successfully');
                 closeModal('editModal');
             } catch (error) {
@@ -1384,7 +1514,7 @@
                 delete students[id];
                 pendingDeleteId = null;
                 pendingDeleteName = '';
-                renderStudentTable();
+                applyStudentFilters();
                 closeModal('deleteModal');
                 showAlert('✓ Student permanently deleted');
             } catch (error) {
@@ -1430,8 +1560,10 @@
                         course: item.course_name || 'N/A'
                     };
                 });
-                renderCoordinatorTable();
+                applyCoordinatorFilters();
             } catch (error) {
+                filteredCoordinators = [];
+                renderCoordinatorTable();
                 if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center text-xs" style="color: var(--danger);">Error loading</td></tr>';
                 console.error('Error loading coordinators:', error);
             }
@@ -1441,11 +1573,14 @@
             const tbody = document.getElementById('coordinatorTableBody');
             if (!tbody) return;
             tbody.innerHTML = '';
-            if (Object.keys(coordinators).length === 0) {
+            if (filteredCoordinators.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="users" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No coordinators found</span></div></td></tr>';
+                renderCoordinatorPagination();
                 return;
             }
-            Object.values(coordinators).forEach(coord => {
+            const start = coordinatorCurrentPage * COORDINATORS_PER_PAGE;
+            const page = filteredCoordinators.slice(start, start + COORDINATORS_PER_PAGE);
+            page.forEach(coord => {
                 const sc = coord.status === 'Active' ? 'var(--success)' : 'var(--gold)';
                 tbody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-black/[0.02] transition-colors">
                     <td class="table-cell font-bold">${esc(coord.name)}</td>
@@ -1458,6 +1593,7 @@
                 </tr>`);
             });
             lucide.createIcons();
+            renderCoordinatorPagination();
         }
 
         function viewCoordinator(id) {
@@ -1542,7 +1678,7 @@
                     course: course,
                     status: updated.is_active ? 'Active' : 'Inactive'
                 };
-                renderCoordinatorTable();
+                applyCoordinatorFilters();
                 showAlert('✓ Coordinator updated successfully');
                 closeModal('editCoordinatorModal');
             } catch (error) {
@@ -1598,7 +1734,7 @@
                 coordinatorList = coordinatorList.filter(c => c.id !== id);
                 pendingCoordDeleteId = null;
                 pendingCoordDeleteName = '';
-                renderCoordinatorTable();
+                applyCoordinatorFilters();
                 closeModal('coordDeleteModal');
                 showAlert('✓ Coordinator permanently deleted');
             } catch (error) {
@@ -2808,23 +2944,13 @@
 
         // ===== SEARCH INPUTS =====
         document.getElementById('studentSearchInput')?.addEventListener('keyup', function() {
-            const filter = this.value.toUpperCase();
-            const tbody = document.getElementById('studentTableBody');
-            if (tbody) {
-                Array.from(tbody.getElementsByTagName('tr')).forEach(row => {
-                    row.style.display = row.textContent.toUpperCase().includes(filter) ? '' : 'none';
-                });
-            }
+            studentSearchFilter = this.value.toLowerCase();
+            applyStudentFilters();
         });
 
         document.getElementById('coordinatorSearchInput')?.addEventListener('keyup', function() {
-            const filter = this.value.toUpperCase();
-            const tbody = document.getElementById('coordinatorTableBody');
-            if (tbody) {
-                Array.from(tbody.getElementsByTagName('tr')).forEach(row => {
-                    row.style.display = row.textContent.toUpperCase().includes(filter) ? '' : 'none';
-                });
-            }
+            coordinatorSearchFilter = this.value.toLowerCase();
+            applyCoordinatorFilters();
         });
 
         document.getElementById('approvalSearchInput')?.addEventListener('keyup', function() {
