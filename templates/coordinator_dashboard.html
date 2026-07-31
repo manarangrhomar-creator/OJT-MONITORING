@@ -851,6 +851,10 @@
         </div>
       </div>
       <div>
+        <p class="text-[0.55rem] font-bold uppercase tracking-wider mb-1.5" style="color: var(--fg-muted);">Preferred Site</p>
+        <p class="text-xs font-semibold" id="approveAppSite"></p>
+      </div>
+      <div>
         <p class="text-[0.55rem] font-bold uppercase tracking-wider mb-1.5" style="color: var(--fg-muted);">Submitted On</p>
         <p class="text-xs font-semibold" id="approveAppDate"></p>
       </div>
@@ -1671,6 +1675,7 @@
     if (!a) return;
     document.getElementById('approveAppStudent').textContent = a.student_name;
     document.getElementById('approveAppProgram').textContent = a.program_name;
+    document.getElementById('approveAppSite').textContent = a.preferred_site_name ? a.preferred_site_name : 'No preferred site';
     document.getElementById('approveAppInitial').textContent = (a.student_name || '?').charAt(0).toUpperCase();
     document.getElementById('approveAppId').value = id;
     document.getElementById('enrollAppStudentId').value = a.student;

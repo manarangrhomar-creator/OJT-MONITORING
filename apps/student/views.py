@@ -386,10 +386,11 @@ class StudentDashboardViewSet(viewsets.ViewSet):
                     }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
             coordinator = application.program.coordinator
+            site_text = f' and wants to take their OJT at {application.preferred_site.name}' if application.preferred_site else ''
             create_and_send_notification(
                 recipient=coordinator,
                 title='New OJT Application' if is_new else 'Re-applied to OJT Program',
-                message=f'{request.user.get_full_name() or request.user.username} has {"applied to" if is_new else "re-applied to"} {application.program.name}.',
+                message=f'{request.user.get_full_name() or request.user.username} has {"applied to" if is_new else "re-applied to"} {application.program.name}{site_text}.',
                 type='application_update',
                 related_object=application,
                 related_object_type='OJTApplication',
