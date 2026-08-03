@@ -234,6 +234,49 @@
       .modal-desc { font-size: 0.875rem; margin-bottom: 1rem; color: var(--fg-muted); }
       .modal-name-highlight { color: var(--fg); font-weight: 700; }
       .danger-ghost { border-color: var(--danger) !important; color: var(--danger) !important; }
+
+      /* === SKELETON LOADING === */
+      .skeleton {
+        position: relative;
+        overflow: hidden;
+        background: var(--card-border);
+        border-radius: 6px;
+        min-height: 1em;
+      }
+      .skeleton::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+        animation: skeletonShimmer 1.5s ease-in-out infinite;
+      }
+      @keyframes skeletonShimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+      }
+      .skeleton-row { display: flex; gap: 0.75rem; padding: 0.5rem 0; }
+      .skeleton-row .skeleton { height: 0.7rem; flex: 1; }
+      .skeleton-row .skeleton:nth-child(1) { flex: 2; }
+      .skeleton-row .skeleton:nth-child(3) { flex: 0.6; }
+
+      /* === TRANSITIONS (standardized) === */
+      .pill-btn, .action-btn, .close-modal, button { transition: all 0.2s ease; }
+      .card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+      .card-hover:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+      /* === MODAL SCROLL === */
+      .modal-content { max-height: 90vh; overflow-y: auto; }
+
+      /* === REDUCED MOTION === */
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+        .skeleton::after { animation: none; }
+        .card-hover:hover { transform: none; }
+      }
     </style>
     <script src="{% static 'js/auth.js' %}"></script>
 </head>
@@ -267,16 +310,16 @@
           <p class="subtitle-gold">Admin Portal</p>
         </div>
       </div>
-      <nav class="hidden lg:flex items-center gap-1.5 ml-2" id="pillNav">
-        <button class="pill-btn active" data-section="overview" onclick="switchSection('overview')"><i data-lucide="layout-dashboard" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Dashboard</button>
-        <button class="pill-btn" data-section="students" onclick="switchSection('students')"><i data-lucide="users" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Student Accounts</button>
-        <button class="pill-btn" data-section="student-approvals" onclick="switchSection('student-approvals')"><i data-lucide="user-check" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Student Approval</button>
-        <button class="pill-btn" data-section="coordinators" onclick="switchSection('coordinators')"><i data-lucide="users" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Coordinators</button>
-        <button class="pill-btn" data-section="approvals" onclick="switchSection('approvals')"><i data-lucide="file-text" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Coord. Approval</button>
-        <button class="pill-btn" data-section="courses" onclick="switchSection('courses')"><i data-lucide="book-open" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Courses</button>
-        <button class="pill-btn" data-section="sites" onclick="switchSection('sites')"><i data-lucide="building" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Sites</button>
-        <button class="pill-btn" data-section="programs" onclick="switchSection('programs')"><i data-lucide="book-open" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Subjects</button>
-        <button class="pill-btn" data-section="system-logs" onclick="switchSection('system-logs')"><i data-lucide="scroll-text" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>System Logs</button>
+      <nav class="hidden lg:flex items-center gap-1.5 ml-2" id="pillNav" role="tablist" aria-label="Dashboard sections">
+        <button class="pill-btn active" role="tab" aria-selected="true" aria-controls="overviewSection" data-section="overview" onclick="switchSection('overview')"><i data-lucide="layout-dashboard" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Dashboard</button>
+        <button class="pill-btn" role="tab" aria-selected="false" aria-controls="studentsSection" data-section="students" tabindex="-1" onclick="switchSection('students')"><i data-lucide="users" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Student Accounts</button>
+        <button class="pill-btn" role="tab" aria-selected="false" aria-controls="student-approvalsSection" data-section="student-approvals" tabindex="-1" onclick="switchSection('student-approvals')"><i data-lucide="user-check" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Student Approval</button>
+        <button class="pill-btn" role="tab" aria-selected="false" aria-controls="coordinatorsSection" data-section="coordinators" tabindex="-1" onclick="switchSection('coordinators')"><i data-lucide="users" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Coordinators</button>
+        <button class="pill-btn" role="tab" aria-selected="false" aria-controls="approvalsSection" data-section="approvals" tabindex="-1" onclick="switchSection('approvals')"><i data-lucide="file-text" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Coord. Approval</button>
+        <button class="pill-btn" role="tab" aria-selected="false" aria-controls="coursesSection" data-section="courses" tabindex="-1" onclick="switchSection('courses')"><i data-lucide="book-open" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Courses</button>
+        <button class="pill-btn" role="tab" aria-selected="false" aria-controls="sitesSection" data-section="sites" tabindex="-1" onclick="switchSection('sites')"><i data-lucide="building" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Sites</button>
+        <button class="pill-btn" role="tab" aria-selected="false" aria-controls="programsSection" data-section="programs" tabindex="-1" onclick="switchSection('programs')"><i data-lucide="book-open" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Subjects</button>
+        <button class="pill-btn" role="tab" aria-selected="false" aria-controls="system-logsSection" data-section="system-logs" tabindex="-1" onclick="switchSection('system-logs')"><i data-lucide="scroll-text" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>System Logs</button>
       </nav>
     </div>
     <div class="flex items-center gap-2">
@@ -307,7 +350,7 @@
 
 <main class="p-4 sm:p-6 lg:p-8 max-w-[1440px] mx-auto">
   <!-- ===== OVERVIEW DASHBOARD SECTION ===== -->
-  <div id="overviewSection" class="section-container animate-in">
+  <div id="overviewSection" class="section-container animate-in" role="tabpanel">
     <div class="flex items-center justify-between mb-6">
       <div>
         <h2 class="text-xl font-bold" style="letter-spacing: -0.02em;">Admin Dashboard</h2>
@@ -391,7 +434,10 @@
             <button class="ghost-btn text-[0.6rem]" onclick="switchSection('system-logs')">View All →</button>
           </div>
           <div id="systemLogBody" class="divide-y text-xs flex-grow" style="border-color: var(--card-border);">
-            <div class="p-4 text-center" style="color: var(--fg-dim);">Loading...</div>
+            <div class="p-4">
+              <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+              <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+            </div>
           </div>
         </div>
       </div>
@@ -468,7 +514,7 @@
   </div>
 
   <!-- ===== SYSTEM LOGS SECTION ===== -->
-  <div id="system-logsSection" class="section-container hidden animate-in">
+  <div id="system-logsSection" class="section-container hidden animate-in" role="tabpanel">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">System Logs</h2>
       <div class="flex flex-wrap gap-2">
@@ -501,7 +547,11 @@
             <th class="table-header">Admin</th>
           </tr></thead>
           <tbody id="systemLogTableBody" class="divide-y tbody-table">
-            <tr><td colspan="4" class="py-12 text-center" style="color: var(--fg-dim);">Loading...</td></tr>
+            <tr><td colspan="4" class="py-12">
+              <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+              <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+              <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+            </td></tr>
           </tbody>
         </table>
       </div>
@@ -516,7 +566,7 @@
   </div>
 
   <!-- ===== STUDENTS SECTION ===== -->
-  <div id="studentsSection" class="section-container hidden animate-in">
+  <div id="studentsSection" class="section-container hidden animate-in" role="tabpanel">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">Student Accounts</h2>
       <div class="flex flex-wrap gap-2">
@@ -551,7 +601,7 @@
   </div>
 
   <!-- ===== STUDENT APPROVALS SECTION ===== -->
-  <div id="student-approvalsSection" class="section-container hidden animate-in">
+  <div id="student-approvalsSection" class="section-container hidden animate-in" role="tabpanel">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">Student Approval</h2>
     </div>
@@ -581,7 +631,7 @@
   </div>
 
   <!-- ===== COORDINATORS SECTION ===== -->
-  <div id="coordinatorsSection" class="section-container hidden animate-in">
+  <div id="coordinatorsSection" class="section-container hidden animate-in" role="tabpanel">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">Coordinator Accounts</h2>
       <div class="flex flex-wrap gap-2">
@@ -616,7 +666,7 @@
   </div>
 
   <!-- ===== COORDINATOR APPROVALS SECTION ===== -->
-  <div id="approvalsSection" class="section-container hidden animate-in">
+  <div id="approvalsSection" class="section-container hidden animate-in" role="tabpanel">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">Coordinator Approval</h2>
     </div>
@@ -646,7 +696,7 @@
   </div>
 
   <!-- ===== COURSES SECTION ===== -->
-  <div id="coursesSection" class="section-container hidden animate-in">
+  <div id="coursesSection" class="section-container hidden animate-in" role="tabpanel">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">Manage Courses</h2>
       <button onclick="openAddCourseModal()" class="accent-btn flex items-center gap-1.5">
@@ -678,7 +728,7 @@
   </div>
 
   <!-- ===== SITES SECTION ===== -->
-  <div id="sitesSection" class="section-container hidden animate-in">
+  <div id="sitesSection" class="section-container hidden animate-in" role="tabpanel">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">Manage Sites</h2>
       <button onclick="openAddSiteModal()" class="accent-btn flex items-center gap-1.5">
@@ -722,7 +772,7 @@
   </div>
 
   <!-- ===== SUBJECTS SECTION ===== -->
-  <div id="programsSection" class="section-container hidden animate-in">
+  <div id="programsSection" class="section-container hidden animate-in" role="tabpanel">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">Manage Subjects</h2>
     </div>
@@ -1117,7 +1167,11 @@
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.classList.add('active');
+                modal.setAttribute('aria-modal', 'true');
                 document.body.style.overflow = 'hidden';
+                const firstFocusable = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+                if (firstFocusable) firstFocusable.focus();
+                modal._previousFocus = document.activeElement;
                 if (modalId === 'addSiteModal') {
                     setTimeout(() => initAddSiteMap(), 100);
                 } else if (modalId === 'editSiteModal') {
@@ -1130,7 +1184,9 @@
             const modal = document.getElementById(modalId);
             if (modal) {
                 modal.classList.remove('active');
+                modal.removeAttribute('aria-modal');
                 document.body.style.overflow = 'auto';
+                if (modal._previousFocus) { modal._previousFocus.focus(); modal._previousFocus = null; }
                 if (modalId === 'addSiteModal' && addSiteMapObj) {
                     addSiteMapObj.remove();
                     addSiteMapObj = null;
@@ -1146,6 +1202,21 @@
                 }
             }
         }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                const modal = document.querySelector('.modal.active');
+                if (modal) { closeModal(modal.id); }
+            }
+            if (e.key !== 'Tab') return;
+            const modal = document.querySelector('.modal.active');
+            if (!modal) return;
+            const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+            if (focusable.length === 0) return;
+            const first = focusable[0], last = focusable[focusable.length - 1];
+            if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+            else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        });
 
         // ===== ALERT HELPER =====
         function showAlert(message) {
@@ -1169,6 +1240,15 @@
             if (el) el.classList.remove('hidden');
             resetPills();
             document.querySelectorAll(`.pill-btn[data-section="${section}"]`).forEach(btn => btn.classList.add('active'));
+            document.querySelectorAll('#pillNav .pill-btn').forEach(t => {
+                t.setAttribute('aria-selected', 'false');
+                t.setAttribute('tabindex', '-1');
+            });
+            const activeBtn = document.querySelector(`.pill-btn[data-section="${section}"]`);
+            if (activeBtn) {
+                activeBtn.setAttribute('aria-selected', 'true');
+                activeBtn.setAttribute('tabindex', '0');
+            }
             window.currentSection = section;
 
             if (section === 'overview') loadDashboardOverview();

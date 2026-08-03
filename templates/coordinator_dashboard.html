@@ -44,8 +44,9 @@
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { font-family: var(--font-display); background-color: var(--bg-body); color: var(--fg); -webkit-font-smoothing: antialiased; }
-      * { scrollbar-width: none; -ms-overflow-style: none; }
-      *::-webkit-scrollbar { display: none; }
+      /* Scrollbar: scoped to tab content only */
+      .tab-content { scrollbar-width: none; -ms-overflow-style: none; }
+      .tab-content::-webkit-scrollbar { display: none; }
 
       .bento-card {
         background: var(--card-bg);
@@ -315,6 +316,49 @@
         .summary-grid { grid-template-columns: 1fr !important; }
         .pill-btn { padding: 0.375rem 0.75rem !important; font-size: 0.65rem !important; }
       }
+
+      /* === SKELETON LOADING === */
+      .skeleton {
+        position: relative;
+        overflow: hidden;
+        background: var(--card-border);
+        border-radius: 6px;
+        min-height: 1em;
+      }
+      .skeleton::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+        animation: skeletonShimmer 1.5s ease-in-out infinite;
+      }
+      @keyframes skeletonShimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+      }
+      .skeleton-row { display: flex; gap: 0.75rem; padding: 0.5rem 0; }
+      .skeleton-row .skeleton { height: 0.7rem; flex: 1; }
+      .skeleton-row .skeleton:nth-child(1) { flex: 2; }
+      .skeleton-row .skeleton:nth-child(3) { flex: 0.6; }
+
+      /* === TRANSITIONS (standardized) === */
+      .pill-btn, .action-btn, .close-modal, button { transition: all 0.2s ease; }
+      .card-hover { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+      .card-hover:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+      /* === MODAL SCROLL === */
+      .modal-content { max-height: 90vh; overflow-y: auto; }
+
+      /* === REDUCED MOTION === */
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          animation-duration: 0.01ms !important;
+          animation-iteration-count: 1 !important;
+          transition-duration: 0.01ms !important;
+        }
+        .skeleton::after { animation: none; }
+        .card-hover:hover { transform: none; }
+      }
     </style>
 </head>
 <body class="min-h-screen">
@@ -347,14 +391,14 @@
       <button class="hamburger-btn md:hidden" id="hamburgerBtn" onclick="toggleMobileDrawer()" aria-label="Toggle navigation menu">
         <span></span>
       </button>
-      <nav class="hidden md:flex items-center gap-1.5 ml-2" id="pillNav">
-        <button class="pill-btn active" data-section="overview" onclick="switchSection('overview')"><i data-lucide="layout-dashboard" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Overview</button>
-        <button class="pill-btn" data-section="accounts" onclick="switchSection('accounts')"><i data-lucide="users" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Students</button>
-        <button class="pill-btn" data-section="programs" onclick="switchSection('programs')"><i data-lucide="book-open" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Subjects</button>
-        <button class="pill-btn" data-section="applications" onclick="switchSection('applications')"><i data-lucide="clipboard-list" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Applications</button>
-        <button class="pill-btn" data-section="reports" onclick="switchSection('reports')"><i data-lucide="file-text" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Reports</button>
-        <button class="pill-btn" data-section="attendance" onclick="switchSection('attendance')"><i data-lucide="clock" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Attendance</button>
-        <button class="pill-btn" data-section="sites" onclick="switchSection('sites')"><i data-lucide="map-pin" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Sites</button>
+      <nav class="hidden md:flex items-center gap-1.5 ml-2" id="pillNav" role="tablist" aria-label="Dashboard sections">
+        <button class="pill-btn active" role="tab" aria-selected="true" aria-controls="overviewSection" data-section="overview" onclick="switchSection('overview')"><i data-lucide="layout-dashboard" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Overview</button>
+        <button class="pill-btn" role="tab" aria-selected="false" aria-controls="accountsSection" data-section="accounts" tabindex="-1" onclick="switchSection('accounts')"><i data-lucide="users" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Students</button>
+        <button class="pill-btn" role="tab" aria-selected="false" aria-controls="programsSection" data-section="programs" tabindex="-1" onclick="switchSection('programs')"><i data-lucide="book-open" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Subjects</button>
+        <button class="pill-btn" role="tab" aria-selected="false" aria-controls="applicationsSection" data-section="applications" tabindex="-1" onclick="switchSection('applications')"><i data-lucide="clipboard-list" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Applications</button>
+        <button class="pill-btn" role="tab" aria-selected="false" aria-controls="reportsSection" data-section="reports" tabindex="-1" onclick="switchSection('reports')"><i data-lucide="file-text" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Reports</button>
+        <button class="pill-btn" role="tab" aria-selected="false" aria-controls="attendanceSection" data-section="attendance" tabindex="-1" onclick="switchSection('attendance')"><i data-lucide="clock" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Attendance</button>
+        <button class="pill-btn" role="tab" aria-selected="false" aria-controls="sitesSection" data-section="sites" tabindex="-1" onclick="switchSection('sites')"><i data-lucide="map-pin" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Sites</button>
       </nav>
     </div>
     <div class="flex items-center gap-2">
@@ -400,7 +444,7 @@
   </div>
 
   <!-- ===== OVERVIEW SECTION (Default) ===== -->
-  <div id="overviewSection" class="section-container animate-in">
+  <div id="overviewSection" class="section-container animate-in" role="tabpanel" aria-labelledby="pillNav-overview">
     <div class="flex items-center justify-between mb-6">
       <div>
         <h2 class="text-xl font-bold" style="letter-spacing: -0.02em;">OJT Workspace</h2>
@@ -467,7 +511,13 @@
                   <th class="table-header text-right">Action</th>
                 </tr>
               </thead>
-              <tbody id="overviewPendingBody"><tr><td colspan="5" class="table-cell text-center" style="color: var(--fg-dim);">Loading...</td></tr></tbody>
+              <tbody id="overviewPendingBody">
+                <tr><td colspan="5" class="table-cell">
+                  <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+                  <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+                  <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+                </td></tr>
+              </tbody>
             </table>
           </div>
         </div>
@@ -560,7 +610,8 @@
         <div class="bento-card p-5">
           <h3 class="text-sm font-bold mb-3">Student Hour Analytics</h3>
           <div id="hourAnalyticsContainer" class="space-y-3">
-            <div class="text-center py-4 text-xs" style="color: var(--fg-dim);">Loading...</div>
+            <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+            <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
           </div>
         </div>
       </div>
@@ -568,7 +619,7 @@
   </div>
 
   <!-- ===== SUBJECTS SECTION ===== -->
-  <div id="programsSection" class="section-container hidden animate-in">
+  <div id="programsSection" class="section-container hidden animate-in" role="tabpanel" aria-labelledby="pillNav-programs">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">OJT Subjects</h2>
       <button onclick="openCreateProgramModal()" class="accent-btn flex items-center gap-1.5">
@@ -599,7 +650,7 @@
   </div>
 
   <!-- ===== ACCOUNTS SECTION ===== -->
-  <div id="accountsSection" class="section-container hidden animate-in">
+  <div id="accountsSection" class="section-container hidden animate-in" role="tabpanel" aria-labelledby="pillNav-accounts">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">My Students</h2>
     </div>
@@ -628,7 +679,7 @@
   </div>
 
   <!-- ===== APPLICATIONS SECTION ===== -->
-  <div id="applicationsSection" class="section-container hidden animate-in">
+  <div id="applicationsSection" class="section-container hidden animate-in" role="tabpanel" aria-labelledby="pillNav-applications">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">Applications</h2>
     </div>
@@ -651,7 +702,7 @@
   </div>
 
   <!-- ===== REPORTS SECTION ===== -->
-  <div id="reportsSection" class="section-container hidden animate-in">
+  <div id="reportsSection" class="section-container hidden animate-in" role="tabpanel" aria-labelledby="pillNav-reports">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">Student Reports</h2>
     </div>
@@ -684,7 +735,7 @@
   </div>
 
   <!-- ===== ATTENDANCE SECTION ===== -->
-  <div id="attendanceSection" class="section-container hidden animate-in">
+  <div id="attendanceSection" class="section-container hidden animate-in" role="tabpanel" aria-labelledby="pillNav-attendance">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">Attendance Monitoring</h2>
     </div>
@@ -720,7 +771,7 @@
   </div>
 
   <!-- ===== SITES SECTION ===== -->
-  <div id="sitesSection" class="section-container hidden animate-in">
+  <div id="sitesSection" class="section-container hidden animate-in" role="tabpanel" aria-labelledby="pillNav-sites">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">Site Assignments</h2>
       <button onclick="openAddSiteModal()" class="accent-btn flex items-center gap-1.5">
@@ -749,7 +800,11 @@
             </tr>
           </thead>
           <tbody id="siteTableBody">
-            <tr><td colspan="5" class="px-4 py-10 text-center" style="color: var(--fg-dim);">Loading...</td></tr>
+            <tr><td colspan="5" class="px-4 py-10">
+              <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+              <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+              <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
+            </td></tr>
           </tbody>
         </table>
       </div>
@@ -998,12 +1053,35 @@
 <script nonce="{{ csp_nonce }}">
   if ('scrollRestoration' in history) { history.scrollRestoration = 'manual'; }
   window.scrollTo(0, 0);
-  function openModal(id) { document.getElementById(id).classList.add('active'); }
-  function closeModal(id) {
-    document.getElementById(id).classList.remove('active');
-    if (id === 'approveAppModal') {
-    }
+  function openModal(id) {
+    const modal = document.getElementById(id);
+    modal.classList.add('active');
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    const firstFocusable = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if (firstFocusable) firstFocusable.focus();
+    modal._previousFocus = document.activeElement;
   }
+  function closeModal(id) {
+    const modal = document.getElementById(id);
+    modal.classList.remove('active');
+    modal.removeAttribute('aria-modal');
+    if (modal._previousFocus) { modal._previousFocus.focus(); modal._previousFocus = null; }
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const modal = document.querySelector('.modal.active');
+      if (modal) { closeModal(modal.id); }
+    }
+    if (e.key !== 'Tab') return;
+    const modal = document.querySelector('.modal.active');
+    if (!modal) return;
+    const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if (focusable.length === 0) return;
+    const first = focusable[0], last = focusable[focusable.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
 
   // Auth token is now in httpOnly cookie — verify session by calling /me
   fetch('/api/auth/me/', { credentials: 'same-origin' })
@@ -1218,6 +1296,14 @@
     resetPills();
     const btn = document.querySelector(`.pill-btn[data-section="${section}"]`);
     if (btn) btn.classList.add('active');
+    document.querySelectorAll('#pillNav .pill-btn').forEach(t => {
+      t.setAttribute('aria-selected', 'false');
+      t.setAttribute('tabindex', '-1');
+    });
+    if (btn) {
+      btn.setAttribute('aria-selected', 'true');
+      btn.setAttribute('tabindex', '0');
+    }
     currentSection = section;
 
     if (section === 'overview') loadOverview();
@@ -1234,7 +1320,7 @@
     const grid = document.getElementById('overviewStudentsGrid');
     const pendingBody = document.getElementById('overviewPendingBody');
     grid.innerHTML = '<div class="col-span-full text-center py-8 text-xs" style="color: var(--fg-dim);"><i data-lucide="loader-2" class="animate-spin w-4 h-4 mx-auto mb-2"></i></div>'; lucide.createIcons();
-    pendingBody.innerHTML = '<tr><td colspan="5" class="table-cell text-center" style="color: var(--fg-dim);">Loading...</td></tr>';
+    pendingBody.innerHTML = '<tr><td colspan="5" class="table-cell"><div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div><div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div><div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div></td></tr>';
 
     try {
       const [programs, students, narratives, applications] = await Promise.all([
@@ -1954,7 +2040,7 @@
 
   async function loadSiteAssignments() {
     const tbody = document.getElementById('siteTableBody');
-    tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-10 text-center" style="color: var(--fg-dim);">Loading...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-10"><div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div><div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div><div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div></td></tr>';
     try {
       const res = await fetch('/api/coordinator/site-assignments/', { credentials: 'same-origin' });
       if (!res.ok) {
