@@ -211,11 +211,16 @@
       @media (max-width: 480px) {
         .pill-btn { padding: 0.375rem 0.75rem !important; font-size: 0.65rem !important; }
       }
+      /* ===== QUICK ACTION BUTTONS ===== */
+      .quick-action-btn:hover { box-shadow: var(--shadow-sm); border-color: rgba(17,105,58,0.12); }
+      .quick-action-btn:hover i[data-lucide="chevron-right"] { color: var(--primary) !important; transform: translateX(2px); }
+      .quick-action-btn i[data-lucide="chevron-right"] { transition: all 0.2s ease; }
+
       /* ===== FOCUS VISIBLE ===== */
       .accent-btn:focus-visible, .ghost-btn:focus-visible, .pill-btn:focus-visible,
       .hamburger-btn:focus-visible, .close-btn:focus-visible,
       .mobile-drawer-item:focus-visible, .dropdown-item:focus-visible,
-      .bulk-select:focus-visible { outline: 2.5px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
+      .bulk-select:focus-visible, .quick-action-btn:focus-visible { outline: 2.5px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
       input:focus-visible, select:focus-visible, textarea:focus-visible { outline: 2.5px solid var(--primary) !important; outline-offset: -1px !important; }
 
       /* ===== EXTRACTED TOKENS ===== */
@@ -227,6 +232,8 @@
       .notif-btn:hover { border-color: var(--primary); color: var(--primary); }
       .mark-all-btn { font-size: 0.55rem; font-weight: 700; color: var(--primary); background: none; border: none; cursor: pointer; }
       .mark-all-btn:hover { text-decoration: underline; }
+      #profileDropdown { opacity: 0; transform: translateY(-4px) scale(0.97); transition: opacity 0.15s ease, transform 0.15s ease; pointer-events: none; }
+      #profileDropdown.show { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 
       /* ===== REPEATED INLINE EXTRACTION ===== */
       .tbody-table { border-color: var(--card-border); }
@@ -337,11 +344,22 @@
           <button id="notifPrevBtn" onclick="loadOlderNotifications()" class="w-full text-[0.55rem] font-bold py-2 border-t text-center" style="display: none; color: var(--primary); border-color: var(--card-border);" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">See previous notifications</button>
         </div>
       </div>
-      <div class="w-8 h-8 rounded-full flex items-center justify-center relative" style="background: var(--primary); cursor: pointer;" onclick="document.getElementById('btnLogout').click()" title="{{ user_name }}">
-        <span class="text-[0.6rem] font-bold text-white">{{ user_initials }}</span>
-        <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2" style="background: var(--success); border-color: var(--card-bg);"></span>
+      <div class="relative" id="profileWrap">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center relative" style="background: var(--primary); cursor: pointer;" id="headerAvatar" title="{{ user_name }}">
+          <span class="text-[0.6rem] font-bold text-white">{{ user_initials }}</span>
+          <span class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2" style="background: var(--success); border-color: var(--card-bg);"></span>
+        </div>
+        <!-- Profile Dropdown -->
+        <div id="profileDropdown" class="dropdown-menu absolute right-0 mt-2 w-52">
+          <div class="px-3 py-2 border-b border-[var(--card-border)]">
+            <p id="profileDropdownName" class="text-xs font-bold truncate" style="color: var(--fg);">{{ user_name }}</p>
+            <p id="profileDropdownRole" class="text-[10px] mt-0.5" style="color: var(--fg-muted);">Administrator</p>
+          </div>
+          <button onclick="openModal('confirmLogoutModal')" class="dropdown-item w-full text-left flex items-center gap-2" style="color: var(--danger);" onmouseover="this.style.background='rgba(239,68,68,0.08)'" onmouseout="this.style.background='transparent'">
+            <i data-lucide="log-out" class="w-3.5 h-3.5"></i> Log out
+          </button>
+        </div>
       </div>
-      <button id="btnLogout" class="hidden" onclick="openModal('confirmLogoutModal')"></button>
     </div>
   </div>
 </header>
@@ -488,24 +506,50 @@
         </div>
 
         <!-- Quick Actions -->
-        <div class="bento-card p-5">
-          <h3 class="text-sm font-bold mb-3">Quick Actions</h3>
-          <div class="grid grid-cols-2 gap-3">
-            <button onclick="switchSection('student-approvals')" class="p-3 rounded-xl text-left transition-all hover:shadow-md" style="background: rgba(17,105,58,0.06); border: 1px solid rgba(17,105,58,0.1);">
-              <i data-lucide="user-check" class="w-5 h-5 mb-1.5" style="color: var(--primary);"></i>
-              <p class="text-[0.65rem] font-bold">Approve Students</p>
+        <div class="bento-card p-5 flex flex-col mt-5 flex-grow">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-bold">Quick Actions</h3>
+          </div>
+          <div class="grid grid-cols-1 gap-2.5">
+            <button onclick="switchSection('student-approvals')" class="quick-action-btn bento-card-secondary p-3.5 flex items-center gap-3 text-left transition-all cursor-pointer" style="border: 1px solid var(--card-border);">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(17,105,58,0.1);">
+                <i data-lucide="user-check" class="w-5 h-5" style="color: var(--primary);"></i>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xs font-bold truncate">Approve Students</p>
+                <p class="stat-label">Review pending student registrations</p>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 shrink-0" style="color: var(--fg-dim);"></i>
             </button>
-            <button onclick="switchSection('approvals')" class="p-3 rounded-xl text-left transition-all hover:shadow-md" style="background: rgba(196,164,74,0.08); border: 1px solid rgba(196,164,74,0.12);">
-              <i data-lucide="file-text" class="w-5 h-5 mb-1.5" style="color: var(--gold);"></i>
-              <p class="text-[0.65rem] font-bold">Approve Coordinators</p>
+            <button onclick="switchSection('approvals')" class="quick-action-btn bento-card-secondary p-3.5 flex items-center gap-3 text-left transition-all cursor-pointer" style="border: 1px solid var(--card-border);">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(196,164,74,0.12);">
+                <i data-lucide="file-text" class="w-5 h-5" style="color: var(--gold);"></i>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xs font-bold truncate">Approve Coordinators</p>
+                <p class="stat-label">Review pending coordinator applications</p>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 shrink-0" style="color: var(--fg-dim);"></i>
             </button>
-            <button onclick="openAddCourseModal()" class="p-3 rounded-xl text-left transition-all hover:shadow-md" style="background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.1);">
-              <i data-lucide="book-open" class="w-5 h-5 mb-1.5" style="color: #3B82F6;"></i>
-              <p class="text-[0.65rem] font-bold">Add Course</p>
+            <button onclick="openAddCourseModal()" class="quick-action-btn bento-card-secondary p-3.5 flex items-center gap-3 text-left transition-all cursor-pointer" style="border: 1px solid var(--card-border);">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(59,130,246,0.1);">
+                <i data-lucide="book-open" class="w-5 h-5" style="color: #3B82F6;"></i>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xs font-bold truncate">Add Course</p>
+                <p class="stat-label">Create a new course offering</p>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 shrink-0" style="color: var(--fg-dim);"></i>
             </button>
-            <button onclick="openAddSiteModal()" class="p-3 rounded-xl text-left transition-all hover:shadow-md" style="background: rgba(168,85,247,0.06); border: 1px solid rgba(168,85,247,0.1);">
-              <i data-lucide="building" class="w-5 h-5 mb-1.5" style="color: #A855F7;"></i>
-              <p class="text-[0.65rem] font-bold">Add Site</p>
+            <button onclick="openAddSiteModal()" class="quick-action-btn bento-card-secondary p-3.5 flex items-center gap-3 text-left transition-all cursor-pointer" style="border: 1px solid var(--card-border);">
+              <div class="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style="background: rgba(168,85,247,0.1);">
+                <i data-lucide="building" class="w-5 h-5" style="color: #A855F7;"></i>
+              </div>
+              <div class="min-w-0">
+                <p class="text-xs font-bold truncate">Add Site</p>
+                <p class="stat-label">Register a new OJT partner site</p>
+              </div>
+              <i data-lucide="chevron-right" class="w-4 h-4 shrink-0" style="color: var(--fg-dim);"></i>
             </button>
           </div>
         </div>
@@ -2987,9 +3031,6 @@
             window.location.href = "/auth/logout/";
         }
 
-        document.getElementById('btnLogout').addEventListener('click', () => {
-            openModal('confirmLogoutModal');
-        });
 
         // ===== MODAL CLOSE ON BACKGROUND CLICK =====
         document.querySelectorAll('.modal').forEach(modal => {
@@ -3248,15 +3289,30 @@
         notifBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             notifDropdown.classList.toggle('hidden');
+            profileDropdown.classList.remove('show');
             if (!notifDropdown.classList.contains('hidden')) {
                 notifOffset = 0;
                 loadNotifications();
             }
         });
 
+        // ===== PROFILE DROPDOWN =====
+        const profileAvatar = document.getElementById('headerAvatar');
+        const profileDropdown = document.getElementById('profileDropdown');
+        const profileWrap = document.getElementById('profileWrap');
+
+        profileAvatar.addEventListener('click', (e) => {
+            e.stopPropagation();
+            notifDropdown.classList.add('hidden');
+            profileDropdown.classList.toggle('show');
+        });
+
         document.addEventListener('click', (e) => {
             if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
                 notifDropdown.classList.add('hidden');
+            }
+            if (!profileWrap.contains(e.target)) {
+                profileDropdown.classList.remove('show');
             }
         });
     

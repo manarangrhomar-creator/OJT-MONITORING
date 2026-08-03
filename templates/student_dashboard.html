@@ -22,13 +22,20 @@
         --primary: #0D7A42;
         --primary-dark: #0A6335;
         --primary-light: #E8F5EE;
+        --danger: #EF4444;
+        --success: #10B981;
         --gold: #C8A44A;
         --gold-light: #E8D5A0;
         --bg-body: #F0F2F7;
         --card-bg: #FFFFFF;
+        --card-bg-secondary: #F8F9FB;
+        --card-border: #E8E9F0;
         --fg: #1A1A2E;
+        --fg-dim: #9CA3AF;
+        --fg-muted: #7C7C8D;
         --muted: #7C7C8D;
         --border: #E2E4EA;
+        --radius-sm: 0.75rem;
         --shadow-sm: 0 1px 3px rgba(0,0,0,0.05), 0 1px 6px rgba(0,0,0,0.03);
         --shadow-md: 0 4px 16px rgba(0,0,0,0.06), 0 8px 32px rgba(0,0,0,0.04);
         --shadow-lg: 0 12px 40px rgba(0,0,0,0.08), 0 24px 64px rgba(0,0,0,0.05);
@@ -777,8 +784,15 @@
       .ghost-btn { padding: 10px 20px; border: 1px solid var(--border); border-radius: 12px; background: transparent; color: var(--fg); font-family: var(--font-body); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; min-height: 44px; }
       .ghost-btn:hover { background: rgba(0,0,0,0.03); color: var(--fg); border-color: var(--primary); }
       .ghost-btn:active { transform: scale(0.97); }
+      .danger-ghost { border-color: var(--danger) !important; color: var(--danger) !important; }
+      .danger-ghost:hover { background: rgba(239,68,68,0.08) !important; border-color: var(--danger) !important; color: var(--danger) !important; }
+      .modal-desc { font-size: 0.875rem; margin-bottom: 1rem; color: var(--fg-muted); }
 
       /* ── Profile dropdown ── */
+      .dropdown-menu { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: var(--radius-sm); box-shadow: var(--shadow-md); max-height: 200px; overflow-y: auto; z-index: 70; }
+      .dropdown-item { padding: 0.625rem 1rem; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: background 0.15s; color: var(--primary); border-bottom: 1px solid var(--card-border); }
+      .dropdown-item:last-child { border-bottom: none; }
+      .dropdown-item:hover { background: rgba(17,105,58,0.08); }
       #profileDropdown { opacity: 0; transform: translateY(-4px) scale(0.97); transition: opacity 0.15s ease, transform 0.15s ease; pointer-events: none; }
       #profileDropdown.show { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
 
@@ -791,7 +805,6 @@
       @media (max-width: 640px) {
         .quick-actions-section,
         .quick-actions-section + .border-t { display: none !important; }
-        #btnLogout { display: none !important; }
         /* Raise ALL modals above bottom nav (z-index: 999) */
         .modal { z-index: 1050 !important; }
         .modal .modal-content { max-width: 100% !important; width: 100% !important; border-radius: 12px 12px 0 0 !important; }
@@ -1713,7 +1726,7 @@
                 S
               </div>
               <!-- Profile Dropdown -->
-              <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-[var(--border)] z-50 overflow-hidden py-1">
+              <div id="profileDropdown" class="dropdown-menu absolute right-0 mt-2 w-48 rounded-xl shadow-lg z-50 overflow-hidden py-1">
                 <div class="px-3 py-2 border-b border-[var(--border)]/60">
                   <p id="profileDropdownName" class="text-xs font-semibold text-[var(--fg)] truncate"></p>
                   <p id="profileDropdownRole" class="text-[10px] text-[var(--muted)]">Student</p>
@@ -1723,9 +1736,6 @@
                 </button>
               </div>
             </div>
-            <button id="btnLogout" class="hidden md:flex w-9 h-9 rounded-xl bg-[var(--primary)] hover:bg-[var(--primary-dark)] text-white items-center justify-center transition shadow-sm">
-              <i data-lucide="log-out" class="w-[18px] h-[18px]"></i>
-            </button>
           </div>
         </header>
 
@@ -2243,13 +2253,13 @@
   </div>
 </div>
 
-<div id="confirmLogoutModal" class="modal">
-  <div class="modal-content">
-    <div class="modal-header"><h2>Confirm Logout</h2><button class="close-btn" onclick="closeModal('confirmLogoutModal')" aria-label="Close">&times;</button></div>
-    <p class="text-sm mb-4" style="color: var(--fg-muted);">Are you sure you want to exit the OJT Student Portal?</p>
+<div id="confirmLogoutModal" class="modal" role="dialog" aria-modal="true">
+  <div class="modal-content" style="max-width:400px;">
+    <div class="modal-header"><h2>Confirm Logout</h2><button class="close-btn" onclick="closeModal('confirmLogoutModal')">&times;</button></div>
+    <p class="modal-desc">Are you sure you want to exit the OJT Student Portal?</p>
     <div class="modal-buttons">
       <button class="ghost-btn" onclick="closeModal('confirmLogoutModal')">Cancel</button>
-      <button class="ghost-btn" style="border-color: var(--danger); color: var(--danger);" onclick="confirmLogout()">Yes, Logout</button>
+      <button class="ghost-btn danger-ghost" onclick="confirmLogout()">Yes, Logout</button>
     </div>
   </div>
 </div>
@@ -4257,7 +4267,6 @@ async function loadArchives() {
   initApp();
 
   function confirmLogout() { closeModal('confirmLogoutModal'); logout(); }
-  document.getElementById('btnLogout').addEventListener('click', () => { openModal('confirmLogoutModal'); });
 
   // Notifications
   const notifBtn = document.getElementById('btnNotifications');
@@ -4389,6 +4398,7 @@ async function loadArchives() {
     notifBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       notifDropdown.classList.toggle('hidden');
+      document.getElementById('profileDropdown').classList.remove('show');
       if (!notifDropdown.classList.contains('hidden')) { notifOffset = 0; loadNotifications(); }
     });
 
