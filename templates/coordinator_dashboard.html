@@ -667,6 +667,14 @@
         </tr></thead>
         <tbody id="programTableBody" class="divide-y" style="border-color: var(--card-border);"></tbody>
       </table></div>
+      <div class="p-3 flex items-center justify-between" style="border-top: 1px solid var(--card-border);">
+        <span id="programPageCount" class="text-[0.6rem] font-semibold" style="color: var(--fg-dim);">—</span>
+        <div class="flex gap-1">
+          <button id="programPrev" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="programPage(-1)" disabled>&laquo; Prev</button>
+          <div id="programPageButtons" class="flex gap-1 items-center"></div>
+          <button id="programNext" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="programPage(1)">Next &raquo;</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -696,6 +704,14 @@
         </tr></thead>
         <tbody id="accountTableBody" class="divide-y" style="border-color: var(--card-border);"></tbody>
       </table></div>
+      <div class="p-3 flex items-center justify-between" style="border-top: 1px solid var(--card-border);">
+        <span id="accountPageCount" class="text-[0.6rem] font-semibold" style="color: var(--fg-dim);">—</span>
+        <div class="flex gap-1">
+          <button id="accountPrev" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="accountPage(-1)" disabled>&laquo; Prev</button>
+          <div id="accountPageButtons" class="flex gap-1 items-center"></div>
+          <button id="accountNext" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="accountPage(1)">Next &raquo;</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -719,6 +735,14 @@
         </tr></thead>
         <tbody id="applicationTableBody" class="divide-y" style="border-color: var(--card-border);"></tbody>
       </table></div>
+      <div class="p-3 flex items-center justify-between" style="border-top: 1px solid var(--card-border);">
+        <span id="applicationPageCount" class="text-[0.6rem] font-semibold" style="color: var(--fg-dim);">—</span>
+        <div class="flex gap-1">
+          <button id="applicationPrev" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="applicationPage(-1)" disabled>&laquo; Prev</button>
+          <div id="applicationPageButtons" class="flex gap-1 items-center"></div>
+          <button id="applicationNext" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="applicationPage(1)">Next &raquo;</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -752,6 +776,14 @@
         </tr></thead>
         <tbody id="studentReportsTableBody" class="divide-y" style="border-color: var(--card-border);"></tbody>
       </table></div>
+      <div class="p-3 flex items-center justify-between" style="border-top: 1px solid var(--card-border);">
+        <span id="studentReportsPageCount" class="text-[0.6rem] font-semibold" style="color: var(--fg-dim);">—</span>
+        <div class="flex gap-1">
+          <button id="studentReportsPrev" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="studentReportsPage(-1)" disabled>&laquo; Prev</button>
+          <div id="studentReportsPageButtons" class="flex gap-1 items-center"></div>
+          <button id="studentReportsNext" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="studentReportsPage(1)">Next &raquo;</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -788,6 +820,14 @@
         </tr></thead>
         <tbody id="attendanceTableBody" class="divide-y" style="border-color: var(--card-border);"></tbody>
       </table></div>
+      <div class="p-3 flex items-center justify-between" style="border-top: 1px solid var(--card-border);">
+        <span id="attendancePageCount" class="text-[0.6rem] font-semibold" style="color: var(--fg-dim);">—</span>
+        <div class="flex gap-1">
+          <button id="attendancePrev" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="attendancePage(-1)" disabled>&laquo; Prev</button>
+          <div id="attendancePageButtons" class="flex gap-1 items-center"></div>
+          <button id="attendanceNext" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="attendancePage(1)">Next &raquo;</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -828,6 +868,14 @@
             </td></tr>
           </tbody>
         </table>
+      </div>
+      <div class="p-3 flex items-center justify-between" style="border-top: 1px solid var(--card-border);">
+        <span id="sitePageCount" class="text-[0.6rem] font-semibold" style="color: var(--fg-dim);">—</span>
+        <div class="flex gap-1">
+          <button id="sitePrev" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="sitePage(-1)" disabled>&laquo; Prev</button>
+          <div id="sitePageButtons" class="flex gap-1 items-center"></div>
+          <button id="siteNext" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="sitePage(1)">Next &raquo;</button>
+        </div>
       </div>
     </div>
   </div>
@@ -1028,7 +1076,7 @@
 
 <div id="confirmLogoutModal" class="modal" role="dialog" aria-modal="true">
   <div class="modal-content" style="max-width:400px;">
-    <div class="modal-header"><h2>Confirm Logout</h2><button class="close-btn" onclick="closeModal('confirmLogoutModal')">&times;</button></div>
+    <div class="modal-header"><h2>Confirm Logout</h2></div>
     <p class="modal-desc">Are you sure you want to exit the OJT Coordinator Portal?</p>
     <div class="modal-buttons">
       <button class="ghost-btn" onclick="closeModal('confirmLogoutModal')">Cancel</button>
@@ -1294,6 +1342,59 @@
   let applicationList = [];
   let studentReportList = [];
   let siteList = [];
+  let attendanceRecordsList = [];
+
+  let programCurrentPage = 0;
+  let accountCurrentPage = 0;
+  let applicationCurrentPage = 0;
+  let studentReportsCurrentPage = 0;
+  let attendanceCurrentPage = 0;
+  let siteCurrentPage = 0;
+
+  function programPage(dir) { programCurrentPage += dir; renderProgramTable(); }
+  function accountPage(dir) { accountCurrentPage += dir; renderAccountTable(); }
+  function applicationPage(dir) { applicationCurrentPage += dir; renderApplicationTable(); }
+  function studentReportsPage(dir) { studentReportsCurrentPage += dir; renderStudentReports(); }
+  function attendancePage(dir) { attendanceCurrentPage += dir; renderAttendanceTable(); }
+  function sitePage(dir) { siteCurrentPage += dir; renderSiteTable(); }
+
+  function renderPaginationControls(total, currentPage, perPage, countElId, prevBtnId, nextBtnId, containerId, onPageChange) {
+    const totalPages = Math.ceil(total / perPage);
+    const countEl = document.getElementById(countElId);
+    const prevBtn = document.getElementById(prevBtnId);
+    const nextBtn = document.getElementById(nextBtnId);
+    const container = document.getElementById(containerId);
+
+    if (countEl) {
+      countEl.textContent = total === 0 ? '—' : `${currentPage * perPage + 1}–${Math.min((currentPage + 1) * perPage, total)} of ${total}`;
+    }
+    if (prevBtn) prevBtn.disabled = currentPage === 0 || total === 0;
+    if (nextBtn) nextBtn.disabled = currentPage >= totalPages - 1 || total === 0;
+
+    if (!container) return;
+    container.innerHTML = '';
+    if (totalPages <= 1) return;
+
+    const addBtn = (page) => {
+      const btn = document.createElement('button');
+      btn.className = `pill-btn !text-[0.6rem] !px-2.5 !py-1${page === currentPage ? ' active' : ''}`;
+      btn.textContent = page + 1;
+      btn.onclick = () => onPageChange(page);
+      container.appendChild(btn);
+    };
+    const addEllipsis = () => {
+      const span = document.createElement('span');
+      span.className = 'text-[0.6rem] px-1 self-center';
+      span.style.color = 'var(--fg-dim)';
+      span.textContent = '...';
+      container.appendChild(span);
+    };
+
+    if (currentPage > 2) { addBtn(0); if (currentPage > 3) addEllipsis(); }
+    for (let i = Math.max(0, currentPage - 1); i <= Math.min(totalPages - 1, currentPage + 1); i++) addBtn(i);
+    if (currentPage < totalPages - 3) { if (currentPage < totalPages - 4) addEllipsis(); addBtn(totalPages - 1); }
+  }
+
   let approvedStudentsForSite = [];
   let availableSitesList = [];
   let currentAppFilter = 'all';
@@ -1579,13 +1680,24 @@
     const tbody = document.getElementById('programTableBody');
     tbody.innerHTML = '';
     let total = 0, active = 0, inactiveCount = 0, totalStudents = 0;
-    if (!programList.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="book-open" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No subjects yet</span></div></td></tr>';
-      lucide.createIcons(); updateStats('progStat', { total: 0, active: 0, inactive: 0, students: 0 }); return;
-    }
-    programList.forEach(p => {
+    const search = (document.getElementById('programSearchInput')?.value || '').toLowerCase();
+    const filtered = programList.filter(p => {
       total++; if (p.status === 'active') active++; if (p.status === 'inactive') inactiveCount++;
       totalStudents += p.student_count || 0;
+      if (search && !(p.name || '').toLowerCase().includes(search) && !(p.description || '').toLowerCase().includes(search)) return false;
+      return true;
+    });
+
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="book-open" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No subjects found</span></div></td></tr>';
+      lucide.createIcons();
+      updateStats('progStat', { total, active, activeCount: active, inactive: inactiveCount, students: totalStudents });
+      renderPaginationControls(0, 0, 10, 'programPageCount', 'programPrev', 'programNext', 'programPageButtons', p => { programCurrentPage = p; renderProgramTable(); });
+      return;
+    }
+
+    const paginated = filtered.slice(programCurrentPage * 10, (programCurrentPage + 1) * 10);
+    paginated.forEach(p => {
       const sc = p.status === 'active' ? 'var(--success)' : p.status === 'inactive' ? 'var(--gold)' : 'var(--fg-dim)';
       tbody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-black/[0.02] transition-colors">
         <td class="table-cell font-bold">${esc(p.name)}</td>
@@ -1598,6 +1710,7 @@
     });
     lucide.createIcons();
     updateStats('progStat', { total, active, activeCount: active, inactive: inactiveCount, students: totalStudents });
+    renderPaginationControls(filtered.length, programCurrentPage, 10, 'programPageCount', 'programPrev', 'programNext', 'programPageButtons', p => { programCurrentPage = p; renderProgramTable(); });
   }
 
   function openEditProgramModal(id) {
@@ -1687,16 +1800,27 @@
     const tbody = document.getElementById('accountTableBody');
     tbody.innerHTML = '';
     let total = 0, present = 0, absent = 0, ongoing = 0;
-    if (!accountList.length) {
-      tbody.innerHTML = '<tr><td colspan="6" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="users" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No students found</span></div></td></tr>';
-      lucide.createIcons(); updateStats('accStat', { total: 0, present: 0, absent: 0, ongoing: 0 }); return;
-    }
-    accountList.forEach(s => {
+    const search = (document.getElementById('accountSearchInput')?.value || '').toLowerCase();
+    const filtered = accountList.filter(s => {
       total++;
       if (s.today_status === 'present') present++;
       else if (s.today_status === 'on-going') ongoing++;
       else if (s.today_status === 'absent') absent++;
 
+      if (search && !(s.name || '').toLowerCase().includes(search) && !(s.student_id || '').toLowerCase().includes(search)) return false;
+      return true;
+    });
+
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="users" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No students found</span></div></td></tr>';
+      lucide.createIcons();
+      updateStats('accStat', { total, present, absent, ongoing });
+      renderPaginationControls(0, 0, 10, 'accountPageCount', 'accountPrev', 'accountNext', 'accountPageButtons', p => { accountCurrentPage = p; renderAccountTable(); });
+      return;
+    }
+
+    const paginated = filtered.slice(accountCurrentPage * 10, (accountCurrentPage + 1) * 10);
+    paginated.forEach(s => {
       const todayColor = s.today_status === 'present' ? 'var(--success)' : s.today_status === 'on-going' ? 'var(--gold)' : 'var(--fg-dim)';
       const todayIcon = s.today_status === 'present' ? 'check-circle' : s.today_status === 'on-going' ? 'clock' : 'minus-circle';
       const todayText = s.today_status === 'present' ? 'Present' : s.today_status === 'on-going' ? 'On-going' : '\u2014';
@@ -1713,6 +1837,7 @@
     });
     lucide.createIcons();
     updateStats('accStat', { total, present, absent, ongoing });
+    renderPaginationControls(filtered.length, accountCurrentPage, 10, 'accountPageCount', 'accountPrev', 'accountNext', 'accountPageButtons', p => { accountCurrentPage = p; renderAccountTable(); });
   }
 
   function viewAccount(id) {
@@ -1752,29 +1877,38 @@
   function renderApplicationTable() {
     const tbody = document.getElementById('applicationTableBody');
     tbody.innerHTML = '';
-    const filtered = applicationList.filter(a => a.status === 'pending');
+    const search = (document.getElementById('applicationSearchInput')?.value || '').toLowerCase();
+    const filtered = applicationList.filter(a => {
+      if (a.status !== 'pending') return false;
+      if (search && !(a.student_name || '').toLowerCase().includes(search) && !(a.program_name || '').toLowerCase().includes(search) && !(a.preferred_site_name || '').toLowerCase().includes(search)) return false;
+      return true;
+    });
+
     if (!filtered.length) {
       tbody.innerHTML = `<tr><td colspan="7" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="clipboard-list" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No pending applications</span></div></td></tr>`;
       lucide.createIcons();
-    } else {
-      filtered.forEach(a => {
-        const dateStr = a.created_at ? new Date(a.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
-        tbody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-black/[0.02] transition-colors">
-          <td class="table-cell font-bold">${esc(a.student_name)}</td>
-          <td class="table-cell" style="color: var(--fg-muted);">${esc(a.program_name)}</td>
-          <td class="table-cell" style="color: var(--fg-muted);">${a.preferred_site_name ? esc(a.preferred_site_name) : '<span style="color: var(--fg-dim);">—</span>'}</td>
-          <td class="table-cell">${a.application_letter ? `<a href="${esc(a.application_letter)}" target="_blank" class="text-[0.6rem] font-semibold" style="color: var(--primary);">View Letter</a>` : '<span style="color: var(--fg-dim);">—</span>'}</td>
-          <td class="table-cell" style="color: var(--fg-muted);">${esc(dateStr)}</td>
-          <td class="table-cell"><span class="text-[0.6rem] font-bold px-2.5 py-0.5 rounded-full" style="background: var(--gold)20; color: var(--gold);">Pending</span></td>
-          <td class="table-cell text-center whitespace-nowrap">
-            <button class="ghost-btn !p-1.5" title="Approve" onclick="requestApproveApplication('${a.id}')" style="color: var(--success);"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i></button>
-            <button class="ghost-btn !p-1.5" title="Reject" onclick="requestRejectApplication('${a.id}')" style="color: var(--danger);"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i></button>
-          </td>
-        </tr>`);
-      });
-      lucide.createIcons();
+      renderPaginationControls(0, 0, 10, 'applicationPageCount', 'applicationPrev', 'applicationNext', 'applicationPageButtons', p => { applicationCurrentPage = p; renderApplicationTable(); });
+      return;
     }
 
+    const paginated = filtered.slice(applicationCurrentPage * 10, (applicationCurrentPage + 1) * 10);
+    paginated.forEach(a => {
+      const dateStr = a.created_at ? new Date(a.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }) : 'N/A';
+      tbody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-black/[0.02] transition-colors">
+        <td class="table-cell font-bold">${esc(a.student_name)}</td>
+        <td class="table-cell" style="color: var(--fg-muted);">${esc(a.program_name)}</td>
+        <td class="table-cell" style="color: var(--fg-muted);">${a.preferred_site_name ? esc(a.preferred_site_name) : '<span style="color: var(--fg-dim);">—</span>'}</td>
+        <td class="table-cell">${a.application_letter ? `<a href="${esc(a.application_letter)}" target="_blank" class="text-[0.6rem] font-semibold" style="color: var(--primary);">View Letter</a>` : '<span style="color: var(--fg-dim);">—</span>'}</td>
+        <td class="table-cell" style="color: var(--fg-muted);">${esc(dateStr)}</td>
+        <td class="table-cell"><span class="text-[0.6rem] font-bold px-2.5 py-0.5 rounded-full" style="background: var(--gold)20; color: var(--gold);">Pending</span></td>
+        <td class="table-cell text-center whitespace-nowrap">
+          <button class="ghost-btn !p-1.5" title="Approve" onclick="requestApproveApplication('${a.id}')" style="color: var(--success);"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i></button>
+          <button class="ghost-btn !p-1.5" title="Reject" onclick="requestRejectApplication('${a.id}')" style="color: var(--danger);"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i></button>
+        </td>
+      </tr>`);
+    });
+    lucide.createIcons();
+    renderPaginationControls(filtered.length, applicationCurrentPage, 10, 'applicationPageCount', 'applicationPrev', 'applicationNext', 'applicationPageButtons', p => { applicationCurrentPage = p; renderApplicationTable(); });
   }
 
   function requestApproveApplication(id) {
