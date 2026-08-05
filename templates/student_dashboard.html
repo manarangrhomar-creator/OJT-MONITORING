@@ -808,6 +808,132 @@
         /* Raise ALL modals above bottom nav (z-index: 999) */
         .modal { z-index: 1050 !important; }
         .modal .modal-content { max-width: 100% !important; width: 100% !important; border-radius: 12px 12px 0 0 !important; }
+
+        /* ── Wizard: fullscreen steps on mobile ── */
+        #sectionApply:not(.hidden) {
+          display: flex !important;
+          flex-direction: column;
+          min-height: 100dvh;
+          min-height: 100vh;
+          padding-top: 8px;
+        }
+        /* Hide stepper on mobile — intro cards replace it */
+        #sectionApply:not(.hidden) .wiz-stepper { display: none !important; }
+        #sectionApply:not(.hidden) [id^="applyWizStep"]:not(.hidden) {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          padding-bottom: env(safe-area-inset-bottom, 0px);
+        }
+        #sectionApply:not(.hidden) [id^="applyWizStep"]:not(.hidden) > * {
+          flex-shrink: 0;
+        }
+        #sectionApply:not(.hidden) [id^="applyWizStep"]:not(.hidden) .glass-card,
+        #sectionApply:not(.hidden) [id^="applyWizStep"]:not(.hidden) .bento-card {
+          margin-bottom: 12px;
+        }
+        /* Step 1: subject cards grid */
+        #applyWizStep1 #programsGrid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 10px;
+        }
+        /* Step 5: success card centers nicely */
+        #applyWizStep5:not(.hidden) {
+          align-items: center;
+          justify-content: center;
+        }
+
+        /* ── Wizard intro splash cards ── */
+        /* Desktop: hide intro, show body always */
+        .wiz-intro { display: none; }
+        .wiz-step-body { display: block; }
+
+        [id^="applyWizStep"]:not(.hidden) > .wiz-intro {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          text-align: center;
+          min-height: calc(100dvh - 24px);
+          min-height: calc(100vh - 24px);
+          padding: 24px 20px;
+          gap: 14px;
+        }
+        [id^="applyWizStep"]:not(.hidden) > .wiz-step-body {
+          display: none;
+        }
+        [id^="applyWizStep"]:not(.hidden) > .wiz-step-body.step-visible {
+          display: block;
+        }
+        [id^="applyWizStep"]:not(.hidden) > .wiz-intro .wiz-intro-icon {
+          width: 80px;
+          height: 80px;
+          border-radius: 24px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+          flex-shrink: 0;
+        }
+        [id^="applyWizStep"]:not(.hidden) > .wiz-intro .wiz-intro-icon i {
+          width: 40px;
+          height: 40px;
+          color: #fff;
+        }
+        [id^="applyWizStep"]:not(.hidden) > .wiz-intro h2 {
+          font-size: 1.35rem;
+          font-weight: 800;
+          color: var(--fg);
+          margin: 0;
+          line-height: 1.3;
+        }
+        [id^="applyWizStep"]:not(.hidden) > .wiz-intro p {
+          font-size: 0.8rem;
+          color: var(--muted);
+          max-width: 280px;
+          line-height: 1.5;
+          margin: 0;
+        }
+        [id^="applyWizStep"]:not(.hidden) > .wiz-intro .wiz-intro-step {
+          font-size: 0.65rem;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: 0.08em;
+          color: var(--muted);
+          opacity: 0.7;
+        }
+        [id^="applyWizStep"]:not(.hidden) > .wiz-intro button {
+          margin-top: 8px;
+          padding: 14px 40px;
+          background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+          color: #fff;
+          font-weight: 700;
+          font-size: 0.85rem;
+          border-radius: 14px;
+          border: none;
+          cursor: pointer;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          transition: transform 0.15s, box-shadow 0.15s;
+        }
+        [id^="applyWizStep"]:not(.hidden) > .wiz-intro button:active {
+          transform: scale(0.97);
+        }
+        [id^="applyWizStep"]:not(.hidden) > .wiz-intro button i {
+          width: 16px;
+          height: 16px;
+        }
+
+        /* Hide inline step headers on mobile (intro replaces them) */
+        [id^="applyWizStep"]:not(.hidden) > .wiz-step-body > .flex.flex-col:first-child,
+        [id^="applyWizStep"]:not(.hidden) > .wiz-step-body > .glass-card:first-child > .flex.flex-col:first-child {
+          display: none;
+        }
       }
 
       /* ── Mobile: stack modal buttons + full width ── */
@@ -1221,6 +1347,20 @@
 
     <!-- Step 1: Choose Subject -->
     <div id="applyWizStep1">
+      <!-- Mobile intro splash -->
+      <div class="wiz-intro">
+        <span class="wiz-intro-step">Step 1 of 4</span>
+        <div class="wiz-intro-icon bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)]">
+          <i data-lucide="briefcase"></i>
+        </div>
+        <h2>Choose Your OJT Subject</h2>
+        <p>Select a subject that matches your course</p>
+        <button type="button" onclick="wizIntroGo(this)">
+          Get Started <i data-lucide="arrow-right"></i>
+        </button>
+      </div>
+      <!-- Step content (hidden on mobile until intro dismissed) -->
+      <div class="wiz-step-body">
       <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)] flex items-center justify-center shadow-sm">
@@ -1282,10 +1422,25 @@
           <i data-lucide="check" class="w-4 h-4"></i> Confirm Subject
         </button>
       </div>
+      </div><!-- /wiz-step-body -->
     </div>
 
     <!-- Step 2: Fill Details -->
     <div id="applyWizStep2" class="hidden space-y-4">
+      <!-- Mobile intro splash -->
+      <div class="wiz-intro">
+        <span class="wiz-intro-step">Step 2 of 4</span>
+        <div class="wiz-intro-icon bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)]">
+          <i data-lucide="file-text"></i>
+        </div>
+        <h2>Fill Application Details</h2>
+        <p>Upload your application letter to proceed</p>
+        <button type="button" onclick="wizIntroGo(this)">
+          Continue <i data-lucide="arrow-right"></i>
+        </button>
+      </div>
+      <!-- Step content -->
+      <div class="wiz-step-body">
       <div class="glass-card p-5 mb-4" style="cursor:default;">
         <p class="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">Selected Subject</p>
         <p id="applySelectedSubject" class="text-sm font-bold text-[var(--fg)]"></p>
@@ -1323,10 +1478,25 @@
           </button>
         </div>
       </div>
+      </div><!-- /wiz-step-body -->
     </div>
 
     <!-- Step 3: Face Photo -->
     <div id="applyWizStep3" class="hidden space-y-4">
+      <!-- Mobile intro splash -->
+      <div class="wiz-intro">
+        <span class="wiz-intro-step">Step 3 of 4</span>
+        <div class="wiz-intro-icon bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)]">
+          <i data-lucide="camera"></i>
+        </div>
+        <h2>Facial Registration</h2>
+        <p>Complete the 7-step face verification process</p>
+        <button type="button" onclick="wizIntroGo(this)">
+          Start Verification <i data-lucide="arrow-right"></i>
+        </button>
+      </div>
+      <!-- Step content -->
+      <div class="wiz-step-body">
       <div class="glass-card p-5 space-y-4" style="cursor:default;">
 
         <!-- Sub-Step Indicator -->
@@ -1605,10 +1775,25 @@
           <span></span>
         </div>
       </div>
+      </div><!-- /wiz-step-body -->
     </div>
 
     <!-- Step 4: Select Site -->
     <div id="applyWizStep4" class="hidden space-y-4">
+      <!-- Mobile intro splash -->
+      <div class="wiz-intro">
+        <span class="wiz-intro-step">Step 4 of 4</span>
+        <div class="wiz-intro-icon bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)]">
+          <i data-lucide="map-pin"></i>
+        </div>
+        <h2>Select OJT Site</h2>
+        <p>Choose an available deployment site for your internship</p>
+        <button type="button" onclick="wizIntroGo(this)">
+          Browse Sites <i data-lucide="arrow-right"></i>
+        </button>
+      </div>
+      <!-- Step content -->
+      <div class="wiz-step-body">
       <div id="sitesLoading" class="glass-card p-10 text-center" style="cursor:default;">
         <i data-lucide="loader" class="animate-spin text-[var(--primary)] w-7 h-7 mx-auto"></i>
         <p class="text-xs text-[var(--muted)] mt-3 font-medium">Loading available sites...</p>
@@ -1644,6 +1829,7 @@
           </button>
         </div>
       </div>
+      </div><!-- /wiz-step-body -->
     </div>
 
     <!-- Step 5: Success -->
@@ -3796,6 +3982,9 @@ async function loadArchives() {
       const sec = document.getElementById(id);
       if (sec) sec.classList.toggle('hidden', i !== n - 1);
     });
+    // Reset intro state: remove step-visible so mobile shows intro again
+    document.querySelectorAll('#sectionApply .wiz-step-body').forEach(el => el.classList.remove('step-visible'));
+    document.querySelectorAll('#sectionApply .wiz-intro').forEach(el => el.style.display = '');
     const steps = document.querySelectorAll('#applyStepper .wiz-step');
     const lines = document.querySelectorAll('#applyStepper .wiz-line');
     steps.forEach((step, i) => {
@@ -3816,6 +4005,17 @@ async function loadArchives() {
     }
     if (n === 3) faceRegResetAndGoStage(1);
     if (n === 4) loadAvailableSites();
+  }
+
+  /* Mobile intro "Get Started" → hide intro, show step body */
+  function wizIntroGo(btn) {
+    if (window.innerWidth > 640) return;
+    const step = btn.closest('[id^="applyWizStep"]');
+    if (!step) return;
+    const intro = step.querySelector('.wiz-intro');
+    const body = step.querySelector('.wiz-step-body');
+    if (intro) intro.style.display = 'none';
+    if (body) body.classList.add('step-visible');
   }
 
   function applyStopCam() {
