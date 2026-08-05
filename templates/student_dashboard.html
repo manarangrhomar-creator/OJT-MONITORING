@@ -99,9 +99,9 @@
 
       /* Attendance camera */
       .att-camera-frame{ background:#000; border:4px solid #166534; position:relative; overflow:hidden; }
-      .att-camera-frame::before{ content:""; position:absolute; top:-50%; left:0; width:100%; height:50%; background:linear-gradient(to bottom,transparent,rgba(34,197,94,0.25),transparent); animation:attScan 3s infinite; }
+      .att-camera-frame::before{ content:""; position:absolute; top:-50%; left:0; width:100%; height:50%; background:linear-gradient(to bottom,transparent,rgba(34,197,94,0.25),transparent); animation:attScan 3s infinite; z-index:1; }
       @keyframes attScan{ 0%{top:-50%} 100%{top:100%} }
-      .att-camera-frame::after{ content:""; position:absolute; inset:0; background:radial-gradient(circle at center,transparent 40%,rgba(0,0,0,0.15)); pointer-events:none; }
+      .att-camera-frame::after{ content:""; position:absolute; inset:0; background:radial-gradient(circle at center,transparent 40%,rgba(0,0,0,0.15)); pointer-events:none; z-index:1; }
       .att-flash{ animation:attFlashAnim 0.2s ease-out; }
       @keyframes attFlashAnim{ 0%{opacity:1} 50%{opacity:0.3} 100%{opacity:1} }
       .att-btn{ transition:all 0.3s ease; }
@@ -1961,7 +1961,7 @@
               <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
                 <!-- Camera -->
                 <div class="lg:col-span-2 flex flex-col gap-3">
-                  <div id="attCameraFrame" class="att-camera-frame rounded-xl relative flex items-center justify-center" style="height:340px;">
+                  <div id="attCameraFrame" class="att-camera-frame rounded-xl relative overflow-hidden flex items-center justify-center" style="height:340px;">
                     <div class="absolute top-3 left-3 flex items-center gap-2 z-10">
                       <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                       <span class="text-xs text-gray-300 font-semibold">LIVE</span>
@@ -1969,8 +1969,8 @@
                     <div class="absolute top-3 right-3 z-10 hidden" id="attDetectionBadge">
                       <span class="text-[10px] font-bold px-2 py-0.5 rounded-full" id="attDetectionBadgeText">FACE DETECTED</span>
                     </div>
-                    <video id="attWebcam" autoplay playsinline class="absolute inset-0 w-full h-full object-contain" style="transform: scaleX(-1);"></video>
-                    <canvas id="attFaceOverlay" class="absolute inset-0 w-full h-full object-contain pointer-events-none z-5"></canvas>
+                    <video id="attWebcam" autoplay playsinline class="absolute inset-0 w-full h-full object-contain z-0" style="transform: scaleX(-1);"></video>
+                    <canvas id="attFaceOverlay" class="absolute inset-0 w-full h-full object-contain pointer-events-none z-10" style="transform: scaleX(-1);"></canvas>
                     <canvas id="attPhotoCanvas" class="hidden"></canvas>
                   </div>
                   <div class="flex flex-col gap-2">
@@ -2484,12 +2484,22 @@
     const nose = attSampleRegion(ctx, fw * 2, fh * 1.45, fw * 0.35, fh * 0.35, sw, sh);
     const faceColor = (topCenter.brightness + leftLens.brightness + rightLens.brightness) / 3;
     const results = { glasses: false, sunglasses: false, hat: false, headwear: false, details: [] };
-    const darkLensThresh = 0.22, lightLensThresh = 0.28;
+    
+    // Use skin-relative thresholds instead of absolute values
+    // Sample cheek/skin areas to get baseline brightness
+    const skinRef = (leftTemple.brightness + rightTemple.brightness) / 2;
+    const skinMin = Math.min(leftTemple.brightness, rightTemple.brightness);
+    
+    // Only run detection if we have a reasonable skin reference
+    if (skinRef < 0.03) return results;
+    
+    const darkLensThresh = skinRef * 0.6;
+    const lightLensThresh = skinRef * 0.75;
     const isLensDark = (leftLens.brightness + rightLens.brightness) / 2 < darkLensThresh;
     const isLensMedium = (leftLens.brightness + rightLens.brightness) / 2 < lightLensThresh;
-    const lensLowVar = Math.abs(leftLens.brightness - rightLens.brightness) < 0.08;
-    const bridgeDark = leftBridge.brightness < 0.18 && rightBridge.brightness < 0.18;
-    const bridgeSimilarToNose = Math.abs(leftBridge.brightness - nose.brightness) < 0.06;
+    const lensLowVar = Math.abs(leftLens.brightness - rightLens.brightness) < skinRef * 0.3;
+    const bridgeDark = leftBridge.brightness < skinRef * 0.65 && rightBridge.brightness < skinRef * 0.65;
+    const bridgeSimilarToNose = Math.abs(leftBridge.brightness - nose.brightness) < skinRef * 0.25;
     if (isLensDark && lensLowVar && bridgeDark) {
       results.sunglasses = true;
       results.glasses = true;
@@ -2502,20 +2512,19 @@
       results.details.push('Possible frame detected');
     }
     if (!results.glasses) {
-      const sideLowVar = Math.abs(leftTemple.brightness - rightTemple.brightness) < 0.08;
-      const sideDark = (leftTemple.brightness + rightTemple.brightness) / 2 < 0.25;
-      const templeDiff = Math.abs(leftTemple.brightness - rightTemple.brightness) < 0.06;
+      const sideLowVar = Math.abs(leftTemple.brightness - rightTemple.brightness) < skinRef * 0.25;
+      const sideDark = (leftTemple.brightness + rightTemple.brightness) / 2 < skinRef * 0.7;
+      const templeDiff = Math.abs(leftTemple.brightness - rightTemple.brightness) < skinRef * 0.2;
       if (sideDark && sideLowVar && templeDiff) {
         results.glasses = true;
         results.details.push('Possible frame detected');
       }
     }
-    const hatThresh = 0.18, sideThresh = 0.18, browThresh = 0.25;
+    const browHighlight = topCenter.brightness < nose.brightness * 0.7;
+    const templeDiff2 = Math.abs(leftTemple.brightness - rightTemple.brightness) < skinRef * 0.3;
+    const hatThresh = skinRef * 0.5;
     const topDark = topCenter.brightness < hatThresh;
-    const sideDark2 = (leftTemple.brightness + rightTemple.brightness) / 2 < sideThresh;
-    const browHighlight = topCenter.brightness < nose.brightness * 0.6;
-    const templeDiff2 = Math.abs(leftTemple.brightness - rightTemple.brightness) < 0.08;
-    if (topDark && sideDark2 && browHighlight && templeDiff2) {
+    if (topDark && browHighlight && templeDiff2) {
       results.headwear = true;
       results.hat = true;
       results.details.push('Hat/cap detected');
@@ -2523,8 +2532,51 @@
     return results;
   }
 
+  // MediaPipe FaceMesh tesselation connections
+  const FACEMESH_TESSELATION = [
+    [127,34],[34,139],[139,127],[11,0],[0,37],[37,11],[232,231],[231,120],[120,232],
+    [72,37],[37,39],[39,72],[128,121],[121,47],[47,128],[232,121],[121,128],[128,232],
+    [104,69],[69,67],[67,104],[175,171],[171,148],[148,175],[118,50],[50,101],[101,118],
+    [73,39],[39,40],[40,73],[9,151],[151,108],[108,9],[48,115],[115,131],[131,48],
+    [194,204],[204,211],[211,194],[74,40],[40,185],[185,74],[80,42],[42,183],[183,80],
+    [40,92],[92,186],[186,40],[230,229],[229,119],[119,230],[226,130],[130,247],[247,226],
+    [63,53],[53,52],[52,63],[238,20],[20,242],[242,238],[46,70],[70,156],[156,46],
+    [78,62],[62,96],[96,78],[46,53],[53,63],[63,46],[143,34],[34,127],[127,143],
+    [123,116],[116,117],[117,123],[44,125],[125,19],[19,44],[236,134],[134,227],[227,236],
+    [216,206],[206,205],[205,216],[154,153],[153,145],[145,154],[110,24],[24,23],[23,110],
+    [67,69],[69,108],[108,67],[43,106],[106,91],[91,43],[238,239],[239,241],[241,238],
+    [216,212],[212,214],[214,216],[43,202],[202,165],[165,43],[219,49],[49,131],[131,219],
+    [174,188],[188,196],[196,174],[108,151],[151,105],[105,108],[118,220],[220,115],[115,118],
+    [119,120],[120,243],[243,119],[47,126],[126,217],[217,47],[223,52],[52,53],[53,223],
+    [45,51],[51,48],[48,45],[226,113],[113,225],[225,226],[62,76],[76,77],[77,62],
+    [137,123],[123,116],[116,137],[41,38],[38,72],[72,41],[203,165],[165,98],[98,203],
+    [30,166],[166,79],[79,30],[217,198],[198,235],[235,217],[15,14],[14,86],[86,15],
+    [148,171],[171,140],[140,148],[91,181],[181,80],[80,91],[216,186],[186,215],[215,216],
+    [147,187],[187,207],[207,147],[217,174],[174,196],[196,217],[226,247],[247,246],[246,226],
+    [128,126],[126,47],[47,128],[203,129],[129,142],[142,203],[127,35],[35,143],[143,127],
+    [238,237],[237,239],[239,238],[92,40],[40,39],[39,92],[146,100],[100,171],[171,146],
+    [91,106],[106,182],[182,91],[90,91],[91,181],[181,90],[85,84],[84,17],[17,85],
+    [206,207],[207,187],[187,206],[148,171],[171,139],[139,148],[123,137],[137,116],[116,123],
+    [76,77],[77,149],[149,76],[242,241],[241,239],[239,242],[108,107],[107,151],[151,108],
+    [46,53],[53,63],[63,46],[225,224],[224,223],[223,225],[80,183],[183,182],[182,80],
+    [118,101],[101,50],[50,118],[203,165],[165,202],[202,203],[82,83],[83,18],[18,82],
+    [220,118],[118,101],[101,220],[196,198],[198,209],[209,196],[174,217],[217,198],[198,174],
+    [115,131],[131,48],[48,115],[98,97],[97,99],[99,98],[126,47],[47,126],[217,126],
+    [156,155],[155,20],[20,156],[101,50],[50,187],[187,101],[194,211],[211,204],[204,194],
+    [147,213],[213,215],[215,147],[52,223],[223,53],[53,52],[57,212],[212,216],[216,57],
+    [205,187],[187,50],[50,205],[123,147],[147,187],[187,123],[51,45],[45,4],[4,51],
+    [46,70],[70,156],[156,46],[130,226],[226,246],[246,130],[133,155],[155,133],[154,133],
+    [37,142],[142,100],[100,37],[146,61],[61,18],[18,146],[135,214],[214,192],[192,135],
+    [198,196],[196,3],[3,198],[245,193],[193,192],[192,245],[19,94],[94,2],[2,19],
+    [154,133],[133,155],[155,154],[124,46],[46,193],[193,124],[52,223],[223,222],[222,52],
+    [146,18],[18,17],[17,146],[237,238],[238,242],[242,237],[127,139],[139,148],[148,127],
+    [151,108],[108,76],[76,151],[144,24],[24,23],[23,144],[45,4],[4,220],[220,45],
+    [168,6],[6,197],[197,168],[187,101],[101,50],[50,187],[48,131],[131,135],[135,48],
+    [166,79],[79,218],[218,166],[129,203],[203,206],[206,129],[105,66],[66,69],[69,105]
+  ];
+
   function attOnResults(results) {
-    const ctx = attFaceOverlay.getContext('2d');
+    const ctx = attFaceOverlay.getContext('2d', { willReadFrequently: true });
     ctx.clearRect(0, 0, attFaceOverlay.width, attFaceOverlay.height);
 
     if (!results.multiFaceLandmarks || results.multiFaceLandmarks.length === 0) {
@@ -2620,6 +2672,44 @@
       warnings.push('Bit close');
       tips.push('Lean back slightly');
     }
+
+    // Occlusion check: compare face regions against forehead (baseline skin tone)
+    // Sample forehead as baseline skin brightness
+    const foreheadSample = attSampleRegion(ctx, forehead.x * fw, forehead.y * fh, faceW * fw * 0.15, faceH * fh * 0.06, fw, fh);
+    const skinBaseline = foreheadSample.brightness;
+    
+    // Sample cheeks as reference skin areas
+    const leftCheekSample = attSampleRegion(ctx, leftCheek.x * fw, leftCheek.y * fh, faceW * fw * 0.08, faceH * fh * 0.08, fw, fh);
+    const rightCheekSample = attSampleRegion(ctx, rightCheek.x * fw, rightCheek.y * fh, faceW * fw * 0.08, faceH * fh * 0.08, fw, fh);
+    const cheekAvg = (leftCheekSample.brightness + rightCheekSample.brightness) / 2;
+    
+    // Use the average of forehead and cheeks as our skin reference
+    const skinRef = (skinBaseline + cheekAvg) / 2;
+    
+    // Sample key face regions and check if they're abnormally dark compared to skin
+    const regions = [
+      attSampleRegion(ctx, (minP.x + faceW * 0.5) * fw, (minP.y + faceH * 0.3) * fh, faceW * fw * 0.2, faceH * fh * 0.1, fw, fh), // center-upper face
+      attSampleRegion(ctx, (minP.x + faceW * 0.5) * fw, (minP.y + faceH * 0.55) * fh, faceW * fw * 0.25, faceH * fh * 0.1, fw, fh), // mid face
+      attSampleRegion(ctx, (minP.x + faceW * 0.5) * fw, (minP.y + faceH * 0.7) * fh, faceW * fw * 0.2, faceH * fh * 0.1, fw, fh), // lower face
+    ];
+    
+    let darkRegions = 0;
+    for (const region of regions) {
+      // A region is "covered" if it's significantly darker than the skin baseline
+      // and the difference is large enough to indicate a covering, not just shadow
+      if (skinRef > 0.05 && region.brightness < skinRef * 0.35) {
+        darkRegions++;
+      }
+    }
+    
+    // Only flag occlusion if most face regions are much darker than skin
+    if (darkRegions >= 2) {
+      issues.push('Face partially covered');
+      tips.push('Remove any covering from your face');
+    } else if (darkRegions >= 1) {
+      warnings.push('Face may be obstructed');
+      tips.push('Ensure your full face is visible');
+    }
     const eyeOpenNorm = eyeOpenness / faceH;
     if (eyeOpenNorm < 0.025) {
       warnings.push('Eyes narrow/closed');
@@ -2630,7 +2720,6 @@
     }
     const foreheadCheck = foreheadBrightness < 0.12 && Math.abs(foreheadData.r - foreheadData.g) < 0.04 && Math.abs(foreheadData.g - foreheadData.b) < 0.04;
     const noseCheck = noseBrightness < 0.12 && Math.abs(noseData.r - noseData.g) < 0.04 && Math.abs(noseData.g - noseData.b) < 0.04;
-    const templeDiff = Math.abs(leftTemple.brightness - rightTemple.brightness) < 0.06;
     const leftTemple = attSampleRegion(ctx, (minP.x - faceW * 0.05) * fw, (minP.y + faceH * 0.2) * fh, faceW * fw * 0.15, faceH * fh * 0.25, fw, fh);
     const rightTemple = attSampleRegion(ctx, (maxP.x + faceW * 0.05) * fw, (minP.y + faceH * 0.2) * fh, faceW * fw * 0.15, faceH * fh * 0.25, fw, fh);
     const templeDiffCalc = Math.abs(leftTemple.brightness - rightTemple.brightness) < 0.06;
@@ -2660,13 +2749,30 @@
       attVerifyBtn.disabled = true;
       attDetCount = 0;
     } else {
-      ctx.strokeStyle = 'rgba(34,197,94,0.7)';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.ellipse(fw / 2, fh / 2, fw * 0.18, fh * 0.33, 0, 0, 2 * Math.PI);
-      ctx.stroke();
       attDetCount++;
       if (attDetCount >= 15) attVerifyBtn.disabled = false;
+    }
+
+    // Always draw face mesh when a face is detected
+    ctx.strokeStyle = 'rgba(0,255,136,0.5)';
+    ctx.lineWidth = 1;
+    const meshPairs = FACEMESH_TESSELATION;
+    ctx.beginPath();
+    for (let i = 0; i < meshPairs.length; i++) {
+      const a = lm[meshPairs[i][0]], b = lm[meshPairs[i][1]];
+      if (a && b) {
+        ctx.moveTo(a.x * fw, a.y * fh);
+        ctx.lineTo(b.x * fw, b.y * fh);
+      }
+    }
+    ctx.stroke();
+
+    // Draw landmark dots
+    ctx.fillStyle = 'rgba(0,255,136,0.8)';
+    for (let i = 0; i < lm.length; i++) {
+      ctx.beginPath();
+      ctx.arc(lm[i].x * fw, lm[i].y * fh, 1.5, 0, 2 * Math.PI);
+      ctx.fill();
     }
 
     const indicatorClass = faceStatus === 'good' ? 'bg-green-500 animate-pulse' : faceStatus === 'warn' ? 'bg-yellow-500 animate-pulse' : 'bg-red-500';
@@ -2682,11 +2788,14 @@
 
     const isGlasses = isSunglasses;
     const accessoryCheck = foreheadBrightness < 0.18 && noseBrightness < 0.18;
+    const hasAccessory = isSunglasses || (accessoryCheck && (Math.abs(leftTemple.brightness - rightTemple.brightness) < 0.06));
     let lightLabel, lightClass;
     if (foreheadReflection && noseCheekHighlight) {
       lightLabel = 'Glare detected'; lightClass = 'bg-yellow-100 text-yellow-700';
-    } else if (isSunglasses || (accessoryCheck && (Math.abs(leftTemple.brightness - rightTemple.brightness) < 0.06))) {
+    } else if (hasAccessory) {
       lightLabel = 'Accessory detected'; lightClass = 'bg-yellow-100 text-yellow-700';
+      issues.push('Remove accessories');
+      tips.push('Please remove glasses, sunglasses, or headwear');
     } else if (eyeWhiteBrightness > 0.62 || foreheadBrightness > 0.62) {
       lightLabel = 'Too bright'; lightClass = 'bg-yellow-100 text-yellow-700';
     } else if (eyeWhiteBrightness < 0.14 || foreheadBrightness < 0.14) {
@@ -2708,7 +2817,7 @@
   async function initAttCamera() {
     if (attStream) return;
     try {
-      attStream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
+      attStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } } });
       attWebcam.srcObject = attStream;
 
       const fw = attFaceOverlay.width = attWebcam.videoWidth || 1280;
@@ -2725,7 +2834,9 @@
           minTrackingConfidence: 0.5
         });
         attFaceMeshInstance.onResults(attOnResults);
+        await attFaceMeshInstance.initialize();
         attFaceMeshReady = true;
+        console.log('FaceMesh model loaded successfully');
       } catch (e) {
         console.warn('FaceMesh init failed:', e);
         attFaceMeshReady = false;
@@ -2738,19 +2849,19 @@
       attFaceStatus.textContent = 'Loading face detection model...';
       attFaceStatus.className = 'text-sm font-medium text-yellow-600';
 
-      if (attFaceMeshReady && attWebcam.readyState >= 2) {
-        const sendFrame = async () => {
-          if (!attStream || attWebcam.paused || attWebcam.ended) return;
-          try { await attFaceMeshInstance.send({ image: attWebcam }); } catch {}
+      const sendFrame = async () => {
+        if (!attStream || attWebcam.paused || attWebcam.ended) return;
+        if (!attFaceMeshReady || attWebcam.readyState < 2) {
           attAnimId = requestAnimationFrame(sendFrame);
-        };
-        sendFrame();
-      } else {
-        attFaceIndicator.className = 'w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse';
-        attFaceStatus.textContent = 'Camera active - ready';
-        attFaceStatus.className = 'text-sm font-medium text-green-700';
-        attVerifyBtn.disabled = false;
-      }
+          return;
+        }
+        try { await attFaceMeshInstance.send({ image: attWebcam }); } catch (e) { console.warn('FaceMesh send error:', e); }
+        attAnimId = requestAnimationFrame(sendFrame);
+      };
+      attWebcam.onloadeddata = () => sendFrame();
+      if (attWebcam.readyState >= 2) sendFrame();
+      attFaceStatus.textContent = 'Loading face detection model...';
+      attFaceStatus.className = 'text-sm font-medium text-yellow-600';
     } catch (err) {
       attFaceIndicator.className = 'w-2.5 h-2.5 rounded-full bg-red-500';
       attFaceStatus.textContent = 'Camera access denied';

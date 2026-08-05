@@ -55,24 +55,26 @@ def detect_face(image_bytes):
     """Detect face and return 512-d InsightFace embedding.
 
     Returns:
-        (embedding, bbox) or (None, None) if no face found.
+        (embedding, bbox, face_count) or (None, None, 0) if no face found.
         embedding is np.ndarray float32 shape (512,).
         bbox is [x1, y1, x2, y2] or None.
+        face_count is the total number of faces detected in the image.
     """
     nparr = np.frombuffer(image_bytes, np.uint8)
     img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
     if img is None:
-        return None, None
+        return None, None, 0
 
     app = _get_face_app()
     faces = app.get(img)
+    face_count = len(faces)
     if not faces:
-        return None, None
+        return None, None, 0
 
     # Largest face by area
     face = max(faces, key=lambda f: (f.bbox[2] - f.bbox[0]) * (f.bbox[3] - f.bbox[1]))
     bbox = face.bbox.astype(int).tolist()
-    return face.embedding.astype(np.float32), bbox
+    return face.embedding.astype(np.float32), bbox, face_count
 
 
 def encode_face(embedding):

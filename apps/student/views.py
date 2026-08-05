@@ -170,9 +170,13 @@ class StudentDashboardViewSet(viewsets.ViewSet):
             return Response({'error': 'Facial data not enrolled. Please enroll your face first.'}, status=status.HTTP_404_NOT_FOUND)
 
         image_bytes = facial_image.read()
-        embedding, _ = detect_face(image_bytes)
+        embedding, _, face_count = detect_face(image_bytes)
         if embedding is None:
             return Response({'error': 'No face detected in the image.'}, status=status.HTTP_400_BAD_REQUEST)
+        if face_count > 1:
+            return Response({
+                'error': 'Multiple faces detected in the image. Please ensure only your face is visible.'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         is_match, confidence = verify_faces(facial_data.facial_encoding, embedding)
         if not is_match:
@@ -231,9 +235,13 @@ class StudentDashboardViewSet(viewsets.ViewSet):
             return Response({'error': 'Facial data not enrolled.'}, status=status.HTTP_404_NOT_FOUND)
 
         image_bytes = facial_image.read()
-        embedding, _ = detect_face(image_bytes)
+        embedding, _, face_count = detect_face(image_bytes)
         if embedding is None:
             return Response({'error': 'No face detected.'}, status=status.HTTP_400_BAD_REQUEST)
+        if face_count > 1:
+            return Response({
+                'error': 'Multiple faces detected in the image. Please ensure only your face is visible.'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         is_match, confidence = verify_faces(facial_data.facial_encoding, embedding)
         if not is_match:
@@ -349,10 +357,14 @@ class StudentDashboardViewSet(viewsets.ViewSet):
             if face_image:
                 try:
                     image_bytes = face_image.read()
-                    embedding, _ = detect_face(image_bytes)
+                    embedding, _, face_count = detect_face(image_bytes)
                     if embedding is None:
                         return Response({
                             'error': 'No face detected in the image. Please ensure your face is clearly visible.'
+                        }, status=status.HTTP_400_BAD_REQUEST)
+                    if face_count > 1:
+                        return Response({
+                            'error': 'Multiple faces detected in the image. Please ensure only your face is visible.'
                         }, status=status.HTTP_400_BAD_REQUEST)
                     # Check if this face is already registered to another student
                     existing_faces = FacialRecognition.objects.exclude(student=request.user).select_related('student')
@@ -508,8 +520,12 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
                     'quality': quality,
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            embedding, face_img = detect_face(image_bytes)
+            embedding, face_img, face_count = detect_face(image_bytes)
             if embedding is not None:
+                if face_count > 1:
+                    return Response({
+                        'error': 'Multiple faces detected in the image. Please ensure only your face is visible.'
+                    }, status=status.HTTP_400_BAD_REQUEST)
                 encodings.append(embedding)
                 best_score = max(best_score, quality['score'])
 
@@ -586,12 +602,15 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
         if not image_file:
             return Response({'error': 'No image provided'}, status=status.HTTP_400_BAD_REQUEST)
         image_bytes = image_file.read()
-        embedding, bbox = detect_face(image_bytes)
+        embedding, bbox, face_count = detect_face(image_bytes)
         if embedding is None:
             return Response({'face_detected': False, 'error': 'No face detected in the image.'}, status=status.HTTP_200_OK)
         return Response({
             'face_detected': True,
             'bbox': bbox,
+            'face_count': face_count,
+            'multiple_faces_detected': face_count > 1,
+            'error': 'Multiple faces detected. Please ensure only one person is in the frame.' if face_count > 1 else None,
         }, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='my-face')
@@ -638,10 +657,15 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
                 'verified': False,
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        embedding, _ = detect_face(image_bytes)
+        embedding, _, face_count = detect_face(image_bytes)
 
         if embedding is None:
             return Response({'error': 'No face detected in the image. Please ensure your face is clearly visible.'}, status=status.HTTP_400_BAD_REQUEST)
+        if face_count > 1:
+            return Response({
+                'error': 'Multiple faces detected in the image. Please ensure only your face is visible.',
+                'verified': False,
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         is_match, confidence = verify_faces(facial_data.facial_encoding, embedding)
 

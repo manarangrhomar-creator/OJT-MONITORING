@@ -419,10 +419,14 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
                 'quality': quality,
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        embedding, bbox = detect_face(image_bytes)
+        embedding, bbox, face_count = detect_face(image_bytes)
 
         if embedding is None:
             return Response({'error': 'No face detected in the image. Please ensure the student\'s face is clearly visible.'}, status=status.HTTP_400_BAD_REQUEST)
+        if face_count > 1:
+            return Response({
+                'error': 'Multiple faces detected in the image. Please ensure only the student\'s face is visible.'
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         # Liveness check
         liveness_passed, liveness_msg = check_liveness(image_bytes)

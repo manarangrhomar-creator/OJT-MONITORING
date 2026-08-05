@@ -181,7 +181,7 @@ aside > div{
         <!-- CAMERA -->
         <section class="lg:col-span-3 flex flex-col min-h-0">
 
-            <div class="camera-frame flex-1 rounded-2xl flex flex-col items-center justify-center shadow-lg">
+            <div class="camera-frame relative overflow-hidden flex-1 rounded-2xl flex flex-col items-center justify-center shadow-lg">
 
                 <!-- fake live indicator -->
                 <div class="absolute top-3 left-3 flex items-center gap-2 z-10">
@@ -189,7 +189,7 @@ aside > div{
                     <span class="text-xs text-gray-700 font-semibold">LIVE</span>
                 </div>
 
-                <video id="webcam" autoplay playsinline class="absolute inset-0 w-full h-full object-cover" style="transform: scaleX(-1);"></video>
+                <video id="webcam" autoplay playsinline class="absolute inset-0 w-full h-full object-cover z-0" style="transform: scaleX(-1);"></video>
                 <canvas id="photoCanvas" class="hidden"></canvas>
                 <canvas id="faceOverlay" class="absolute inset-0 w-full h-full" style="pointer-events:none; z-index:10;"></canvas>
 
@@ -333,7 +333,7 @@ aside > div{
 
     async function initCamera() {
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 } });
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } } });
             video.srcObject = stream;
 
             // Initialize FaceMesh for bounding box overlay
@@ -363,7 +363,7 @@ aside > div{
                     const pad = 0.12;
                     const padX = (maxX - minX) * pad;
                     const padY = (maxY - minY) * pad;
-                    const x = (minX - padX) * faceOverlay.width;
+                    const x = (1 - maxX - padX) * faceOverlay.width;
                     const y = (minY - padY) * faceOverlay.height;
                     const w = (maxX - minX + padX * 2) * faceOverlay.width;
                     const h = (maxY - minY + padY * 2) * faceOverlay.height;
@@ -391,7 +391,7 @@ aside > div{
                     faceOverlayCtx.shadowColor = 'transparent';
                     faceOverlayCtx.shadowBlur = 0;
                     for (const lm of landmarks) {
-                        const lx = lm.x * faceOverlay.width;
+                        const lx = (1 - lm.x) * faceOverlay.width;
                         const ly = lm.y * faceOverlay.height;
                         faceOverlayCtx.beginPath();
                         faceOverlayCtx.arc(lx, ly, 1.5, 0, 2 * Math.PI);
@@ -412,8 +412,8 @@ aside > div{
                     faceOverlayCtx.beginPath();
                     for (const [a, b] of meshEdges) {
                         if (landmarks[a] && landmarks[b]) {
-                            faceOverlayCtx.moveTo(landmarks[a].x * faceOverlay.width, landmarks[a].y * faceOverlay.height);
-                            faceOverlayCtx.lineTo(landmarks[b].x * faceOverlay.width, landmarks[b].y * faceOverlay.height);
+                            faceOverlayCtx.moveTo((1 - landmarks[a].x) * faceOverlay.width, landmarks[a].y * faceOverlay.height);
+                            faceOverlayCtx.lineTo((1 - landmarks[b].x) * faceOverlay.width, landmarks[b].y * faceOverlay.height);
                         }
                     }
                     faceOverlayCtx.stroke();
