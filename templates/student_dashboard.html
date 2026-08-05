@@ -847,9 +847,6 @@
         }
 
         /* ── Wizard intro splash cards ── */
-        /* Desktop: hide intro, show body always */
-        .wiz-intro { display: none; }
-        .wiz-step-body { display: block; }
 
         [id^="applyWizStep"]:not(.hidden) > .wiz-intro {
           display: flex;
@@ -935,6 +932,10 @@
           display: none;
         }
       }
+
+      /* ── Wizard intro splash cards — base (all viewports) ── */
+      .wiz-intro { display: none; }
+      .wiz-step-body { display: block; }
 
       /* ── Mobile: stack modal buttons + full width ── */
       @media (max-width: 640px) {
