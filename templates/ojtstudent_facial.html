@@ -47,6 +47,7 @@ body {
     height: 50%;
     background: linear-gradient(to bottom, transparent, rgba(34,197,94,0.25), transparent);
     animation: scan 3s infinite;
+    z-index: 1;
 }
 @keyframes scan {
     0%{ top:-50%; }
@@ -58,6 +59,7 @@ body {
     inset: 0;
     background: radial-gradient(circle at center, transparent 40%, rgba(0,0,0,0.15));
     pointer-events: none;
+    z-index: 2;
 }
 
 /* Oval guide overlay */
@@ -1122,6 +1124,37 @@ body {
                     faceOverlayCtx.beginPath(); faceOverlayCtx.moveTo(x + w - cornerLen, y); faceOverlayCtx.lineTo(x + w, y); faceOverlayCtx.lineTo(x + w, y + cornerLen); faceOverlayCtx.stroke();
                     faceOverlayCtx.beginPath(); faceOverlayCtx.moveTo(x, y + h - cornerLen); faceOverlayCtx.lineTo(x, y + h); faceOverlayCtx.lineTo(x + cornerLen, y + h); faceOverlayCtx.stroke();
                     faceOverlayCtx.beginPath(); faceOverlayCtx.moveTo(x + w - cornerLen, y + h); faceOverlayCtx.lineTo(x + w, y + h); faceOverlayCtx.lineTo(x + w, y + h - cornerLen); faceOverlayCtx.stroke();
+
+                    // Draw face mesh landmarks (468 points)
+                    faceOverlayCtx.shadowColor = 'transparent';
+                    faceOverlayCtx.shadowBlur = 0;
+                    for (const lm of landmarks) {
+                        const lx = lm.x * faceOverlay.width;
+                        const ly = lm.y * faceOverlay.height;
+                        faceOverlayCtx.beginPath();
+                        faceOverlayCtx.arc(lx, ly, 1.5, 0, 2 * Math.PI);
+                        faceOverlayCtx.fillStyle = 'rgba(34,197,94,0.6)';
+                        faceOverlayCtx.fill();
+                    }
+
+                    // Draw key face mesh edges
+                    faceOverlayCtx.strokeStyle = 'rgba(34,197,94,0.3)';
+                    faceOverlayCtx.lineWidth = 1;
+                    const meshEdges = [
+                        [10,338],[338,297],[297,332],[332,284],[284,251],[251,389],[389,356],[356,454],[454,323],[323,361],[361,288],[288,397],[397,365],[365,379],[379,400],[400,378],[378,379],[379,365],
+                        [3,248],[248,91],[91,146],[146,181],[181,84],[84,17],[17,314],[314,405],[405,321],[321,375],[375,291],[291,409],[409,270],[270,269],[269,267],[267,0],[0,37],[37,39],[39,40],
+                        [285,295],[295,282],[282,283],[283,276],[276,352],[352,345],[345,372],[372,383],[383,382],[382,381],[381,380],[380,374],[374,390],[390,249],[249,466],[466,388],[388,387],[387,386],[386,385],[385,384],
+                        [178,88],[88,95],[95,166],[166,77],[77,148],[148,171],[171,175],[175,152],[152,148],[148,176],[176,149],[149,150],[150,136],[136,172],[172,58],[58,132],[132,93],[93,234],[234,127],[127,162],
+                        [389,251],[251,284],[284,332],[332,297],[297,338],[338,10],[10,151],[151,337],[337,299],[299,333],[333,298],[298,301],[301,368],[368,264],[264,447],[447,366],[366,371],[371,355],[355,329],[329,454]
+                    ];
+                    faceOverlayCtx.beginPath();
+                    for (const [a, b] of meshEdges) {
+                        if (landmarks[a] && landmarks[b]) {
+                            faceOverlayCtx.moveTo(landmarks[a].x * faceOverlay.width, landmarks[a].y * faceOverlay.height);
+                            faceOverlayCtx.lineTo(landmarks[b].x * faceOverlay.width, landmarks[b].y * faceOverlay.height);
+                        }
+                    }
+                    faceOverlayCtx.stroke();
                 } else {
                     accessoryStatusEl.className = 'inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500';
                     accessoryStatusEl.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-gray-400"></span> No face detected';
