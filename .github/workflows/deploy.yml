@@ -1,0 +1,43 @@
+name: Deploy to Oracle Cloud
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to Oracle Cloud VM
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.ORACLE_HOST }}
+          username: ${{ secrets.ORACLE_USERNAME }}
+          key: ${{ secrets.ORACLE_SSH_KEY }}
+          port: 22
+          script: |
+            set -e
+            cd /opt/ojt-monitoring
+            
+            echo "=== Pulling latest code ==="
+            git pull origin main
+            
+            echo "=== Installing dependencies ==="
+            source venv/bin/activate
+            pip install -r requirements.txt --quiet
+            
+            echo "=== Running migrations ==="
+            python manage.py migrate --noinput
+            
+            echo "=== Collecting static files ==="
+            python manage.py collectstatic --noinput
+            
+            echo "=== Restarting services ==="
+            sudo systemctl restart ojt-gunicorn
+            sudo systemctl restart ojt-celery
+            
+            echo "=== Deploy complete ==="
