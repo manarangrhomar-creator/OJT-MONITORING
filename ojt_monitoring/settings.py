@@ -154,17 +154,12 @@ CHANNEL_LAYERS = {
 #     },
 # }
 
-# Database Configuration
-# Uses DATABASE_URL env var in production (e.g. postgres://user:pass@host:5432/dbname)
-# Falls back to SQLite for local development
-import dj_database_url
-
+# Database Configuration - SQLite for development
 DATABASES = {
-    'default': dj_database_url.config(
-        default=f'sqlite:///{BASE_DIR / "db.sqlite3"}',
-        conn_max_age=600,
-        conn_health_checks=True,
-    )
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 }
 
 # Password validation
