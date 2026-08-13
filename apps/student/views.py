@@ -1,4 +1,5 @@
 import logging
+import math
 import cv2
 import numpy as np
 from rest_framework import viewsets, status, permissions
@@ -11,7 +12,7 @@ from datetime import datetime, timedelta
 from django.db.models import Q, Count, F
 from django.utils import timezone
 from django.shortcuts import get_object_or_404
-from apps.coordinator.models import OJTApplication, Attendance, OJTProgram, Site
+from apps.coordinator.models import OJTApplication, Attendance, OJTProgram, Site, SiteAssignment
 from apps.coordinator.serializers import OJTApplicationSerializer, AttendanceSerializer
 from apps.core.models import Notification
 from apps.core.utils import create_and_send_notification, send_unread_count_update, broadcast_dashboard_update
@@ -22,6 +23,19 @@ from .serializers import (StudentProfileSerializer, FacialRecognitionSerializer,
 from .face_utils import detect_face, encode_face, decode_face, verify_faces
 
 logger = logging.getLogger(__name__)
+
+GEOFENCE_RADIUS_METERS = 50
+
+
+def haversine_distance(lat1, lon1, lat2, lon2):
+    """Calculate distance in meters between two GPS coordinates using Haversine formula."""
+    R = 6371000  # Earth's radius in meters
+    phi1 = math.radians(float(lat1))
+    phi2 = math.radians(float(lat2))
+    dphi = math.radians(float(lat2) - float(lat1))
+    dlambda = math.radians(float(lon2) - float(lon1))
+    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
 
 
 class IsStudent(permissions.BasePermission):
@@ -190,6 +204,37 @@ class StudentDashboardViewSet(viewsets.ViewSet):
         if not application:
             return Response({'error': 'No approved OJT application found.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        # ── Geofence verification ──
+        latitude = request.data.get('latitude')
+        longitude = request.data.get('longitude')
+
+        if not latitude or not longitude:
+            return Response(
+                {'error': 'Location data is required. Please enable GPS and try again.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        site_assignment = SiteAssignment.objects.filter(
+            student=student, program=application.program
+        ).select_related('site').first()
+
+        if not site_assignment or not site_assignment.site:
+            return Response(
+                {'error': 'No site assigned. Please contact your coordinator.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        site = site_assignment.site
+        if site.latitude is not None and site.longitude is not None:
+            distance = haversine_distance(latitude, longitude, site.latitude, site.longitude)
+            if distance > GEOFENCE_RADIUS_METERS:
+                return Response(
+                    {'error': f'You are too far from your assigned site ({site.name}). '
+                              f'Distance: {distance:.0f}m. Allowed: {GEOFENCE_RADIUS_METERS}m. '
+                              f'Please move closer to the site and try again.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
         today = timezone.now().date()
         now_time = timezone.localtime(timezone.now()).time()
 
@@ -200,6 +245,8 @@ class StudentDashboardViewSet(viewsets.ViewSet):
             defaults={
                 'time_in': now_time,
                 'facial_recognition_used': True,
+                'latitude': latitude,
+                'longitude': longitude,
             }
         )
 
@@ -251,6 +298,41 @@ class StudentDashboardViewSet(viewsets.ViewSet):
                 'error': 'Face does not match enrolled record'
             }, status=status.HTTP_403_FORBIDDEN)
 
+        # ── Geofence verification ──
+        latitude = request.data.get('latitude')
+        longitude = request.data.get('longitude')
+
+        if not latitude or not longitude:
+            return Response(
+                {'error': 'Location data is required. Please enable GPS and try again.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        application = OJTApplication.objects.filter(student=student, status='approved').first()
+        if not application:
+            return Response({'error': 'No approved OJT application found.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        site_assignment = SiteAssignment.objects.filter(
+            student=student, program=application.program
+        ).select_related('site').first()
+
+        if not site_assignment or not site_assignment.site:
+            return Response(
+                {'error': 'No site assigned. Please contact your coordinator.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        site = site_assignment.site
+        if site.latitude is not None and site.longitude is not None:
+            distance = haversine_distance(latitude, longitude, site.latitude, site.longitude)
+            if distance > GEOFENCE_RADIUS_METERS:
+                return Response(
+                    {'error': f'You are too far from your assigned site ({site.name}). '
+                              f'Distance: {distance:.0f}m. Allowed: {GEOFENCE_RADIUS_METERS}m. '
+                              f'Please move closer to the site and try again.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
         today = timezone.now().date()
 
         try:
@@ -262,7 +344,6 @@ class StudentDashboardViewSet(viewsets.ViewSet):
         attendance.facial_recognition_used = True
         attendance.save()
 
-        application = OJTApplication.objects.filter(student=student, status='approved').first()
         if application:
             create_and_send_notification(
                 recipient=application.program.coordinator,
@@ -505,6 +586,7 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
             return Response({'error': 'At least one image is required'}, status=status.HTTP_400_BAD_REQUEST)
 
         encodings = []
+        quality_scores = []
         best_score = 0
         first_image_bytes = None
         for facial_image in images:
@@ -527,10 +609,39 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
                         'error': 'Multiple faces detected in the image. Please ensure only your face is visible.'
                     }, status=status.HTTP_400_BAD_REQUEST)
                 encodings.append(embedding)
+                quality_scores.append(quality['score'])
                 best_score = max(best_score, quality['score'])
 
         if not encodings:
             return Response({'error': 'No face detected in any image. Please ensure your face is clearly visible.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # Step 3b: Intra-ensemble check — ensure encodings are consistent
+        if len(encodings) >= 2:
+            # Compute pairwise cosine similarities between all encodings
+            similarities = []
+            for i in range(len(encodings)):
+                for j in range(i + 1, len(encodings)):
+                    sim = np.dot(encodings[i], encodings[j]) / (
+                        np.linalg.norm(encodings[i]) * np.linalg.norm(encodings[j])
+                    )
+                    similarities.append(sim)
+            
+            avg_similarity = np.mean(similarities)
+            min_similarity = np.min(similarities)
+            
+            # If average similarity is too low, images may be of different people
+            if avg_similarity < 0.6:
+                return Response({
+                    'error': 'Captured images appear to be of different people. Please ensure all images show the same face.',
+                    'similarity': float(avg_similarity),
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # If any pair is too dissimilar, reject that specific image
+            if min_similarity < 0.4:
+                return Response({
+                    'error': 'One or more images do not match the others. Please recapture all images.',
+                    'min_similarity': float(min_similarity),
+                }, status=status.HTTP_400_BAD_REQUEST)
 
         # Step 4: Liveness check — use the first detected face image
         liveness_passed, liveness_msg = check_liveness(first_image_bytes)
@@ -540,8 +651,36 @@ class FacialRecognitionViewSet(viewsets.ModelViewSet):
                 'liveness': {'passed': liveness_passed, 'message': liveness_msg},
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        # Average all face encodings for better accuracy
-        avg_encoding = np.mean(encodings, axis=0).astype(np.float32)
+        # Step 5: Weighted average — weight by quality score for better accuracy
+        # If we have quality scores, use them; otherwise fall back to simple average
+        if 'quality_scores' in locals() and len(quality_scores) == len(encodings):
+            # Normalize quality scores to weights
+            weights = np.array(quality_scores, dtype=np.float64)
+            weights = weights / weights.sum()
+            # Weighted average
+            avg_encoding = np.zeros_like(encodings[0], dtype=np.float64)
+            for enc, weight in zip(encodings, weights):
+                avg_encoding += enc * weight
+            avg_encoding = avg_encoding.astype(np.float32)
+        else:
+            # Simple average fallback
+            avg_encoding = np.mean(encodings, axis=0).astype(np.float32)
+
+        # Step 6: Enrollment self-test — verify average encoding against original images
+        self_test_passed = 0
+        self_test_total = len(encodings)
+        for enc in encodings:
+            is_match, similarity = verify_faces(avg_encoding, enc, threshold=0.55)
+            if is_match:
+                self_test_passed += 1
+        
+        # If less than 80% of images match the average, the average is poor quality
+        if self_test_passed < self_test_total * 0.8:
+            return Response({
+                'error': 'Enrollment quality too low — the averaged face encoding does not match the captured images well enough. Please recapture.',
+                'self_test_passed': self_test_passed,
+                'self_test_total': self_test_total,
+            }, status=status.HTTP_400_BAD_REQUEST)
 
         # Check if this face is already registered to another student
         existing_faces = FacialRecognition.objects.exclude(student=student).select_related('student')

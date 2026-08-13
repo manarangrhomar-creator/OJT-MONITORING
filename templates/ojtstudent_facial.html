@@ -545,7 +545,7 @@ body {
     let capturedUrls = [];
     let studentProfile = null;
     let isRetaking = false;
-    const REQUIRED_CAPTURES = 3;
+    const REQUIRED_CAPTURES = 5;
 
     const video = document.getElementById('webcam');
     const canvas = document.getElementById('photoCanvas');
@@ -923,7 +923,38 @@ body {
                 statusField.value = 'Status: Enrollment complete ✓';
             } else {
                 const err = await response.json().catch(() => ({}));
-                Swal.fire({ icon: 'error', title: 'Enrollment Failed', text: err.error || 'Server error. Please try again.', confirmButtonColor: '#166534' });
+                let guidance = '';
+                const errorMsg = err.error || 'Server error. Please try again.';
+                
+                // Provide specific guidance based on error type
+                if (errorMsg.includes('quality too low')) {
+                    guidance = 'Try these tips:\n• Ensure good lighting on your face\n• Hold steady (reduce motion blur)\n• Position your face in the center of the frame';
+                } else if (errorMsg.includes('too blurry')) {
+                    guidance = 'Your image is blurry. Try:\n• Hold the camera steady\n• Ensure adequate lighting\n• Avoid sudden movements';
+                } else if (errorMsg.includes('too dark') || errorMsg.includes('too bright')) {
+                    guidance = 'Lighting issue detected. Try:\n• Face a light source directly\n• Avoid backlighting (light behind you)\n• Adjust screen brightness if indoors';
+                } else if (errorMsg.includes('Face too small')) {
+                    guidance = 'Your face is too far away. Try:\n• Move closer to the camera\n• Ensure your face fills the oval guide';
+                } else if (errorMsg.includes('Face too large')) {
+                    guidance = 'Your face is too close. Try:\n• Move back slightly\n• Position your face within the oval guide';
+                } else if (errorMsg.includes('different people') || errorMsg.includes('do not match')) {
+                    guidance = 'The captured images appear inconsistent. Try:\n• Use the same face in all captures\n• Maintain the same angle and distance\n• Avoid hats or glasses between captures';
+                } else if (errorMsg.includes('Liveness check failed')) {
+                    guidance = 'Liveness check failed. Try:\n• Blink naturally when prompted\n• Avoid holding still like a photo\n• Ensure your face is clearly visible';
+                } else if (errorMsg.includes('already registered')) {
+                    guidance = 'This face is already enrolled. Contact your coordinator if you need to re-enroll.';
+                } else if (errorMsg.includes('Enrollment quality too low')) {
+                    guidance = 'The averaged face quality is poor. Try:\n• Capture each image with good lighting\n• Maintain consistent face position\n• Avoid extreme angles';
+                }
+                
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: 'Enrollment Failed', 
+                    text: errorMsg,
+                    footer: guidance ? `<div style="text-align:left;white-space:pre-line;font-size:13px;">${guidance}</div>` : undefined,
+                    confirmButtonColor: '#166534',
+                    confirmButtonText: 'Try Again'
+                });
                 proceedToStep(2);
             }
         } catch (err) {

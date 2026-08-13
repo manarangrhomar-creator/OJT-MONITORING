@@ -528,6 +528,25 @@ aside > div{
             return;
         }
 
+        // Request GPS for clock_in / clock_out
+        let locationData = null;
+        try {
+            const pos = await new Promise((resolve, reject) => {
+                navigator.geolocation.getCurrentPosition(resolve, reject, {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                });
+            });
+            locationData = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+        } catch (err) {
+            setStatus('GPS location is required. Please enable location access and try again.', 'error');
+            actionBtn.disabled = false;
+            actionBtn.innerHTML = '<i data-lucide="scan" class="animate-spin mr-2" style="width:16px;height:16px;"></i> Verify Identity';
+            lucide.createIcons();
+            return;
+        }
+
         wrapper.classList.add('flash-effect');
         setTimeout(() => wrapper.classList.remove('flash-effect'), 200);
 
@@ -539,6 +558,10 @@ aside > div{
             const blob = await captureBlob();
             const formData = new FormData();
             formData.append('image', blob, 'face.jpg');
+            if (locationData) {
+                formData.append('latitude', locationData.latitude);
+                formData.append('longitude', locationData.longitude);
+            }
 
             const response = await fetch(`/api/student/dashboard/${currentAction}/`, {
                 method: 'POST',

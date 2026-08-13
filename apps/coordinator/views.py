@@ -9,9 +9,8 @@ from django.shortcuts import get_object_or_404
 from apps.core.models import User
 from apps.core.utils import create_notification, broadcast_dashboard_update
 from apps.core.tasks import send_email_task
-from apps.student.models import StudentNarrativeReport, FacialRecognition
+from apps.student.models import StudentNarrativeReport
 from apps.student.serializers import StudentNarrativeReportSerializer
-from apps.student.face_utils import detect_face, encode_face
 from .models import OJTProgram, OJTApplication, Attendance, SiteAssignment, Site, FlagRecord
 from .serializers import OJTProgramSerializer, OJTApplicationSerializer, AttendanceSerializer, SiteAssignmentSerializer, FlagRecordSerializer
 
@@ -386,84 +385,6 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
 
         broadcast_dashboard_update('applications', data={'action': 'update', 'item': OJTApplicationSerializer(application).data})
         return Response({'message': 'Student rejected'}, status=status.HTTP_200_OK)
-
-    @action(detail=False, methods=['post'], url_path='enroll-student-face')
-    def enroll_student_face(self, request):
-        """Enroll a student's face during face-to-face approval meeting."""
-        from apps.student.face_quality import quality_gate, check_liveness
-        from apps.student.face_utils import detect_face, encode_face
-        student_id = request.data.get('student_id')
-        facial_image = request.FILES.get('image')
-
-        if not student_id:
-            return Response({'error': 'student_id is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-        if not facial_image:
-            return Response({'error': 'Image is required'}, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            application = OJTApplication.objects.get(
-                student_id=student_id,
-                program__coordinator=request.user
-            )
-        except OJTApplication.DoesNotExist:
-            return Response({'error': 'Student application not found or not authorized'}, status=status.HTTP_404_NOT_FOUND)
-
-        image_bytes = facial_image.read()
-
-        # Quality gate
-        passed, quality = quality_gate(image_bytes)
-        if not passed:
-            return Response({
-                'error': f'Image quality too low: {"; ".join(quality["messages"])}',
-                'quality': quality,
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        embedding, bbox, face_count = detect_face(image_bytes)
-
-        if embedding is None:
-            return Response({'error': 'No face detected in the image. Please ensure the student\'s face is clearly visible.'}, status=status.HTTP_400_BAD_REQUEST)
-        if face_count > 1:
-            return Response({
-                'error': 'Multiple faces detected in the image. Please ensure only the student\'s face is visible.'
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        # Liveness check
-        liveness_passed, liveness_msg = check_liveness(image_bytes)
-        if not liveness_passed:
-            return Response({
-                'error': 'Liveness check failed. Please capture a real photo (not a screen or printed image).',
-                'liveness': {'passed': liveness_passed, 'message': liveness_msg},
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        encoding = encode_face(embedding)
-
-        facial_data, created = FacialRecognition.objects.get_or_create(
-            student=application.student,
-            defaults={
-                'facial_encoding': encoding,
-                'is_verified': True,
-                'verification_date': timezone.now(),
-                'quality_score': quality['score'],
-                'liveness_confirmed': True,
-            }
-        )
-
-        if not created:
-            facial_data.facial_encoding = encoding
-            facial_data.is_verified = True
-            facial_data.verification_date = timezone.now()
-            facial_data.quality_score = quality['score']
-            facial_data.liveness_confirmed = True
-            facial_data.save()
-
-        return Response({
-            'message': 'Face enrolled successfully',
-            'student_name': application.student.get_full_name() or application.student.username,
-            'verified': True,
-            'quality_score': quality['score'],
-            'liveness_confirmed': True,
-        }, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='attendance-records')
     def attendance_records(self, request):

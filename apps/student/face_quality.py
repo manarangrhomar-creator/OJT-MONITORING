@@ -26,11 +26,14 @@ BRIGHTNESS_MAX = 220.0         # mean grey above this = too bright
 CONTRAST_MIN = 35.0            # std-dev below this = low contrast / flat lighting
 VARIANCE_THRESHOLD = 0.0015    # inter-image cosine similarity variance — below ⇒ likely same photo (spoof)
 SCREEN_ARTIFACT_THRESHOLD = 0.12  # frequency-domain energy ratio — above ⇒ screen/moire pattern
+FACE_SIZE_MIN_RATIO = 0.15     # face must occupy at least 15% of image area
+FACE_SIZE_MAX_RATIO = 0.80     # face should not exceed 80% of image area (too close)
 QUALITY_WEIGHTS = {
-    "blur": 0.30,
+    "blur": 0.25,
     "brightness": 0.20,
     "contrast": 0.20,
-    "liveness": 0.30,
+    "liveness": 0.20,
+    "face_size": 0.15,
 }
 
 
@@ -113,6 +116,51 @@ def assess_brightness_contrast(image_bytes: bytes, face_bbox=None) -> Tuple[bool
     passed = len(issues) == 0
     msg = "Brightness & contrast OK" if passed else "; ".join(issues)
     return passed, brightness, contrast, msg
+
+
+# ---------------------------------------------------------------------------
+# Step 4b — Face size check
+# ---------------------------------------------------------------------------
+
+def check_face_size(image_bytes: bytes, face_bbox) -> Tuple[bool, float, str]:
+    """
+    Check that the face occupies an appropriate portion of the image.
+    
+    Too small: face is too far from camera, low resolution for recognition
+    Too large: face is too close, may be cropped or distorted
+    
+    Returns:
+        (passed, size_ratio, message)
+        size_ratio: face area / image area (0.0 to 1.0)
+    """
+    if face_bbox is None:
+        return True, 0.0, "No face bbox available for size check"
+    
+    img = _bytes_to_bgr(image_bytes)
+    h, w = img.shape[:2]
+    image_area = h * w
+    
+    x1, y1, x2, y2 = [int(v) for v in face_bbox]
+    x1, y1 = max(0, x1), max(0, y1)
+    x2, y2 = min(w, x2), min(h, y2)
+    
+    face_width = x2 - x1
+    face_height = y2 - y1
+    face_area = face_width * face_height
+    
+    size_ratio = face_area / image_area if image_area > 0 else 0.0
+    
+    if size_ratio < FACE_SIZE_MIN_RATIO:
+        passed = False
+        msg = f"Face too small ({size_ratio:.1%} of image, need ≥{FACE_SIZE_MIN_RATIO:.0%}) — move closer to camera"
+    elif size_ratio > FACE_SIZE_MAX_RATIO:
+        passed = False
+        msg = f"Face too large ({size_ratio:.1%} of image, need ≤{FACE_SIZE_MAX_RATIO:.0%}) — move back from camera"
+    else:
+        passed = True
+        msg = f"Face size OK ({size_ratio:.1%} of image)"
+    
+    return passed, size_ratio, msg
 
 
 # ---------------------------------------------------------------------------
@@ -224,6 +272,7 @@ def compute_quality_score(
     brightness: float,
     contrast: float,
     liveness_passed: bool,
+    face_size_ratio: float = 0.0,
 ) -> float:
     """
     Compute a 0–100 quality score from individual metric scores.
@@ -243,11 +292,18 @@ def compute_quality_score(
     # Liveness sub-score: binary
     liveness_norm = 1.0 if liveness_passed else 0.0
 
+    # Face size sub-score: 1.0 at ideal (0.35), falls off toward extremes
+    # Ideal face size is around 35% of image area
+    ideal_ratio = 0.35
+    size_diff = abs(face_size_ratio - ideal_ratio) / ideal_ratio
+    face_size_norm = max(0.0, 1.0 - size_diff)
+
     score = (
         QUALITY_WEIGHTS["blur"] * blur_norm
         + QUALITY_WEIGHTS["brightness"] * brightness_norm
         + QUALITY_WEIGHTS["contrast"] * contrast_norm
         + QUALITY_WEIGHTS["liveness"] * liveness_norm
+        + QUALITY_WEIGHTS["face_size"] * face_size_norm
     ) * 100
 
     return round(score, 1)
@@ -263,7 +319,7 @@ def quality_gate(
 
     Returns:
         (passed, result_dict)
-        result_dict has keys: blur, brightness, contrast, liveness, score, messages
+        result_dict has keys: blur, brightness, contrast, liveness, face_size, score, messages
     """
     messages = []
 
@@ -275,20 +331,25 @@ def quality_gate(
     bright_ok, brightness, contrast, bright_msg = assess_brightness_contrast(image_bytes, face_bbox)
     messages.append(bright_msg)
 
+    # Face size
+    size_ok, size_ratio, size_msg = check_face_size(image_bytes, face_bbox)
+    messages.append(size_msg)
+
     # Liveness
     live_ok, live_msg = check_liveness(image_bytes, previous_embeddings, face_bbox)
     messages.append(live_msg)
 
     # Composite score
-    score = compute_quality_score(blur_val, brightness, contrast, live_ok)
+    score = compute_quality_score(blur_val, brightness, contrast, live_ok, size_ratio)
 
     # Gate: all individual checks must pass AND score ≥ 50
-    passed = blur_ok and bright_ok and live_ok and score >= 50
+    passed = blur_ok and bright_ok and size_ok and live_ok and score >= 50
 
     return passed, {
         "blur": {"passed": blur_ok, "value": blur_val},
         "brightness": {"passed": bright_ok, "value": brightness},
         "contrast": {"passed": bright_ok, "value": contrast},
+        "face_size": {"passed": size_ok, "value": size_ratio},
         "liveness": {"passed": live_ok},
         "score": score,
         "messages": messages,

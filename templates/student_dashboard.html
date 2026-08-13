@@ -3175,6 +3175,31 @@
 
   attVerifyBtn.addEventListener('click', async () => {
     if (!attCurrentAction) return;
+
+    // Request GPS for clock_in / clock_out
+    let locationData = null;
+    try {
+      const pos = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        });
+      });
+      locationData = { latitude: pos.coords.latitude, longitude: pos.coords.longitude };
+    } catch (err) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Location Required',
+        text: `GPS location is required to ${attCurrentAction === 'clock_in' ? 'clock in' : 'clock out'}. Please enable location access and try again.`,
+        confirmButtonColor: '#11693A'
+      });
+      attVerifyBtn.disabled = false;
+      attVerifyBtn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 inline mr-2"></i> Verify & ' + (attCurrentAction === 'clock_in' ? 'Clock In' : 'Clock Out');
+      lucide.createIcons();
+      return;
+    }
+
     attFrame.classList.add('att-flash');
     setTimeout(() => attFrame.classList.remove('att-flash'), 200);
     attVerifyBtn.disabled = true;
@@ -3182,7 +3207,12 @@
     lucide.createIcons();
     try {
       const blob = await captureAttBlob();
-      const fd = new FormData(); fd.append('image', blob, 'face.jpg');
+      const fd = new FormData();
+      fd.append('image', blob, 'face.jpg');
+      if (locationData) {
+        fd.append('latitude', locationData.latitude);
+        fd.append('longitude', locationData.longitude);
+      }
       const resp = await fetch(`/api/student/dashboard/${attCurrentAction}/`, {
         method: 'POST',
         credentials: 'same-origin',

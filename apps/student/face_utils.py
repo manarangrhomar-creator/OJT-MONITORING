@@ -93,7 +93,7 @@ def decode_face(encoding_bytes):
     return np.frombuffer(raw, dtype=np.float32).copy()
 
 
-def verify_faces(stored_encoding, new_embedding, threshold=0.35):
+def verify_faces(stored_encoding, new_embedding, threshold=0.55):
     """Compare embeddings via FAISS inner-product (cosine on unit vectors).
 
     Args:
