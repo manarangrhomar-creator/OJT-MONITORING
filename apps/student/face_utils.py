@@ -25,8 +25,14 @@ def _get_face_app():
     return _face_app
 
 
+_fernet_instance = None
+
+
 def _get_fernet():
     """Derive a Fernet key from Django SECRET_KEY for biometric encryption."""
+    global _fernet_instance
+    if _fernet_instance is not None:
+        return _fernet_instance
     from django.conf import settings
     secret = settings.SECRET_KEY.encode()
     kdf = PBKDF2HMAC(
@@ -36,7 +42,8 @@ def _get_fernet():
         iterations=480000,
     )
     key = base64.urlsafe_b64encode(kdf.derive(secret))
-    return Fernet(key)
+    _fernet_instance = Fernet(key)
+    return _fernet_instance
 
 
 def encrypt_embedding(raw_bytes):

@@ -16,7 +16,7 @@ web
 
 ## Product Purpose
 
-Digitize and manage the complete On-the-Job Training (OJT) lifecycle for Isabela State University — Cauayan Campus. The system replaces paper-based tracking with a unified platform spanning registration, program application, biometric attendance, narrative reporting, evaluation, and compliance monitoring.
+Digitize and manage the complete On-the-Job Training (OJT) lifecycle for Isabela Colleges, Inc. — Cauayan Campus. The system replaces paper-based tracking with a unified platform spanning registration, program application, biometric attendance, narrative reporting, evaluation, and compliance monitoring.
 
 ## Positioning
 
@@ -64,7 +64,7 @@ Digitize and manage the complete On-the-Job Training (OJT) lifecycle for Isabela
 
 ### Naming conventions
 - OJT = On-the-Job Training
-- ISU = Isabela State University
+- IC = Isabela Colleges, Inc.
 - Program = an OJT opportunity (title, description, slots, duration)
 - Site = an external organization hosting OJT students
 - Narrative Report = periodic student-written summary of activities
@@ -80,16 +80,16 @@ Digitize and manage the complete On-the-Job Training (OJT) lifecycle for Isabela
 ## Brand Commitments
 
 - **Product name:** OJT Monitoring System.
-- **Stakeholder:** Isabela State University — Cauayan Campus.
+- **Stakeholder:** Isabela Colleges, Inc. — Cauayan Campus.
 - **Visual identity:** Forest green (`#0F5436`), Gold (`#C8A44A`), warm paper background (`#F7F5F0`).
 - **Typography:** Fraunces (serif headings), DM Sans (body text).
-- **Assets:** ISU seal and institutional branding appear on login page, dashboard headers, and templates.
+- **Assets:** IC logo and institutional branding appear on login page, dashboard headers, and templates.
 - **Tone:** Professional, academic, institutional.
 
 ## Evidence on Hand
 
 - Full Django project at this repository root (`C:\Users\THUNDEROBOT\OJT-MONITORING`).
-- Templates in `templates/` with Bootstrap 5, responsive layouts, ISU branding.
+- Templates in `templates/` with Bootstrap 5, responsive layouts, IC branding.
 - PWA manifest at `static/manifest.json` confirming installable web intent.
 - Model definitions, serializer classes, ViewSets, and URL routers in `apps/{core,authentication,admin_panel,coordinator,student}/`.
 - WebSocket consumers at `apps/core/consumers.py` for notifications and dashboard.

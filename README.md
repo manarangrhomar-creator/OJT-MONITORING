@@ -9,7 +9,7 @@
 
 <h1 align="center">OJT Monitoring System</h1>
 <p align="center">
-  <em>A comprehensive Django-based On-the-Job Training Monitoring System for Isabela State University</em>
+  <em>A comprehensive Django-based On-the-Job Training Monitoring System for Isabela Colleges, Inc.</em>
 </p>
 
 ---
@@ -35,7 +35,7 @@
 
 ## Overview
 
-The **OJT Monitoring System** streamlines the entire On-the-Job Training lifecycle at Isabela State University, from student registration and site assignment to daily attendance tracking, facial recognition verification, and performance evaluation. The system supports three roles: **Admin**, **Coordinator**, and **Student**, each with dedicated dashboards and workflows.
+The **OJT Monitoring System** streamlines the entire On-the-Job Training lifecycle at Isabela Colleges, Inc., from student registration and site assignment to daily attendance tracking, facial recognition verification, and performance evaluation. The system supports three roles: **Admin**, **Coordinator**, and **Student**, each with dedicated dashboards and workflows.
 
 > PS. Run `setup.bat` to install all requirements automatically.
 
@@ -387,14 +387,14 @@ This project is licensed under the MIT License.
 
 ## Acknowledgments
 
-- **Isabela State University** — Project sponsor and stakeholder
+- **Isabela Colleges, Inc.** — Project sponsor and stakeholder
 - **Django Framework** & **Django REST Framework** — Backend framework
 - **OpenCV** — Computer vision library for facial recognition
 
 ---
 
 <p align="center">
-  <sub>Built with :heart: for Isabela State University</sub>
+  <sub>Built with :heart: for Isabela Colleges, Inc.</sub>
   <br>
   <sub>Last Updated: June 2026</sub>
 </p>

@@ -70,7 +70,7 @@ class SecurityHeadersMiddleware:
         response['X-Frame-Options'] = 'DENY'
         response['X-XSS-Protection'] = '1; mode=block'
         response['Referrer-Policy'] = 'strict-origin-when-cross-origin'
-        response['Permissions-Policy'] = 'camera=(self), microphone=(), geolocation=()'
+        response['Permissions-Policy'] = 'camera=(self), microphone=(), geolocation=(self)'
 
         return response
 

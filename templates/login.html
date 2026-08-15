@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sign In — ISU OJT Portal</title>
+  <title>Sign In — IC OJT Portal</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="icon" href="{% static 'images/isu_new_seal_512x512.png' %}" sizes="any" type="image/png" />
+  <link rel="icon" href="{% static 'images/isabela_colleges_logo.png' %}" sizes="any" type="image/png" />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -138,13 +138,13 @@
 <body class="grain min-h-screen flex items-center justify-center p-4 overflow-x-hidden">
 
   <div class="bg-seal-wrap">
-    <img class="bg-seal" src="{% static 'images/isu_new_seal_512x512.png' %}" alt="" aria-hidden="true" />
+    <img class="bg-seal" src="{% static 'images/isabela_colleges_logo.png' %}" alt="" aria-hidden="true" />
   </div>
 
   <div id="loginLoadingMessage" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
     <div class="isu-loader">
       <div class="loader-logo-wrap">
-        <img src="{% static 'images/isu_new_seal_512x512.png' %}" alt="Loading" />
+        <img src="{% static 'images/isabela_colleges_logo.png' %}" alt="Loading" />
       </div>
       <div class="loader-progress">
         <div class="loader-progress-bar"></div>
@@ -158,8 +158,8 @@
     <!-- Left panel — university branding -->
     <div class="w-full md:w-[38%] bg-[var(--forest)] flex flex-col md:flex-col items-center justify-center p-4 md:p-10 text-white relative">
       <div class="w-12 h-12 md:w-48 md:h-48 flex items-center justify-center mb-1 md:mb-6">
-        <img src="{% static 'images/isu_new_seal_512x512.png' %}"
-             alt="ISU Logo"
+        <img src="{% static 'images/isabela_colleges_logo.png' %}"
+             alt="Isabela Colleges Logo"
              class="w-full h-full object-contain" />
       </div>
       <h2 class="font-[var(--font-display)] text-sm md:text-2xl font-semibold text-center leading-tight md:leading-snug">
@@ -167,7 +167,7 @@
       </h2>
       <div class="hidden md:block text-center">
         <p class="text-sm text-white/65 mt-2 text-center max-w-[220px]">
-          Isabela State University — Cauayan Campus
+          Isabela Colleges — Cauayan Campus
         </p>
         <div class="mt-8 w-12 h-px bg-[var(--gold)]/50"></div>
         <p class="text-sm text-white/60 mt-6 mb-3">Don't have an account?</p>
@@ -235,7 +235,7 @@
         </div>
         <div class="mt-6 md:mt-8 gold-divider"></div>
         <p class="text-xs text-[var(--charcoal)]/30 text-center mt-4">
-          Isabela State University &middot; OJT Monitoring System v1.0
+          Isabela Colleges &middot; OJT Monitoring System v1.0
         </p>
       </div>
     </div>

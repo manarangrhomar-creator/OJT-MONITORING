@@ -4,8 +4,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>OJT Monitoring System — Isabela State University</title>
-  <link rel="icon" href="{% static 'images/isu_new_seal_512x512.png' %}" sizes="any" type="image/png" />
+  <title>OJT Monitoring System — Isabela Colleges</title>
+  <link rel="icon" href="{% static 'images/isabela_colleges_logo.png' %}" sizes="any" type="image/png" />
   <script src="https://cdn.tailwindcss.com"></script>
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap"
@@ -13,10 +13,12 @@
   />
   <style>
     :root {
-      --forest: #0F5436;
-      --forest-light: #11693A;
-      --gold: #C8A44A;
+      --maroon: #7B1818;
+      --maroon-light: #9B2C2C;
+      --gold: #D4A843;
       --gold-light: #E5D09E;
+      --green: #2E7D32;
+      --green-light: #388E3C;
       --paper: #F7F5F0;
       --charcoal: #1A1A1A;
       --font-display: 'Fraunces', Georgia, serif;
@@ -65,7 +67,7 @@
       width: 100%;
     }
     .role-card {
-      border-left: 3px solid var(--gold);
+      border-left: 3px solid var(--maroon);
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     }
     .role-card:hover {
@@ -149,14 +151,14 @@
 
 <div id="isuPageLoader" class="isu-page-loader">
   <div class="loader-logo-wrap">
-    <img src="{% static 'images/isu_new_seal_512x512.png' %}" alt="Loading" />
+    <img src="{% static 'images/isabela_colleges_logo.png' %}" alt="Loading" />
   </div>
   <div class="loader-progress">
     <div class="loader-progress-bar"></div>
   </div>
 </div>
 
-  <img class="bg-seal" src="{% static 'images/isu_new_seal_512x512.png' %}" alt="" aria-hidden="true" />
+  <img class="bg-seal" src="{% static 'images/isabela_colleges_logo.png' %}" alt="" aria-hidden="true" />
 
   <a href="#main" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:rounded">
     Skip to main content
@@ -164,16 +166,16 @@
 
   <header class="relative z-10 px-4 sm:px-6 md:px-12 lg:px-24 py-4 sm:py-6 flex items-center justify-between">
     <div class="flex items-center gap-3">
-      <img class="seal-img" src="{% static 'images/isu_new_seal_512x512.png' %}" alt="ISU Logo" />
+      <img class="seal-img" src="{% static 'images/isabela_colleges_logo.png' %}" alt="IC Logo" />
       <span class="text-sm font-medium text-[var(--charcoal)]/60">
         OJT Monitoring System
       </span>
     </div>
     <nav class="flex items-center gap-3 sm:gap-6">
-      <a href="{% url 'student-register' %}" class="gold-link text-sm font-medium text-[var(--charcoal)]/70 hover:text-[var(--forest)] transition-colors hidden sm:inline">
+      <a href="{% url 'student-register' %}" class="gold-link text-sm font-medium text-[var(--charcoal)]/70 hover:text-[var(--maroon)] transition-colors hidden sm:inline">
         Register
       </a>
-      <a href="{% url 'login' %}" class="text-xs sm:text-sm font-semibold text-[var(--paper)] bg-[var(--forest)] hover:bg-[var(--forest-light)] px-4 sm:px-5 py-2 rounded-full transition-all duration-300 hover:shadow-md whitespace-nowrap">
+      <a href="{% url 'login' %}" class="text-xs sm:text-sm font-semibold text-[var(--paper)] bg-[var(--maroon)] hover:bg-[var(--maroon-light)] px-4 sm:px-5 py-2 rounded-full transition-all duration-300 hover:shadow-md whitespace-nowrap">
         Sign In
       </a>
     </nav>
@@ -183,12 +185,12 @@
     <div class="animate-in max-w-4xl pt-16 md:pt-24 lg:pt-32 pb-16">
 
       <p class="text-xs uppercase tracking-[0.2em] text-[var(--gold)] font-medium mb-6">
-        Isabela State University — Cauayan Campus
+        Isabela Colleges, Inc. — Cauayan Campus
       </p>
 
       <h1 class="font-[var(--font-display)] text-[clamp(2rem,8vw,5rem)] sm:text-6xl md:text-7xl lg:text-8xl leading-[0.95] font-semibold text-[var(--charcoal)] max-w-3xl text-balance">
         OJT<br />
-        <span class="italic font-normal text-[var(--forest)]">Monitoring</span>
+        <span class="italic font-normal text-[var(--green)]">Monitoring</span>
         <br />
         System
       </h1>
@@ -200,11 +202,11 @@
       </p>
 
       <div class="mt-10 flex flex-wrap gap-4 items-center">
-        <a href="{% url 'login' %}" class="inline-flex items-center gap-2 bg-[var(--forest)] text-[var(--paper)] font-semibold px-8 py-3.5 rounded-full transition-all duration-300 hover:bg-[var(--forest-light)] hover:shadow-lg active:scale-[0.97]">
+        <a href="{% url 'login' %}" class="inline-flex items-center gap-2 bg-[var(--maroon)] text-[var(--paper)] font-semibold px-8 py-3.5 rounded-full transition-all duration-300 hover:bg-[var(--maroon-light)] hover:shadow-lg active:scale-[0.97]">
           Sign In to Dashboard
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"/></svg>
         </a>
-        <a href="{% url 'student-register' %}" class="gold-link inline-flex items-center gap-2 text-[var(--charcoal)]/70 hover:text-[var(--forest)] font-medium transition-colors px-2 py-1">
+        <a href="{% url 'student-register' %}" class="gold-link inline-flex items-center gap-2 text-[var(--charcoal)]/70 hover:text-[var(--maroon)] font-medium transition-colors px-2 py-1">
           Register here
         </a>
       </div>
@@ -218,21 +220,21 @@
       <div class="grid md:grid-cols-3 gap-6">
         <div class="role-card bg-white/80 backdrop-blur-sm p-6 rounded-r-lg">
           <span class="text-xs uppercase tracking-widest text-[var(--gold)] font-semibold">Admin</span>
-          <h3 class="font-[var(--font-display)] text-xl font-semibold mt-2 text-[var(--forest)]">Full Platform Control</h3>
+          <h3 class="font-[var(--font-display)] text-xl font-semibold mt-2 text-[var(--green)]">Full Platform Control</h3>
           <p class="text-sm text-[var(--charcoal)]/60 mt-2 leading-relaxed">
             Manage users and programs, audit platform-wide activity, generate compliance reports, and keep every deployment on track.
           </p>
         </div>
         <div class="role-card bg-white/80 backdrop-blur-sm p-6 rounded-r-lg">
           <span class="text-xs uppercase tracking-widest text-[var(--gold)] font-semibold">Coordinator</span>
-          <h3 class="font-[var(--font-display)] text-xl font-semibold mt-2 text-[var(--forest)]">Seamless Program Oversight</h3>
+          <h3 class="font-[var(--font-display)] text-xl font-semibold mt-2 text-[var(--green)]">Seamless Program Oversight</h3>
           <p class="text-sm text-[var(--charcoal)]/60 mt-2 leading-relaxed">
             Approve applications, assign training sites, track attendance in real time, and evaluate student performance from one dashboard.
           </p>
         </div>
         <div class="role-card bg-white/80 backdrop-blur-sm p-6 rounded-r-lg">
           <span class="text-xs uppercase tracking-widest text-[var(--gold)] font-semibold">Student</span>
-          <h3 class="font-[var(--font-display)] text-xl font-semibold mt-2 text-[var(--forest)]">One-Centre OJT Hub</h3>
+          <h3 class="font-[var(--font-display)] text-xl font-semibold mt-2 text-[var(--green)]">One-Centre OJT Hub</h3>
           <p class="text-sm text-[var(--charcoal)]/60 mt-2 leading-relaxed">
             Submit applications, log attendance with facial recognition, upload narrative reports, and track your progress in real time.
           </p>
@@ -243,7 +245,7 @@
 
   <footer class="relative z-10 border-t border-[var(--charcoal)]/5 px-6 md:px-12 lg:px-24 py-8">
     <div class="max-w-4xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-[var(--charcoal)]/40">
-      <p>&copy; 2026 Isabela State University — Cauayan City, Isabela. All rights reserved.</p>
+      <p>&copy; 2026 Isabela Colleges, Inc. — Cauayan City, Isabela. All rights reserved.</p>
       <p class="tracking-wider">OJT Monitoring System v1.0</p>
     </div>
   </footer>

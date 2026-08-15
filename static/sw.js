@@ -5,7 +5,7 @@ const DYNAMIC_CACHE = 'isu-ojt-dynamic-v1';
 const STATIC_ASSETS = [
   '/',
   '/static/manifest.json',
-  '/static/images/isu_new_seal_512x512.png',
+  '/static/images/isabela_colleges_logo.png',
   '/static/js/pwa.js',
 ];
 
@@ -100,13 +100,13 @@ self.addEventListener('push', (event) => {
   try {
     data = event.data.json();
   } catch {
-    data = { title: 'ISU OJT', body: event.data.text() };
+    data = { title: 'IC OJT', body: event.data.text() };
   }
 
   const options = {
     body: data.body || 'You have a new notification',
-    icon: '/static/images/isu_new_seal_512x512.png',
-    badge: '/static/images/isu_new_seal_512x512.png',
+    icon: '/static/images/isabela_colleges_logo.png',
+    badge: '/static/images/isabela_colleges_logo.png',
     vibrate: [200, 100, 200],
     tag: data.tag || 'isu-notification',
     renotify: true,
@@ -115,13 +115,13 @@ self.addEventListener('push', (event) => {
       timestamp: Date.now(),
     },
     actions: [
-      { action: 'open', title: 'Open', icon: '/static/images/isu_new_seal_512x512.png' },
+      { action: 'open', title: 'Open', icon: '/static/images/isabela_colleges_logo.png' },
       { action: 'dismiss', title: 'Dismiss' },
     ],
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'ISU OJT', options)
+    self.registration.showNotification(data.title || 'IC OJT', options)
   );
 });
 

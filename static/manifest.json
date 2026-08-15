@@ -1,7 +1,7 @@
 {
-  "name": "ISU OJT Monitoring System",
-  "short_name": "ISU OJT",
-  "description": "On-the-Job Training Monitoring System for Isabela State University",
+  "name": "IC OJT Monitoring System",
+  "short_name": "IC OJT",
+  "description": "On-the-Job Training Monitoring System for Isabela Colleges, Inc.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait-primary",

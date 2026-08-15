@@ -3,6 +3,7 @@ Utils for the application
 """
 import logging
 import math
+import threading
 from datetime import datetime, timedelta
 
 from asgiref.sync import async_to_sync
@@ -111,7 +112,7 @@ def send_notification_email(recipient, subject, message, title='', site_url=None
     }
 
     html_content = render_to_string('emails/notification_email.html', context)
-    plain_message = f'Dear {recipient_name},\n\n{message}\n\nBest regards,\nISU OJT Monitoring System'
+    plain_message = f'Dear {recipient_name},\n\n{message}\n\nBest regards,\nIC OJT Monitoring System'
 
     email = EmailMultiAlternatives(
         subject=subject,
@@ -157,13 +158,17 @@ def create_and_send_notification(recipient, title, message, type='general',
     if recipient.email:
         try:
             recipient_name = recipient.get_full_name() or recipient.username
-            send_email_task.delay(
-                recipient_email=recipient.email,
-                subject=email_subject or title,
-                message=message,
-                title=title,
-                recipient_name=recipient_name,
-            )
+            threading.Thread(
+                target=send_email_task.delay,
+                kwargs={
+                    'recipient_email': recipient.email,
+                    'subject': email_subject or title,
+                    'message': message,
+                    'title': title,
+                    'recipient_name': recipient_name,
+                },
+                daemon=True,
+            ).start()
         except Exception:
             logger.exception('Failed to send email notification to %s', recipient.email)
 

@@ -62,14 +62,14 @@ def _log_failed_attempt(identifier, ip, user_agent):
 
 
 def _attach_logo(email):
-    """Attach the ISU logo as an inline image with Content-ID."""
-    logo_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'isu_new_seal_512x512.png')
+    """Attach the IC logo as an inline image with Content-ID."""
+    logo_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'isabela_colleges_logo.png')
     if os.path.exists(logo_path):
         from email.mime.image import MIMEImage
         with open(logo_path, 'rb') as f:
             img = MIMEImage(f.read(), _subtype='png')
-            img.add_header('Content-ID', '<isu_logo>')
-            img.add_header('Content-Disposition', 'inline', filename='isu_logo.png')
+            img.add_header('Content-ID', '<ic_logo>')
+            img.add_header('Content-Disposition', 'inline', filename='isabela_colleges_logo.png')
             email.attach(img)
 
 

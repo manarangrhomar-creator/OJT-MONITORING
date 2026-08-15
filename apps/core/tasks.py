@@ -8,13 +8,13 @@ from email.mime.image import MIMEImage
 
 
 def _attach_logo(email):
-    """Attach the ISU logo as an inline image with Content-ID."""
-    logo_path = Path(settings.BASE_DIR) / 'static' / 'images' / 'isu_new_seal_512x512.png'
+    """Attach the IC logo as an inline image with Content-ID."""
+    logo_path = Path(settings.BASE_DIR) / 'static' / 'images' / 'isabela_colleges_logo.png'
     if logo_path.exists():
         with open(logo_path, 'rb') as f:
             img = MIMEImage(f.read(), _subtype='png')
-            img.add_header('Content-ID', '<isu_logo>')
-            img.add_header('Content-Disposition', 'inline', filename='isu_logo.png')
+            img.add_header('Content-ID', '<ic_logo>')
+            img.add_header('Content-Disposition', 'inline', filename='isabela_colleges_logo.png')
             email.attach(img)
 
 
@@ -34,7 +34,7 @@ def send_email_task(self, recipient_email, subject, message, title='', recipient
     html_content = render_to_string('emails/notification_email.html', context)
     plain_message = (
         f'Dear {recipient_name},\n\n{message}\n\n'
-        f'Best regards,\nISU OJT Monitoring System'
+        f'Best regards,\nIC OJT Monitoring System'
     )
 
     try:

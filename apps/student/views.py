@@ -200,7 +200,9 @@ class StudentDashboardViewSet(viewsets.ViewSet):
                 'error': 'Face does not match enrolled record'
             }, status=status.HTTP_403_FORBIDDEN)
 
-        application = OJTApplication.objects.filter(student=student, status='approved').first()
+        application = OJTApplication.objects.filter(
+            student=student, status='approved'
+        ).select_related('program', 'program__coordinator').first()
         if not application:
             return Response({'error': 'No approved OJT application found.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -229,11 +231,11 @@ class StudentDashboardViewSet(viewsets.ViewSet):
             distance = haversine_distance(latitude, longitude, site.latitude, site.longitude)
             if distance > GEOFENCE_RADIUS_METERS:
                 return Response(
-                    {'error': f'You are too far from your assigned site ({site.name}). '
-                              f'Distance: {distance:.0f}m. Allowed: {GEOFENCE_RADIUS_METERS}m. '
-                              f'Please move closer to the site and try again.'},
+                    {'error': 'You are not on site. Please go to your assigned work site and try again.'},
                     status=status.HTTP_403_FORBIDDEN
                 )
+
+
 
         today = timezone.now().date()
         now_time = timezone.localtime(timezone.now()).time()
@@ -308,7 +310,9 @@ class StudentDashboardViewSet(viewsets.ViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        application = OJTApplication.objects.filter(student=student, status='approved').first()
+        application = OJTApplication.objects.filter(
+            student=student, status='approved'
+        ).select_related('program', 'program__coordinator').first()
         if not application:
             return Response({'error': 'No approved OJT application found.'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -327,11 +331,11 @@ class StudentDashboardViewSet(viewsets.ViewSet):
             distance = haversine_distance(latitude, longitude, site.latitude, site.longitude)
             if distance > GEOFENCE_RADIUS_METERS:
                 return Response(
-                    {'error': f'You are too far from your assigned site ({site.name}). '
-                              f'Distance: {distance:.0f}m. Allowed: {GEOFENCE_RADIUS_METERS}m. '
-                              f'Please move closer to the site and try again.'},
+                    {'error': 'You are not on site. Please go to your assigned work site and try again.'},
                     status=status.HTTP_403_FORBIDDEN
                 )
+
+
 
         today = timezone.now().date()
 
