@@ -10,7 +10,7 @@
 
     <!-- PWA Meta Tags -->
     <link rel="manifest" href="{% static 'manifest.json' %}">
-    <meta name="theme-color" content="#11693A">
+    <meta name="theme-color" content="#7B1818">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="IC OJT">
@@ -81,7 +81,7 @@
 </div>
 <script nonce="{{ csp_nonce }}">(function(){var e=document.getElementById('isuPageLoader');if(!e)return;var b=e.querySelector('.loader-progress-bar');if(b){b.style.transformOrigin='left';var d=2000;var s=Date.now();var r=1;(function a(){if(!r||e.style.display==='none')return;var p=((Date.now()-s)%d)/d;var v=p<.5?p/.5*.85:.85*(1-(p-.5)/.5);b.style.transform='scaleX('+v+')';requestAnimationFrame(a)})();}window.addEventListener('load',function(){r=0;if(b){b.style.transition='transform 0.3s ease';b.style.transform='scaleX(1)'}setTimeout(function(){e.style.display='none'},600)});})();</script>
     <!-- Navigation -->
-    <nav class="bg-[#11693A] text-white shadow-lg">
+    <nav class="bg-[#7B1818] text-white shadow-lg">
         <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-14 sm:h-16">
                 <div class="flex items-center min-w-0">
@@ -121,7 +121,7 @@
     </footer>
 
     <!-- PWA Install Banner -->
-    <div id="pwa-install-banner" class="hidden fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-80 z-50 bg-[#11693A] text-white p-4 rounded-lg shadow-xl">
+    <div id="pwa-install-banner" class="hidden fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-80 z-50 bg-[#7B1818] text-white p-4 rounded-lg shadow-xl">
         <div class="flex items-center gap-3">
             <img src="{% static 'images/isabela_colleges_logo.png' %}" alt="IC OJT" class="w-10 h-10 rounded-lg">
             <div class="flex-1">
@@ -130,7 +130,7 @@
             </div>
         </div>
         <div class="flex gap-2 mt-3">
-            <button onclick="PWA.installApp()" class="flex-1 bg-white text-[#11693A] py-2 rounded text-sm font-semibold hover:bg-gray-100">Install</button>
+            <button onclick="PWA.installApp()" class="flex-1 bg-white text-[#7B1818] py-2 rounded text-sm font-semibold hover:bg-gray-100">Install</button>
             <button onclick="PWA.hideInstallBanner()" class="px-3 py-2 text-white/70 hover:text-white text-sm">Later</button>
         </div>
     </div>

@@ -19,9 +19,9 @@
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4.1633559619/face_mesh.js" crossorigin="anonymous"></script>
     <style>
       :root {
-        --primary: #0D7A42;
-        --primary-dark: #0A6335;
-        --primary-light: #E8F5EE;
+        --primary: #7B1818;
+        --primary-dark: #4A0E0E;
+        --primary-light: #F5E6E6;
         --danger: #EF4444;
         --success: #10B981;
         --gold: #C8A44A;
@@ -119,7 +119,7 @@
         background: linear-gradient(135deg, #C8A44A 0%, #B8943E 50%, #E8D5A0 100%);
       }
       .gradient-green {
-        background: linear-gradient(135deg, #0B2D1A 0%, #11693A 50%, #1B8C4D 100%);
+        background: linear-gradient(135deg, #4A0E0E 0%, #7B1818 50%, #9B2C2C 100%);
       }
 
       .progress-ring-circle {
@@ -198,7 +198,7 @@
         transition: opacity 0.2s ease;
       }
       .wiz-step.completed .wiz-step-dot {
-        background: #16a34a;
+        background: #D4A843;
         color: white;
         box-shadow: 0 2px 10px rgba(22, 163, 74, 0.25);
       }
@@ -231,7 +231,7 @@
         white-space: nowrap;
         transition: color 0.3s ease;
       }
-      .wiz-step.completed .wiz-step-label { color: #16a34a; }
+      .wiz-step.completed .wiz-step-label { color: #D4A843; }
       .wiz-step.active .wiz-step-label { color: var(--primary); font-weight: 700; }
       .wiz-step.pending .wiz-step-label { color: var(--muted); }
       .wiz-line {
@@ -242,7 +242,7 @@
         margin: 0 4px;
         margin-bottom: 20px;
       }
-      .wiz-line.completed { background: #16a34a; }
+      .wiz-line.completed { background: #D4A843; }
       .wiz-line.pending { background: var(--border); }
       @keyframes stepPulse {
         0%, 100% { opacity: 0.6; transform: scale(1); }
@@ -282,8 +282,8 @@
         box-shadow: 0 0 0 3px rgba(13,122,66,0.15);
       }
       .face-reg-dot.completed {
-        border-color: #16a34a;
-        background: #16a34a;
+        border-color: #D4A843;
+        background: #D4A843;
         color: #fff;
       }
       /* === SKELETON LOADING === */
@@ -340,7 +340,7 @@
         transition: background 0.35s ease;
         background: var(--border);
       }
-      .face-reg-line.completed { background: #16a34a; }
+      .face-reg-line.completed { background: #D4A843; }
       .face-reg-stage { display: none; }
       .face-reg-stage.active { display: block; animation: faceRegFadeIn 0.3s ease; }
       @keyframes faceRegFadeIn {
@@ -516,7 +516,7 @@
       }
       .face-reg-progress-fill {
         height: 100%;
-        background: linear-gradient(90deg, var(--primary), #16a34a);
+        background: linear-gradient(90deg, var(--primary), #D4A843);
         border-radius: 3px;
         transition: width 0.6s ease;
         width: 0%;
@@ -530,7 +530,7 @@
         justify-content: center;
         margin: 0 auto 12px;
       }
-      .face-reg-check-icon.success { background: #dcfce7; color: #16a34a; }
+      .face-reg-check-icon.success { background: #dcfce7; color: #D4A843; }
       .face-reg-check-icon.processing { background: #eff6ff; color: var(--primary); animation: spin 1.2s linear infinite; }
       @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
       .face-reg-landmark-canvas {
@@ -3192,7 +3192,7 @@
         icon: 'error',
         title: 'Location Required',
         text: `GPS location is required to ${attCurrentAction === 'clock_in' ? 'clock in' : 'clock out'}. Please enable location access and try again.`,
-        confirmButtonColor: '#11693A'
+        confirmButtonColor: '#7B1818'
       });
       attVerifyBtn.disabled = false;
       attVerifyBtn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 inline mr-2"></i> Verify & ' + (attCurrentAction === 'clock_in' ? 'Clock In' : 'Clock Out');
@@ -3223,16 +3223,16 @@
       if (resp.ok) {
         attStatusBadge.textContent = attCurrentAction === 'clock_in' ? 'Clocked In' : 'Clocked Out';
         attStatusBadge.className = 'inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700';
-        Swal.fire({ icon: 'success', title: attCurrentAction === 'clock_in' ? 'Clocked In!' : 'Clocked Out!', text: data.message || '', confirmButtonColor: '#11693A', timer: 2000, showConfirmButton: false });
+        Swal.fire({ icon: 'success', title: attCurrentAction === 'clock_in' ? 'Clocked In!' : 'Clocked Out!', text: data.message || '', confirmButtonColor: '#7B1818', timer: 2000, showConfirmButton: false });
         await checkAttTodayStatus();
         loadAttendanceHistory();
       } else {
-        Swal.fire({ icon: 'error', title: 'Error', text: data.error || 'Verification failed', confirmButtonColor: '#11693A' });
+        Swal.fire({ icon: 'error', title: 'Error', text: data.error || 'Verification failed', confirmButtonColor: '#7B1818' });
         await checkAttTodayStatus();
         lucide.createIcons();
       }
     } catch (err) {
-      Swal.fire({ icon: 'error', title: 'Connection Error', text: 'Could not connect to server', confirmButtonColor: '#11693A' });
+      Swal.fire({ icon: 'error', title: 'Connection Error', text: 'Could not connect to server', confirmButtonColor: '#7B1818' });
       await checkAttTodayStatus();
       lucide.createIcons();
     }
@@ -3394,7 +3394,7 @@
   document.getElementById('narrativeForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!hasClockedOutToday) {
-      Swal.fire({ icon: 'warning', title: 'Clock Out Required', text: 'You must clock out for the day before submitting your accomplishment report.', confirmButtonColor: '#11693A' });
+      Swal.fire({ icon: 'warning', title: 'Clock Out Required', text: 'You must clock out for the day before submitting your accomplishment report.', confirmButtonColor: '#7B1818' });
       return;
     }
     const formData = new FormData();
@@ -3549,24 +3549,24 @@
       title: date,
       html: `<div style="text-align:left;font-family:inherit;">
         <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;">
-          <span style="font-weight:700;color:#0F5436;font-size:0.85rem;">Date:</span>
+          <span style="font-weight:700;color:#7B1818;font-size:0.85rem;">Date:</span>
           <span style="color:#1A1A2E;font-size:0.85rem;font-weight:600;">${date}</span>
         </div>
         <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;">
-          <span style="font-weight:700;color:#0F5436;font-size:0.85rem;">Time In:</span>
+          <span style="font-weight:700;color:#7B1818;font-size:0.85rem;">Time In:</span>
           <span style="color:#1A1A2E;font-size:0.85rem;font-weight:600;">${timeIn}</span>
         </div>
         <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;">
-          <span style="font-weight:700;color:#0F5436;font-size:0.85rem;">Time Out:</span>
+          <span style="font-weight:700;color:#7B1818;font-size:0.85rem;">Time Out:</span>
           <span style="color:#1A1A2E;font-size:0.85rem;font-weight:600;">${timeOut}</span>
         </div>
         <div style="display:flex;justify-content:space-between;padding:10px 0;">
-          <span style="font-weight:700;color:#0F5436;font-size:0.85rem;">Status:</span>
-          <span style="font-weight:700;font-size:0.85rem;color:${status === 'Completed' ? '#0F5436' : '#B8860B'};">${status}</span>
+          <span style="font-weight:700;color:#7B1818;font-size:0.85rem;">Status:</span>
+          <span style="font-weight:700;font-size:0.85rem;color:${status === 'Completed' ? '#7B1818' : '#B8860B'};">${status}</span>
         </div>
       </div>`,
       confirmButtonText: 'Close',
-      confirmButtonColor: '#11693A',
+      confirmButtonColor: '#7B1818',
     });
   }
 
@@ -3715,12 +3715,12 @@
         datasets: [{
           label: 'Hours',
           data: days.map(d => d.hours),
-          borderColor: '#11693A',
+          borderColor: '#7B1818',
           backgroundColor: fill,
           borderWidth: 2.5,
           fill: true,
           tension: 0.4,
-          pointBackgroundColor: '#11693A',
+          pointBackgroundColor: '#7B1818',
           pointBorderColor: '#fff',
           pointBorderWidth: 2,
           pointRadius: 4,
@@ -3733,7 +3733,7 @@
         plugins: {
           legend: { display: false },
           tooltip: {
-            backgroundColor: '#11693A',
+            backgroundColor: '#7B1818',
             titleColor: '#fff',
             bodyColor: '#eaf4ec',
             displayColors: false,
@@ -3783,7 +3783,7 @@
   function closeArchiveEdit() { archiveEditFormCard.classList.add('hidden'); }
 
   function showToast(message, type = 'error') {
-    Swal.fire({ icon: type, title: 'Error', text: message, confirmButtonColor: '#11693A' });
+    Swal.fire({ icon: type, title: 'Error', text: message, confirmButtonColor: '#7B1818' });
 }
 
 async function loadArchives() {
@@ -4574,7 +4574,7 @@ async function loadArchives() {
 
   function applySelectSubjectAndNext() {
     if (!selectedSubjectId) {
-      Swal.fire({ icon: 'warning', title: 'Select a subject', text: 'Please choose a subject before confirming.', confirmButtonColor: '#11693A' });
+      Swal.fire({ icon: 'warning', title: 'Select a subject', text: 'Please choose a subject before confirming.', confirmButtonColor: '#7B1818' });
       return;
     }
     document.getElementById('confirmSubjectBtn').disabled = true;

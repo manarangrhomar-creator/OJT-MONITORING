@@ -13,8 +13,8 @@
   <script src="https://unpkg.com/lucide@0.344.0"></script>
   <style>
     :root {
-      --forest: #0F5436;
-      --forest-light: #11693A;
+      --maroon: #7B1818;
+      --maroon-light: #9B2C2C;
       --gold: #C8A44A;
       --gold-light: #E5D09E;
       --paper: #F7F5F0;
@@ -133,6 +133,10 @@
       height: 1px;
       background: linear-gradient(90deg, var(--gold) 0%, transparent 100%);
     }
+    .left-panel-logo {
+      border-radius: 50%;
+      box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+    }
   </style>
 </head>
 <body class="grain min-h-screen flex items-center justify-center p-4 overflow-x-hidden">
@@ -156,11 +160,11 @@
   <div class="animate-in w-full max-w-4xl bg-white shadow-2xl overflow-hidden flex flex-col md:flex-row min-h-[520px] rounded-none" style="box-shadow: 0 20px 60px rgba(0,0,0,0.08);">
 
     <!-- Left panel — university branding -->
-    <div class="w-full md:w-[38%] bg-[var(--forest)] flex flex-col md:flex-col items-center justify-center p-4 md:p-10 text-white relative">
+    <div class="w-full md:w-[38%] bg-[var(--maroon)] flex flex-col md:flex-col items-center justify-center p-4 md:p-10 text-white relative">
       <div class="w-12 h-12 md:w-48 md:h-48 flex items-center justify-center mb-1 md:mb-6">
         <img src="{% static 'images/isabela_colleges_logo.png' %}"
              alt="Isabela Colleges Logo"
-             class="w-full h-full object-contain" />
+             class="w-full h-full object-contain left-panel-logo" />
       </div>
       <h2 class="font-[var(--font-display)] text-sm md:text-2xl font-semibold text-center leading-tight md:leading-snug">
         OJT Monitoring System
@@ -172,7 +176,7 @@
         <div class="mt-8 w-12 h-px bg-[var(--gold)]/50"></div>
         <p class="text-sm text-white/60 mt-6 mb-3">Don't have an account?</p>
         <a href="{% url 'student-register' %}"
-           class="inline-block border border-white/40 text-white/90 hover:bg-white hover:text-[var(--forest)] rounded-full py-2.5 px-8 text-sm font-medium transition-all duration-300">
+           class="inline-block border border-white/40 text-white/90 hover:bg-white hover:text-[var(--maroon)] rounded-full py-2.5 px-8 text-sm font-medium transition-all duration-300">
           Register here
         </a>
       </div>
@@ -182,13 +186,13 @@
     <div class="w-full md:w-[62%] p-8 md:p-14 relative flex flex-col justify-center">
 
       <a href="{% url 'home' %}"
-         class="absolute top-8 left-8 md:top-6 md:left-6 w-10 h-10 hidden md:flex items-center justify-center rounded-full border border-[var(--charcoal)]/10 text-[var(--forest)] hover:bg-[var(--forest)] hover:text-white transition-all duration-300">
+         class="absolute top-8 left-8 md:top-6 md:left-6 w-10 h-10 hidden md:flex items-center justify-center rounded-full border border-[var(--charcoal)]/10 text-[var(--maroon)] hover:bg-[var(--maroon)] hover:text-white transition-all duration-300">
         <i data-lucide="chevron-left" class="w-5 h-5"></i>
       </a>
 
       <div class="max-w-sm mx-auto w-full">
         <span class="text-xs uppercase tracking-[0.2em] text-[var(--gold)] font-medium">Welcome back</span>
-        <h1 class="font-[var(--font-display)] text-[var(--forest)] text-3xl md:text-4xl font-semibold mt-2 mb-10 leading-tight">
+        <h1 class="font-[var(--font-display)] text-[var(--maroon)] text-3xl md:text-4xl font-semibold mt-2 mb-10 leading-tight">
           Sign In
         </h1>
 
@@ -210,28 +214,28 @@
                      class="w-full border border-[var(--charcoal)]/15 bg-[var(--paper)] rounded-lg px-4 py-3 pr-12 text-sm focus:outline-none focus:border-[var(--gold)] focus:ring-1 focus:ring-[var(--gold)] transition-all" />
               <button type="button"
                       onclick="togglePasswordVisibility('loginPassword', 'loginEyeIcon')"
-                      class="absolute right-3 text-[var(--charcoal)]/40 hover:text-[var(--forest)] transition-colors">
+                      class="absolute right-3 text-[var(--charcoal)]/40 hover:text-[var(--maroon)] transition-colors">
                 <i id="loginEyeIcon" data-lucide="eye-off" class="w-5 h-5"></i>
               </button>
             </div>
           </div>
 
           <button type="submit"
-                  class="w-full bg-[var(--forest)] text-white font-semibold py-3.5 rounded-full text-base hover:bg-[var(--forest-light)] transition-all duration-300 shadow-md hover:shadow-lg active:scale-[0.97] mt-2">
+                  class="w-full bg-[var(--maroon)] text-white font-semibold py-3.5 rounded-full text-base hover:bg-[var(--maroon-light)] transition-all duration-300 shadow-md hover:shadow-lg active:scale-[0.97] mt-2">
             Sign In
           </button>
         </form>
 
         <div class="mt-5 text-center">
           <a href="{% url 'forgotpassword' %}"
-             class="text-sm text-[var(--charcoal)]/50 hover:text-[var(--forest)] transition-colors">
+             class="text-sm text-[var(--charcoal)]/50 hover:text-[var(--maroon)] transition-colors">
             Forgot password?
           </a>
         </div>
 
         <div class="md:hidden text-center mt-6">
           <p class="text-xs text-[var(--charcoal)]/50 mb-2">Don't have an account?</p>
-          <a href="{% url 'student-register' %}" class="gold-link text-sm font-medium text-[var(--forest)]">Register here</a>
+          <a href="{% url 'student-register' %}" class="gold-link text-sm font-medium text-[var(--maroon)]">Register here</a>
         </div>
         <div class="mt-6 md:mt-8 gold-divider"></div>
         <p class="text-xs text-[var(--charcoal)]/30 text-center mt-4">

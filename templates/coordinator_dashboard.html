@@ -17,8 +17,8 @@
     <!-- Leaflet removed — table-based site view -->
     <style>
       :root {
-        --primary: #11693A;
-        --primary-dark: #0e5630;
+        --primary: #7B1818;
+        --primary-dark: #4A0E0E;
         --gold: #C8A44A;
         --gold-light: #E8D5A0;
         --bg-body: #F4F5F9;
@@ -28,8 +28,8 @@
         --fg: #1A1A2E;
         --fg-muted: #7C7C8D;
         --fg-dim: #9CA3AF;
-        --accent: #11693A;
-        --accent-hover: #0e5630;
+        --accent: #7B1818;
+        --accent-hover: #4A0E0E;
         --success: #10B981;
         --danger: #EF4444;
         --info: #3B82F6;
@@ -282,7 +282,7 @@
       }
       input:focus, select:focus, textarea:focus {
         border-color: var(--primary) !important;
-        box-shadow: 0 0 0 3px rgba(17,105,58,0.1) !important;
+        box-shadow: 0 0 0 3px rgba(123,24,24,0.1) !important;
       }
       input::placeholder, textarea::placeholder { color: var(--fg-dim) !important; }
       label { color: var(--fg-muted) !important; }
@@ -909,7 +909,7 @@
     <div class="modal-header"><h2>Grade Narrative Report</h2><button class="close-btn" onclick="closeModal('gradeReportModal')">&times;</button></div>
     <div class="space-y-4">
       <div class="flex items-center gap-3 pb-3 border-b" style="border-color: var(--card-border);">
-        <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style="background: rgba(17,105,58,0.1); color: var(--primary);" id="gradeInitial">?</div>
+        <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style="background: rgba(123,24,24,0.1); color: var(--primary);" id="gradeInitial">?</div>
         <div class="flex-1 min-w-0">
           <p class="text-sm font-bold truncate" id="gradeStudentName"></p>
           <p class="text-[0.6rem] truncate" style="color: var(--fg-dim);" id="gradeTopic"></p>
@@ -948,7 +948,7 @@
     <div class="modal-header"><h2>Review Application</h2><button class="close-btn" onclick="closeModal('approveAppModal')">&times;</button></div>
     <div class="space-y-4">
       <div class="flex items-center gap-3 pb-3 border-b" style="border-color: var(--card-border);">
-        <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style="background: rgba(17,105,58,0.1); color: var(--primary);" id="approveAppInitial">?</div>
+        <div class="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold" style="background: rgba(123,24,24,0.1); color: var(--primary);" id="approveAppInitial">?</div>
         <div>
           <p class="text-sm font-bold" id="approveAppStudent"></p>
           <p class="text-[0.6rem]" style="color: var(--fg-dim);" id="approveAppProgram"></p>
@@ -1147,13 +1147,13 @@
   }
 
   function showAlert(msg, type = 'info') {
-    Swal.fire({ icon: type, text: msg, confirmButtonColor: '#11693A', confirmButtonText: 'OK', background: '#ffffff', color: '#1A1A2E' });
+    Swal.fire({ icon: type, text: msg, confirmButtonColor: '#7B1818', confirmButtonText: 'OK', background: '#ffffff', color: '#1A1A2E' });
   }
 
   function showConfirm(msg, onConfirm) {
     Swal.fire({
       icon: 'warning', text: msg, showCancelButton: true,
-      confirmButtonColor: '#11693A', cancelButtonColor: '#e5e7eb',
+      confirmButtonColor: '#7B1818', cancelButtonColor: '#e5e7eb',
       confirmButtonText: 'Yes, Confirm', cancelButtonText: 'Cancel',
       background: '#ffffff', color: '#1A1A2E'
     }).then(r => { if (r.isConfirmed && typeof onConfirm === 'function') onConfirm(); });
@@ -1330,7 +1330,7 @@
       const label = `${completion}%`;
       grid.insertAdjacentHTML('beforeend', `<div class="student-card">
         <div class="flex items-center gap-2.5 mb-2.5">
-          <div class="w-9 h-9 rounded-full flex items-center justify-center text-[0.6rem] font-bold shrink-0" style="background: rgba(17,105,58,0.1); color: var(--primary);">${(s.name || '?').charAt(0).toUpperCase()}</div>
+          <div class="w-9 h-9 rounded-full flex items-center justify-center text-[0.6rem] font-bold shrink-0" style="background: rgba(123,24,24,0.1); color: var(--primary);">${(s.name || '?').charAt(0).toUpperCase()}</div>
           <div class="min-w-0 flex-1">
             <p class="text-xs font-bold truncate">${esc(s.name || s.email)}</p>
             <p class="text-[0.55rem]" style="color: var(--fg-dim);">${esc(s.student_id || 'N/A')}</p>
