@@ -2200,18 +2200,18 @@
                       </span>
                     </div>
                   </div>
-                  <button id="attVerifyBtn" class="att-btn bg-green-700 hover:bg-green-800 text-white px-5 py-2.5 rounded-xl font-semibold text-sm w-fit disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                  <button id="attVerifyBtn" class="att-btn bg-[#7B1818] hover:bg-[#5C1212] text-white px-5 py-2.5 rounded-xl font-semibold text-sm w-fit disabled:opacity-50 disabled:cursor-not-allowed" disabled>
                     <i data-lucide="camera" class="w-4 h-4 inline mr-2"></i> Verify Attendance
                   </button>
                 </div>
                 <!-- Info panel -->
                 <div class="flex flex-col gap-3">
-                  <div class="bg-green-800 rounded-xl p-4 text-white shadow">
+                  <div class="bg-[#7B1818] rounded-xl p-4 text-white shadow">
                     <h4 class="text-xs font-bold mb-3 flex items-center gap-1.5"><i data-lucide="user" class="w-3.5 h-3.5"></i> Student Information</h4>
                     <div class="space-y-2 text-xs">
-                      <div class="bg-white/10 rounded-lg px-3 py-2"><span class="text-green-200">Name:</span> <span id="attStudName" class="font-medium">Loading...</span></div>
-                      <div class="bg-white/10 rounded-lg px-3 py-2"><span class="text-green-200">ID:</span> <span id="attStudId" class="font-medium">Loading...</span></div>
-                      <div class="bg-white/10 rounded-lg px-3 py-2"><span class="text-green-200">Course:</span> <span id="attStudCourse" class="font-medium">Loading...</span></div>
+                      <div class="bg-white/10 rounded-lg px-3 py-2"><span class="text-red-200">Name:</span> <span id="attStudName" class="font-medium">Loading...</span></div>
+                      <div class="bg-white/10 rounded-lg px-3 py-2"><span class="text-red-200">ID:</span> <span id="attStudId" class="font-medium">Loading...</span></div>
+                      <div class="bg-white/10 rounded-lg px-3 py-2"><span class="text-red-200">Course:</span> <span id="attStudCourse" class="font-medium">Loading...</span></div>
                     </div>
                   </div>
                   <div class="bg-white border border-[var(--border)] rounded-xl p-4 shadow-sm">
@@ -2949,7 +2949,7 @@
 
     let faceStatus = 'good';
     let faceLabel = 'Face detected';
-    let badgeClass = 'bg-green-100 text-green-700';
+    let badgeClass = 'bg-red-100 text-red-700';
 
     if (issues.length) { faceStatus = 'bad'; faceLabel = issues[0]; badgeClass = 'bg-red-100 text-red-700'; }
     else if (warnings.length && !issues.length) { faceStatus = 'warn'; faceLabel = warnings[0]; badgeClass = 'bg-yellow-100 text-yellow-700'; }
@@ -2997,13 +2997,13 @@
       ctx.fill();
     }
 
-    const indicatorClass = faceStatus === 'good' ? 'bg-green-500 animate-pulse' : faceStatus === 'warn' ? 'bg-yellow-500 animate-pulse' : 'bg-red-500';
+    const indicatorClass = faceStatus === 'good' ? 'bg-[#7B1818] animate-pulse' : faceStatus === 'warn' ? 'bg-yellow-500 animate-pulse' : 'bg-red-500';
     attFaceIndicator.className = `w-2.5 h-2.5 rounded-full ${indicatorClass}`;
     attFaceStatus.textContent = faceStatus === 'good' ? (warnings.length ? warnings.join('. ') : 'Face detected - ready') : (issues.length ? issues.join('. ') + ' - ' + tips.join('. ') : warnings.length ? warnings.join('. ') + ' - ' + tips.join('. ') : faceLabel);
-    attFaceStatus.className = `text-sm font-medium ${faceStatus === 'good' ? 'text-green-700' : faceStatus === 'warn' ? 'text-yellow-600' : 'text-red-600'}`;
+    attFaceStatus.className = `text-sm font-medium ${faceStatus === 'good' ? 'text-[#7B1818]' : faceStatus === 'warn' ? 'text-yellow-600' : 'text-red-600'}`;
 
-    const sizeClass = issues.includes('Too close') ? 'bg-red-100 text-red-700' : issues.includes('Too far') ? 'bg-red-100 text-red-700' : warnings.some(w => w.includes('close') || w.includes('far')) ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700';
-    const sizeIcon = issues.includes('Too close') || issues.includes('Too far') ? 'bg-red-500' : warnings.some(w => w.includes('close') || w.includes('far')) ? 'bg-yellow-500' : 'bg-green-500';
+    const sizeClass = issues.includes('Too close') ? 'bg-red-100 text-red-700' : issues.includes('Too far') ? 'bg-red-100 text-red-700' : warnings.some(w => w.includes('close') || w.includes('far')) ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700';
+    const sizeIcon = issues.includes('Too close') || issues.includes('Too far') ? 'bg-red-500' : warnings.some(w => w.includes('close') || w.includes('far')) ? 'bg-yellow-500' : 'bg-[#7B1818]';
     const sizeText = issues.includes('Too close') ? 'Too close' : issues.includes('Too far') ? 'Too far' : warnings.some(w => w.includes('close')) ? 'Bit close' : warnings.some(w => w.includes('far')) ? 'Bit far' : 'Good';
     attFaceSizeStatus.className = `inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full ${sizeClass}`;
     attFaceSizeStatus.innerHTML = `<span class="w-1.5 h-1.5 rounded-full ${sizeIcon}"></span> Face size: ${sizeText}`;
@@ -3024,8 +3024,8 @@
       lightLabel = 'Too bright'; lightClass = 'bg-yellow-100 text-yellow-700';
     } else if (eyeWhiteBrightness < 0.14 || foreheadBrightness < 0.14) {
       lightLabel = 'Too dark'; lightClass = 'bg-red-100 text-red-700';
-    } else { lightLabel = 'Good'; lightClass = 'bg-green-100 text-green-700'; }
-    const lightIcon = lightLabel === 'Good' ? 'bg-green-500' : lightLabel.includes('dark') ? 'bg-red-500' : 'bg-yellow-500';
+    } else { lightLabel = 'Good'; lightClass = 'bg-red-100 text-red-700'; }
+    const lightIcon = lightLabel === 'Good' ? 'bg-[#7B1818]' : lightLabel.includes('dark') ? 'bg-red-500' : 'bg-yellow-500';
     if (lightLabel === 'Good') {
       attLightStatus.className = 'hidden inline-flex items-center gap-1 font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500';
     } else {
@@ -3035,7 +3035,7 @@
 
     if (faceStatus === 'good' && !issues.length) {
       attDetectionBadgeText.textContent = 'FACE DETECTED';
-      attDetectionBadgeText.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700';
+      attDetectionBadgeText.className = 'text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700';
       attDetectionBadge.classList.remove('hidden');
     } else {
       attDetectionBadge.classList.add('hidden');
@@ -3132,7 +3132,7 @@
         attVerifyBtn.disabled = false;
         attVerifyBtn.innerHTML = '<i data-lucide="log-out" class="w-4 h-4 inline mr-2"></i> Clock Out';
         attStatusBadge.textContent = 'Clocked In';
-        attStatusBadge.className = 'inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700';
+        attStatusBadge.className = 'inline-block px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700';
         attStatusDetail.textContent = `In: ${fmtTime12(data.time_in)} - Ready for Time Out`;
       } else {
         attCurrentAction = null;
@@ -3140,7 +3140,7 @@
         attVerifyBtn.disabled = true;
         attVerifyBtn.innerHTML = '<i data-lucide="check-circle" class="w-4 h-4 inline mr-2"></i> Done for Today';
         attStatusBadge.textContent = 'Completed';
-        attStatusBadge.className = 'inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700';
+        attStatusBadge.className = 'inline-block px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700';
         attStatusDetail.textContent = `In: ${fmtTime12(data.time_in)} | Out: ${fmtTime12(data.time_out)}`;
       }
       updateNarrativeFormState();
@@ -3222,7 +3222,7 @@
       const data = await resp.json();
       if (resp.ok) {
         attStatusBadge.textContent = attCurrentAction === 'clock_in' ? 'Clocked In' : 'Clocked Out';
-        attStatusBadge.className = 'inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700';
+        attStatusBadge.className = 'inline-block px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700';
         Swal.fire({ icon: 'success', title: attCurrentAction === 'clock_in' ? 'Clocked In!' : 'Clocked Out!', text: data.message || '', confirmButtonColor: '#7B1818', timer: 2000, showConfirmButton: false });
         await checkAttTodayStatus();
         loadAttendanceHistory();
@@ -3608,7 +3608,7 @@
       const ti = r.time_in ? fmtTime12(r.time_in) : '-';
       const to = r.time_out ? fmtTime12(r.time_out) : '-';
       const completed = !!r.time_out;
-      const statusCls = completed ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700';
+      const statusCls = completed ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700';
       const statusTxt = completed ? 'Completed' : 'Pending';
       const method = r.facial_recognition_used ? 'Facial' : 'Manual';
       html += `<tr class="border-b border-[var(--border)]/50 hover:bg-gray-50 transition">
@@ -4327,7 +4327,7 @@ async function loadArchives() {
           const row = document.createElement('div');
           row.className = 'face-reg-info-row ' + (c.ok ? 'success' : 'error');
           const iconName = c.ok ? 'check-circle' : c.icon;
-          const iconClass = c.ok ? 'text-green-600' : 'text-red-500';
+          const iconClass = c.ok ? 'text-[#7B1818]' : 'text-red-500';
           row.innerHTML = '<i data-lucide="' + iconName + '" class="w-3.5 h-3.5 flex-shrink-0 ' + iconClass + '"></i><span>' + c.text + '</span>';
           result.appendChild(row);
           lucide.createIcons();
