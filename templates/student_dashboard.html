@@ -1829,7 +1829,7 @@
             <i data-lucide="send"></i> Submit Application
           </button>
         </div>
-      </div>
+</div>
       </div><!-- /wiz-step-body -->
     </div>
 
@@ -1841,13 +1841,14 @@
         </div>
         <h3 class="text-xl font-bold text-[var(--fg)] mb-2">Application Submitted!</h3>
         <p class="text-sm text-[var(--muted)] leading-relaxed mb-6 max-w-xs mx-auto">Your application has been submitted successfully. Please wait for your coordinator to review and approve it.</p>
-        <button type="button" onclick="showApplySection()"
+        <button type="button" onclick="showPendingSection()"
                 class="px-7 py-2.5 bg-gradient-to-r from-[var(--primary)] to-[var(--primary-dark)] hover:from-[var(--primary-dark)] hover:to-[var(--primary)] text-white font-semibold text-xs rounded-xl shadow-md hover:shadow-lg transition">
-          <i data-lucide="arrow-left" class="w-3.5 h-3.5 inline-block -mt-0.5 mr-1"></i> Back to Subjects
+          <i data-lucide="clipboard-list" class="w-3.5 h-3.5 inline-block -mt-0.5 mr-1"></i> Done
         </button>
       </div>
     </div>
   </div>
+
   <!-- PENDING APPROVAL SECTION -->
   <div id="sectionPending" class="hidden animate-in">
     <div class="bento-card p-8 text-center max-w-xl mx-auto mb-6">
@@ -3981,7 +3982,15 @@ async function loadArchives() {
     document.getElementById('sectionApply').classList.remove('hidden');
     document.getElementById('sectionPending').classList.add('hidden');
     document.getElementById('sectionDashboard').classList.add('hidden');
+    applyGoStep(1);
     loadAvailablePrograms();
+  }
+
+  function showPendingSection() {
+    document.getElementById('sectionApply').classList.add('hidden');
+    document.getElementById('sectionPending').classList.remove('hidden');
+    document.getElementById('sectionDashboard').classList.add('hidden');
+    lucide.createIcons();
   }
 
   async function submitApplication(e) {
