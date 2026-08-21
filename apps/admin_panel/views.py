@@ -175,19 +175,20 @@ class UserManagementViewSet(viewsets.ModelViewSet):
     filterset_fields = ["role", "is_active"]
     search_fields = ["username", "email", "first_name", "last_name"]
     
-    def destroy(self, request, *args, **kwargs):
-        """Hard delete user permanently."""
+    @action(detail=True, methods=['post'], url_path='archive')
+    def archive(self, request, *args, **kwargs):
+        """Set user status to inactive (archive)."""
         user = self.get_object()
-        username = user.username
-        user.delete()
+        user.is_active = False
+        user.save(update_fields=['is_active'])
         
         SystemLog.objects.create(
-            activity_type="user_deleted",
-            description=f"User {username} permanently deleted",
+            activity_type="user_archived",
+            description=f"User {user.username} archived (set to inactive)",
             admin_user=request.user,
         )
         
-        return Response({"message": "User permanently deleted"}, status=status.HTTP_200_OK)
+        return Response({"message": f"User {user.username} archived"}, status=status.HTTP_200_OK)
 
 
 class CoursesViewSet(viewsets.ModelViewSet):
@@ -206,9 +207,13 @@ class CoursesViewSet(viewsets.ModelViewSet):
         serializer.save()
         cache.delete('active_courses')
 
-    def perform_destroy(self, instance):
+    @action(detail=True, methods=['post'], url_path='archive')
+    def archive(self, request, pk=None):
+        course = self.get_object()
+        course.is_active = False
+        course.save(update_fields=['is_active'])
         cache.delete('active_courses')
-        instance.delete()
+        return Response({'message': 'Course archived successfully.'}, status=status.HTTP_200_OK)
 
 
 class AdminProgramViewSet(viewsets.ModelViewSet):
@@ -226,13 +231,17 @@ class AdminProgramViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         serializer.save(updated_by=self.request.user)
 
-    def perform_destroy(self, instance):
+    @action(detail=True, methods=['post'], url_path='archive')
+    def archive(self, request, pk=None):
+        program = self.get_object()
+        program.status = 'inactive'
+        program.save(update_fields=['status'])
         SystemLog.objects.create(
-            activity_type="program_deleted",
-            description=f"Program {instance.name} permanently deleted",
+            activity_type="program_archived",
+            description=f"Subject {program.name} archived",
             admin_user=self.request.user,
         )
-        instance.delete()
+        return Response({'message': 'Subject archived successfully.'}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'])
     def students(self, request, pk=None):
@@ -267,3 +276,10 @@ class SitesViewSet(viewsets.ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+    @action(detail=True, methods=['post'], url_path='archive')
+    def archive(self, request, pk=None):
+        site = self.get_object()
+        site.is_active = False
+        site.save(update_fields=['is_active'])
+        return Response({'message': 'Site archived successfully.'}, status=status.HTTP_200_OK)

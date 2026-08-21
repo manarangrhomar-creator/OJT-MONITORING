@@ -127,12 +127,7 @@
       .swal2-html-container { color: #eaf4ec !important; }
       .swal2-icon { border-color: #fff !important; color: #fff !important; }
 
-      .isu-page-loader { position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); }
-      .isu-page-loader .loader-logo-wrap { width: 112px; height: 112px; background: rgba(255,255,255,0.95); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-      .isu-page-loader .loader-logo-wrap img { width: 64px; height: 64px; object-fit: contain; animation: loaderPulse 1.5s ease-in-out infinite; }
-      @keyframes loaderPulse { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.05); opacity: 1; } }
-      .loader-progress { width: 200px; height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px; margin-top: 1.5rem; overflow: hidden; }
-      .loader-progress-bar { height: 100%; width: 100%; background: var(--gold); border-radius: 2px; transform-origin: left; }
+
 
       .table-header { font-size: 0.6rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); padding: 0.75rem 1rem; border-bottom: 1px solid var(--card-border); background: var(--card-bg-secondary); }
       .table-cell { padding: 0.75rem 1rem; font-size: 0.8rem; border-bottom: 1px solid var(--card-border); }
@@ -289,17 +284,7 @@
 </head>
 <body class="min-h-screen">
 
-<div id="isuPageLoader" class="isu-page-loader">
-  <div class="loader-logo-wrap">
-    <img src="{% static 'images/isabela_colleges_logo.png' %}" alt="Loading" />
-  </div>
-  <div class="loader-progress">
-    <div class="loader-progress-bar" id="loaderBar"></div>
-  </div>
-</div>
-<script nonce="{{ csp_nonce }}">
-(function(){var e=document.getElementById('isuPageLoader');if(!e)return;var b=document.getElementById('loaderBar');if(b){b.style.transformOrigin='left';var d=2000,s=Date.now(),r=1;(function a(){if(!r||e.style.display==='none')return;var p=((Date.now()-s)%d)/d,v=p<.5?p/.5*.85:.85*(1-(p-.5)/.5);b.style.transform='scaleX('+v+')';requestAnimationFrame(a)})()}window.addEventListener('load',function(){r=0;if(b){b.style.transition='transform 0.3s ease';b.style.transform='scaleX(1)'}setTimeout(function(){e.style.display='none'},600)})})();
-</script>
+
 
 <!-- Top Toolbar -->
 <header class="top-header sticky top-0 z-40">
@@ -564,8 +549,10 @@
       <div class="flex flex-wrap gap-2">
         <button class="pill-btn !text-[0.6rem] active" onclick="filterSystemLogsByType('all', this)">All</button>
         <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('user_created', this)">User Created</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('user_archived', this)">User Archived</button>
         <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('user_deleted', this)">User Deleted</button>
         <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('program_created', this)">Subject Created</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('program_archived', this)">Subject Archived</button>
         <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('program_deleted', this)">Subject Deleted</button>
         <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('approval_made', this)">Approval</button>
         <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('report_generated', this)">Report</button>
@@ -615,9 +602,9 @@
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">Student Accounts</h2>
       <div class="flex flex-wrap gap-2">
-        <button class="pill-btn !text-[0.6rem]" onclick="filterStudentsByStatus('active')">Active</button>
-        <button class="pill-btn !text-[0.6rem]" onclick="filterStudentsByStatus('inactive')">Inactive</button>
-        <button class="pill-btn !text-[0.6rem]" onclick="filterStudentsByStatus('all')">All</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterStudentsByStatus('active', this)">Active</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterStudentsByStatus('inactive', this)">Inactive</button>
+        <button class="pill-btn !text-[0.6rem] active" onclick="filterStudentsByStatus('all', this)">All</button>
       </div>
     </div>
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
@@ -629,7 +616,7 @@
     <div class="bento-card overflow-hidden">
       <div class="overflow-x-auto"><table class="w-full text-left">
         <thead><tr>
-          <th class="table-header">Name</th><th class="table-header">Email</th><th class="table-header">Role</th>
+          <th class="table-header">Name</th><th class="table-header">Email</th>
           <th class="table-header">Status</th><th class="table-header text-center">Action</th>
         </tr></thead>
         <tbody id="studentTableBody" class="divide-y tbody-table"></tbody>
@@ -681,9 +668,9 @@
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">Coordinator Accounts</h2>
       <div class="flex flex-wrap gap-2">
-        <button class="pill-btn !text-[0.6rem]" onclick="filterCoordinatorsByStatus('active')">Active</button>
-        <button class="pill-btn !text-[0.6rem]" onclick="filterCoordinatorsByStatus('inactive')">Inactive</button>
-        <button class="pill-btn !text-[0.6rem]" onclick="filterCoordinatorsByStatus('all')">All</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterCoordinatorsByStatus('active', this)">Active</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterCoordinatorsByStatus('inactive', this)">Inactive</button>
+        <button class="pill-btn !text-[0.6rem] active" onclick="filterCoordinatorsByStatus('all', this)">All</button>
       </div>
     </div>
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
@@ -746,6 +733,11 @@
   <div id="coursesSection" class="section-container hidden animate-in" role="tabpanel">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">Manage Courses</h2>
+      <div class="flex flex-wrap gap-2">
+        <button class="pill-btn !text-[0.6rem]" onclick="filterCoursesByStatus('active', this)">Active</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterCoursesByStatus('inactive', this)">Inactive</button>
+        <button class="pill-btn !text-[0.6rem] active" onclick="filterCoursesByStatus('all', this)">All</button>
+      </div>
       <button onclick="openAddCourseModal()" class="accent-btn flex items-center gap-1.5">
         <i data-lucide="plus" class="w-4 h-4"></i> Add Course
       </button>
@@ -779,6 +771,11 @@
   <div id="sitesSection" class="section-container hidden animate-in" role="tabpanel">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">Manage Sites</h2>
+      <div class="flex flex-wrap gap-2">
+        <button class="pill-btn !text-[0.6rem]" onclick="filterSitesByStatus('active', this)">Active</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterSitesByStatus('inactive', this)">Inactive</button>
+        <button class="pill-btn !text-[0.6rem] active" onclick="filterSitesByStatus('all', this)">All</button>
+      </div>
       <button onclick="openAddSiteModal()" class="accent-btn flex items-center gap-1.5">
         <i data-lucide="plus" class="w-4 h-4"></i> Add Site
       </button>
@@ -824,6 +821,11 @@
   <div id="programsSection" class="section-container hidden animate-in" role="tabpanel">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">Manage Subjects</h2>
+      <div class="flex flex-wrap gap-2">
+        <button class="pill-btn !text-[0.6rem]" onclick="filterSubjectsByStatus('active', this)">Active</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterSubjectsByStatus('inactive', this)">Inactive</button>
+        <button class="pill-btn !text-[0.6rem] active" onclick="filterSubjectsByStatus('all', this)">All</button>
+      </div>
     </div>
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
       <div class="relative w-full sm:w-64">
@@ -906,12 +908,12 @@
 
 <div id="deleteModal" class="modal" role="dialog" aria-modal="true">
   <div class="modal-content narrow">
-    <div class="modal-header"><h2>Delete Student</h2><button class="close-btn" onclick="closeModal('deleteModal')">&times;</button></div>
-    <p class="modal-desc">Are you sure you want to delete <strong class="modal-name-highlight" id="deleteStudentName"></strong>? This action cannot be undone.</p>
+    <div class="modal-header"><h2>Archive Student</h2><button class="close-btn" onclick="closeModal('deleteModal')">&times;</button></div>
+    <p class="modal-desc">Are you sure you want to archive <strong class="modal-name-highlight" id="deleteStudentName"></strong>? They will no longer be able to log in.</p>
     <div class="mb-3"><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Type "<span id="deleteStudentNameConfirm"></span>" to confirm</label><input type="text" id="deleteStudentConfirmInput" placeholder="Type the name to confirm..." class="w-full !p-2.5 !rounded-xl text-sm"></div>
     <div class="modal-buttons">
       <button class="ghost-btn" onclick="closeModal('deleteModal')">Cancel</button>
-      <button id="confirmDeleteBtn" class="ghost-btn danger-ghost" onclick="confirmDelete()" disabled>Delete Permanently</button>
+      <button id="confirmDeleteBtn" class="ghost-btn danger-ghost" onclick="confirmDelete()" disabled>Archive Account</button>
     </div>
   </div>
 </div>
@@ -927,12 +929,12 @@
 
 <div id="coordDeleteModal" class="modal" role="dialog" aria-modal="true">
   <div class="modal-content narrow">
-    <div class="modal-header"><h2>Delete Coordinator</h2><button class="close-btn" onclick="closeModal('coordDeleteModal')">&times;</button></div>
-    <p class="modal-desc">Are you sure you want to delete <strong class="modal-name-highlight" id="coordDeleteName"></strong>? This action cannot be undone.</p>
+    <div class="modal-header"><h2>Archive Coordinator</h2><button class="close-btn" onclick="closeModal('coordDeleteModal')">&times;</button></div>
+    <p class="modal-desc">Are you sure you want to archive <strong class="modal-name-highlight" id="coordDeleteName"></strong>? They will no longer be able to log in.</p>
     <div class="mb-3"><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Type "<span id="coordDeleteNameConfirm"></span>" to confirm</label><input type="text" id="coordDeleteConfirmInput" placeholder="Type the name to confirm..." class="w-full !p-2.5 !rounded-xl text-sm"></div>
     <div class="modal-buttons">
       <button class="ghost-btn" onclick="closeModal('coordDeleteModal')">Cancel</button>
-      <button id="confirmCoordDeleteBtn" class="ghost-btn danger-ghost" onclick="confirmCoordinatorDelete()" disabled>Delete Permanently</button>
+      <button id="confirmCoordDeleteBtn" class="ghost-btn danger-ghost" onclick="confirmCoordinatorDelete()" disabled>Archive Account</button>
     </div>
   </div>
 </div>
@@ -1019,12 +1021,12 @@
 
 <div id="deleteCourseModal" class="modal" role="dialog" aria-modal="true">
   <div class="modal-content narrow">
-    <div class="modal-header"><h2>Delete Course</h2><button class="close-btn" onclick="closeModal('deleteCourseModal')">&times;</button></div>
-    <p class="modal-desc">Are you sure you want to delete <strong class="modal-name-highlight" id="deleteCourseName"></strong>?</p>
+    <div class="modal-header"><h2>Archive Course</h2><button class="close-btn" onclick="closeModal('deleteCourseModal')">&times;</button></div>
+    <p class="modal-desc">Are you sure you want to archive <strong class="modal-name-highlight" id="deleteCourseName"></strong>? It will no longer be available.</p>
     <div class="mb-3"><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Type "<span id="deleteCourseNameConfirm"></span>" to confirm</label><input type="text" id="deleteCourseConfirmInput" placeholder="Type the name to confirm..." class="w-full !p-2.5 !rounded-xl text-sm"></div>
     <div class="modal-buttons">
       <button class="ghost-btn" onclick="closeModal('deleteCourseModal')">Cancel</button>
-      <button id="confirmDeleteCourseBtn" class="ghost-btn danger-ghost" onclick="confirmCourseDelete()" disabled>Delete</button>
+      <button id="confirmDeleteCourseBtn" class="ghost-btn danger-ghost" onclick="confirmCourseDelete()" disabled>Archive</button>
     </div>
   </div>
 </div>
@@ -1121,12 +1123,12 @@
 
 <div id="deleteSiteModal" class="modal" role="dialog" aria-modal="true">
   <div class="modal-content narrow">
-    <div class="modal-header"><h2>Delete Site</h2><button class="close-btn" onclick="closeModal('deleteSiteModal')">&times;</button></div>
-    <p class="modal-desc">Are you sure you want to delete <strong class="modal-name-highlight" id="deleteSiteName"></strong>?</p>
+    <div class="modal-header"><h2>Archive Site</h2><button class="close-btn" onclick="closeModal('deleteSiteModal')">&times;</button></div>
+    <p class="modal-desc">Are you sure you want to archive <strong class="modal-name-highlight" id="deleteSiteName"></strong>? It will no longer be available.</p>
     <div class="mb-3"><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Type "<span id="deleteSiteNameConfirm"></span>" to confirm</label><input type="text" id="deleteSiteConfirmInput" placeholder="Type the name to confirm..." class="w-full !p-2.5 !rounded-xl text-sm"></div>
     <div class="modal-buttons">
       <button class="ghost-btn" onclick="closeModal('deleteSiteModal')">Cancel</button>
-      <button id="confirmDeleteSiteBtn" class="ghost-btn danger-ghost" onclick="confirmSiteDelete()" disabled>Delete</button>
+      <button id="confirmDeleteSiteBtn" class="ghost-btn danger-ghost" onclick="confirmSiteDelete()" disabled>Archive</button>
     </div>
   </div>
 </div>
@@ -1157,12 +1159,12 @@
 
 <div id="deleteProgramModal" class="modal" role="dialog" aria-modal="true">
   <div class="modal-content narrow">
-    <div class="modal-header"><h2>Delete Subject</h2><button class="close-btn" onclick="closeModal('deleteProgramModal')">&times;</button></div>
-    <p class="modal-desc">Are you sure you want to delete <strong class="modal-name-highlight" id="deleteProgramName"></strong>? This will also remove all linked records.</p>
+    <div class="modal-header"><h2>Archive Subject</h2><button class="close-btn" onclick="closeModal('deleteProgramModal')">&times;</button></div>
+    <p class="modal-desc">Are you sure you want to archive <strong class="modal-name-highlight" id="deleteProgramName"></strong>? It will no longer be available.</p>
     <div class="mb-3"><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Type "<span id="deleteProgramNameConfirm"></span>" to confirm</label><input type="text" id="deleteProgramConfirmInput" placeholder="Type the name to confirm..." class="w-full !p-2.5 !rounded-xl text-sm"></div>
     <div class="modal-buttons">
       <button class="ghost-btn" onclick="closeModal('deleteProgramModal')">Cancel</button>
-      <button id="confirmDeleteProgramBtn" class="ghost-btn danger-ghost" onclick="confirmProgramDelete()" disabled>Delete</button>
+      <button id="confirmDeleteProgramBtn" class="ghost-btn danger-ghost" onclick="confirmProgramDelete()" disabled>Archive</button>
     </div>
   </div>
 </div>
@@ -1188,6 +1190,27 @@
         const COORDINATORS_PER_PAGE = 10;
         let coordinatorStatusFilter = 'all';
         let coordinatorSearchFilter = '';
+
+        // ===== COURSE TABLE PAGINATION STATE =====
+        let filteredCourses = [];
+        let courseCurrentPage = 0;
+        const COURSES_PER_PAGE = 10;
+        let courseStatusFilter = 'all';
+        let courseSearchFilter = '';
+
+        // ===== SITE TABLE PAGINATION STATE =====
+        let filteredSites = [];
+        let siteCurrentPage = 0;
+        const SITES_PER_PAGE = 10;
+        let siteStatusFilter = 'all';
+        let siteSearchFilter = '';
+
+        // ===== SUBJECT TABLE PAGINATION STATE =====
+        let filteredSubjects = [];
+        let subjectCurrentPage = 0;
+        const SUBJECTS_PER_PAGE = 10;
+        let subjectStatusFilter = 'all';
+        let subjectSearchFilter = '';
 
         // ===== UTILITY FUNCTIONS =====
         // Safely escape HTML to prevent XSS
@@ -1310,9 +1333,11 @@
         }
 
         // ===== FILTER FUNCTIONS =====
-        function filterStudentsByStatus(status) {
+        function filterStudentsByStatus(status, btn) {
             studentStatusFilter = status;
             studentSearchFilter = (document.getElementById('studentSearchInput')?.value || '').toLowerCase();
+            document.querySelectorAll('#studentsSection .pill-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
             applyStudentFilters();
         }
 
@@ -1377,9 +1402,11 @@
             if (current < totalPages - 3) { if (current < totalPages - 4) addEllipsis(); addBtn(totalPages - 1); }
         }
 
-        function filterCoordinatorsByStatus(status) {
+        function filterCoordinatorsByStatus(status, btn) {
             coordinatorStatusFilter = status;
             coordinatorSearchFilter = (document.getElementById('coordinatorSearchInput')?.value || '').toLowerCase();
+            document.querySelectorAll('#coordinatorsSection .pill-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
             applyCoordinatorFilters();
         }
 
@@ -1429,6 +1456,227 @@
                 btn.className = `pill-btn !text-[0.6rem] !px-2.5 !py-1${page === current ? ' active' : ''}`;
                 btn.textContent = page + 1;
                 btn.onclick = () => { coordinatorCurrentPage = page; renderCoordinatorTable(); };
+                container.appendChild(btn);
+            };
+            const addEllipsis = () => {
+                const span = document.createElement('span');
+                span.className = 'text-[0.6rem] px-1 self-center';
+                span.style.color = 'var(--fg-dim)';
+                span.textContent = '...';
+                container.appendChild(span);
+            };
+
+            if (current > 2) { addBtn(0); if (current > 3) addEllipsis(); }
+            for (let i = Math.max(0, current - 1); i <= Math.min(totalPages - 1, current + 1); i++) addBtn(i);
+            if (current < totalPages - 3) { if (current < totalPages - 4) addEllipsis(); addBtn(totalPages - 1); }
+        }
+
+        // ===== COURSE FILTER FUNCTIONS =====
+        function filterCoursesByStatus(status, btn) {
+            courseStatusFilter = status;
+            courseSearchFilter = (document.getElementById('courseSearchInput')?.value || '').toLowerCase();
+            document.querySelectorAll('#coursesSection .pill-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            applyCourseFilters();
+        }
+
+        function applyCourseFilters() {
+            filteredCourses = courseList.filter(c => {
+                if (courseStatusFilter !== 'all') {
+                    const isActive = c.is_active;
+                    if (courseStatusFilter === 'active' && !isActive) return false;
+                    if (courseStatusFilter === 'inactive' && isActive) return false;
+                }
+                if (courseSearchFilter) {
+                    const name = (c.name || '').toLowerCase();
+                    if (!name.includes(courseSearchFilter)) return false;
+                }
+                return true;
+            });
+            courseCurrentPage = 0;
+            renderCourseTable();
+        }
+
+        function coursePage(dir) {
+            const totalPages = Math.ceil(filteredCourses.length / COURSES_PER_PAGE);
+            const next = courseCurrentPage + dir;
+            if (next < 0 || next >= totalPages) return;
+            courseCurrentPage = next;
+            renderCourseTable();
+        }
+
+        function renderCoursePagination() {
+            const total = filteredCourses.length;
+            const totalPages = Math.ceil(total / COURSES_PER_PAGE);
+            const current = courseCurrentPage;
+            const countEl = document.getElementById('coursePageCount');
+            const prevBtn = document.getElementById('coursePrev');
+            const nextBtn = document.getElementById('courseNext');
+            const container = document.getElementById('coursePageButtons');
+
+            if (countEl) {
+                countEl.textContent = total === 0 ? '—' : `${current * COURSES_PER_PAGE + 1}–${Math.min((current + 1) * COURSES_PER_PAGE, total)} of ${total}`;
+            }
+            if (prevBtn) prevBtn.disabled = current === 0;
+            if (nextBtn) nextBtn.disabled = current >= totalPages - 1;
+
+            if (!container) return;
+            container.innerHTML = '';
+            if (totalPages <= 1) return;
+
+            const addBtn = (page) => {
+                const btn = document.createElement('button');
+                btn.className = `pill-btn !text-[0.6rem] !px-2.5 !py-1${page === current ? ' active' : ''}`;
+                btn.textContent = page + 1;
+                btn.onclick = () => { courseCurrentPage = page; renderCourseTable(); };
+                container.appendChild(btn);
+            };
+            const addEllipsis = () => {
+                const span = document.createElement('span');
+                span.className = 'text-[0.6rem] px-1 self-center';
+                span.style.color = 'var(--fg-dim)';
+                span.textContent = '...';
+                container.appendChild(span);
+            };
+
+            if (current > 2) { addBtn(0); if (current > 3) addEllipsis(); }
+            for (let i = Math.max(0, current - 1); i <= Math.min(totalPages - 1, current + 1); i++) addBtn(i);
+            if (current < totalPages - 3) { if (current < totalPages - 4) addEllipsis(); addBtn(totalPages - 1); }
+        }
+
+        // ===== SITE FILTER FUNCTIONS =====
+        function filterSitesByStatus(status, btn) {
+            siteStatusFilter = status;
+            siteSearchFilter = (document.getElementById('siteSearchInput')?.value || '').toLowerCase();
+            document.querySelectorAll('#sitesSection .pill-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            applySiteFilters();
+        }
+
+        function applySiteFilters() {
+            filteredSites = siteListAdmin.filter(s => {
+                if (siteStatusFilter !== 'all') {
+                    const isActive = s.is_active;
+                    if (siteStatusFilter === 'active' && !isActive) return false;
+                    if (siteStatusFilter === 'inactive' && isActive) return false;
+                }
+                if (siteSearchFilter) {
+                    const name = (s.name || '').toLowerCase();
+                    const course = (s.course_name || '').toLowerCase();
+                    const supervisor = (s.supervisor_name || '').toLowerCase();
+                    if (!name.includes(siteSearchFilter) && !course.includes(siteSearchFilter) && !supervisor.includes(siteSearchFilter)) return false;
+                }
+                return true;
+            });
+            siteCurrentPage = 0;
+            renderSiteTableAdmin();
+        }
+
+        function sitePage(dir) {
+            const totalPages = Math.ceil(filteredSites.length / SITES_PER_PAGE);
+            const next = siteCurrentPage + dir;
+            if (next < 0 || next >= totalPages) return;
+            siteCurrentPage = next;
+            renderSiteTableAdmin();
+        }
+
+        function renderSitePagination() {
+            const total = filteredSites.length;
+            const totalPages = Math.ceil(total / SITES_PER_PAGE);
+            const current = siteCurrentPage;
+            const countEl = document.getElementById('sitePageCount');
+            const prevBtn = document.getElementById('sitePrev');
+            const nextBtn = document.getElementById('siteNext');
+            const container = document.getElementById('sitePageButtons');
+
+            if (countEl) {
+                countEl.textContent = total === 0 ? '—' : `${current * SITES_PER_PAGE + 1}–${Math.min((current + 1) * SITES_PER_PAGE, total)} of ${total}`;
+            }
+            if (prevBtn) prevBtn.disabled = current === 0;
+            if (nextBtn) nextBtn.disabled = current >= totalPages - 1;
+
+            if (!container) return;
+            container.innerHTML = '';
+            if (totalPages <= 1) return;
+
+            const addBtn = (page) => {
+                const btn = document.createElement('button');
+                btn.className = `pill-btn !text-[0.6rem] !px-2.5 !py-1${page === current ? ' active' : ''}`;
+                btn.textContent = page + 1;
+                btn.onclick = () => { siteCurrentPage = page; renderSiteTableAdmin(); };
+                container.appendChild(btn);
+            };
+            const addEllipsis = () => {
+                const span = document.createElement('span');
+                span.className = 'text-[0.6rem] px-1 self-center';
+                span.style.color = 'var(--fg-dim)';
+                span.textContent = '...';
+                container.appendChild(span);
+            };
+
+            if (current > 2) { addBtn(0); if (current > 3) addEllipsis(); }
+            for (let i = Math.max(0, current - 1); i <= Math.min(totalPages - 1, current + 1); i++) addBtn(i);
+            if (current < totalPages - 3) { if (current < totalPages - 4) addEllipsis(); addBtn(totalPages - 1); }
+        }
+
+        // ===== SUBJECT FILTER FUNCTIONS =====
+        function filterSubjectsByStatus(status, btn) {
+            subjectStatusFilter = status;
+            subjectSearchFilter = (document.getElementById('programSearchInput')?.value || '').toLowerCase();
+            document.querySelectorAll('#programsSection .pill-btn').forEach(b => b.classList.remove('active'));
+            if (btn) btn.classList.add('active');
+            applySubjectFilters();
+        }
+
+        function applySubjectFilters() {
+            filteredSubjects = programList.filter(p => {
+                if (subjectStatusFilter !== 'all') {
+                    if (subjectStatusFilter === 'active' && p.status !== 'active') return false;
+                    if (subjectStatusFilter === 'inactive' && p.status !== 'inactive') return false;
+                }
+                if (subjectSearchFilter) {
+                    const name = (p.name || '').toLowerCase();
+                    const coordinator = (p.coordinator_name || '').toLowerCase();
+                    if (!name.includes(subjectSearchFilter) && !coordinator.includes(subjectSearchFilter)) return false;
+                }
+                return true;
+            });
+            subjectCurrentPage = 0;
+            renderProgramTable();
+        }
+
+        function subjectPage(dir) {
+            const totalPages = Math.ceil(filteredSubjects.length / SUBJECTS_PER_PAGE);
+            const next = subjectCurrentPage + dir;
+            if (next < 0 || next >= totalPages) return;
+            subjectCurrentPage = next;
+            renderProgramTable();
+        }
+
+        function renderSubjectPagination() {
+            const total = filteredSubjects.length;
+            const totalPages = Math.ceil(total / SUBJECTS_PER_PAGE);
+            const current = subjectCurrentPage;
+            const countEl = document.getElementById('programPageCount');
+            const prevBtn = document.getElementById('programPrev');
+            const nextBtn = document.getElementById('programNext');
+            const container = document.getElementById('programPageButtons');
+
+            if (countEl) {
+                countEl.textContent = total === 0 ? '—' : `${current * SUBJECTS_PER_PAGE + 1}–${Math.min((current + 1) * SUBJECTS_PER_PAGE, total)} of ${total}`;
+            }
+            if (prevBtn) prevBtn.disabled = current === 0;
+            if (nextBtn) nextBtn.disabled = current >= totalPages - 1;
+
+            if (!container) return;
+            container.innerHTML = '';
+            if (totalPages <= 1) return;
+
+            const addBtn = (page) => {
+                const btn = document.createElement('button');
+                btn.className = `pill-btn !text-[0.6rem] !px-2.5 !py-1${page === current ? ' active' : ''}`;
+                btn.textContent = page + 1;
+                btn.onclick = () => { subjectCurrentPage = page; renderProgramTable(); };
                 container.appendChild(btn);
             };
             const addEllipsis = () => {
@@ -1514,11 +1762,10 @@
                 tbody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-black/[0.02] transition-colors">
                     <td class="table-cell font-bold">${esc(student.name)}</td>
                     <td class="table-cell" style="color: var(--fg-muted);">${esc(student.email)}</td>
-                    <td class="table-cell">${esc(student.role)}</td>
                     <td class="table-cell"><span class="text-[0.6rem] font-bold px-2.5 py-0.5 rounded-full" style="background: ${sc}20; color: ${sc};">${esc(student.status)}</span></td>
                     <td class="table-cell text-center">
                         <button class="ghost-btn !p-1.5" title="View" onclick="viewStudent('${esc(student.id)}')"><i data-lucide="eye" class="w-3.5 h-3.5"></i></button>
-                        <button class="ghost-btn !p-1.5" title="Delete" onclick="deleteStudent('${esc(student.id)}')"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                        <button class="ghost-btn !p-1.5" title="Archive" onclick="deleteStudent('${esc(student.id)}')"><i data-lucide="archive" class="w-3.5 h-3.5"></i></button>
                     </td>
                 </tr>`);
             });
@@ -1629,27 +1876,27 @@
             const btn = document.getElementById('confirmDeleteBtn');
             const originalText = btn.textContent;
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Deleting...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Archiving...';
             lucide.createIcons();
             try {
-                const response = await fetch(`/api/admin/users/${id}/`, {
-                    method: 'DELETE',
+                const response = await fetch(`/api/admin/users/${id}/archive/`, {
+                    method: 'POST',
                     credentials: 'same-origin'
                 });
                 if (!response.ok) {
                     const err = await response.json().catch(() => ({}));
-                    showAlert('Failed to delete: ' + (err.detail || 'Unknown error'));
+                    showAlert('Failed to archive: ' + (err.detail || 'Unknown error'));
                     return;
                 }
-                delete students[id];
+                students[id].status = 'Inactive';
                 pendingDeleteId = null;
                 pendingDeleteName = '';
                 applyStudentFilters();
                 closeModal('deleteModal');
-                showAlert('✓ Student permanently deleted');
+                showAlert('✓ Student account archived');
             } catch (error) {
-                console.error('Error deleting student:', error);
-                showAlert('An error occurred while deleting');
+                console.error('Error archiving student:', error);
+                showAlert('An error occurred while archiving');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
@@ -1718,7 +1965,7 @@
                     <td class="table-cell"><span class="text-[0.6rem] font-bold px-2.5 py-0.5 rounded-full" style="background: ${sc}20; color: ${sc};">${esc(coord.status)}</span></td>
                     <td class="table-cell text-center">
                         <button class="ghost-btn !p-1.5" title="View" onclick="viewCoordinator('${esc(coord.id)}')"><i data-lucide="eye" class="w-3.5 h-3.5"></i></button>
-                        <button class="ghost-btn !p-1.5" title="Delete" onclick="deleteCoordinator('${esc(coord.id)}')"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                        <button class="ghost-btn !p-1.5" title="Archive" onclick="deleteCoordinator('${esc(coord.id)}')"><i data-lucide="archive" class="w-3.5 h-3.5"></i></button>
                     </td>
                 </tr>`);
             });
@@ -1848,28 +2095,28 @@
             const btn = document.getElementById('confirmCoordDeleteBtn');
             const originalText = btn.textContent;
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Deleting...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Archiving...';
             lucide.createIcons();
             try {
-                const response = await fetch(`/api/admin/users/${id}/`, {
-                    method: 'DELETE',
+                const response = await fetch(`/api/admin/users/${id}/archive/`, {
+                    method: 'POST',
                     credentials: 'same-origin'
                 });
                 if (!response.ok) {
                     const err = await response.json().catch(() => ({}));
-                    showAlert('Failed to delete: ' + (err.detail || 'Unknown error'));
+                    showAlert('Failed to archive: ' + (err.detail || 'Unknown error'));
                     return;
                 }
-                delete coordinators[id];
-                coordinatorList = coordinatorList.filter(c => c.id !== id);
+                coordinators[id].status = 'Inactive';
+                coordinatorList = coordinatorList.map(c => c.id === id ? {...c, status: 'Inactive'} : c);
                 pendingCoordDeleteId = null;
                 pendingCoordDeleteName = '';
                 applyCoordinatorFilters();
                 closeModal('coordDeleteModal');
-                showAlert('✓ Coordinator permanently deleted');
+                showAlert('✓ Coordinator account archived');
             } catch (error) {
-                console.error('Error deleting coordinator:', error);
-                showAlert('An error occurred while deleting');
+                console.error('Error archiving coordinator:', error);
+                showAlert('An error occurred while archiving');
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
@@ -2181,7 +2428,7 @@
                     return;
                 }
                 courseList = await response.json();
-                renderCourseTable();
+                applyCourseFilters();
             } catch (error) {
                 if (tbody) tbody.innerHTML = '<tr><td colspan="3" class="py-12 text-center text-xs" style="color: var(--danger);">Error loading</td></tr>';
                 console.error('Error loading courses:', error);
@@ -2191,14 +2438,16 @@
         function renderCourseTable() {
             const tbody = document.getElementById('courseTableBody');
             if (!tbody) return;
-            const filter = (document.getElementById('courseSearchInput')?.value || '').toLowerCase();
-            const filtered = filter ? courseList.filter(c => c.name.toLowerCase().includes(filter)) : courseList;
+            const start = courseCurrentPage * COURSES_PER_PAGE;
+            const end = start + COURSES_PER_PAGE;
+            const pageItems = filteredCourses.slice(start, end);
             tbody.innerHTML = '';
-            if (!filtered.length) {
+            if (!pageItems.length) {
                 tbody.innerHTML = '<tr><td colspan="3" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="book-open" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No courses found</span></div></td></tr>';
+                renderCoursePagination();
                 return;
             }
-            filtered.forEach(c => {
+            pageItems.forEach(c => {
                 const sc = c.is_active ? 'var(--success)' : 'var(--gold)';
                 const st = c.is_active ? 'Active' : 'Inactive';
                 tbody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-black/[0.02] transition-colors">
@@ -2206,11 +2455,12 @@
                     <td class="table-cell"><span class="text-[0.6rem] font-bold px-2.5 py-0.5 rounded-full" style="background: ${sc}20; color: ${sc};">${esc(st)}</span></td>
                     <td class="table-cell text-center">
                         <button class="ghost-btn !p-1.5" title="Edit" onclick="editCourse('${esc(c.id)}')"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
-                        <button class="ghost-btn !p-1.5" title="Delete" onclick="deleteCourse('${esc(c.id)}')"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                        <button class="ghost-btn !p-1.5" title="Archive" onclick="deleteCourse('${esc(c.id)}')"><i data-lucide="archive" class="w-3.5 h-3.5"></i></button>
                     </td>
                 </tr>`);
             });
             lucide.createIcons();
+            renderCoursePagination();
         }
 
         function openAddCourseModal() {
@@ -2313,17 +2563,17 @@
             const btn = document.getElementById('confirmDeleteCourseBtn');
             const originalText = btn.textContent;
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Deleting...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Archiving...';
             lucide.createIcons();
             try {
-                const response = await fetch(`/api/admin/courses/${id}/`, {
-                    method: 'DELETE',
+                const response = await fetch(`/api/admin/courses/${id}/archive/`, {
+                    method: 'POST',
                     credentials: 'same-origin'
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
                 pendingCourseDeleteId = null;
                 pendingCourseDeleteName = '';
-                showAlert('Course deleted successfully');
+                showAlert('Course archived successfully');
                 closeModal('deleteCourseModal');
                 loadCourses();
             } catch (error) {
@@ -2441,7 +2691,7 @@
             if (!tbody) return;
             const start = systemLogsCurrentPage * SYSTEM_LOGS_PER_PAGE;
             const page = systemLogsFiltered.slice(start, start + SYSTEM_LOGS_PER_PAGE);
-            const typeLabels = { user_created: 'User Created', user_deleted: 'User Deleted', program_created: 'Subject Created', program_deleted: 'Subject Deleted', approval_made: 'Approval', report_generated: 'Report' };
+            const typeLabels = { user_created: 'User Created', user_archived: 'User Archived', user_deleted: 'User Deleted', program_created: 'Subject Created', program_archived: 'Subject Archived', program_deleted: 'Subject Deleted', approval_made: 'Approval', report_generated: 'Report' };
             if (page.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center" style="color: var(--fg-dim);">No logs found</td></tr>';
             } else {
@@ -2511,8 +2761,10 @@
                 addSiteMapMarker = L.marker(e.latlng).addTo(addSiteMapObj)
                     .bindPopup('Selected location').openPopup();
             });
-            setTimeout(() => addSiteMapObj.invalidateSize(), 300);
+            lucide.createIcons();
+            renderSitePagination();
         }
+
 
         function initEditSiteMap() {
             const container = document.getElementById('editSiteMap');
@@ -2562,7 +2814,7 @@
                     return;
                 }
                 siteListAdmin = await response.json();
-                renderSiteTableAdmin();
+                applySiteFilters();
             } catch (error) {
                 if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-xs" style="color: var(--danger);">Error loading</td></tr>';
                 console.error('Error loading sites:', error);
@@ -2572,14 +2824,16 @@
         function renderSiteTableAdmin() {
             const tbody = document.getElementById('siteTableBody');
             if (!tbody) return;
-            const filter = (document.getElementById('siteSearchInput')?.value || '').toLowerCase();
-            const filtered = filter ? siteListAdmin.filter(s => s.name.toLowerCase().includes(filter)) : siteListAdmin;
+            const start = siteCurrentPage * SITES_PER_PAGE;
+            const end = start + SITES_PER_PAGE;
+            const pageItems = filteredSites.slice(start, end);
             tbody.innerHTML = '';
-            if (!filtered.length) {
+            if (!pageItems.length) {
                 tbody.innerHTML = '<tr><td colspan="6" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="building" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No sites found</span></div></td></tr>';
+                renderSitePagination();
                 return;
             }
-            filtered.forEach(s => {
+            pageItems.forEach(s => {
                 const sc = s.is_active ? 'var(--success)' : 'var(--gold)';
                 const st = s.is_active ? 'Active' : 'Inactive';
                 tbody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-black/[0.02] transition-colors">
@@ -2590,7 +2844,7 @@
                     <td class="table-cell"><span class="text-[0.6rem] font-bold px-2.5 py-0.5 rounded-full" style="background: ${sc}20; color: ${sc};">${esc(st)}</span></td>
                     <td class="table-cell text-center">
                         <button class="ghost-btn !p-1.5" title="Edit" onclick="editSite('${esc(s.id)}')"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
-                        <button class="ghost-btn !p-1.5" title="Delete" onclick="deleteSite('${esc(s.id)}')"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                        <button class="ghost-btn !p-1.5" title="Archive" onclick="deleteSite('${esc(s.id)}')"><i data-lucide="archive" class="w-3.5 h-3.5"></i></button>
                     </td>
                 </tr>`);
             });
@@ -2855,17 +3109,17 @@
             const btn = document.getElementById('confirmDeleteSiteBtn');
             const originalText = btn.textContent;
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Deleting...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Archiving...';
             lucide.createIcons();
             try {
-                const response = await fetch(`/api/admin/sites/${id}/`, {
-                    method: 'DELETE',
+                const response = await fetch(`/api/admin/sites/${id}/archive/`, {
+                    method: 'POST',
                     credentials: 'same-origin'
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
                 pendingSiteDeleteId = null;
                 pendingSiteDeleteName = '';
-                showAlert('Site deleted successfully');
+                showAlert('Site archived successfully');
                 closeModal('deleteSiteModal');
                 loadSitesAdmin();
             } catch (error) {
@@ -2898,7 +3152,7 @@
                     return;
                 }
                 programList = await response.json();
-                renderProgramTable();
+                applySubjectFilters();
             } catch (error) {
                 if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-xs" style="color: var(--danger);">Error loading</td></tr>';
                 console.error('Error loading programs:', error);
@@ -2908,16 +3162,16 @@
         function renderProgramTable() {
             const tbody = document.getElementById('programTableBody');
             if (!tbody) return;
-            const filter = (document.getElementById('programSearchInput')?.value || '').toLowerCase();
-            const filtered = filter
-                ? programList.filter(p => p.name.toLowerCase().includes(filter) || (p.coordinator_name || '').toLowerCase().includes(filter))
-                : programList;
+            const start = subjectCurrentPage * SUBJECTS_PER_PAGE;
+            const end = start + SUBJECTS_PER_PAGE;
+            const pageItems = filteredSubjects.slice(start, end);
             tbody.innerHTML = '';
-            if (!filtered.length) {
+            if (!pageItems.length) {
                 tbody.innerHTML = '<tr><td colspan="5" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="book-open" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No subjects found</span></div></td></tr>';
+                renderSubjectPagination();
                 return;
             }
-            filtered.forEach(p => {
+            pageItems.forEach(p => {
                 const sc = p.status === 'active' ? 'var(--success)' : p.status === 'completed' ? 'var(--info)' : 'var(--gold)';
                 const st = p.status.charAt(0).toUpperCase() + p.status.slice(1);
                 tbody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-black/[0.02] transition-colors">
@@ -2927,11 +3181,12 @@
                     <td class="table-cell font-semibold">${esc(p.student_count || 0)}</td>
                     <td class="table-cell text-center">
                         <button class="ghost-btn !p-1.5" title="View Students" onclick="viewProgramStudents('${esc(p.id)}')"><i data-lucide="eye" class="w-3.5 h-3.5"></i></button>
-                        <button class="ghost-btn !p-1.5" title="Delete" onclick="deleteProgram('${esc(p.id)}')"><i data-lucide="trash-2" class="w-3.5 h-3.5"></i></button>
+                        <button class="ghost-btn !p-1.5" title="Archive" onclick="deleteProgram('${esc(p.id)}')"><i data-lucide="archive" class="w-3.5 h-3.5"></i></button>
                     </td>
                 </tr>`);
             });
             lucide.createIcons();
+            renderSubjectPagination();
         }
 
         async function viewProgramStudents(id) {
@@ -2998,17 +3253,17 @@
             const btn = document.getElementById('confirmDeleteProgramBtn');
             const originalText = btn.textContent;
             btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Deleting...';
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Archiving...';
             lucide.createIcons();
             try {
-                const response = await fetch(`/api/admin/programs/${id}/`, {
-                    method: 'DELETE',
+                const response = await fetch(`/api/admin/programs/${id}/archive/`, {
+                    method: 'POST',
                     credentials: 'same-origin'
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
                 pendingProgramDeleteId = null;
                 pendingProgramDeleteName = '';
-                showAlert('Subject deleted successfully');
+                showAlert('Subject archived successfully');
                 closeModal('deleteProgramModal');
                 loadPrograms();
             } catch (error) {
@@ -3100,9 +3355,9 @@
             }
         });
 
-        document.getElementById('courseSearchInput')?.addEventListener('keyup', renderCourseTable);
-        document.getElementById('siteSearchInput')?.addEventListener('keyup', renderSiteTableAdmin);
-        document.getElementById('programSearchInput')?.addEventListener('keyup', renderProgramTable);
+        document.getElementById('courseSearchInput')?.addEventListener('keyup', () => { courseSearchFilter = (document.getElementById('courseSearchInput')?.value || '').toLowerCase(); courseCurrentPage = 0; applyCourseFilters(); });
+        document.getElementById('siteSearchInput')?.addEventListener('keyup', () => { siteSearchFilter = (document.getElementById('siteSearchInput')?.value || '').toLowerCase(); siteCurrentPage = 0; applySiteFilters(); });
+        document.getElementById('programSearchInput')?.addEventListener('keyup', () => { subjectSearchFilter = (document.getElementById('programSearchInput')?.value || '').toLowerCase(); subjectCurrentPage = 0; applySubjectFilters(); });
 
         // ===== INITIAL LOAD =====
         window.addEventListener('DOMContentLoaded', async () => {

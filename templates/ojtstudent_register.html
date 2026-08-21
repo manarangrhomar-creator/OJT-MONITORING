@@ -92,74 +92,20 @@
       border-radius: 50%;
       box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
     }
-    .isu-loader {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 1.5rem;
-    }
-    .isu-loader .loader-logo-wrap {
-      width: 112px;
-      height: 112px;
-      background: rgba(255,255,255,0.95);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .isu-loader .loader-logo-wrap img {
-      width: 64px;
-      height: 64px;
-      object-fit: contain;
-      animation: loaderPulse 1.5s ease-in-out infinite;
-    }
-    @keyframes loaderPulse {
-      0%, 100% { transform: scale(1); opacity: 0.9; }
-      50% { transform: scale(1.05); opacity: 1; }
-    }
-    .loader-progress {
-      width: 200px;
-      height: 4px;
-      background: rgba(255,255,255,0.15);
-      border-radius: 2px;
-      overflow: hidden;
-    }
-    .loader-progress-bar {
-      height: 100%;
-      width: 100%;
-      background: var(--gold);
-      border-radius: 2px;
-    }
-    .loader-text {
-      color: rgba(255,255,255,0.7);
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.875rem;
-      letter-spacing: 0.02em;
-    }
+
   </style>
 </head>
 <body class="grain min-h-screen flex items-center justify-center p-4 overflow-x-hidden">
 
   <img class="bg-seal" src="{% static 'images/isabela_colleges_logo.png' %}" alt="" aria-hidden="true" />
 
-  <div id="registerLoadingMessage" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-    <div class="isu-loader">
-      <div class="loader-logo-wrap">
-        <img src="{% static 'images/isabela_colleges_logo.png' %}" alt="Loading" />
-      </div>
-      <div class="loader-progress">
-        <div class="loader-progress-bar"></div>
-      </div>
-      <span class="loader-text">Creating account…</span>
-    </div>
-  </div>
-<script nonce="{{ csp_nonce }}">(function(){var e=document.getElementById('registerLoadingMessage');if(!e)return;var b=e.querySelector('.loader-progress-bar');if(b){b.style.transformOrigin='left';var d=2000;var s=Date.now();var r=1;(function a(){if(!r||e.classList.contains('hidden'))return;var p=((Date.now()-s)%d)/d;var v=p<.5?p/.5*.85:.85*(1-(p-.5)/.5);b.style.transform='scaleX('+v+')';requestAnimationFrame(a)})();}window.addEventListener('load',function(){r=0;if(b){b.style.transition='transform 0.3s ease';b.style.transform='scaleX(1)'}setTimeout(function(){e.classList.add('hidden')},600)});})();</script>
+
   <div class="animate-in w-full max-w-4xl bg-white shadow-2xl flex flex-col md:flex-row min-h-[560px]" style="box-shadow: 0 20px 60px rgba(0,0,0,0.08);">
 
     <!-- Left panel — university branding -->
     <div class="w-full md:w-[38%] bg-[var(--maroon)] flex flex-col md:flex-col items-center justify-center p-4 md:p-10 text-white relative">
       <div class="w-12 h-12 md:w-48 md:h-48 flex items-center justify-center mb-1 md:mb-6">
-        <img src="{% static 'images/isabela_colleges_logo.png' %}"
+        <img src="{% static 'images/loginlogo.jpg' %}"
              alt="Isabela Colleges Logo"
              class="w-full h-full object-contain left-panel-logo" />
       </div>
@@ -476,8 +422,6 @@
 
       const { firstName, lastName } = parseFullName(fullName);
 
-      const loadingDiv = document.getElementById('registerLoadingMessage');
-      loadingDiv.classList.remove('hidden');
       const startTime = Date.now();
       regBtn.disabled = true;
       regBtn.innerHTML = '<i data-lucide="loader-2" class="animate-spin mr-2" style="width:16px;height:16px;"></i> Registering...';
@@ -506,16 +450,13 @@
           const elapsed = Date.now() - startTime;
           const remaining = Math.max(0, 500 - elapsed);
           await new Promise(r => setTimeout(r, remaining));
-          loadingDiv.classList.add('hidden');
           await showAlert('Account created! Please wait for Admin approval before you can log in.');
           window.location.href = '/auth/login/';
         } else {
-          loadingDiv.classList.add('hidden');
           const errMsg = typeof data === 'object' ? Object.values(data).flat().join('\n') : 'Registration failed';
           showAlert(errMsg);
         }
       } catch (err) {
-        loadingDiv.classList.add('hidden');
         showAlert('Connection error. Please try again.');
       } finally {
         regBtn.disabled = false;

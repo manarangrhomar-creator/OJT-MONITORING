@@ -80,22 +80,7 @@
       .swal2-icon { border-color: #fff !important; color: #fff !important; background: transparent !important; }
 
 
-      .isu-page-loader {
-        position: fixed; inset: 0; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center;
-        background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px);
-      }
-      .isu-page-loader .loader-logo-wrap {
-        width: 112px; height: 112px; background: rgba(255,255,255,0.95); border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      }
-      .isu-page-loader .loader-logo-wrap img {
-        width: 64px; height: 64px; object-fit: contain; animation: loaderPulse 1.5s ease-in-out infinite;
-      }
-      @keyframes loaderPulse {
-        0%, 100% { transform: scale(1); opacity: 0.9; }
-        50% { transform: scale(1.05); opacity: 1; }
-      }
-      .loader-progress { width: 200px; height: 4px; background: rgba(255,255,255,0.15); border-radius: 2px; margin-top: 1.5rem; overflow: hidden; }
-      .loader-progress-bar { height: 100%; width: 100%; background: var(--gold); border-radius: 2px; }
+
 
       /* Attendance camera */
       .att-camera-frame{ background:#000; border:4px solid #166534; position:relative; overflow:hidden; }
@@ -1287,16 +1272,7 @@
 </head>
 <body class="bg-[#F0F2F7] min-h-screen">
 
-<div id="isuPageLoader" class="isu-page-loader">
-  <div class="loader-logo-wrap">
-    <img src="{% static 'images/isabela_colleges_logo.png' %}" alt="Loading" />
-  </div>
-  <div class="loader-progress">
-    <div class="loader-progress-bar"></div>
-  </div>
-</div>
 
-<script nonce="{{ csp_nonce }}">(function(){var e=document.getElementById('isuPageLoader');if(!e)return;var b=e.querySelector('.loader-progress-bar');if(b){b.style.transformOrigin='left';b.style.transition='none';b.style.transform='scaleX(0)';var r=1;var start=Date.now();(function tick(){if(!r||e.style.display==='none')return;var elapsed=Date.now()-start;var pct=Math.min(0.9,elapsed/3000);b.style.transform='scaleX('+pct+')';requestAnimationFrame(tick)})();}window._hidePageLoader=function(){if(e.style.display==='none'||!b)return;r=0;b.style.transition='transform 0.3s ease-out';b.style.transform='scaleX(1)';setTimeout(function(){e.style.transition='opacity 0.3s ease';e.style.opacity='0';setTimeout(function(){e.style.display='none'},300)},350)}})();</script>
 
 <!-- MAIN CONTENT -->
 <main class="px-4 sm:px-5 lg:px-8">
@@ -4649,7 +4625,6 @@ async function loadArchives() {
       modalDesc = 'An error occurred while loading your applications. The dashboard is ready \u2014 you can explore it while we retry.';
       showModal = true;
     }
-    if (typeof window._hidePageLoader === 'function') window._hidePageLoader();
     if (showModal) {
       await new Promise(r => setTimeout(r, 500));
       openApplyRequiredModal(modalTitle, modalDesc);
