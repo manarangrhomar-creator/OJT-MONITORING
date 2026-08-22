@@ -33,7 +33,7 @@ class SiteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Site
-        fields = ('id', 'name', 'course', 'course_name', 'coordinator', 'coordinator_name', 'supervisor_name', 'contact_number', 'address', 'latitude', 'longitude', 'is_active', 'created_at')
+        fields = ('id', 'name', 'course', 'course_name', 'coordinator', 'coordinator_name', 'supervisor_name', 'contact_number', 'gmail', 'contact_persons', 'address', 'latitude', 'longitude', 'is_active', 'created_at')
         read_only_fields = ('id', 'created_at')
 
     def get_course_name(self, obj):

@@ -800,8 +800,9 @@
     <div class="bento-card overflow-hidden">
       <div class="overflow-x-auto"><table class="w-full text-left">
         <thead><tr>
-          <th class="table-header">Name</th><th class="table-header">Course</th><th class="table-header">Supervisor</th>
-          <th class="table-header">Contact #</th><th class="table-header">Status</th>
+          <th class="table-header">Agency Name</th><th class="table-header">Course</th>
+          <th class="table-header">Contact Persons</th>
+          <th class="table-header">Status</th>
           <th class="table-header text-center">Action</th>
         </tr></thead>
         <tbody id="siteTableBody" class="divide-y tbody-table"></tbody>
@@ -1051,7 +1052,7 @@
         <div id="addSiteMap" class="site-map" style="height: 420px;"></div>
       </div>
       <div class="space-y-3">
-        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Site Name</label><input type="text" id="siteName" placeholder="e.g. University Library" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Agency Name</label><input type="text" id="siteName" placeholder="e.g. University Library" class="w-full !p-2.5 !rounded-xl text-sm"></div>
         <div>
           <label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Course</label>
           <input type="hidden" id="siteCourse" value="">
@@ -1064,8 +1065,11 @@
             <div id="siteCourseDropdown" class="hidden fixed z-[70] dropdown-menu"></div>
           </div>
         </div>
-        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Supervisor Name</label><input type="text" id="siteContactPerson" placeholder="Full name of supervisor" class="w-full !p-2.5 !rounded-xl text-sm"></div>
-        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Contact Number</label><input type="text" id="siteContactNumber" placeholder="Phone number" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+        <div>
+          <label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Contact Persons</label>
+          <div id="addContactPersonsList" class="space-y-2"></div>
+          <button type="button" onclick="addContactPersonField('addContactPersonsList')" class="text-[0.6rem] font-bold mt-1.5 px-3 py-1 rounded-lg" style="background: var(--accent-bg); color: var(--accent);">+ Add Contact Person</button>
+        </div>
         <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Address</label><input type="text" id="siteAddress" placeholder="Full address of the site" class="w-full !p-2.5 !rounded-xl text-sm"></div>
         <div class="grid grid-cols-2 gap-3">
           <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Latitude</label><input type="number" step="any" id="siteLat" placeholder="e.g. 10.3157" class="w-full !p-2.5 !rounded-xl text-sm"></div>
@@ -1091,7 +1095,7 @@
         <div id="editSiteMap" class="site-map" style="height: 420px;"></div>
       </div>
       <div class="space-y-3">
-        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Site Name</label><input type="text" id="editSiteName" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Agency Name</label><input type="text" id="editSiteName" class="w-full !p-2.5 !rounded-xl text-sm"></div>
         <div>
           <label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Course</label>
           <input type="hidden" id="editSiteCourse" value="">
@@ -1104,8 +1108,11 @@
             <div id="editSiteCourseDropdown" class="hidden fixed z-[70] dropdown-menu"></div>
           </div>
         </div>
-        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Supervisor Name</label><input type="text" id="editSiteContactPerson" class="w-full !p-2.5 !rounded-xl text-sm"></div>
-        <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Contact Number</label><input type="text" id="editSiteContactNumber" class="w-full !p-2.5 !rounded-xl text-sm"></div>
+        <div>
+          <label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Contact Persons</label>
+          <div id="editContactPersonsList" class="space-y-2"></div>
+          <button type="button" onclick="addContactPersonField('editContactPersonsList')" class="text-[0.6rem] font-bold mt-1.5 px-3 py-1 rounded-lg" style="background: var(--accent-bg); color: var(--accent);">+ Add Contact Person</button>
+        </div>
         <div class="grid grid-cols-2 gap-3">
           <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Latitude</label><input type="number" step="any" id="editSiteLat" class="w-full !p-2.5 !rounded-xl text-sm"></div>
           <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Longitude</label><input type="number" step="any" id="editSiteLng" class="w-full !p-2.5 !rounded-xl text-sm"></div>
@@ -1563,8 +1570,8 @@
                 if (siteSearchFilter) {
                     const name = (s.name || '').toLowerCase();
                     const course = (s.course_name || '').toLowerCase();
-                    const supervisor = (s.supervisor_name || '').toLowerCase();
-                    if (!name.includes(siteSearchFilter) && !course.includes(siteSearchFilter) && !supervisor.includes(siteSearchFilter)) return false;
+                    const cpText = (s.contact_persons || []).map(cp => `${cp.name} ${cp.phone} ${cp.email}`).join(' ').toLowerCase();
+                    if (!name.includes(siteSearchFilter) && !course.includes(siteSearchFilter) && !cpText.includes(siteSearchFilter)) return false;
                 }
                 return true;
             });
@@ -2798,7 +2805,7 @@
         async function loadSitesAdmin() {
             const tbody = document.getElementById('siteTableBody');
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
                 lucide.createIcons();
             }
             try {
@@ -2810,13 +2817,13 @@
                     }
                 });
                 if (!response.ok) {
-                    if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-xs" style="color: var(--danger);">Failed to load</td></tr>';
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-xs" style="color: var(--danger);">Failed to load</td></tr>';
                     return;
                 }
                 siteListAdmin = await response.json();
                 applySiteFilters();
             } catch (error) {
-                if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-xs" style="color: var(--danger);">Error loading</td></tr>';
+                if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-xs" style="color: var(--danger);">Error loading</td></tr>';
                 console.error('Error loading sites:', error);
             }
         }
@@ -2829,18 +2836,18 @@
             const pageItems = filteredSites.slice(start, end);
             tbody.innerHTML = '';
             if (!pageItems.length) {
-                tbody.innerHTML = '<tr><td colspan="6" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="building" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No sites found</span></div></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="5" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="building" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No sites found</span></div></td></tr>';
                 renderSitePagination();
                 return;
             }
             pageItems.forEach(s => {
                 const sc = s.is_active ? 'var(--success)' : 'var(--gold)';
                 const st = s.is_active ? 'Active' : 'Inactive';
+                const cpList = (s.contact_persons || []).map(cp => `<div class="text-[0.65rem] leading-snug">${esc(cp.name || '—')} · ${esc(cp.phone || '—')} · ${esc(cp.email || '—')}</div>`).join('') || '<span style="color: var(--fg-dim);">—</span>';
                 tbody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-black/[0.02] transition-colors">
                     <td class="table-cell font-bold">${esc(s.name)}</td>
                     <td class="table-cell" style="color: var(--fg-muted);">${esc(s.course_name || '—')}</td>
-                    <td class="table-cell">${esc(s.supervisor_name || '—')}</td>
-                    <td class="table-cell">${esc(s.contact_number || '—')}</td>
+                    <td class="table-cell">${cpList}</td>
                     <td class="table-cell"><span class="text-[0.6rem] font-bold px-2.5 py-0.5 rounded-full" style="background: ${sc}20; color: ${sc};">${esc(st)}</span></td>
                     <td class="table-cell text-center">
                         <button class="ghost-btn !p-1.5" title="Edit" onclick="editSite('${esc(s.id)}')"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
@@ -2955,10 +2962,40 @@
             });
         });
 
+        function addContactPersonField(containerId, person) {
+            const container = document.getElementById(containerId);
+            const idx = container.children.length;
+            const p = person || { name: '', phone: '', email: '' };
+            const div = document.createElement('div');
+            div.className = 'flex gap-2 items-start contact-person-entry';
+            div.innerHTML = `
+                <div class="flex-1 grid grid-cols-3 gap-2">
+                    <input type="text" placeholder="Full name" value="${esc(p.name)}" class="cp-name w-full !p-2 !rounded-lg text-xs">
+                    <input type="text" placeholder="Phone number" value="${esc(p.phone)}" class="cp-phone w-full !p-2 !rounded-lg text-xs">
+                    <input type="email" placeholder="Email" value="${esc(p.email)}" class="cp-email w-full !p-2 !rounded-lg text-xs">
+                </div>
+                <button type="button" onclick="this.closest('.contact-person-entry').remove()" class="!p-1.5 !rounded-lg shrink-0 mt-0.5" style="color: var(--danger);"><i data-lucide="trash-2" style="width:14px;height:14px;"></i></button>
+            `;
+            container.appendChild(div);
+            lucide.createIcons();
+        }
+
+        function getContactPersons(containerId) {
+            const entries = document.getElementById(containerId).querySelectorAll('.contact-person-entry');
+            const result = [];
+            entries.forEach(e => {
+                const name = e.querySelector('.cp-name').value.trim();
+                const phone = e.querySelector('.cp-phone').value.trim();
+                const email = e.querySelector('.cp-email').value.trim();
+                if (name || phone || email) result.push({ name, phone, email });
+            });
+            return result;
+        }
+
         async function openAddSiteModal() {
             document.getElementById('siteName').value = '';
-            document.getElementById('siteContactPerson').value = '';
-            document.getElementById('siteContactNumber').value = '';
+            document.getElementById('addContactPersonsList').innerHTML = '';
+            addContactPersonField('addContactPersonsList');
             document.getElementById('siteLat').value = '';
             document.getElementById('siteLng').value = '';
             document.getElementById('siteAddress').value = '';
@@ -2985,12 +3022,12 @@
         async function addNewSite() {
             const name = document.getElementById('siteName').value.trim();
             const course = document.getElementById('siteCourse').value;
-            const supervisor_name = document.getElementById('siteContactPerson').value.trim();
-            const contact_number = document.getElementById('siteContactNumber').value.trim();
+            const contact_persons = getContactPersons('addContactPersonsList');
             const address = document.getElementById('siteAddress').value.trim();
             const latitude = document.getElementById('siteLat').value || null;
             const longitude = document.getElementById('siteLng').value || null;
             if (!name) { showAlert('Please enter a site name'); return; }
+            if (contact_persons.length === 0) { showAlert('Please add at least one contact person'); return; }
             const btn = document.getElementById('addSiteBtn');
             const originalText = btn.textContent;
             btn.disabled = true;
@@ -3003,7 +3040,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ name, course: course || null, supervisor_name, contact_number, address, latitude: latitude ? parseFloat(latitude) : null, longitude: longitude ? parseFloat(longitude) : null })
+                    body: JSON.stringify({ name, course: course || null, contact_persons, address, latitude: latitude ? parseFloat(latitude) : null, longitude: longitude ? parseFloat(longitude) : null })
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
                 showAlert('Site added successfully');
@@ -3022,8 +3059,14 @@
             if (!site) return;
             document.getElementById('editSiteId').value = id;
             document.getElementById('editSiteName').value = site.name;
-            document.getElementById('editSiteContactPerson').value = site.supervisor_name || '';
-            document.getElementById('editSiteContactNumber').value = site.contact_number || '';
+            const cpContainer = document.getElementById('editContactPersonsList');
+            cpContainer.innerHTML = '';
+            const persons = site.contact_persons || [];
+            if (persons.length > 0) {
+                persons.forEach(p => addContactPersonField('editContactPersonsList', p));
+            } else {
+                addContactPersonField('editContactPersonsList');
+            }
             document.getElementById('editSiteLat').value = site.latitude || '';
             document.getElementById('editSiteLng').value = site.longitude || '';
             document.getElementById('editSiteStatus').value = site.is_active ? 'true' : 'false';
@@ -3051,12 +3094,12 @@
             const id = document.getElementById('editSiteId').value;
             const name = document.getElementById('editSiteName').value.trim();
             const course = document.getElementById('editSiteCourse').value;
-            const supervisor_name = document.getElementById('editSiteContactPerson').value.trim();
-            const contact_number = document.getElementById('editSiteContactNumber').value.trim();
+            const contact_persons = getContactPersons('editContactPersonsList');
             const latitude = document.getElementById('editSiteLat').value || null;
             const longitude = document.getElementById('editSiteLng').value || null;
             const is_active = document.getElementById('editSiteStatus').value === 'true';
             if (!name) { showAlert('Please enter a site name'); return; }
+            if (contact_persons.length === 0) { showAlert('Please add at least one contact person'); return; }
             const btn = document.getElementById('saveSiteBtn');
             const originalText = btn.textContent;
             btn.disabled = true;
@@ -3069,7 +3112,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ name, course: course || null, supervisor_name, contact_number, latitude: latitude ? parseFloat(latitude) : null, longitude: longitude ? parseFloat(longitude) : null, is_active })
+                    body: JSON.stringify({ name, course: course || null, contact_persons, latitude: latitude ? parseFloat(latitude) : null, longitude: longitude ? parseFloat(longitude) : null, is_active })
                 });
                 if (!response.ok) { const err = await response.json(); throw new Error(Object.values(err).flat().join(', ')); }
                 showAlert('Site updated successfully');
