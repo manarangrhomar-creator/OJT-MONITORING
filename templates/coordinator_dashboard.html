@@ -798,7 +798,7 @@
       <div class="overflow-x-auto"><table class="w-full text-left">
         <thead><tr>
           <th class="table-header">Student</th><th class="table-header">Subject</th><th class="table-header">Date</th>
-          <th class="table-header">In</th><th class="table-header">Out</th><th class="table-header">Status</th><th class="table-header text-center">Face</th>
+          <th class="table-header">AM In</th><th class="table-header">AM Out</th><th class="table-header">PM In</th><th class="table-header">PM Out</th><th class="table-header">Status</th><th class="table-header text-center">Face</th>
         </tr></thead>
         <tbody id="attendanceTableBody" class="divide-y" style="border-color: var(--card-border);"></tbody>
       </table></div>
@@ -1110,6 +1110,16 @@
     var d = document.createElement('div');
     d.appendChild(document.createTextNode(String(str)));
     return d.innerHTML;
+  }
+
+  function formatTime12(t) {
+    if (!t || t === '—') return '—';
+    var parts = String(t).split(':');
+    var h = parseInt(parts[0], 10);
+    var m = parts[1] || '00';
+    var ampm = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return h + ':' + m + ' ' + ampm;
   }
 
   function jq(str) {
@@ -1957,23 +1967,27 @@
       tbody.innerHTML = '';
       let present = 0, late = 0, absent = 0, pendingCount = 0;
       if (!records.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="calendar" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No attendance records</span></div></td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="calendar" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No attendance records</span></div></td></tr>';
       } else {
         records.forEach(r => {
-          if (r.status === 'Completed' || r.status === 'Present') present++;
-          else if (r.status === 'Late') late++;
-          else if (r.status === 'Absent') absent++;
+          if (r.status === 'completed') present++;
+          else if (r.am_status === 'late' || r.pm_status === 'late') late++;
+          else if (r.status === 'absent') absent++;
+          else if (r.status === 'partial') pendingCount++;
           else pendingCount++;
-          const sc = r.status === 'Completed' || r.status === 'Present' ? 'var(--success)' : r.status === 'Late' ? '#D97706' : r.status === 'Absent' ? 'var(--danger)' : 'var(--fg-dim)';
+          const sc = r.status === 'completed' ? 'var(--success)' : r.am_status === 'late' || r.pm_status === 'late' ? '#D97706' : r.status === 'absent' ? 'var(--danger)' : 'var(--fg-dim)';
           const face = r.facial_recognition_used
             ? '<span style="color: var(--success);"><i data-lucide="smile" class="w-3.5 h-3.5"></i></span>'
             : '<span style="color: var(--fg-dim);"><i data-lucide="meh" class="w-3.5 h-3.5"></i></span>';
+          const statusColor = (s) => s === 'present' ? 'var(--success)' : s === 'late' ? '#D97706' : s === 'absent' ? 'var(--danger)' : 'var(--fg-dim)';
           tbody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-black/[0.02] transition-colors">
             <td class="table-cell font-bold">${esc(r.student_name)}</td>
             <td class="table-cell" style="color: var(--fg-muted);">${esc(r.program_name)}</td>
             <td class="table-cell" style="color: var(--fg-muted);">${esc(new Date(r.date).toLocaleDateString())}</td>
-            <td class="table-cell font-semibold">${esc(r.time_in)}</td>
-            <td class="table-cell font-semibold">${esc(r.time_out)}</td>
+            <td class="table-cell font-semibold">${esc(r.time_in_am || '—')}</td>
+            <td class="table-cell font-semibold">${esc(r.time_out_am || '—')}</td>
+            <td class="table-cell font-semibold">${esc(r.time_in_pm || '—')}</td>
+            <td class="table-cell font-semibold">${esc(r.time_out_pm || '—')}</td>
             <td class="table-cell"><span class="text-[0.6rem] font-bold px-2.5 py-0.5 rounded-full" style="background: ${sc}20; color: ${sc};">${esc(r.status)}</span></td>
             <td class="table-cell text-center">${face}</td>
           </tr>`);
@@ -1981,7 +1995,7 @@
         lucide.createIcons();
       }
       updateStats('attStat', { present, late, absent, pending: pendingCount });
-    } catch (e) { tbody.innerHTML = '<tr><td colspan="7" class="py-12 text-center text-xs" style="color: var(--danger);">Error loading</td></tr>'; }
+    } catch (e) { tbody.innerHTML = '<tr><td colspan="9" class="py-12 text-center text-xs" style="color: var(--danger);">Error loading</td></tr>'; }
   }
 
   function clearAttendanceFilters() {

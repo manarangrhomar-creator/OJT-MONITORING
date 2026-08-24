@@ -155,18 +155,43 @@ class StudentDashboardViewSet(viewsets.ViewSet):
         today = timezone.now().date()
         try:
             attendance = Attendance.objects.get(student=student, date=today)
+            now = timezone.localtime(timezone.now())
+            hour = now.hour
+            in_session_am = hour < 12
+            if in_session_am:
+                session_clocked_in = attendance.time_in_am is not None
+                session_clocked_out = attendance.time_out_am is not None
+            else:
+                session_clocked_in = attendance.time_in_pm is not None
+                session_clocked_out = attendance.time_out_pm is not None
             return Response({
-                'clocked_in': True,
-                'clocked_out': attendance.time_out is not None,
-                'time_in': str(attendance.time_in)[:5] if attendance.time_in else None,
-                'time_out': str(attendance.time_out)[:5] if attendance.time_out else None,
+                'clocked_in': session_clocked_in,
+                'clocked_out': session_clocked_out,
+                'time_in': str(attendance.time_in_am if in_session_am else attendance.time_in_pm)[:5] if (attendance.time_in_am if in_session_am else attendance.time_in_pm) else None,
+                'time_out': str(attendance.time_out_am if in_session_am else attendance.time_out_pm)[:5] if (attendance.time_out_am if in_session_am else attendance.time_out_pm) else None,
+                'time_in_am': str(attendance.time_in_am)[:5] if attendance.time_in_am else None,
+                'time_out_am': str(attendance.time_out_am)[:5] if attendance.time_out_am else None,
+                'time_in_pm': str(attendance.time_in_pm)[:5] if attendance.time_in_pm else None,
+                'time_out_pm': str(attendance.time_out_pm)[:5] if attendance.time_out_pm else None,
+                'am_status': attendance.get_am_status(),
+                'pm_status': attendance.get_pm_status(),
+                'in_session_am': in_session_am,
             })
         except Attendance.DoesNotExist:
+            now = timezone.localtime(timezone.now())
+            hour = now.hour
             return Response({
                 'clocked_in': False,
                 'clocked_out': False,
                 'time_in': None,
                 'time_out': None,
+                'time_in_am': None,
+                'time_out_am': None,
+                'time_in_pm': None,
+                'time_out_pm': None,
+                'am_status': 'absent',
+                'pm_status': 'absent',
+                'in_session_am': hour < 12,
             })
 
     @action(detail=False, methods=['post'])
@@ -238,7 +263,10 @@ class StudentDashboardViewSet(viewsets.ViewSet):
 
 
         today = timezone.now().date()
-        now_time = timezone.localtime(timezone.now()).time()
+        now = timezone.localtime(timezone.now())
+        now_time = now.time()
+        hour = now.hour
+        is_am = hour < 12
 
         attendance, created = Attendance.objects.get_or_create(
             student=student,
@@ -253,7 +281,20 @@ class StudentDashboardViewSet(viewsets.ViewSet):
         )
 
         if not created:
-            return Response({'error': 'Already clocked in today.'}, status=status.HTTP_400_BAD_REQUEST)
+            if is_am:
+                if attendance.time_in_am is not None:
+                    return Response({'error': 'Already clocked in for AM session.'}, status=status.HTTP_400_BAD_REQUEST)
+                attendance.time_in_am = now_time
+            else:
+                if attendance.time_in_pm is not None:
+                    return Response({'error': 'Already clocked in for PM session.'}, status=status.HTTP_400_BAD_REQUEST)
+                attendance.time_in_pm = now_time
+        else:
+            if is_am:
+                attendance.time_in_am = now_time
+            else:
+                attendance.time_in_pm = now_time
+        attendance.save()
 
         create_and_send_notification(
             recipient=application.program.coordinator,
@@ -338,13 +379,30 @@ class StudentDashboardViewSet(viewsets.ViewSet):
 
 
         today = timezone.now().date()
+        now = timezone.localtime(timezone.now())
+        now_time = now.time()
+        hour = now.hour
+        is_am = hour < 12
 
         try:
-            attendance = Attendance.objects.get(student=student, date=today, time_out__isnull=True)
+            attendance = Attendance.objects.get(student=student, date=today)
         except Attendance.DoesNotExist:
-            return Response({'error': 'No active attendance record found for today.'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({'error': 'No attendance record found for today. Please clock in first.'}, status=status.HTTP_404_NOT_FOUND)
 
-        attendance.time_out = timezone.localtime(timezone.now()).time()
+        if is_am:
+            if attendance.time_in_am is None:
+                return Response({'error': 'No AM clock-in found for today.'}, status=status.HTTP_400_BAD_REQUEST)
+            if attendance.time_out_am is not None:
+                return Response({'error': 'Already clocked out for AM session.'}, status=status.HTTP_400_BAD_REQUEST)
+            attendance.time_out_am = now_time
+        else:
+            if attendance.time_in_pm is None:
+                return Response({'error': 'No PM clock-in found for today.'}, status=status.HTTP_400_BAD_REQUEST)
+            if attendance.time_out_pm is not None:
+                return Response({'error': 'Already clocked out for PM session.'}, status=status.HTTP_400_BAD_REQUEST)
+            attendance.time_out_pm = now_time
+
+        attendance.time_out = now_time
         attendance.facial_recognition_used = True
         attendance.save()
 

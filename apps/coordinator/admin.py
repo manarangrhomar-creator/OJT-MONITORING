@@ -27,7 +27,7 @@ class OJTApplicationAdmin(admin.ModelAdmin):
 
 @admin.register(Attendance)
 class AttendanceAdmin(admin.ModelAdmin):
-    list_display = ('student', 'program', 'date', 'time_in', 'time_out')
+    list_display = ('student', 'program', 'date', 'time_in_am', 'time_out_am', 'time_in_pm', 'time_out_pm')
     list_filter = ('date', 'program', 'facial_recognition_used')
     search_fields = ('student__username', 'program__name')
     readonly_fields = ('id', 'created_at', 'updated_at')

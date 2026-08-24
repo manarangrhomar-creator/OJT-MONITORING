@@ -186,17 +186,33 @@ class AttendanceViewSet(viewsets.ModelViewSet):
         if not OJTApplication.objects.filter(student_id=student_id, program_id=program_id, status='approved').exists():
             return Response({'error': 'Student does not have an approved application for this program'}, status=status.HTTP_400_BAD_REQUEST)
 
+        now = timezone.localtime(timezone.now())
+        now_time = now.time()
+        hour = now.hour
+        is_am = hour < 12
+
         attendance, created = Attendance.objects.get_or_create(
             student_id=student_id,
             program_id=program_id,
             date=timezone.now().date(),
             defaults={
-                'time_in': timezone.localtime(timezone.now()).time(),
                 'latitude': request.data.get('latitude'),
                 'longitude': request.data.get('longitude'),
                 'ip_address': request.META.get('REMOTE_ADDR'),
             }
         )
+
+        if is_am:
+            if attendance.time_in_am is not None:
+                return Response({'error': 'Already clocked in for AM session today'}, status=status.HTTP_400_BAD_REQUEST)
+            attendance.time_in = now_time
+            attendance.time_in_am = now_time
+        else:
+            if attendance.time_in_pm is not None:
+                return Response({'error': 'Already clocked in for PM session today'}, status=status.HTTP_400_BAD_REQUEST)
+            attendance.time_in = now_time
+            attendance.time_in_pm = now_time
+        attendance.save()
         
         if created:
             student = attendance.student
@@ -220,7 +236,26 @@ class AttendanceViewSet(viewsets.ModelViewSet):
     def clock_out(self, request, pk=None):
         """Clock out for attendance."""
         attendance = self.get_object()
-        attendance.time_out = timezone.localtime(timezone.now()).time()
+        now = timezone.localtime(timezone.now())
+        now_time = now.time()
+        hour = now.hour
+        is_am = hour < 12
+
+        if is_am:
+            if attendance.time_in_am is None:
+                return Response({'error': 'No AM clock-in found for today'}, status=status.HTTP_400_BAD_REQUEST)
+            if attendance.time_out_am is not None:
+                return Response({'error': 'Already clocked out for AM session today'}, status=status.HTTP_400_BAD_REQUEST)
+            attendance.time_out = now_time
+            attendance.time_out_am = now_time
+        else:
+            if attendance.time_in_pm is None:
+                return Response({'error': 'No PM clock-in found for today'}, status=status.HTTP_400_BAD_REQUEST)
+            if attendance.time_out_pm is not None:
+                return Response({'error': 'Already clocked out for PM session today'}, status=status.HTTP_400_BAD_REQUEST)
+            attendance.time_out = now_time
+            attendance.time_out_pm = now_time
+
         attendance.save()
         
         student = attendance.student
@@ -321,7 +356,13 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
                 tout = datetime.combine(att.date, att.time_out)
                 stats[sid]['total_seconds'] += (tout - tin).total_seconds()
             if att.date == today:
-                stats[sid]['today_status'] = 'present' if att.time_out else 'on-going'
+                overall = att.get_overall_status()
+                if overall == 'completed':
+                    stats[sid]['today_status'] = 'present'
+                elif overall == 'partial':
+                    stats[sid]['today_status'] = 'on-going'
+                else:
+                    stats[sid]['today_status'] = 'on-going'
 
         students_data = []
         for student in students:
@@ -423,7 +464,13 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
                 'date': att.date,
                 'time_in': str(att.time_in)[:5] if att.time_in else '—',
                 'time_out': str(att.time_out)[:5] if att.time_out else '—',
-                'status': 'Completed' if att.time_out else 'Pending',
+                'time_in_am': str(att.time_in_am)[:5] if att.time_in_am else '—',
+                'time_out_am': str(att.time_out_am)[:5] if att.time_out_am else '—',
+                'time_in_pm': str(att.time_in_pm)[:5] if att.time_in_pm else '—',
+                'time_out_pm': str(att.time_out_pm)[:5] if att.time_out_pm else '—',
+                'am_status': att.get_am_status(),
+                'pm_status': att.get_pm_status(),
+                'status': att.get_overall_status(),
                 'facial_recognition_used': att.facial_recognition_used,
                 'notes': att.notes,
             })
@@ -546,15 +593,19 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         response['Content-Disposition'] = f'attachment; filename="attendance_report_{timezone.now().date()}.csv"'
 
         writer = csv.writer(response)
-        writer.writerow(['Student', 'Program', 'Date', 'Time In', 'Time Out', 'Status', 'Facial Recognition', 'Notes'])
+        writer.writerow(['Student', 'Program', 'Date', 'AM Time In', 'AM Time Out', 'PM Time In', 'PM Time Out', 'AM Status', 'PM Status', 'Overall Status', 'Facial Recognition', 'Notes'])
         for att in attendances:
             writer.writerow([
                 att.student.get_full_name() or att.student.username,
                 att.program.name,
                 att.date,
-                str(att.time_in)[:5] if att.time_in else '',
-                str(att.time_out)[:5] if att.time_out else '',
-                'Completed' if att.time_out else 'Pending',
+                str(att.time_in_am)[:5] if att.time_in_am else '',
+                str(att.time_out_am)[:5] if att.time_out_am else '',
+                str(att.time_in_pm)[:5] if att.time_in_pm else '',
+                str(att.time_out_pm)[:5] if att.time_out_pm else '',
+                att.get_am_status(),
+                att.get_pm_status(),
+                att.get_overall_status(),
                 'Yes' if att.facial_recognition_used else 'No',
                 att.notes or '',
             ])
@@ -575,9 +626,18 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         total_hours = 0
         for att in Attendance.objects.filter(program__in=programs, time_out__isnull=False):
             from datetime import datetime as dt
-            tin = dt.combine(att.date, att.time_in)
-            tout = dt.combine(att.date, att.time_out)
-            total_hours += (tout - tin).total_seconds() / 3600
+            if att.time_in:
+                tin = dt.combine(att.date, att.time_in)
+                tout = dt.combine(att.date, att.time_out)
+                total_hours += (tout - tin).total_seconds() / 3600
+            else:
+                am_hours = 0
+                pm_hours = 0
+                if att.time_in_am and att.time_out_am:
+                    am_hours = (dt.combine(att.date, att.time_out_am) - dt.combine(att.date, att.time_in_am)).total_seconds() / 3600
+                if att.time_in_pm and att.time_out_pm:
+                    pm_hours = (dt.combine(att.date, att.time_out_pm) - dt.combine(att.date, att.time_in_pm)).total_seconds() / 3600
+                total_hours += am_hours + pm_hours
 
         pending_applications = OJTApplication.objects.filter(
             program__in=programs, status='pending'

@@ -66,6 +66,10 @@ class Attendance(BaseModel):
     date = models.DateField()
     time_in = models.TimeField()
     time_out = models.TimeField(blank=True, null=True)
+    time_in_am = models.TimeField(blank=True, null=True)
+    time_out_am = models.TimeField(blank=True, null=True)
+    time_in_pm = models.TimeField(blank=True, null=True)
+    time_out_pm = models.TimeField(blank=True, null=True)
     facial_recognition_used = models.BooleanField(default=False)
     notes = models.TextField(blank=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
@@ -81,6 +85,39 @@ class Attendance(BaseModel):
     
     def __str__(self):
         return f"{self.student.username} - {self.date}"
+
+    def get_am_status(self):
+        """Return AM attendance status: 'Not Yet', 'Present', 'Late', 'Absent'."""
+        if not self.time_in_am:
+            return 'Not Yet'
+        # Late threshold: 8:00 AM
+        from datetime import time
+        late_threshold = time(8, 0)
+        if self.time_in_am <= late_threshold:
+            return 'Present' if self.time_out_am else 'Active'
+        return 'Late' if self.time_out_am else 'Active'
+
+    def get_pm_status(self):
+        """Return PM attendance status: 'Not Yet', 'Present', 'Late', 'Absent'."""
+        if not self.time_in_pm:
+            return 'Not Yet'
+        from datetime import time
+        late_threshold = time(13, 0)
+        if self.time_in_pm <= late_threshold:
+            return 'Present' if self.time_out_pm else 'Active'
+        return 'Late' if self.time_out_pm else 'Active'
+
+    def get_overall_status(self):
+        """Return overall status based on AM/PM presence."""
+        am = self.get_am_status()
+        pm = self.get_pm_status()
+        if am == 'Not Yet' and pm == 'Not Yet':
+            return 'Absent'
+        if am == 'Late' or pm == 'Late':
+            return 'Late'
+        if am in ('Present', 'Active') or pm in ('Present', 'Active'):
+            return 'Present'
+        return self.status if hasattr(self, 'status') else 'Absent'
 
 
 class FlagRecord(BaseModel):

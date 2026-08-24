@@ -74,9 +74,16 @@ def auto_clockout_stale_attendances(self):
 
     count = 0
     for att in stale:
-        att.time_out = now.time()
+        now_local = timezone.localtime(now)
+        now_time = now_local.time()
+        att.time_out = now_time
+        hour = now_local.hour
+        if hour < 12:
+            att.time_out_am = now_time
+        else:
+            att.time_out_pm = now_time
         att.auto_clocked_out = True
-        att.save(update_fields=['time_out', 'auto_clocked_out'])
+        att.save(update_fields=['time_out', 'time_out_am', 'time_out_pm', 'auto_clocked_out'])
 
         FlagRecord.objects.get_or_create(
             attendance=att,

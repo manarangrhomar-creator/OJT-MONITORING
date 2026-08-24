@@ -31,11 +31,23 @@ class OJTApplicationSerializer(serializers.ModelSerializer):
 class AttendanceSerializer(serializers.ModelSerializer):
     """Serializer for Attendance."""
     student_name = serializers.CharField(source='student.get_full_name', read_only=True)
+    status = serializers.SerializerMethodField()
+    am_status = serializers.SerializerMethodField()
+    pm_status = serializers.SerializerMethodField()
     
     class Meta:
         model = Attendance
-        fields = ('id', 'student', 'student_name', 'program', 'date', 'time_in', 'time_out', 'facial_recognition_used', 'notes', 'latitude', 'longitude', 'ip_address', 'auto_clocked_out', 'created_at')
+        fields = ('id', 'student', 'student_name', 'program', 'date', 'time_in', 'time_out', 'time_in_am', 'time_out_am', 'time_in_pm', 'time_out_pm', 'status', 'am_status', 'pm_status', 'facial_recognition_used', 'notes', 'latitude', 'longitude', 'ip_address', 'auto_clocked_out', 'created_at')
         read_only_fields = ('id', 'created_at')
+
+    def get_status(self, obj):
+        return obj.get_overall_status()
+
+    def get_am_status(self, obj):
+        return obj.get_am_status()
+
+    def get_pm_status(self, obj):
+        return obj.get_pm_status()
 
 
 
