@@ -47,6 +47,8 @@
       /* Scrollbar: scoped to tab content only */
       .tab-content { scrollbar-width: none; -ms-overflow-style: none; }
       .tab-content::-webkit-scrollbar { display: none; }
+      #notifList { scrollbar-width: none; -ms-overflow-style: none; }
+      #notifList::-webkit-scrollbar { display: none; }
 
       .bento-card {
         background: var(--card-bg);
@@ -557,7 +559,7 @@
               </div>
               <svg width="72" height="72" viewBox="0 0 72 72">
                 <circle cx="36" cy="36" r="28" fill="none" stroke="#E8E9F0" stroke-width="6"/>
-                <circle cx="36" cy="36" r="28" fill="none" stroke="var(--success)" stroke-width="6" stroke-linecap="round" stroke-dasharray="175.93" stroke-dashoffset="175.93" class="donut-ring"/>
+                <circle cx="36" cy="36" r="28" fill="none" stroke="#8B1A2B" stroke-width="6" stroke-linecap="round" stroke-dasharray="175.93" stroke-dashoffset="175.93" class="donut-ring"/>
               </svg>
             </div>
             <div class="flex items-center gap-3 justify-between sm:justify-start" id="donutAttendance">
@@ -567,7 +569,7 @@
               </div>
               <svg width="72" height="72" viewBox="0 0 72 72">
                 <circle cx="36" cy="36" r="28" fill="none" stroke="#E8E9F0" stroke-width="6"/>
-                <circle cx="36" cy="36" r="28" fill="none" stroke="var(--primary)" stroke-width="6" stroke-linecap="round" stroke-dasharray="175.93" stroke-dashoffset="175.93" class="donut-ring"/>
+                <circle cx="36" cy="36" r="28" fill="none" stroke="#5C1A2A" stroke-width="6" stroke-linecap="round" stroke-dasharray="175.93" stroke-dashoffset="175.93" class="donut-ring"/>
               </svg>
             </div>
           </div>
@@ -744,8 +746,8 @@
       </div>
       <div class="flex flex-wrap gap-1.5">
         <button class="pill-btn !text-[0.6rem]" onclick="filterReports('all')">All</button>
-        <button class="pill-btn !text-[0.6rem]" style="border-color: var(--gold); color: var(--gold);" onclick="filterReports('pending')">Pending</button>
-        <button class="pill-btn !text-[0.6rem]" style="border-color: var(--success); color: var(--success);" onclick="filterReports('graded')">Graded</button>
+        <button class="pill-btn !text-[0.6rem]" style="border-color: #8B1A2B; color: #8B1A2B;" onclick="filterReports('pending')">Pending</button>
+        <button class="pill-btn !text-[0.6rem]" style="border-color: #D4A574; color: #D4A574;" onclick="filterReports('graded')">Graded</button>
       </div>
     </div>
     <div class="bento-card overflow-hidden">
@@ -1466,9 +1468,12 @@
     if (!students.length) {
       container.innerHTML = '<div class="text-center py-4 text-xs" style="color: var(--fg-dim);">No data available</div>'; return;
     }
-    const names = ['Approved Hours', 'Pending Hours', 'Remaining Hours'];
-    const vals = [0, 0, 0];
-    const colors = ['var(--primary)', 'var(--gold)', 'var(--card-border)'];
+    const requiredHours = 480;
+    const approvedHours = students.reduce((sum, s) => sum + (s.total_hours || 0), 0);
+    const pendingHours = Math.max(0, requiredHours - approvedHours);
+    const names = ['Approved Hours', 'Pending Hours'];
+    const vals = [Math.round(approvedHours), Math.round(pendingHours)];
+    const colors = ['#8B1A2B', '#D4A574'];
     const maxVal = Math.max(...vals, 1);
     container.innerHTML = '';
     names.forEach((name, i) => {
@@ -1620,16 +1625,16 @@
   function renderAccountTable() {
     const tbody = document.getElementById('accountTableBody');
     tbody.innerHTML = '';
-    let total = 0, present = 0, absent = 0, ongoing = 0;
     const search = (document.getElementById('accountSearchInput')?.value || '').toLowerCase();
     const filtered = accountList.filter(s => {
-      total++;
-      if (s.today_status === 'present') present++;
-      else if (s.today_status === 'on-going') ongoing++;
-      else if (s.today_status === 'absent') absent++;
-
       if (search && !(s.name || '').toLowerCase().includes(search) && !(s.student_id || '').toLowerCase().includes(search)) return false;
       return true;
+    });
+    let total = filtered.length, present = 0, absent = 0, ongoing = 0;
+    filtered.forEach(s => {
+      if (s.today_status === 'present') present++;
+      else if (s.today_status === 'on-going') ongoing++;
+      else absent++;
     });
 
     if (!filtered.length) {
@@ -1642,9 +1647,9 @@
 
     const paginated = filtered.slice(accountCurrentPage * 10, (accountCurrentPage + 1) * 10);
     paginated.forEach(s => {
-      const todayColor = s.today_status === 'present' ? 'var(--success)' : s.today_status === 'on-going' ? 'var(--gold)' : 'var(--fg-dim)';
-      const todayIcon = s.today_status === 'present' ? 'check-circle' : s.today_status === 'on-going' ? 'clock' : 'minus-circle';
-      const todayText = s.today_status === 'present' ? 'Present' : s.today_status === 'on-going' ? 'On-going' : '\u2014';
+      const todayColor = s.today_status === 'present' ? 'var(--success)' : s.today_status === 'on-going' ? 'var(--gold)' : 'var(--danger)';
+      const todayIcon = s.today_status === 'present' ? 'check-circle' : s.today_status === 'on-going' ? 'clock' : 'x-circle';
+      const todayText = s.today_status === 'present' ? 'Present' : s.today_status === 'on-going' ? 'On-going' : 'Absent';
       const hrs = s.total_hours ? s.total_hours.toFixed(1) : '0.0';
 
       tbody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-black/[0.02] transition-colors">

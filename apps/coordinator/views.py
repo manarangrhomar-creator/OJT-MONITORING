@@ -326,6 +326,8 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         students_data = []
         for student in students:
             s = stats.get(student.id, {'present_days': 0, 'total_seconds': 0, 'today_status': '', 'last_attendance': None})
+            if not s['today_status']:
+                s['today_status'] = 'absent'
             hours = round(s['total_seconds'] / 3600, 2)
             # ponytail: count weekdays from account creation to today (matches student calendar logic)
             acct_start = student.date_joined.date() if student.date_joined else today
