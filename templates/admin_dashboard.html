@@ -2749,7 +2749,7 @@
                 addSiteMapObj.invalidateSize();
                 return;
             }
-            addSiteMapObj = L.map('addSiteMap', { zoomControl: true, scrollWheelZoom: true }).setView([16.9380, 121.7645], 16);
+            addSiteMapObj = L.map('addSiteMap', { zoomControl: true, scrollWheelZoom: true }).setView([16.9380, 121.7714], 16);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '&copy; OpenStreetMap contributors'
             }).addTo(addSiteMapObj);
@@ -2782,7 +2782,7 @@
             }
             const lat = parseFloat(document.getElementById('editSiteLat').value);
             const lng = parseFloat(document.getElementById('editSiteLng').value);
-            const center = (!isNaN(lat) && !isNaN(lng)) ? [lat, lng] : [16.9380, 121.7645];
+            const center = (!isNaN(lat) && !isNaN(lng)) ? [lat, lng] : [16.9380, 121.7714];
             const zoom = 16;
             editSiteMapObj = L.map('editSiteMap', { zoomControl: true, scrollWheelZoom: true }).setView(center, zoom);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
