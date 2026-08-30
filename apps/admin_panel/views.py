@@ -19,6 +19,10 @@ class IsAdminUser(permissions.BasePermission):
         return request.user and request.user.is_authenticated and request.user.is_admin()
 
 
+def invalidate_system_logs_cache():
+    cache.delete('admin_system_logs')
+
+
 class AdminDashboardViewSet(viewsets.ViewSet):
     """ViewSet for admin dashboard operations."""
     permission_classes = [IsAdminUser]
@@ -74,6 +78,7 @@ class AdminDashboardViewSet(viewsets.ViewSet):
             description=f"Coordinator {coordinator.username} status set to {status_value}",
             admin_user=request.user,
         )
+        invalidate_system_logs_cache()
 
         coordinator_name = coordinator.get_full_name() or coordinator.username
         if status_value == 'approved':
@@ -118,6 +123,7 @@ class AdminDashboardViewSet(viewsets.ViewSet):
             description=f"Student {student.username} account approved",
             admin_user=request.user,
         )
+        invalidate_system_logs_cache()
 
         student_name = student.get_full_name() or student.username
         send_email_task.delay(
@@ -143,6 +149,7 @@ class AdminDashboardViewSet(viewsets.ViewSet):
             description=f"Student {student.username} account rejected",
             admin_user=request.user,
         )
+        invalidate_system_logs_cache()
 
         student_name = student.get_full_name() or student.username
         send_email_task.delay(
@@ -187,8 +194,18 @@ class UserManagementViewSet(viewsets.ModelViewSet):
             description=f"User {user.username} archived (set to inactive)",
             admin_user=request.user,
         )
+        invalidate_system_logs_cache()
         
         return Response({"message": f"User {user.username} archived"}, status=status.HTTP_200_OK)
+
+    def perform_destroy(self, instance):
+        SystemLog.objects.create(
+            activity_type="user_deleted",
+            description=f"User {instance.username} deleted",
+            admin_user=self.request.user,
+        )
+        invalidate_system_logs_cache()
+        instance.delete()
 
 
 class CoursesViewSet(viewsets.ModelViewSet):
@@ -226,10 +243,25 @@ class AdminProgramViewSet(viewsets.ModelViewSet):
     pagination_class = None
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        program = serializer.save(created_by=self.request.user)
+        SystemLog.objects.create(
+            activity_type="program_created",
+            description=f"Subject '{program.name}' created",
+            admin_user=self.request.user,
+        )
+        invalidate_system_logs_cache()
 
     def perform_update(self, serializer):
         serializer.save(updated_by=self.request.user)
+
+    def perform_destroy(self, instance):
+        SystemLog.objects.create(
+            activity_type="program_deleted",
+            description=f"Subject '{instance.name}' deleted",
+            admin_user=self.request.user,
+        )
+        invalidate_system_logs_cache()
+        instance.delete()
 
     @action(detail=True, methods=['post'], url_path='archive')
     def archive(self, request, pk=None):
@@ -241,6 +273,7 @@ class AdminProgramViewSet(viewsets.ModelViewSet):
             description=f"Subject {program.name} archived",
             admin_user=self.request.user,
         )
+        invalidate_system_logs_cache()
         return Response({'message': 'Subject archived successfully.'}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'])

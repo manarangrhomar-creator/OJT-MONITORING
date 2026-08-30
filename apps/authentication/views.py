@@ -15,6 +15,7 @@ from django.conf import settings
 from apps.core.models import User, Course
 from apps.student.models import StudentProfile
 from apps.core.utils import create_notification, broadcast_dashboard_update
+from apps.admin_panel.models import SystemLog
 from .serializers import UserRegisterSerializer, UserLoginSerializer, UserSerializer, SendOTPSerializer, VerifyOTPSerializer, ResetPasswordSerializer
 from .models import PasswordResetOTP, EmailVerificationToken, LoginAttempt
 import os
@@ -104,6 +105,13 @@ class AuthenticationViewSet(viewsets.ViewSet):
         serializer = UserRegisterSerializer(data=data)
         if serializer.is_valid():
             user = serializer.save()
+
+            # Log user creation
+            SystemLog.objects.create(
+                activity_type="user_created",
+                description=f"New {user.role} account created: {user.get_full_name() or user.username}",
+            )
+            cache.delete('admin_system_logs')
 
             # Generate email verification token for students
             if user.role == 'student':

@@ -11,11 +11,13 @@ from rest_framework.throttling import UserRateThrottle
 from datetime import datetime, timedelta
 from django.db.models import Q, Count, F
 from django.utils import timezone
+from django.core.cache import cache
 from django.shortcuts import get_object_or_404
 from apps.coordinator.models import OJTApplication, Attendance, OJTProgram, Site, SiteAssignment
 from apps.coordinator.serializers import OJTApplicationSerializer, AttendanceSerializer
 from apps.core.models import Notification
 from apps.core.utils import create_and_send_notification, send_unread_count_update, broadcast_dashboard_update
+from apps.admin_panel.models import SystemLog
 from .models import StudentProfile, FacialRecognition, StudentNarrativeReport
 from .serializers import (StudentProfileSerializer, FacialRecognitionSerializer,
                           StudentNarrativeReportSerializer, StudentProgramSerializer,
@@ -573,6 +575,11 @@ class StudentNarrativeViewSet(viewsets.ModelViewSet):
             student=self.request.user,
             program=program.program if program else None
         )
+        SystemLog.objects.create(
+            activity_type="report_generated",
+            description=f"Narrative report submitted by {self.request.user.get_full_name() or self.request.user.username} for {instance.log_date}",
+        )
+        cache.delete('admin_system_logs')
         if instance.program and instance.program.coordinator:
             create_and_send_notification(
                 recipient=instance.program.coordinator,
@@ -606,6 +613,11 @@ class StudentNarrativeViewSet(viewsets.ModelViewSet):
                 student=request.user,
                 program=program.program if program else None
             )
+            SystemLog.objects.create(
+                activity_type="report_generated",
+                description=f"Narrative report with photos submitted by {request.user.get_full_name() or request.user.username} for {instance.log_date}",
+            )
+            cache.delete('admin_system_logs')
             if instance.program and instance.program.coordinator:
                 create_and_send_notification(
                     recipient=instance.program.coordinator,

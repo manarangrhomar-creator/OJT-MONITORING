@@ -550,10 +550,8 @@
         <button class="pill-btn !text-[0.6rem] active" onclick="filterSystemLogsByType('all', this)">All</button>
         <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('user_created', this)">User Created</button>
         <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('user_archived', this)">User Archived</button>
-        <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('user_deleted', this)">User Deleted</button>
         <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('program_created', this)">Subject Created</button>
         <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('program_archived', this)">Subject Archived</button>
-        <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('program_deleted', this)">Subject Deleted</button>
         <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('approval_made', this)">Approval</button>
         <button class="pill-btn !text-[0.6rem]" onclick="filterSystemLogsByType('report_generated', this)">Report</button>
       </div>
@@ -569,23 +567,13 @@
       </div>
     </div>
     <div class="bento-card overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="w-full text-left">
-          <thead><tr>
-            <th class="table-header">Timestamp</th>
-            <th class="table-header">Type</th>
-            <th class="table-header">Description</th>
-            <th class="table-header">Admin</th>
-          </tr></thead>
-          <tbody id="systemLogTableBody" class="divide-y tbody-table">
-            <tr><td colspan="4" class="py-12">
-              <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
-              <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
-              <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
-            </td></tr>
-          </tbody>
-        </table>
-      </div>
+      <div class="overflow-x-auto"><table class="w-full text-left">
+        <thead><tr>
+          <th class="table-header">Timestamp</th><th class="table-header">Type</th>
+          <th class="table-header">Description</th><th class="table-header">Admin</th>
+        </tr></thead>
+        <tbody id="systemLogTableBody" class="divide-y tbody-table"></tbody>
+      </table></div>
       <div class="p-3 flex items-center justify-between" style="border-top: 1px solid var(--card-border);">
         <span id="systemLogCount" class="text-[0.6rem] font-semibold" style="color: var(--fg-dim);">—</span>
         <div class="flex gap-1">
@@ -2696,34 +2684,73 @@
         function renderSystemLogsTable() {
             const tbody = document.getElementById('systemLogTableBody');
             if (!tbody) return;
+            tbody.innerHTML = '';
             const start = systemLogsCurrentPage * SYSTEM_LOGS_PER_PAGE;
             const page = systemLogsFiltered.slice(start, start + SYSTEM_LOGS_PER_PAGE);
-            const typeLabels = { user_created: 'User Created', user_archived: 'User Archived', user_deleted: 'User Deleted', program_created: 'Subject Created', program_archived: 'Subject Archived', program_deleted: 'Subject Deleted', approval_made: 'Approval', report_generated: 'Report' };
+            const typeLabels = { user_created: 'User Created', user_archived: 'User Archived', program_created: 'Subject Created', program_archived: 'Subject Archived', approval_made: 'Approval', report_generated: 'Report' };
             if (page.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center" style="color: var(--fg-dim);">No logs found</td></tr>';
-            } else {
-                tbody.innerHTML = page.map(log => {
-                    const ts = log.created_at ? new Date(log.created_at).toLocaleString() : '—';
-                    const type = typeLabels[log.activity_type] || log.activity_type || '—';
-                    const admin = log.admin_username || log.admin_name || 'Admin';
-                    return `<tr>
-                      <td class="table-cell whitespace-nowrap">${ts}</td>
-                      <td class="table-cell"><span class="text-[0.6rem] font-semibold px-2 py-0.5 rounded-full" style="background: rgba(123,24,24,0.1); color: var(--primary);">${type}</span></td>
-                      <td class="table-cell">${esc(log.description || '—')}</td>
-                      <td class="table-cell whitespace-nowrap">${esc(admin)}</td>
-                    </tr>`;
-                }).join('');
+                tbody.innerHTML = '<tr><td colspan="4" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="scroll-text" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No logs found</span></div></td></tr>';
+                renderSystemLogsPagination();
+                lucide.createIcons();
+                return;
             }
-            const total = systemLogsFiltered.length;
-            document.getElementById('systemLogCount').textContent = total > 0 ? `${start + 1}–${Math.min(start + SYSTEM_LOGS_PER_PAGE, total)} of ${total}` : '0 results';
-            document.getElementById('systemLogPrev').disabled = systemLogsCurrentPage === 0;
-            document.getElementById('systemLogNext').disabled = start + SYSTEM_LOGS_PER_PAGE >= total;
+            page.forEach(log => {
+                const ts = log.created_at ? new Date(log.created_at).toLocaleString() : '—';
+                const type = typeLabels[log.activity_type] || log.activity_type || '—';
+                const admin = log.admin_username || log.admin_name || 'Admin';
+                tbody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-black/[0.02] transition-colors">
+                    <td class="table-cell whitespace-nowrap">${ts}</td>
+                    <td class="table-cell"><span class="text-[0.6rem] font-semibold px-2 py-0.5 rounded-full" style="background: rgba(123,24,24,0.1); color: var(--primary);">${type}</span></td>
+                    <td class="table-cell">${esc(log.description || '—')}</td>
+                    <td class="table-cell whitespace-nowrap">${esc(admin)}</td>
+                </tr>`);
+            });
             lucide.createIcons();
+            renderSystemLogsPagination();
         }
 
         function systemLogsPage(dir) {
             systemLogsCurrentPage += dir;
             renderSystemLogsTable();
+        }
+
+        function renderSystemLogsPagination() {
+            const total = systemLogsFiltered.length;
+            const totalPages = Math.ceil(total / SYSTEM_LOGS_PER_PAGE);
+            const current = systemLogsCurrentPage;
+            const countEl = document.getElementById('systemLogCount');
+            const prevBtn = document.getElementById('systemLogPrev');
+            const nextBtn = document.getElementById('systemLogNext');
+            const container = document.getElementById('systemLogPageButtons');
+
+            if (countEl) {
+                countEl.textContent = total === 0 ? '—' : `${current * SYSTEM_LOGS_PER_PAGE + 1}–${Math.min((current + 1) * SYSTEM_LOGS_PER_PAGE, total)} of ${total}`;
+            }
+            if (prevBtn) prevBtn.disabled = current === 0;
+            if (nextBtn) nextBtn.disabled = current >= totalPages - 1;
+
+            if (!container) return;
+            container.innerHTML = '';
+            if (totalPages <= 1) return;
+
+            const addBtn = (page) => {
+                const btn = document.createElement('button');
+                btn.className = `pill-btn !text-[0.6rem] !px-2.5 !py-1${page === current ? ' active' : ''}`;
+                btn.textContent = page + 1;
+                btn.onclick = () => { systemLogsCurrentPage = page; renderSystemLogsTable(); };
+                container.appendChild(btn);
+            };
+            const addEllipsis = () => {
+                const span = document.createElement('span');
+                span.className = 'text-[0.6rem] px-1 self-center';
+                span.style.color = 'var(--fg-dim)';
+                span.textContent = '...';
+                container.appendChild(span);
+            };
+
+            if (current > 2) { addBtn(0); if (current > 3) addEllipsis(); }
+            for (let i = Math.max(0, current - 1); i <= Math.min(totalPages - 1, current + 1); i++) addBtn(i);
+            if (current < totalPages - 3) { if (current < totalPages - 4) addEllipsis(); addBtn(totalPages - 1); }
         }
 
         function filterSystemLogsByType(type, btn) {

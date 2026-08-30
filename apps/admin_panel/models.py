@@ -7,10 +7,12 @@ class SystemLog(BaseModel):
     ACTIVITY_CHOICES = [
         ('user_created', 'User Created'),
         ('user_deleted', 'User Deleted'),
+        ('user_archived', 'User Archived'),
         ('program_created', 'Program Created'),
+        ('program_deleted', 'Program Deleted'),
+        ('program_archived', 'Program Archived'),
         ('approval_made', 'Approval Made'),
         ('report_generated', 'Report Generated'),
-        ('program_deleted', 'Program Deleted'),
     ]
     
     activity_type = models.CharField(max_length=50, choices=ACTIVITY_CHOICES)
