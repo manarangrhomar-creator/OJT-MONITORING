@@ -1037,7 +1037,15 @@
     <div class="grid grid-cols-2 gap-4">
       <div>
         <label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Pick Location on Map</label>
-        <div id="addSiteMap" class="site-map" style="height: 420px;"></div>
+        <div class="relative mb-2" id="siteLocationSearchWrapper">
+          <input type="text" id="siteLocationSearch" placeholder="Search for a place..." autocomplete="off"
+            class="w-full !p-2.5 !pr-3 !pl-9 !rounded-xl text-sm">
+          <div class="pointer-events-none absolute inset-y-0 left-0 w-9 flex items-center justify-center" style="color: var(--fg-dim);">
+            <i data-lucide="search" class="h-4 w-4"></i>
+          </div>
+          <div id="siteLocationDropdown" class="hidden absolute top-full left-0 right-0 mt-1 max-h-48 overflow-y-auto rounded-xl border" style="background: var(--card-bg); border-color: var(--border); z-index: 9999;"></div>
+        </div>
+        <div id="addSiteMap" class="site-map" style="height: 380px;"></div>
       </div>
       <div class="space-y-3">
         <div><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Agency Name</label><input type="text" id="siteName" placeholder="e.g. University Library" class="w-full !p-2.5 !rounded-xl text-sm"></div>
@@ -1160,6 +1168,18 @@
     <div class="modal-buttons">
       <button class="ghost-btn" onclick="closeModal('deleteProgramModal')">Cancel</button>
       <button id="confirmDeleteProgramBtn" class="ghost-btn danger-ghost" onclick="confirmProgramDelete()" disabled>Archive</button>
+    </div>
+  </div>
+</div>
+
+<div id="restoreModal" class="modal" role="dialog" aria-modal="true">
+  <div class="modal-content narrow">
+    <div class="modal-header"><h2 id="restoreModalTitle">Restore</h2><button class="close-btn" onclick="closeModal('restoreModal')">&times;</button></div>
+    <p class="modal-desc">Are you sure you want to restore <strong class="modal-name-highlight" id="restoreName"></strong>?</p>
+    <div class="mb-3"><label class="text-[0.55rem] font-bold uppercase tracking-wider block mb-1.5">Type "<span id="restoreNameConfirm"></span>" to confirm</label><input type="text" id="restoreConfirmInput" placeholder="Type the name to confirm..." class="w-full !p-2.5 !rounded-xl text-sm"></div>
+    <div class="modal-buttons">
+      <button class="ghost-btn" onclick="closeModal('restoreModal')">Cancel</button>
+      <button id="confirmRestoreBtn" class="ghost-btn" onclick="confirmRestore()" disabled style="color:var(--success);border:1px solid var(--success);">Restore</button>
     </div>
   </div>
 </div>
@@ -1321,7 +1341,7 @@
 
             if (section === 'overview') loadDashboardOverview();
             if (section === 'courses') loadCourses();
-            if (section === 'sites') { loadSitesAdmin().then(() => { setTimeout(() => { if (sitesMap) sitesMap.invalidateSize(); }, 300); setTimeout(() => { if (sitesMap) sitesMap.invalidateSize(); }, 1000); }); }
+            if (section === 'sites') { loadSitesAdmin(); }
             if (section === 'programs') loadPrograms();
             if (section === 'student-approvals') loadStudentApprovals();
             if (section === 'system-logs') loadSystemLogs();
@@ -1760,7 +1780,10 @@
                     <td class="table-cell"><span class="text-[0.6rem] font-bold px-2.5 py-0.5 rounded-full" style="background: ${sc}20; color: ${sc};">${esc(student.status)}</span></td>
                     <td class="table-cell text-center">
                         <button class="ghost-btn !p-1.5" title="View" onclick="viewStudent('${esc(student.id)}')"><i data-lucide="eye" class="w-3.5 h-3.5"></i></button>
-                        <button class="ghost-btn !p-1.5" title="Archive" onclick="deleteStudent('${esc(student.id)}')"><i data-lucide="archive" class="w-3.5 h-3.5"></i></button>
+                        ${student.status === 'Active'
+                            ? `<button class="ghost-btn !p-1.5" title="Archive" onclick="deleteStudent('${esc(student.id)}')"><i data-lucide="archive" class="w-3.5 h-3.5"></i></button>`
+                            : `<button class="ghost-btn !p-1.5" title="Restore" onclick="restoreStudent('${esc(student.id)}')"><i data-lucide="undo-2" class="w-3.5 h-3.5"></i></button>`
+                        }
                     </td>
                 </tr>`);
             });
@@ -1898,6 +1921,12 @@
             }
         }
 
+        function restoreStudent(id) {
+            const s = students[id];
+            if (!s) return;
+            openRestoreModal(id, s.full_name || s.username, 'student');
+        }
+
         // ===== COORDINATOR MANAGEMENT =====
         async function loadCoordinators() {
             const tbody = document.getElementById('coordinatorTableBody');
@@ -1960,7 +1989,10 @@
                     <td class="table-cell"><span class="text-[0.6rem] font-bold px-2.5 py-0.5 rounded-full" style="background: ${sc}20; color: ${sc};">${esc(coord.status)}</span></td>
                     <td class="table-cell text-center">
                         <button class="ghost-btn !p-1.5" title="View" onclick="viewCoordinator('${esc(coord.id)}')"><i data-lucide="eye" class="w-3.5 h-3.5"></i></button>
-                        <button class="ghost-btn !p-1.5" title="Archive" onclick="deleteCoordinator('${esc(coord.id)}')"><i data-lucide="archive" class="w-3.5 h-3.5"></i></button>
+                        ${coord.status === 'Active'
+                            ? `<button class="ghost-btn !p-1.5" title="Archive" onclick="deleteCoordinator('${esc(coord.id)}')"><i data-lucide="archive" class="w-3.5 h-3.5"></i></button>`
+                            : `<button class="ghost-btn !p-1.5" title="Restore" onclick="restoreCoordinator('${esc(coord.id)}')"><i data-lucide="undo-2" class="w-3.5 h-3.5"></i></button>`
+                        }
                     </td>
                 </tr>`);
             });
@@ -2116,6 +2148,12 @@
                 btn.disabled = false;
                 btn.innerHTML = originalText;
             }
+        }
+
+        function restoreCoordinator(id) {
+            const c = coordinators[id] || coordinatorList.find(x => x.id === id);
+            if (!c) return;
+            openRestoreModal(id, c.full_name || c.username, 'coordinator');
         }
 
         // ===== COORDINATOR APPROVAL FUNCTIONS =====
@@ -2450,7 +2488,10 @@
                     <td class="table-cell"><span class="text-[0.6rem] font-bold px-2.5 py-0.5 rounded-full" style="background: ${sc}20; color: ${sc};">${esc(st)}</span></td>
                     <td class="table-cell text-center">
                         <button class="ghost-btn !p-1.5" title="Edit" onclick="editCourse('${esc(c.id)}')"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
-                        <button class="ghost-btn !p-1.5" title="Archive" onclick="deleteCourse('${esc(c.id)}')"><i data-lucide="archive" class="w-3.5 h-3.5"></i></button>
+                        ${c.is_active
+                            ? `<button class="ghost-btn !p-1.5" title="Archive" onclick="deleteCourse('${esc(c.id)}')"><i data-lucide="archive" class="w-3.5 h-3.5"></i></button>`
+                            : `<button class="ghost-btn !p-1.5" title="Restore" onclick="restoreCourse('${esc(c.id)}')"><i data-lucide="undo-2" class="w-3.5 h-3.5"></i></button>`
+                        }
                     </td>
                 </tr>`);
             });
@@ -2577,6 +2618,12 @@
                 btn.disabled = false;
                 btn.innerHTML = originalText;
             }
+        }
+
+        function restoreCourse(id) {
+            const c = courseList.find(x => x.id === id);
+            if (!c) return;
+            openRestoreModal(id, c.name, 'course');
         }
 
         // ===== DASHBOARD OVERVIEW =====
@@ -2778,7 +2825,8 @@
             }
             addSiteMapObj = L.map('addSiteMap', { zoomControl: true, scrollWheelZoom: true }).setView([16.9380, 121.7714], 16);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
             }).addTo(addSiteMapObj);
             siteListAdmin.forEach(site => {
                 const lat = parseFloat(site.latitude);
@@ -2799,6 +2847,63 @@
             renderSitePagination();
         }
 
+        let siteLocationSearchTimeout = null;
+        let siteLocationSearchInit = false;
+        function initSiteLocationSearch() {
+            const input = document.getElementById('siteLocationSearch');
+            const dropdown = document.getElementById('siteLocationDropdown');
+            const wrapper = document.getElementById('siteLocationSearchWrapper');
+            if (!input || !dropdown) return;
+            input.value = '';
+            input.removeAttribute('readonly');
+            input.oninput = function() {
+                clearTimeout(siteLocationSearchTimeout);
+                const query = input.value.trim();
+                if (query.length < 3) { dropdown.classList.add('hidden'); return; }
+                siteLocationSearchTimeout = setTimeout(async () => {
+                    try {
+                        const res = await fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&limit=6', {
+                            headers: { 'Accept': 'application/json' }
+                        });
+                        const results = await res.json();
+                        if (!results.length) { dropdown.classList.add('hidden'); return; }
+                        dropdown.innerHTML = results.map(function(r) {
+                            var label = r.display_name.length > 60 ? r.display_name.substring(0, 60) + '…' : r.display_name;
+                            return '<div class="site-location-result" data-lat="' + r.lat + '" data-lon="' + r.lon + '" data-name="' + esc(r.display_name) + '" style="padding:8px 12px;cursor:pointer;font-size:0.75rem;border-bottom:1px solid var(--border);" onmouseover="this.style.background=\'var(--accent-bg)\'" onmouseout="this.style.background=\'\'">' + esc(label) + '</div>';
+                        }).join('');
+                        dropdown.classList.remove('hidden');
+                        dropdown.querySelectorAll('.site-location-result').forEach(function(el) {
+                            el.addEventListener('click', function() {
+                                var lat = parseFloat(this.dataset.lat);
+                                var lon = parseFloat(this.dataset.lon);
+                                document.getElementById('siteLat').value = lat.toFixed(6);
+                                document.getElementById('siteLng').value = lon.toFixed(6);
+                                document.getElementById('siteAddress').value = this.dataset.name;
+                                input.value = this.dataset.name;
+                                dropdown.classList.add('hidden');
+                                if (addSiteMapObj) {
+                                    addSiteMapObj.setView([lat, lon], 17);
+                                    if (addSiteMapMarker) addSiteMapObj.removeLayer(addSiteMapMarker);
+                                    addSiteMapMarker = L.marker([lat, lon]).addTo(addSiteMapObj)
+                                        .bindPopup('Selected location').openPopup();
+                                }
+                            });
+                        });
+                    } catch (e) { dropdown.classList.add('hidden'); }
+                }, 400);
+            };
+            input.onkeydown = function(e) {
+                if (e.key === 'Escape') dropdown.classList.add('hidden');
+            };
+            if (!siteLocationSearchInit) {
+                document.addEventListener('click', function(e) {
+                    var w = document.getElementById('siteLocationSearchWrapper');
+                    var d = document.getElementById('siteLocationDropdown');
+                    if (w && d && !w.contains(e.target)) d.classList.add('hidden');
+                });
+                siteLocationSearchInit = true;
+            }
+        }
 
         function initEditSiteMap() {
             const container = document.getElementById('editSiteMap');
@@ -2813,7 +2918,8 @@
             const zoom = 16;
             editSiteMapObj = L.map('editSiteMap', { zoomControl: true, scrollWheelZoom: true }).setView(center, zoom);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '&copy; OpenStreetMap contributors'
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 19
             }).addTo(editSiteMapObj);
             if (!isNaN(lat) && !isNaN(lng)) {
                 editSiteMapMarker = L.marker(center).addTo(editSiteMapObj)
@@ -2878,7 +2984,10 @@
                     <td class="table-cell"><span class="text-[0.6rem] font-bold px-2.5 py-0.5 rounded-full" style="background: ${sc}20; color: ${sc};">${esc(st)}</span></td>
                     <td class="table-cell text-center">
                         <button class="ghost-btn !p-1.5" title="Edit" onclick="editSite('${esc(s.id)}')"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
-                        <button class="ghost-btn !p-1.5" title="Archive" onclick="deleteSite('${esc(s.id)}')"><i data-lucide="archive" class="w-3.5 h-3.5"></i></button>
+                        ${s.is_active
+                            ? `<button class="ghost-btn !p-1.5" title="Archive" onclick="deleteSite('${esc(s.id)}')"><i data-lucide="archive" class="w-3.5 h-3.5"></i></button>`
+                            : `<button class="ghost-btn !p-1.5" title="Restore" onclick="restoreSite('${esc(s.id)}')"><i data-lucide="undo-2" class="w-3.5 h-3.5"></i></button>`
+                        }
                     </td>
                 </tr>`);
             });
@@ -3044,6 +3153,7 @@
                 console.error('Error loading site modal data:', error);
             }
             openModal('addSiteModal');
+            initSiteLocationSearch();
         }
 
         async function addNewSite() {
@@ -3200,6 +3310,12 @@
             }
         }
 
+        function restoreSite(id) {
+            const s = siteListAdmin.find(x => x.id === id);
+            if (!s) return;
+            openRestoreModal(id, s.name, 'site');
+        }
+
         // ===== SUBJECT MANAGEMENT =====
         let programList = [];
 
@@ -3251,7 +3367,10 @@
                     <td class="table-cell font-semibold">${esc(p.student_count || 0)}</td>
                     <td class="table-cell text-center">
                         <button class="ghost-btn !p-1.5" title="View Students" onclick="viewProgramStudents('${esc(p.id)}')"><i data-lucide="eye" class="w-3.5 h-3.5"></i></button>
-                        <button class="ghost-btn !p-1.5" title="Archive" onclick="deleteProgram('${esc(p.id)}')"><i data-lucide="archive" class="w-3.5 h-3.5"></i></button>
+                        ${p.status === 'inactive'
+                            ? `<button class="ghost-btn !p-1.5" title="Restore" onclick="restoreProgram('${esc(p.id)}')"><i data-lucide="undo-2" class="w-3.5 h-3.5"></i></button>`
+                            : `<button class="ghost-btn !p-1.5" title="Archive" onclick="deleteProgram('${esc(p.id)}')"><i data-lucide="archive" class="w-3.5 h-3.5"></i></button>`
+                        }
                     </td>
                 </tr>`);
             });
@@ -3341,6 +3460,66 @@
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = originalText;
+            }
+        }
+
+        function restoreProgram(id) {
+            const p = programList.find(x => x.id === id);
+            if (!p) return;
+            openRestoreModal(id, p.name, 'program');
+        }
+
+        // ===== GENERIC RESTORE MODAL =====
+        let pendingRestoreId = null;
+        let pendingRestoreName = '';
+        let pendingRestoreType = '';
+
+        const typeLabels = {
+            student: { title: 'Restore Student', api: id => `/api/admin/users/${id}/unarchive/`, after: id => { students[id].status = 'Active'; applyStudentFilters(); }, msg: '✓ Student account restored' },
+            coordinator: { title: 'Restore Coordinator', api: id => `/api/admin/users/${id}/unarchive/`, after: id => { coordinators[id].status = 'Active'; coordinatorList = coordinatorList.map(c => c.id === id ? {...c, status: 'Active'} : c); applyCoordinatorFilters(); }, msg: '✓ Coordinator account restored' },
+            course: { title: 'Restore Course', api: id => `/api/admin/courses/${id}/unarchive/`, after: () => loadCourses(), msg: '✓ Course restored successfully' },
+            site: { title: 'Restore Site', api: id => `/api/admin/sites/${id}/unarchive/`, after: () => loadSitesAdmin(), msg: '✓ Site restored successfully' },
+            program: { title: 'Restore Subject', api: id => `/api/admin/programs/${id}/unarchive/`, after: () => loadPrograms(), msg: '✓ Subject restored successfully' }
+        };
+
+        function openRestoreModal(id, name, type) {
+            pendingRestoreId = id;
+            pendingRestoreName = name;
+            pendingRestoreType = type;
+            document.getElementById('restoreModalTitle').textContent = typeLabels[type]?.title || 'Restore';
+            document.getElementById('restoreName').textContent = name;
+            document.getElementById('restoreNameConfirm').textContent = name;
+            document.getElementById('restoreConfirmInput').value = '';
+            document.getElementById('confirmRestoreBtn').disabled = true;
+            openModal('restoreModal');
+        }
+
+        document.getElementById('restoreConfirmInput')?.addEventListener('keyup', function() {
+            document.getElementById('confirmRestoreBtn').disabled = this.value.trim() !== pendingRestoreName;
+        });
+
+        async function confirmRestore() {
+            const id = pendingRestoreId;
+            const type = pendingRestoreType;
+            if (!id || !type) return;
+            const info = typeLabels[type];
+            if (!info) return;
+            const btn = document.getElementById('confirmRestoreBtn');
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="animate-spin"></i> Restoring...';
+            lucide.createIcons();
+            try {
+                const response = await fetch(info.api(id), { method: 'POST', credentials: 'same-origin' });
+                if (!response.ok) { const err = await response.json().catch(() => ({})); throw new Error(err.detail || Object.values(err).flat().join(', ')); }
+                info.after(id);
+                showAlert(info.msg);
+                closeModal('restoreModal');
+            } catch (error) {
+                showAlert('Error: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
             }
         }
 

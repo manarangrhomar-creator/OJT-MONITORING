@@ -198,6 +198,22 @@ class UserManagementViewSet(viewsets.ModelViewSet):
         
         return Response({"message": f"User {user.username} archived"}, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['post'], url_path='unarchive')
+    def unarchive(self, request, *args, **kwargs):
+        """Restore user to active status."""
+        user = self.get_object()
+        user.is_active = True
+        user.save(update_fields=['is_active'])
+
+        SystemLog.objects.create(
+            activity_type="user_restored",
+            description=f"User {user.username} restored (set to active)",
+            admin_user=request.user,
+        )
+        invalidate_system_logs_cache()
+
+        return Response({"message": f"User {user.username} restored"}, status=status.HTTP_200_OK)
+
     def perform_destroy(self, instance):
         SystemLog.objects.create(
             activity_type="user_deleted",
@@ -231,6 +247,14 @@ class CoursesViewSet(viewsets.ModelViewSet):
         course.save(update_fields=['is_active'])
         cache.delete('active_courses')
         return Response({'message': 'Course archived successfully.'}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='unarchive')
+    def unarchive(self, request, pk=None):
+        course = self.get_object()
+        course.is_active = True
+        course.save(update_fields=['is_active'])
+        cache.delete('active_courses')
+        return Response({'message': 'Course restored successfully.'}, status=status.HTTP_200_OK)
 
 
 class AdminProgramViewSet(viewsets.ModelViewSet):
@@ -276,6 +300,19 @@ class AdminProgramViewSet(viewsets.ModelViewSet):
         invalidate_system_logs_cache()
         return Response({'message': 'Subject archived successfully.'}, status=status.HTTP_200_OK)
 
+    @action(detail=True, methods=['post'], url_path='unarchive')
+    def unarchive(self, request, pk=None):
+        program = self.get_object()
+        program.status = 'active'
+        program.save(update_fields=['status'])
+        SystemLog.objects.create(
+            activity_type="program_restored",
+            description=f"Subject {program.name} restored",
+            admin_user=request.user,
+        )
+        invalidate_system_logs_cache()
+        return Response({'message': 'Subject restored successfully.'}, status=status.HTTP_200_OK)
+
     @action(detail=True, methods=['get'])
     def students(self, request, pk=None):
         """Get approved students in a program."""
@@ -316,3 +353,10 @@ class SitesViewSet(viewsets.ModelViewSet):
         site.is_active = False
         site.save(update_fields=['is_active'])
         return Response({'message': 'Site archived successfully.'}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='unarchive')
+    def unarchive(self, request, pk=None):
+        site = self.get_object()
+        site.is_active = True
+        site.save(update_fields=['is_active'])
+        return Response({'message': 'Site restored successfully.'}, status=status.HTTP_200_OK)

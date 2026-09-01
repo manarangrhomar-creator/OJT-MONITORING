@@ -61,7 +61,7 @@ class SecurityHeadersMiddleware:
             "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; "
             "img-src 'self' data: https:; "
             "media-src 'self' blob:; "
-            "connect-src 'self' ws: wss: https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; "
+            "connect-src 'self' ws: wss: https://unpkg.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://nominatim.openstreetmap.org; "
             "frame-ancestors 'none'"
         )
 

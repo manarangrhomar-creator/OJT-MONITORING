@@ -8,9 +8,11 @@ class SystemLog(BaseModel):
         ('user_created', 'User Created'),
         ('user_deleted', 'User Deleted'),
         ('user_archived', 'User Archived'),
+        ('user_restored', 'User Restored'),
         ('program_created', 'Program Created'),
         ('program_deleted', 'Program Deleted'),
         ('program_archived', 'Program Archived'),
+        ('program_restored', 'Program Restored'),
         ('approval_made', 'Approval Made'),
         ('report_generated', 'Report Generated'),
     ]
