@@ -1885,7 +1885,7 @@
 
         document.getElementById('deleteStudentConfirmInput')?.addEventListener('keyup', function() {
             const btn = document.getElementById('confirmDeleteBtn');
-            btn.disabled = this.value.trim() !== pendingDeleteName;
+            btn.disabled = this.value.trim().toLowerCase() !== pendingDeleteName.toLowerCase();
         });
 
         async function confirmDelete() {
@@ -2590,7 +2590,7 @@
 
         document.getElementById('deleteCourseConfirmInput')?.addEventListener('keyup', function() {
             const btn = document.getElementById('confirmDeleteCourseBtn');
-            btn.disabled = this.value.trim() !== pendingCourseDeleteName;
+            btn.disabled = this.value.trim().toLowerCase() !== pendingCourseDeleteName.toLowerCase();
         });
 
         async function confirmCourseDelete() {
@@ -3280,7 +3280,7 @@
 
         document.getElementById('deleteSiteConfirmInput')?.addEventListener('keyup', function() {
             const btn = document.getElementById('confirmDeleteSiteBtn');
-            btn.disabled = this.value.trim() !== pendingSiteDeleteName;
+            btn.disabled = this.value.trim().toLowerCase() !== pendingSiteDeleteName.toLowerCase();
         });
 
         async function confirmSiteDelete() {
@@ -3433,7 +3433,7 @@
 
         document.getElementById('deleteProgramConfirmInput')?.addEventListener('keyup', function() {
             const btn = document.getElementById('confirmDeleteProgramBtn');
-            btn.disabled = this.value.trim() !== pendingProgramDeleteName;
+            btn.disabled = this.value.trim().toLowerCase() !== pendingProgramDeleteName.toLowerCase();
         });
 
         async function confirmProgramDelete() {
@@ -3495,7 +3495,7 @@
         }
 
         document.getElementById('restoreConfirmInput')?.addEventListener('keyup', function() {
-            document.getElementById('confirmRestoreBtn').disabled = this.value.trim() !== pendingRestoreName;
+            document.getElementById('confirmRestoreBtn').disabled = this.value.trim().toLowerCase() !== pendingRestoreName.toLowerCase();
         });
 
         async function confirmRestore() {
