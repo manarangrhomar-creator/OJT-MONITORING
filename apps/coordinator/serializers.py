@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import OJTProgram, OJTApplication, Attendance, SiteAssignment, FlagRecord
+from .models import OJTProgram, OJTApplication, Attendance, SiteAssignment, FlagRecord, Site
 
 
 class OJTProgramSerializer(serializers.ModelSerializer):
@@ -74,3 +74,20 @@ class FlagRecordSerializer(serializers.ModelSerializer):
         model = FlagRecord
         fields = ('id', 'attendance', 'flag_type', 'reason', 'resolved', 'resolved_by', 'resolved_by_name', 'resolved_at', 'student_name', 'program_name', 'created_at')
         read_only_fields = ('id', 'created_at', 'resolved_at')
+
+
+class SiteApprovalSerializer(serializers.ModelSerializer):
+    """Serializer for pending site approvals."""
+    course_name = serializers.CharField(source='course.name', read_only=True, default=None)
+    status_display = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Site
+        fields = ('id', 'name', 'course', 'course_name', 'supervisor_name', 'contact_number', 'gmail',
+                  'contact_persons', 'address', 'latitude', 'longitude', 'status', 'status_display',
+                  'rejection_reason', 'created_at')
+        read_only_fields = ('id', 'name', 'course', 'supervisor_name', 'contact_number', 'gmail',
+                            'contact_persons', 'address', 'latitude', 'longitude', 'status', 'rejection_reason', 'created_at')
+
+    def get_status_display(self, obj):
+        return obj.get_status_display()

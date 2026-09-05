@@ -451,8 +451,8 @@ class StudentDashboardViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'], url_path='available-sites')
     def available_sites(self, request):
-        """List active sites for student to choose during application."""
-        sites = Site.objects.filter(is_active=True).order_by('name')
+        """List active, approved sites for student to choose during application."""
+        sites = Site.objects.filter(is_active=True, status='approved').order_by('name')
         data = [{
             'id': str(s.id),
             'name': s.name,
@@ -464,13 +464,34 @@ class StudentDashboardViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'])
     def apply(self, request):
-        """Student applies to an OJT program."""
+        """Student applies to an OJT program. Optionally creates a new site (pending approval)."""
         serializer = StudentApplySerializer(
             data=request.data,
             context={'request': request}
         )
         if serializer.is_valid():
             program = serializer.validated_data['program']
+
+            # ── Handle inline site creation ──
+            preferred_site = serializer.validated_data.get('preferred_site')
+            create_site = serializer.validated_data.get('create_site', False)
+
+            if create_site:
+                # Create site as pending — admin/coordinator approves later
+                site = Site.objects.create(
+                    name=serializer.validated_data['site_name'].strip(),
+                    course=program.coordinator.course if hasattr(program, 'coordinator') else None,
+                    coordinator=program.coordinator,
+                    supervisor_name=serializer.validated_data.get('site_supervisor_name', '').strip(),
+                    contact_number=serializer.validated_data.get('site_contact_number', '').strip(),
+                    gmail=serializer.validated_data.get('site_gmail', '').strip(),
+                    address=serializer.validated_data.get('site_address', '').strip(),
+                    latitude=serializer.validated_data.get('site_latitude'),
+                    longitude=serializer.validated_data.get('site_longitude'),
+                    status='pending',
+                )
+                preferred_site = site
+
             existing = OJTApplication.objects.filter(
                 student=request.user, program=program
             ).first()
@@ -478,7 +499,7 @@ class StudentDashboardViewSet(viewsets.ViewSet):
                 existing.status = 'pending'
                 existing.application_letter = serializer.validated_data['application_letter']
                 existing.resume = serializer.validated_data.get('resume', None)
-                existing.preferred_site = serializer.validated_data.get('preferred_site', None)
+                existing.preferred_site = preferred_site
                 existing.rejection_reason = ''
                 existing.approved_date = None
                 existing.save()
@@ -490,7 +511,7 @@ class StudentDashboardViewSet(viewsets.ViewSet):
                     program=program,
                     application_letter=serializer.validated_data['application_letter'],
                     resume=serializer.validated_data.get('resume', None),
-                    preferred_site=serializer.validated_data.get('preferred_site', None),
+                    preferred_site=preferred_site,
                     status='pending',
                     created_by=request.user,
                     updated_by=request.user,

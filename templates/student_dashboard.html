@@ -1326,7 +1326,7 @@
     <div id="applyWizStep1">
       <!-- Mobile intro splash -->
       <div class="wiz-intro">
-        <span class="wiz-intro-step">Step 1 of 4</span>
+        <span class="wiz-intro-step">Step 1 of 5</span>
         <div class="wiz-intro-icon bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)]">
           <i data-lucide="briefcase"></i>
         </div>
@@ -1406,7 +1406,7 @@
     <div id="applyWizStep2" class="hidden space-y-4">
       <!-- Mobile intro splash -->
       <div class="wiz-intro">
-        <span class="wiz-intro-step">Step 2 of 4</span>
+        <span class="wiz-intro-step">Step 2 of 5</span>
         <div class="wiz-intro-icon bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)]">
           <i data-lucide="file-text"></i>
         </div>
@@ -1462,7 +1462,7 @@
     <div id="applyWizStep3" class="hidden space-y-4">
       <!-- Mobile intro splash -->
       <div class="wiz-intro">
-        <span class="wiz-intro-step">Step 3 of 4</span>
+        <span class="wiz-intro-step">Step 3 of 5</span>
         <div class="wiz-intro-icon bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)]">
           <i data-lucide="camera"></i>
         </div>
@@ -1759,37 +1759,101 @@
     <div id="applyWizStep4" class="hidden space-y-4">
       <!-- Mobile intro splash -->
       <div class="wiz-intro">
-        <span class="wiz-intro-step">Step 4 of 4</span>
+        <span class="wiz-intro-step">Step 4 of 5</span>
         <div class="wiz-intro-icon bg-gradient-to-br from-[var(--primary)] to-[var(--primary-dark)]">
           <i data-lucide="map-pin"></i>
         </div>
         <h2>Select OJT Site</h2>
-        <p>Choose an available deployment site for your internship</p>
+        <p>Choose an available site or create your own</p>
         <button type="button" onclick="wizIntroGo(this)">
           Browse Sites <i data-lucide="arrow-right"></i>
         </button>
       </div>
       <!-- Step content -->
       <div class="wiz-step-body">
-      <div id="sitesLoading" class="glass-card p-10 text-center" style="cursor:default;">
-        <i data-lucide="loader" class="animate-spin text-[var(--primary)] w-7 h-7 mx-auto"></i>
-        <p class="text-xs text-[var(--muted)] mt-3 font-medium">Loading available sites...</p>
-      </div>
-      <div id="sitesError" class="hidden glass-card p-8 text-center" style="cursor:default;">
-        <div class="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-3">
-          <i data-lucide="alert-triangle" class="text-red-400 w-6 h-6"></i>
+
+      <!-- Site mode toggle -->
+      <div class="glass-card p-4" style="cursor:default;">
+        <label class="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-3 block">How would you like to specify your site?</label>
+        <div class="flex gap-3">
+          <label class="flex-1 site-mode-option glass-card p-3 cursor-pointer text-center transition-all border-2" data-mode="existing">
+            <input type="radio" name="siteMode" value="existing" class="hidden" checked>
+            <i data-lucide="search" class="w-5 h-5 mx-auto mb-1.5 text-[var(--primary)]"></i>
+            <p class="text-xs font-bold text-[var(--fg)]">Use Existing Site</p>
+            <p class="text-[10px] text-[var(--muted)]">Browse approved sites</p>
+          </label>
+          <label class="flex-1 site-mode-option glass-card p-3 cursor-pointer text-center transition-all border-2" data-mode="create">
+            <input type="radio" name="siteMode" value="create" class="hidden">
+            <i data-lucide="plus-circle" class="w-5 h-5 mx-auto mb-1.5 text-[var(--muted)]"></i>
+            <p class="text-xs font-bold text-[var(--fg)]">Create New Site</p>
+            <p class="text-[10px] text-[var(--muted)]">Specify your own site</p>
+          </label>
         </div>
-        <p class="text-sm font-bold text-[var(--muted)] mb-1">Failed to load sites</p>
-        <p class="text-xs text-[var(--muted)]">Please try again later.</p>
       </div>
-      <div id="noSitesMsg" class="hidden glass-card p-10 text-center" style="cursor:default;">
-        <div class="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
-          <i data-lucide="frown" class="text-gray-300 w-6 h-6"></i>
+
+      <!-- Existing Sites Mode -->
+      <div id="existingSitesMode">
+        <div id="sitesLoading" class="glass-card p-10 text-center" style="cursor:default;">
+          <i data-lucide="loader" class="animate-spin text-[var(--primary)] w-7 h-7 mx-auto"></i>
+          <p class="text-xs text-[var(--muted)] mt-3 font-medium">Loading available sites...</p>
         </div>
-        <p class="text-sm font-bold text-[var(--muted)] mb-1">No sites available</p>
-        <p class="text-xs text-[var(--muted)]">You may still submit your application without choosing a site.</p>
+        <div id="sitesError" class="hidden glass-card p-8 text-center" style="cursor:default;">
+          <div class="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-3">
+            <i data-lucide="alert-triangle" class="text-red-400 w-6 h-6"></i>
+          </div>
+          <p class="text-sm font-bold text-[var(--muted)] mb-1">Failed to load sites</p>
+          <p class="text-xs text-[var(--muted)]">Please try again later.</p>
+        </div>
+        <div id="noSitesMsg" class="hidden glass-card p-10 text-center" style="cursor:default;">
+          <div class="w-14 h-14 rounded-2xl bg-gray-100 flex items-center justify-center mx-auto mb-3">
+            <i data-lucide="frown" class="text-gray-300 w-6 h-6"></i>
+          </div>
+          <p class="text-sm font-bold text-[var(--muted)] mb-1">No sites available</p>
+          <p class="text-xs text-[var(--muted)]">You may still submit your application by creating your own site.</p>
+        </div>
+        <div id="sitesGrid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4"></div>
       </div>
-      <div id="sitesGrid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4"></div>
+
+      <!-- Create New Site Mode -->
+      <div id="createSiteMode" class="hidden">
+        <div class="glass-card p-5 space-y-4" style="cursor:default;">
+          <p class="text-[10px] font-semibold text-[var(--muted)] uppercase tracking-wider mb-1">Site Details</p>
+          <div>
+            <label class="text-[11px] font-semibold text-[var(--fg)] block mb-1.5">Site Name <span class="text-red-500">*</span></label>
+            <input type="text" id="createSiteName" class="w-full p-2.5 border border-[var(--border)] rounded-xl text-sm bg-[var(--card-bg)] text-[var(--fg)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/30 outline-none transition" placeholder="e.g. ABC Corporation Main Office">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-[11px] font-semibold text-[var(--fg)] block mb-1.5">Supervisor Name</label>
+              <input type="text" id="createSiteSupervisor" class="w-full p-2.5 border border-[var(--border)] rounded-xl text-sm bg-[var(--card-bg)] text-[var(--fg)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/30 outline-none transition" placeholder="Full name">
+            </div>
+            <div>
+              <label class="text-[11px] font-semibold text-[var(--fg)] block mb-1.5">Contact Number</label>
+              <input type="text" id="createSiteContact" class="w-full p-2.5 border border-[var(--border)] rounded-xl text-sm bg-[var(--card-bg)] text-[var(--fg)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/30 outline-none transition" placeholder="09XX-XXX-XXXX">
+            </div>
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-[var(--fg)] block mb-1.5">Gmail</label>
+            <input type="email" id="createSiteGmail" class="w-full p-2.5 border border-[var(--border)] rounded-xl text-sm bg-[var(--card-bg)] text-[var(--fg)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/30 outline-none transition" placeholder="example@gmail.com">
+          </div>
+          <div>
+            <label class="text-[11px] font-semibold text-[var(--fg)] block mb-1.5">Address <span class="text-red-500">*</span></label>
+            <input type="text" id="createSiteAddress" class="w-full p-2.5 border border-[var(--border)] rounded-xl text-sm bg-[var(--card-bg)] text-[var(--fg)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/30 outline-none transition" placeholder="Full address">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-[11px] font-semibold text-[var(--fg)] block mb-1.5">Latitude</label>
+              <input type="number" step="any" id="createSiteLat" class="w-full p-2.5 border border-[var(--border)] rounded-xl text-sm bg-[var(--card-bg)] text-[var(--fg)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/30 outline-none transition" placeholder="14.5995">
+            </div>
+            <div>
+              <label class="text-[11px] font-semibold text-[var(--fg)] block mb-1.5">Longitude</label>
+              <input type="number" step="any" id="createSiteLng" class="w-full p-2.5 border border-[var(--border)] rounded-xl text-sm bg-[var(--card-bg)] text-[var(--fg)] focus:border-[var(--primary)] focus:ring-1 focus:ring-[var(--primary)]/30 outline-none transition" placeholder="120.9842">
+            </div>
+          </div>
+          <p class="text-[10px] text-[var(--muted)] italic">Note: Your site will be submitted for coordinator approval after your application is reviewed.</p>
+        </div>
+      </div>
+
       <div class="glass-card p-5" style="cursor:default;">
         <div id="applySiteError" class="hidden p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-medium rounded-xl flex items-center gap-2 mb-3">
           <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
@@ -1805,7 +1869,7 @@
             <i data-lucide="send"></i> Submit Application
           </button>
         </div>
-</div>
+      </div>
       </div><!-- /wiz-step-body -->
     </div>
 
@@ -3839,6 +3903,7 @@ async function loadArchives() {
   let allPrograms = [];
   let selectedSubjectId = '', selectedSubjectName = '';
   let allSites = [], selectedSiteId = '', selectedSiteName = '';
+  let siteMode = 'existing'; // 'existing' or 'create'
 
   function renderSiteCards(sites) {
     const grid = document.getElementById('sitesGrid');
@@ -3883,6 +3948,54 @@ async function loadArchives() {
       loading.classList.add('hidden');
       renderSiteCards(allSites);
     } catch (err) { loading.classList.add('hidden'); error.classList.remove('hidden'); console.error(err); }
+  }
+
+  // Site mode toggle
+  function initSiteModeToggle() {
+    document.querySelectorAll('.site-mode-option').forEach(opt => {
+      opt.addEventListener('click', () => {
+        siteMode = opt.dataset.mode;
+        document.querySelectorAll('.site-mode-option').forEach(o => {
+          o.classList.remove('border-[var(--primary)]', 'bg-[var(--primary)]/5');
+          o.classList.add('border-[var(--border)]');
+          const icon = o.querySelector('i');
+          if (icon) { icon.classList.remove('text-[var(--primary)]'); icon.classList.add('text-[var(--muted)]'); }
+        });
+        opt.classList.add('border-[var(--primary)]', 'bg-[var(--primary)]/5');
+        opt.classList.remove('border-[var(--border)]');
+        const icon = opt.querySelector('i');
+        if (icon) { icon.classList.add('text-[var(--primary)]'); icon.classList.remove('text-[var(--muted)]'); }
+
+        const existingMode = document.getElementById('existingSitesMode');
+        const createMode = document.getElementById('createSiteMode');
+        if (siteMode === 'create') {
+          existingMode.classList.add('hidden');
+          createMode.classList.remove('hidden');
+          selectedSiteId = '';
+          selectedSiteName = '';
+        } else {
+          existingMode.classList.remove('hidden');
+          createMode.classList.add('hidden');
+          // Clear create fields
+          document.getElementById('createSiteName').value = '';
+          document.getElementById('createSiteSupervisor').value = '';
+          document.getElementById('createSiteContact').value = '';
+          document.getElementById('createSiteGmail').value = '';
+          document.getElementById('createSiteAddress').value = '';
+          document.getElementById('createSiteLat').value = '';
+          document.getElementById('createSiteLng').value = '';
+        }
+        lucide.createIcons();
+      });
+    });
+    // Set initial state
+    const defaultOpt = document.querySelector('.site-mode-option[data-mode="existing"]');
+    if (defaultOpt) {
+      defaultOpt.classList.add('border-[var(--primary)]', 'bg-[var(--primary)]/5');
+      defaultOpt.classList.remove('border-[var(--border)]');
+      const icon = defaultOpt.querySelector('i');
+      if (icon) { icon.classList.add('text-[var(--primary)]'); icon.classList.remove('text-[var(--muted)]'); }
+    }
   }
 
   function renderProgramCards(programs) {
@@ -3999,11 +4112,44 @@ async function loadArchives() {
       errDiv.classList.remove('hidden');
       return;
     }
+    // Validate site mode
+    if (siteMode === 'existing' && !selectedSiteId) {
+      const errDiv = document.getElementById('applySiteError');
+      errDiv.innerHTML = '<strong>Error:</strong> Please select a site or switch to "Create New Site".';
+      errDiv.classList.remove('hidden');
+      return;
+    }
+    if (siteMode === 'create') {
+      const siteName = document.getElementById('createSiteName').value.trim();
+      const siteAddress = document.getElementById('createSiteAddress').value.trim();
+      if (!siteName || !siteAddress) {
+        const errDiv = document.getElementById('applySiteError');
+        errDiv.innerHTML = '<strong>Error:</strong> Site Name and Address are required when creating a new site.';
+        errDiv.classList.remove('hidden');
+        return;
+      }
+    }
     const formData = new FormData();
     formData.append('program', selectedSubjectId);
     formData.append('application_letter', letterFile);
     formData.append('face_image', faceBlob, 'face_photo.jpg');
-    if (selectedSiteId) formData.append('preferred_site', selectedSiteId);
+    if (siteMode === 'existing' && selectedSiteId) {
+      formData.append('preferred_site', selectedSiteId);
+    } else if (siteMode === 'create') {
+      formData.append('create_site', 'true');
+      formData.append('site_name', document.getElementById('createSiteName').value.trim());
+      const sup = document.getElementById('createSiteSupervisor').value.trim();
+      if (sup) formData.append('site_supervisor_name', sup);
+      const cnt = document.getElementById('createSiteContact').value.trim();
+      if (cnt) formData.append('site_contact_number', cnt);
+      const gm = document.getElementById('createSiteGmail').value.trim();
+      if (gm) formData.append('site_gmail', gm);
+      formData.append('site_address', document.getElementById('createSiteAddress').value.trim());
+      const lat = document.getElementById('createSiteLat').value.trim();
+      if (lat) formData.append('site_latitude', lat);
+      const lng = document.getElementById('createSiteLng').value.trim();
+      if (lng) formData.append('site_longitude', lng);
+    }
     const btn = document.getElementById('applySubmitWizBtn');
     const errDiv = document.getElementById('applySiteError');
     btn.disabled = true;
@@ -4190,6 +4336,7 @@ async function loadArchives() {
     if (chk) chk.addEventListener('change', function() {
       document.getElementById('faceRegConsentNext').disabled = !this.checked;
     });
+    initSiteModeToggle();
   });
 
   /* ── Stage 2: Camera ── */

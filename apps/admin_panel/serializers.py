@@ -30,11 +30,15 @@ class SiteSerializer(serializers.ModelSerializer):
     """Serializer for Site model (admin)."""
     course_name = serializers.SerializerMethodField()
     coordinator_name = serializers.SerializerMethodField()
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
 
     class Meta:
         model = Site
-        fields = ('id', 'name', 'course', 'course_name', 'coordinator', 'coordinator_name', 'supervisor_name', 'contact_number', 'gmail', 'contact_persons', 'address', 'latitude', 'longitude', 'is_active', 'created_at')
-        read_only_fields = ('id', 'created_at')
+        fields = ('id', 'name', 'course', 'course_name', 'coordinator', 'coordinator_name',
+                  'supervisor_name', 'contact_number', 'gmail', 'contact_persons', 'address',
+                  'latitude', 'longitude', 'status', 'status_display', 'rejection_reason',
+                  'is_active', 'created_at')
+        read_only_fields = ('id', 'created_at', 'status_display')
 
     def get_course_name(self, obj):
         return obj.course.name if obj.course else 'All Courses'

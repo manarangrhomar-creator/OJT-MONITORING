@@ -336,16 +336,53 @@ class AdminProgramViewSet(viewsets.ModelViewSet):
 
 
 class SitesViewSet(viewsets.ModelViewSet):
-    """ViewSet for Site management."""
+    """ViewSet for Site management. Includes approve/reject for student-created sites."""
     queryset = Site.objects.all()
     serializer_class = SiteSerializer
     permission_classes = [IsAdminUser]
     search_fields = ['name']
-    filterset_fields = ['course', 'is_active']
+    filterset_fields = ['course', 'is_active', 'status']
     pagination_class = None
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+    def perform_update(self, serializer):
+        # Admin editing a site can also adjust status if needed
+        serializer.save(updated_by=self.request.user)
+
+    @action(detail=True, methods=['post'], url_path='approve')
+    def approve(self, request, pk=None):
+        """Approve a pending student-created site."""
+        site = self.get_object()
+        if site.status != 'pending':
+            return Response(
+                {'error': f'Cannot approve a site that is already "{site.status}".'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        site.status = 'approved'
+        site.save(update_fields=['status', 'updated_at'])
+        return Response({'message': f'Site "{site.name}" approved.'}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='reject')
+    def reject(self, request, pk=None):
+        """Reject a pending student-created site with a reason."""
+        site = self.get_object()
+        if site.status != 'pending':
+            return Response(
+                {'error': f'Cannot reject a site that is already "{site.status}".'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        reason = request.data.get('rejection_reason', '').strip()
+        if not reason:
+            return Response(
+                {'error': 'rejection_reason is required when rejecting a site.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        site.status = 'rejected'
+        site.rejection_reason = reason
+        site.save(update_fields=['status', 'rejection_reason', 'updated_at'])
+        return Response({'message': f'Site "{site.name}" rejected.'}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'], url_path='archive')
     def archive(self, request, pk=None):

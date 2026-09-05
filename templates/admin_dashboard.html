@@ -760,9 +760,10 @@
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">Manage Sites</h2>
       <div class="flex flex-wrap gap-2">
-        <button class="pill-btn !text-[0.6rem]" onclick="filterSitesByStatus('active', this)">Active</button>
-        <button class="pill-btn !text-[0.6rem]" onclick="filterSitesByStatus('inactive', this)">Inactive</button>
         <button class="pill-btn !text-[0.6rem] active" onclick="filterSitesByStatus('all', this)">All</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterSitesByStatus('pending', this)" style="border-color: var(--gold); color: var(--gold);">Pending</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterSitesByStatus('approved', this)" style="border-color: var(--success); color: var(--success);">Approved</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterSitesByStatus('rejected', this)" style="border-color: var(--danger); color: var(--danger);">Rejected</button>
       </div>
       <button onclick="openAddSiteModal()" class="accent-btn flex items-center gap-1.5">
         <i data-lucide="plus" class="w-4 h-4"></i> Add Site
@@ -1571,9 +1572,7 @@
         function applySiteFilters() {
             filteredSites = siteListAdmin.filter(s => {
                 if (siteStatusFilter !== 'all') {
-                    const isActive = s.is_active;
-                    if (siteStatusFilter === 'active' && !isActive) return false;
-                    if (siteStatusFilter === 'inactive' && isActive) return false;
+                    if (s.status !== siteStatusFilter) return false;
                 }
                 if (siteSearchFilter) {
                     const name = (s.name || '').toLowerCase();
@@ -2113,7 +2112,7 @@
 
         document.getElementById('coordDeleteConfirmInput')?.addEventListener('keyup', function() {
             const btn = document.getElementById('confirmCoordDeleteBtn');
-            btn.disabled = this.value.trim() !== pendingCoordDeleteName;
+            btn.disabled = this.value.trim().toLowerCase() !== pendingCoordDeleteName.toLowerCase();
         });
 
         async function confirmCoordinatorDelete() {
@@ -2974,21 +2973,31 @@
                 return;
             }
             pageItems.forEach(s => {
-                const sc = s.is_active ? 'var(--success)' : 'var(--gold)';
-                const st = s.is_active ? 'Active' : 'Inactive';
+                const st = s.status || 'approved';
+                const statusMap = {
+                    pending:  { bg: 'var(--gold)',  label: 'Pending' },
+                    approved: { bg: 'var(--success)', label: 'Approved' },
+                    rejected: { bg: 'var(--danger)',  label: 'Rejected' },
+                };
+                const sm = statusMap[st] || statusMap.approved;
                 const cpList = (s.contact_persons || []).map(cp => `<div class="text-[0.65rem] leading-snug">${esc(cp.name || '—')} · ${esc(cp.phone || '—')} · ${esc(cp.email || '—')}</div>`).join('') || '<span style="color: var(--fg-dim);">—</span>';
+                const actionBtns = [];
+                if (st === 'pending') {
+                    actionBtns.push(`<button class="ghost-btn !p-1.5" title="Approve" onclick="approveSiteAdmin('${esc(s.id)}')" style="color: var(--success);"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i></button>`);
+                    actionBtns.push(`<button class="ghost-btn !p-1.5" title="Reject" onclick="rejectSiteAdmin('${esc(s.id)}')" style="color: var(--danger);"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i></button>`);
+                }
+                actionBtns.push(`<button class="ghost-btn !p-1.5" title="Edit" onclick="editSite('${esc(s.id)}')"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>`);
+                if (s.is_active) {
+                    actionBtns.push(`<button class="ghost-btn !p-1.5" title="Archive" onclick="deleteSite('${esc(s.id)}')"><i data-lucide="archive" class="w-3.5 h-3.5"></i></button>`);
+                } else {
+                    actionBtns.push(`<button class="ghost-btn !p-1.5" title="Restore" onclick="restoreSite('${esc(s.id)}')"><i data-lucide="undo-2" class="w-3.5 h-3.5"></i></button>`);
+                }
                 tbody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-black/[0.02] transition-colors">
                     <td class="table-cell font-bold">${esc(s.name)}</td>
                     <td class="table-cell" style="color: var(--fg-muted);">${esc(s.course_name || '—')}</td>
                     <td class="table-cell">${cpList}</td>
-                    <td class="table-cell"><span class="text-[0.6rem] font-bold px-2.5 py-0.5 rounded-full" style="background: ${sc}20; color: ${sc};">${esc(st)}</span></td>
-                    <td class="table-cell text-center">
-                        <button class="ghost-btn !p-1.5" title="Edit" onclick="editSite('${esc(s.id)}')"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>
-                        ${s.is_active
-                            ? `<button class="ghost-btn !p-1.5" title="Archive" onclick="deleteSite('${esc(s.id)}')"><i data-lucide="archive" class="w-3.5 h-3.5"></i></button>`
-                            : `<button class="ghost-btn !p-1.5" title="Restore" onclick="restoreSite('${esc(s.id)}')"><i data-lucide="undo-2" class="w-3.5 h-3.5"></i></button>`
-                        }
-                    </td>
+                    <td class="table-cell"><span class="text-[0.6rem] font-bold px-2.5 py-0.5 rounded-full" style="background: ${sm.bg}20; color: ${sm.bg};">${esc(sm.label)}</span></td>
+                    <td class="table-cell text-center"><div class="flex items-center justify-center gap-1">${actionBtns.join('')}</div></td>
                 </tr>`);
             });
             lucide.createIcons();
@@ -3314,6 +3323,66 @@
             const s = siteListAdmin.find(x => x.id === id);
             if (!s) return;
             openRestoreModal(id, s.name, 'site');
+        }
+
+        async function approveSiteAdmin(id) {
+            const s = siteListAdmin.find(x => x.id === id);
+            if (!s) return;
+            const result = await Swal.fire({
+                title: 'Approve Site',
+                html: `Approve <strong>${esc(s.name)}</strong>?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: 'var(--success)',
+                confirmButtonText: 'Yes, approve it',
+            });
+            if (!result.isConfirmed) return;
+            try {
+                const resp = await fetch(`/api/admin/sites/${id}/approve/`, {
+                    method: 'POST', credentials: 'same-origin',
+                    headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/json' },
+                });
+                if (!resp.ok) {
+                    const body = await resp.json().catch(() => ({}));
+                    throw new Error(body.error || body.detail || 'Approve failed');
+                }
+                Swal.fire({ title: 'Approved', text: 'Site has been approved.', icon: 'success', timer: 1500, showConfirmButton: false });
+                loadSitesAdmin();
+            } catch (e) {
+                Swal.fire({ title: 'Error', text: e.message, icon: 'error' });
+            }
+        }
+
+        async function rejectSiteAdmin(id) {
+            const s = siteListAdmin.find(x => x.id === id);
+            if (!s) return;
+            const { value: reason } = await Swal.fire({
+                title: 'Reject Site',
+                html: `Reject <strong>${esc(s.name)}</strong>?`,
+                input: 'textarea',
+                inputPlaceholder: 'Enter rejection reason...',
+                inputAttributes: { maxlength: 500 },
+                inputValidator: (v) => { if (!v || !v.trim()) return 'Rejection reason is required'; },
+                showCancelButton: true,
+                confirmButtonColor: 'var(--danger)',
+                confirmButtonText: 'Reject',
+            });
+            if (reason === undefined) return;
+            try {
+                const resp = await fetch(`/api/admin/sites/${id}/reject/`, {
+                    method: 'POST', credentials: 'same-origin',
+                    headers: { 'X-CSRFToken': csrfToken, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ rejection_reason: reason.trim() }),
+                });
+                if (!resp.ok) {
+                    const body = await resp.json().catch(() => ({}));
+                    throw new Error(body.error || body.detail || 'Reject failed');
+                }
+                Swal.fire({ title: 'Rejected', text: 'Site has been rejected.', icon: 'success', timer: 1500, showConfirmButton: false });
+                loadSitesAdmin();
+            } catch (e) {
+                Swal.fire({ title: 'Error', text: e.message, icon: 'error' });
+            }
         }
 
         // ===== SUBJECT MANAGEMENT =====

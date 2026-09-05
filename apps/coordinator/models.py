@@ -145,6 +145,12 @@ class FlagRecord(BaseModel):
 
 class Site(BaseModel):
     """Site/company for OJT placement, managed by admin."""
+    SITE_STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
+
     name = models.CharField(max_length=255)
     course = models.ForeignKey('core.Course', on_delete=models.SET_NULL, null=True, blank=True, related_name='sites')
     coordinator = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_sites', limit_choices_to={'role': 'coordinator'})
@@ -155,6 +161,8 @@ class Site(BaseModel):
     address = models.TextField(blank=True)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    status = models.CharField(max_length=20, choices=SITE_STATUS_CHOICES, default='pending', db_index=True)
+    rejection_reason = models.TextField(blank=True)
     is_active = models.BooleanField(default=True, db_index=True)
 
     class Meta:

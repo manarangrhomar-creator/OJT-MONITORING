@@ -71,7 +71,7 @@ class StudentProgramSerializer(serializers.ModelSerializer):
 ALLOWED_DOC_EXTENSIONS = {'.pdf'}
 
 class StudentApplySerializer(serializers.Serializer):
-    """Student application submission."""
+    """Student application submission with optional inline site creation."""
     program = serializers.PrimaryKeyRelatedField(queryset=OJTProgram.objects.filter(status='active'))
     application_letter = serializers.FileField()
     resume = serializers.FileField(required=False, allow_null=True)
@@ -80,6 +80,15 @@ class StudentApplySerializer(serializers.Serializer):
         queryset=Site.objects.filter(is_active=True),
         required=False, allow_null=True
     )
+    # Inline site creation fields
+    create_site = serializers.BooleanField(required=False, default=False)
+    site_name = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    site_supervisor_name = serializers.CharField(max_length=255, required=False, allow_blank=True)
+    site_contact_number = serializers.CharField(max_length=50, required=False, allow_blank=True)
+    site_gmail = serializers.EmailField(max_length=255, required=False, allow_blank=True)
+    site_address = serializers.CharField(required=False, allow_blank=True)
+    site_latitude = serializers.DecimalField(max_digits=9, decimal_places=6, required=False, allow_null=True)
+    site_longitude = serializers.DecimalField(max_digits=9, decimal_places=6, required=False, allow_null=True)
 
     def _validate_file_ext(self, value, field_name):
         import os
@@ -108,6 +117,27 @@ class StudentApplySerializer(serializers.Serializer):
                 return value
             raise serializers.ValidationError('You have already applied to this program.')
         return value
+
+    def validate(self, attrs):
+        create_site = attrs.get('create_site', False)
+        preferred_site = attrs.get('preferred_site')
+
+        if create_site and preferred_site:
+            raise serializers.ValidationError(
+                'Cannot both create a new site and select an existing one.'
+            )
+
+        if create_site:
+            site_name = attrs.get('site_name', '').strip()
+            if not site_name:
+                raise serializers.ValidationError(
+                    {'site_name': 'Site name is required when creating a new site.'}
+                )
+        elif not preferred_site:
+            # Neither selected nor creating — that's fine, site is optional
+            pass
+
+        return attrs
 
 
 class FacialRecognitionSerializer(serializers.ModelSerializer):
