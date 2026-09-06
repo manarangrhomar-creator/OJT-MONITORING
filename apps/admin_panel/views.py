@@ -353,7 +353,7 @@ class SitesViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'], url_path='approve')
     def approve(self, request, pk=None):
-        """Approve a pending student-created site."""
+        """Approve a pending student-created site. Also auto-approve any pending applications linked to it."""
         site = self.get_object()
         if site.status != 'pending':
             return Response(
@@ -362,6 +362,15 @@ class SitesViewSet(viewsets.ModelViewSet):
             )
         site.status = 'approved'
         site.save(update_fields=['status', 'updated_at'])
+
+        # Auto-approve any pending applications that reference this site
+        from django.utils import timezone as tz
+        linked_apps = OJTApplication.objects.filter(preferred_site=site, status='pending')
+        for app in linked_apps:
+            app.status = 'approved'
+            app.approved_date = tz.now()
+            app.save(update_fields=['status', 'approved_date', 'updated_at'])
+
         return Response({'message': f'Site "{site.name}" approved.'}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'], url_path='reject')

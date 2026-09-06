@@ -12,7 +12,7 @@ from apps.core.tasks import send_email_task
 from apps.student.models import StudentNarrativeReport
 from apps.student.serializers import StudentNarrativeReportSerializer
 from .models import OJTProgram, OJTApplication, Attendance, SiteAssignment, Site, FlagRecord
-from .serializers import OJTProgramSerializer, OJTApplicationSerializer, AttendanceSerializer, SiteAssignmentSerializer, FlagRecordSerializer, SiteApprovalSerializer
+from .serializers import OJTProgramSerializer, OJTApplicationSerializer, AttendanceSerializer, SiteAssignmentSerializer, FlagRecordSerializer
 
 
 class IsCoordinator(permissions.BasePermission):
@@ -96,11 +96,16 @@ class OJTApplicationViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def approve(self, request, pk=None):
-        """Approve an application."""
+        """Approve an application. If the application has a pending site, approve it too."""
         application = self.get_object()
         application.status = 'approved'
         application.approved_date = timezone.now()
         application.save()
+
+        # Auto-approve the preferred site if it was pending
+        if application.preferred_site and application.preferred_site.status == 'pending':
+            application.preferred_site.status = 'approved'
+            application.preferred_site.save(update_fields=['status', 'updated_at'])
 
         # Auto-assign to preferred site if one was selected
         if application.preferred_site and not SiteAssignment.objects.filter(
@@ -392,13 +397,18 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['post'], url_path='approve-student')
     def approve_student(self, request):
-        """Approve a student application."""
+        """Approve a student application. If the application has a pending site, approve it too."""
         app_id = request.data.get('app_id')
         application = get_object_or_404(OJTApplication, id=app_id, program__coordinator=request.user)
         
         application.status = 'approved'
         application.approved_date = timezone.now()
         application.save()
+
+        # Auto-approve the preferred site if it was pending
+        if application.preferred_site and application.preferred_site.status == 'pending':
+            application.preferred_site.status = 'approved'
+            application.preferred_site.save(update_fields=['status', 'updated_at'])
 
         # Auto-assign to preferred site if one was selected
         if application.preferred_site and not SiteAssignment.objects.filter(
@@ -695,68 +705,3 @@ class SiteAssignmentViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         except SiteAssignment.DoesNotExist:
             return Response({'error': 'No assignment found'}, status=status.HTTP_404_NOT_FOUND)
-
-
-class SiteApprovalViewSet(viewsets.ViewSet):
-    """ViewSet for coordinator site approval (pending sites only)."""
-    permission_classes = [IsCoordinator]
-    pagination_class = None
-
-    def get_queryset(self):
-        user = self.request.user
-        return Site.objects.filter(
-            status='pending', is_active=True,
-            coordinator=user,
-        ).select_related('course')
-
-    @action(detail=False, methods=['get'], url_path='pending')
-    def pending(self, request):
-        """List pending sites assigned to this coordinator."""
-        sites = self.get_queryset()
-        serializer = SiteApprovalSerializer(sites, many=True)
-        return Response(serializer.data)
-
-    @action(detail=False, methods=['get'], url_path='all')
-    def all_sites(self, request):
-        """List all sites assigned to this coordinator (any status)."""
-        user = request.user
-        sites = Site.objects.filter(
-            coordinator=user, is_active=True
-        ).select_related('course').order_by('-created_at')
-        serializer = SiteApprovalSerializer(sites, many=True)
-        return Response(serializer.data)
-
-    @action(detail=True, methods=['post'], url_path='approve')
-    def approve(self, request, pk=None):
-        """Approve a pending site."""
-        site = self.get_object()
-        if site.status != 'pending':
-            return Response(
-                {'error': f'Cannot approve a site that is already "{site.status}".'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        site.status = 'approved'
-        site.save(update_fields=['status', 'updated_at'])
-        broadcast_dashboard_update('sites', data={'action': 'update', 'item': SiteApprovalSerializer(site).data})
-        return Response({'message': f'Site "{site.name}" approved.'}, status=status.HTTP_200_OK)
-
-    @action(detail=True, methods=['post'], url_path='reject')
-    def reject(self, request, pk=None):
-        """Reject a pending site with a reason."""
-        site = self.get_object()
-        if site.status != 'pending':
-            return Response(
-                {'error': f'Cannot reject a site that is already "{site.status}".'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        reason = request.data.get('rejection_reason', '').strip()
-        if not reason:
-            return Response(
-                {'error': 'rejection_reason is required when rejecting a site.'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        site.status = 'rejected'
-        site.rejection_reason = reason
-        site.save(update_fields=['status', 'rejection_reason', 'updated_at'])
-        broadcast_dashboard_update('sites', data={'action': 'update', 'item': SiteApprovalSerializer(site).data})
-        return Response({'message': f'Site "{site.name}" rejected.'}, status=status.HTTP_200_OK)

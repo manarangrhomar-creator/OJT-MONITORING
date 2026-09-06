@@ -21,10 +21,17 @@ class OJTApplicationSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(source='student.get_full_name', read_only=True)
     program_name = serializers.CharField(source='program.name', read_only=True)
     preferred_site_name = serializers.CharField(source='preferred_site.name', read_only=True, default=None)
+    preferred_site_address = serializers.CharField(source='preferred_site.address', read_only=True, default=None)
+    preferred_site_supervisor = serializers.CharField(source='preferred_site.supervisor_name', read_only=True, default=None)
+    preferred_site_contact = serializers.CharField(source='preferred_site.contact_number', read_only=True, default=None)
+    preferred_site_gmail = serializers.CharField(source='preferred_site.gmail', read_only=True, default=None)
+    preferred_site_latitude = serializers.DecimalField(source='preferred_site.latitude', max_digits=9, decimal_places=6, read_only=True, default=None)
+    preferred_site_longitude = serializers.DecimalField(source='preferred_site.longitude', max_digits=9, decimal_places=6, read_only=True, default=None)
+    preferred_site_contact_persons = serializers.JSONField(source='preferred_site.contact_persons', read_only=True, default=None)
     
     class Meta:
         model = OJTApplication
-        fields = ('id', 'student', 'student_name', 'program', 'program_name', 'preferred_site', 'preferred_site_name', 'status', 'application_letter', 'resume', 'approved_date', 'rejection_reason', 'created_at')
+        fields = ('id', 'student', 'student_name', 'program', 'program_name', 'preferred_site', 'preferred_site_name', 'preferred_site_address', 'preferred_site_supervisor', 'preferred_site_contact', 'preferred_site_gmail', 'preferred_site_latitude', 'preferred_site_longitude', 'preferred_site_contact_persons', 'status', 'application_letter', 'resume', 'approved_date', 'rejection_reason', 'created_at')
         read_only_fields = ('id', 'created_at', 'approved_date')
 
 
@@ -56,7 +63,7 @@ class SiteAssignmentSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(source='student.get_full_name', read_only=True)
     program_name = serializers.CharField(source='program.name', read_only=True)
     site_name = serializers.CharField(source='site.name', read_only=True, allow_null=True)
-    site_location = serializers.CharField(source='site.name', read_only=True, allow_null=True)
+    site_location = serializers.CharField(source='site.address', read_only=True, allow_null=True)
 
     class Meta:
         model = SiteAssignment

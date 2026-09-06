@@ -14,7 +14,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@0.344.0"></script>
     <script src="{% static 'js/auth.js' %}"></script>
-    <!-- Leaflet removed — table-based site view -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
       :root {
         --primary: #7B1818;
@@ -289,6 +290,11 @@
         background: rgba(0,0,0,0.02);
       }
 
+      .leaflet-popup-content-wrapper { border-radius: 12px !important; }
+      .leaflet-popup-content { margin: 10px 14px !important; font-family: 'Inter', sans-serif; }
+      .leaflet-popup-content b { font-size: 0.75rem; color: var(--fg); }
+      .leaflet-popup-content span, .leaflet-popup-content p { font-size: 0.65rem; color: var(--fg-muted); margin: 2px 0; }
+
       /* ===== RESPONSIVE ===== */
       @media (max-width: 640px) {
         .main-content { padding: 1rem 0.75rem !important; }
@@ -390,7 +396,8 @@
         <button class="pill-btn" role="tab" aria-selected="false" aria-controls="applicationsSection" data-section="applications" tabindex="-1" onclick="switchSection('applications')"><i data-lucide="clipboard-list" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Applications</button>
         <button class="pill-btn" role="tab" aria-selected="false" aria-controls="reportsSection" data-section="reports" tabindex="-1" onclick="switchSection('reports')"><i data-lucide="file-text" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Reports</button>
         <button class="pill-btn" role="tab" aria-selected="false" aria-controls="attendanceSection" data-section="attendance" tabindex="-1" onclick="switchSection('attendance')"><i data-lucide="clock" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Attendance</button>
-        <button class="pill-btn" role="tab" aria-selected="false" aria-controls="sitesSection" data-section="sites" tabindex="-1" onclick="switchSection('sites')"><i data-lucide="map-pin" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Sites <span id="sitePendingBadgeDesktop" class="inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 rounded-full text-[0.5rem] font-bold text-white" style="background: var(--danger); display: none; margin-left: 2px; vertical-align: middle;">0</span></button>
+        <button class="pill-btn" role="tab" aria-selected="false" aria-controls="sitesSection" data-section="sites" tabindex="-1" onclick="switchSection('sites')"><i data-lucide="building" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Sites</button>
+
       </nav>
     </div>
     <div class="flex items-center gap-2">
@@ -815,111 +822,32 @@
 
   <!-- ===== SITES SECTION ===== -->
   <div id="sitesSection" class="section-container hidden animate-in" role="tabpanel" aria-labelledby="pillNav-sites">
-    <!-- Sites Sub-tabs -->
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
-      <div class="flex items-center gap-3">
-        <h2 class="text-lg font-bold">Sites</h2>
-        <div class="flex gap-1.5">
-          <button class="pill-btn !text-[0.6rem] active" id="sitesTabApprovals" onclick="switchSitesSubtab('approvals')">
-            <span class="inline-flex items-center gap-1"><i data-lucide="shield-check" class="w-3 h-3"></i> Approvals
-              <span id="siteApprovalBadge" class="inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 rounded-full text-[0.5rem] font-bold text-white" style="background: var(--danger); display: none;">0</span>
-            </span>
-          </button>
-          <button class="pill-btn !text-[0.6rem]" id="sitesTabAssignments" onclick="switchSitesSubtab('assignments')">
-            <span class="inline-flex items-center gap-1"><i data-lucide="link" class="w-3 h-3"></i> Assignments</span>
-          </button>
-        </div>
+      <h2 class="text-lg font-bold">Site Assignments</h2>
+      <button onclick="openAddSiteModal()" class="accent-btn flex items-center gap-1.5">
+        <i data-lucide="plus" class="w-4 h-4"></i> Assign Site
+      </button>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+      <div class="bento-card p-4"><p class="text-[0.6rem] font-semibold uppercase tracking-wider" style="color: var(--fg-dim);">Total Assignments</p><p class="text-2xl font-bold mt-1" id="siteStatTotal">0</p></div>
+    </div>
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+      <div class="relative w-full sm:w-64">
+        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style="color: var(--fg-dim);"></i>
+        <input type="text" id="siteSearchInput" placeholder="Search by student or site..." class="w-full pl-9 pr-4 py-2.5 !rounded-xl text-xs" oninput="renderSiteTable()">
       </div>
     </div>
-
-    <!-- APPROVALS sub-tab -->
-    <div id="sitesSubtabApprovals">
-      <div class="bento-card">
-        <div class="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3" style="border-color: var(--card-border);">
-          <div class="flex items-center gap-2">
-            <span class="text-xs font-semibold" style="color: var(--fg);">Pending Sites</span>
-          </div>
-          <div class="flex gap-1.5 items-center">
-            <button class="pill-btn !text-[0.6rem] site-approval-filter active" data-filter="all" onclick="filterSiteApprovals('all', this)">All</button>
-            <button class="pill-btn !text-[0.6rem] site-approval-filter" data-filter="pending" onclick="filterSiteApprovals('pending', this)" style="border-color: var(--gold); color: var(--gold);">Pending</button>
-            <button class="pill-btn !text-[0.6rem] site-approval-filter" data-filter="approved" onclick="filterSiteApprovals('approved', this)" style="border-color: var(--success); color: var(--success);">Approved</button>
-            <button class="pill-btn !text-[0.6rem] site-approval-filter" data-filter="rejected" onclick="filterSiteApprovals('rejected', this)" style="border-color: var(--danger); color: var(--danger);">Rejected</button>
-          </div>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs" style="color: var(--fg);">
-            <thead>
-              <tr style="border-bottom: 1px solid var(--card-border); color: var(--fg-dim);">
-                <th class="text-left px-4 py-2.5 font-semibold uppercase tracking-wider text-[0.6rem]">Site Name</th>
-                <th class="text-left px-4 py-2.5 font-semibold uppercase tracking-wider text-[0.6rem]">Course</th>
-                <th class="text-left px-4 py-2.5 font-semibold uppercase tracking-wider text-[0.6rem]">Contact Persons</th>
-                <th class="text-left px-4 py-2.5 font-semibold uppercase tracking-wider text-[0.6rem]">Status</th>
-                <th class="text-right px-4 py-2.5 font-semibold uppercase tracking-wider text-[0.6rem]">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="siteApprovalTableBody">
-              <tr><td colspan="5" class="px-4 py-10">
-                <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
-                <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
-                <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
-              </td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="p-3 flex items-center justify-between" style="border-top: 1px solid var(--card-border);">
-          <span id="siteApprovalPageCount" class="text-[0.6rem] font-semibold" style="color: var(--fg-dim);">—</span>
-          <div class="flex gap-1">
-            <button id="siteApprovalPrev" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="siteApprovalPage(-1)" disabled>&laquo; Prev</button>
-            <div id="siteApprovalPageButtons" class="flex gap-1 items-center"></div>
-            <button id="siteApprovalNext" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="siteApprovalPage(1)">Next &raquo;</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- ASSIGNMENTS sub-tab -->
-    <div id="sitesSubtabAssignments" class="hidden">
-      <div class="bento-card">
-        <div class="p-4 border-b flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3" style="border-color: var(--card-border);">
-          <div class="relative">
-            <i data-lucide="search" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style="color: var(--fg-dim);"></i>
-            <input type="text" id="siteSearchInput" placeholder="Search by student, site, or subject..." class="w-64 pl-8 pr-3 py-1.5 !rounded-lg text-xs" style="background: var(--card-bg); border: 1px solid var(--card-border);">
-          </div>
-          <div class="flex items-center gap-3 text-xs font-semibold" style="color: var(--fg);">
-            <span id="siteStatTotal">0</span> total assignments
-          </div>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="w-full text-xs" style="color: var(--fg);">
-            <thead>
-              <tr style="border-bottom: 1px solid var(--card-border); color: var(--fg-dim);">
-                <th class="text-left px-4 py-2.5 font-semibold uppercase tracking-wider text-[0.6rem]">Student</th>
-                <th class="text-left px-4 py-2.5 font-semibold uppercase tracking-wider text-[0.6rem]">Site</th>
-                <th class="text-left px-4 py-2.5 font-semibold uppercase tracking-wider text-[0.6rem]">Subject</th>
-                <th class="text-left px-4 py-2.5 font-semibold uppercase tracking-wider text-[0.6rem]">Status</th>
-                <th class="text-right px-4 py-2.5 font-semibold uppercase tracking-wider text-[0.6rem]">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="siteTableBody">
-              <tr><td colspan="5" class="px-4 py-10">
-                <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
-                <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
-                <div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div>
-              </td></tr>
-            </tbody>
-          </table>
-        </div>
-        <div class="p-3 flex items-center justify-between" style="border-top: 1px solid var(--card-border);">
-          <span id="sitePageCount" class="text-[0.6rem] font-semibold" style="color: var(--fg-dim);">—</span>
-          <div class="flex gap-1">
-            <button id="sitePrev" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="sitePage(-1)" disabled>&laquo; Prev</button>
-            <div id="sitePageButtons" class="flex gap-1 items-center"></div>
-            <button id="siteNext" class="pill-btn !text-[0.6rem] !px-2.5 !py-1" onclick="sitePage(1)">Next &raquo;</button>
-          </div>
-        </div>
-      </div>
+    <div class="bento-card overflow-hidden">
+      <div class="overflow-x-auto"><table class="w-full text-left">
+        <thead><tr>
+          <th class="table-header">Student</th><th class="table-header">Subject</th><th class="table-header">Site</th><th class="table-header">Address</th><th class="table-header">Supervisor</th><th class="table-header text-center">Action</th>
+        </tr></thead>
+        <tbody id="siteTableBody" class="divide-y" style="border-color: var(--card-border);"></tbody>
+      </table></div>
     </div>
   </div>
+
+
 </main>
 
 <!-- ===== MODALS ===== -->
@@ -1017,7 +945,12 @@
       </div>
       <div>
         <p class="text-[0.55rem] font-bold uppercase tracking-wider mb-1.5" style="color: var(--fg-muted);">Preferred Site</p>
-        <p class="text-xs font-semibold" id="approveAppSite"></p>
+        <div class="flex items-center gap-2">
+          <p class="text-xs font-semibold" id="approveAppSite"></p>
+          <button id="approveAppViewSiteBtn" class="ghost-btn !py-0.5 !px-2 text-[0.55rem] hidden" onclick="viewSiteFromApplication()" style="border-color: var(--primary); color: var(--primary);"><i data-lucide="map-pin" class="w-2.5 h-2.5 inline mr-0.5"></i>View Site</button>
+        </div>
+        <p class="text-[0.6rem] mt-1" style="color: var(--fg-dim);" id="approveAppSiteAddr"></p>
+        <p class="text-[0.6rem] mt-0.5" style="color: var(--fg-dim);" id="approveAppSiteSup"></p>
       </div>
       <div>
         <p class="text-[0.55rem] font-bold uppercase tracking-wider mb-1.5" style="color: var(--fg-muted);">Submitted On</p>
@@ -1032,6 +965,49 @@
         <button id="confirmApproveAppBtn" class="accent-btn !py-1.5 !px-3 text-xs" onclick="confirmApproveApplication()">Approve</button>
         
       </div>
+    </div>
+  </div>
+</div>
+
+<div id="viewSiteModal" class="modal">
+  <div class="modal-content" style="max-width: 560px;">
+    <div class="modal-header"><h2>Site Details</h2><button class="close-btn" onclick="closeViewSiteModal()">&times;</button></div>
+    <div class="space-y-4">
+      <div class="flex items-center gap-3 pb-3 border-b" style="border-color: var(--card-border);">
+        <div class="w-10 h-10 rounded-full flex items-center justify-center" style="background: rgba(123,24,24,0.1); color: var(--primary);">
+          <i data-lucide="building" class="w-5 h-5"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold truncate" id="viewSiteName">—</p>
+          <p class="text-[0.6rem] truncate" style="color: var(--fg-dim);" id="viewSiteAddress">—</p>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <p class="text-[0.55rem] font-bold uppercase tracking-wider mb-1" style="color: var(--fg-muted);">Supervisor</p>
+          <p class="text-xs font-semibold" id="viewSiteSupervisor">—</p>
+        </div>
+        <div>
+          <p class="text-[0.55rem] font-bold uppercase tracking-wider mb-1" style="color: var(--fg-muted);">Contact</p>
+          <p class="text-xs font-semibold" id="viewSiteContact">—</p>
+        </div>
+      </div>
+      <div>
+        <p class="text-[0.55rem] font-bold uppercase tracking-wider mb-1" style="color: var(--fg-muted);">Email</p>
+        <p class="text-xs font-semibold" id="viewSiteEmail">—</p>
+      </div>
+      <div id="viewSiteContactPersonsWrap" class="hidden">
+        <p class="text-[0.55rem] font-bold uppercase tracking-wider mb-1" style="color: var(--fg-muted);">Contact Persons</p>
+        <div id="viewSiteContactPersons" class="space-y-1"></div>
+      </div>
+      <div>
+        <p class="text-[0.55rem] font-bold uppercase tracking-wider mb-2" style="color: var(--fg-muted);">Location</p>
+        <div id="viewSiteMap" style="height: 220px; border-radius: 12px; overflow: hidden; border: 1px solid var(--card-border); background: var(--card-bg);"></div>
+        <p class="text-[0.55rem] mt-1.5" style="color: var(--fg-dim);" id="viewSiteCoords"></p>
+      </div>
+    </div>
+    <div class="modal-buttons mt-4 pt-4 border-t" style="border-color: var(--card-border);">
+      <button class="ghost-btn" onclick="closeViewSiteModal()">Close</button>
     </div>
   </div>
 </div>
@@ -1113,6 +1089,8 @@
     </div>
   </div>
 </div>
+
+
 
 <div id="confirmLogoutModal" class="modal" role="dialog" aria-modal="true">
   <div class="modal-content" style="max-width:400px;">
@@ -1232,6 +1210,7 @@
   let programList = [];
   let accountList = [];
   let applicationList = [];
+  let currentApproveApp = null;
   let studentReportList = [];
   let siteList = [];
   let attendanceRecordsList = [];
@@ -1326,17 +1305,7 @@
     else if (section === 'applications') loadApplications();
     else if (section === 'reports') loadStudentReports();
     else if (section === 'attendance') loadAttendance();
-    else if (section === 'sites') {
-      document.getElementById('sitesSubtabApprovals').classList.remove('hidden');
-      document.getElementById('sitesSubtabAssignments').classList.add('hidden');
-      document.getElementById('sitesTabApprovals').classList.add('active');
-      document.getElementById('sitesTabAssignments').classList.remove('active');
-      siteApprovalFilter = 'all';
-      siteApprovalCurrentPage = 0;
-      document.querySelectorAll('.site-approval-filter').forEach(b => b.classList.remove('active'));
-      document.querySelector('.site-approval-filter[data-filter="all"]')?.classList.add('active');
-      loadSiteApprovals();
-    }
+    else if (section === 'sites') loadSiteAssignments();
   }
 
   // ===== OVERVIEW DASHBOARD =====
@@ -1822,6 +1791,11 @@
     document.getElementById('approveAppStudent').textContent = a.student_name;
     document.getElementById('approveAppProgram').textContent = a.program_name;
     document.getElementById('approveAppSite').textContent = a.preferred_site_name ? a.preferred_site_name : 'No preferred site';
+    document.getElementById('approveAppSiteAddr').textContent = a.preferred_site_address ? 'Address: ' + a.preferred_site_address : '';
+    document.getElementById('approveAppSiteSup').textContent = a.preferred_site_supervisor ? 'Supervisor: ' + a.preferred_site_supervisor + (a.preferred_site_contact ? ' (' + a.preferred_site_contact + ')' : '') : '';
+    const viewSiteBtn = document.getElementById('approveAppViewSiteBtn');
+    if (a.preferred_site_name) { viewSiteBtn.classList.remove('hidden'); } else { viewSiteBtn.classList.add('hidden'); }
+    currentApproveApp = a;
     document.getElementById('approveAppInitial').textContent = (a.student_name || '?').charAt(0).toUpperCase();
     document.getElementById('approveAppId').value = id;
     const letterWrap = document.getElementById('approveAppLetterWrap');
@@ -1849,6 +1823,61 @@
     closeModal('approveAppModal');
     const id = document.getElementById('approveAppId').value;
     requestRejectApplication(id);
+  }
+
+  let viewSiteMapObj = null;
+  let viewSiteMapMarker = null;
+
+  function viewSiteFromApplication() {
+    const a = currentApproveApp;
+    if (!a || !a.preferred_site_name) return;
+    document.getElementById('viewSiteName').textContent = a.preferred_site_name;
+    document.getElementById('viewSiteAddress').textContent = a.preferred_site_address || 'No address provided';
+    document.getElementById('viewSiteSupervisor').textContent = a.preferred_site_supervisor || '—';
+    document.getElementById('viewSiteContact').textContent = a.preferred_site_contact || '—';
+    document.getElementById('viewSiteEmail').textContent = a.preferred_site_gmail || '—';
+    const persons = a.preferred_site_contact_persons;
+    const personsWrap = document.getElementById('viewSiteContactPersonsWrap');
+    const personsDiv = document.getElementById('viewSiteContactPersons');
+    if (Array.isArray(persons) && persons.length > 0) {
+      personsWrap.classList.remove('hidden');
+      personsDiv.innerHTML = persons.map(p => {
+        if (typeof p === 'string') return `<p class="text-xs" style="color: var(--fg-muted);">${esc(p)}</p>`;
+        return `<p class="text-xs" style="color: var(--fg-muted);">${esc(p.name || '')}${p.contact ? ' — ' + esc(p.contact) : ''}</p>`;
+      }).join('');
+    } else {
+      personsWrap.classList.add('hidden');
+    }
+    const lat = parseFloat(a.preferred_site_latitude);
+    const lng = parseFloat(a.preferred_site_longitude);
+    const coordsEl = document.getElementById('viewSiteCoords');
+    coordsEl.textContent = (lat && lng) ? `${lat.toFixed(6)}, ${lng.toFixed(6)}` : 'Coordinates not available';
+    closeModal('approveAppModal');
+    openModal('viewSiteModal');
+    setTimeout(() => {
+      const mapEl = document.getElementById('viewSiteMap');
+      if (viewSiteMapObj) { viewSiteMapObj.remove(); viewSiteMapObj = null; }
+      if (lat && lng) {
+        viewSiteMapObj = L.map(mapEl, { zoomControl: true, scrollWheelZoom: false }).setView([lat, lng], 16);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(viewSiteMapObj);
+        viewSiteMapMarker = L.marker([lat, lng]).addTo(viewSiteMapObj)
+          .bindPopup(`<b>${esc(a.preferred_site_name)}</b><br>${esc(a.preferred_site_address || '')}`).openPopup();
+      } else {
+        viewSiteMapObj = L.map(mapEl, { zoomControl: true, scrollWheelZoom: false }).setView([16.9380, 121.7714], 6);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(viewSiteMapObj);
+        mapEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--fg-dim);font-size:0.7rem;">No location pinned for this site</div>';
+      }
+    }, 200);
+  }
+
+  function closeViewSiteModal() {
+    closeModal('viewSiteModal');
+    if (viewSiteMapObj) { viewSiteMapObj.remove(); viewSiteMapObj = null; }
+    openModal('approveAppModal');
   }
 
   async function confirmApproveApplication() {
@@ -2095,11 +2124,12 @@
 
   async function loadSiteAssignments() {
     const tbody = document.getElementById('siteTableBody');
-    tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-10"><div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div><div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div><div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div></td></tr>';
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-10"><div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div><div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div><div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div></td></tr>';
     try {
       const res = await fetch('/api/coordinator/site-assignments/', { credentials: 'same-origin' });
       if (!res.ok) {
-        tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-10 text-center" style="color: var(--danger);">Failed to load</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-10 text-center" style="color: var(--danger);">Failed to load</td></tr>';
         return;
       }
       siteList = await res.json();
@@ -2107,22 +2137,25 @@
       if (totalEl) totalEl.textContent = siteList.length;
       renderSiteTable();
     } catch (e) {
-      tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-10 text-center" style="color: var(--danger);">Error loading</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-10 text-center" style="color: var(--danger);">Error loading</td></tr>';
     }
   }
 
   function renderSiteTable() {
     const tbody = document.getElementById('siteTableBody');
-    if (!siteList.length) {
-      tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-10 text-center" style="color: var(--fg-dim);">No assignments yet</td></tr>';
+    if (!tbody) return;
+    const search = (document.getElementById('siteSearchInput')?.value || '').toLowerCase();
+    const filtered = siteList.filter(a => {
+      if (search && !(a.student_name || '').toLowerCase().includes(search) && !(a.site_name || '').toLowerCase().includes(search) && !(a.program_name || '').toLowerCase().includes(search)) return false;
+      return true;
+    });
+    if (!filtered.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-10 text-center" style="color: var(--fg-dim);">No site assignments found</td></tr>';
       return;
     }
     tbody.innerHTML = '';
-    siteList.forEach(a => {
+    filtered.forEach(a => {
       const hasSite = !!a.site_name;
-      const statusHtml = hasSite
-        ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6rem] font-semibold" style="background: var(--primary); color: #fff;"><span class="inline-block w-1.5 h-1.5 rounded-full bg-white"></span> Assigned</span>'
-        : '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6rem] font-semibold" style="background: var(--gold); color: #000;"><span class="inline-block w-1.5 h-1.5 rounded-full bg-black opacity-30"></span> Unassigned</span>';
       tbody.insertAdjacentHTML('beforeend', `
         <tr style="border-bottom: 1px solid var(--card-border);" class="site-table-row">
           <td class="px-4 py-2.5">
@@ -2131,9 +2164,10 @@
               <span class="font-semibold truncate" style="color: var(--fg);">${esc(a.student_name)}</span>
             </div>
           </td>
-          <td class="px-4 py-2.5" style="color: var(--fg-muted);">${hasSite ? esc(a.site_name) : '<span style="color: var(--fg-dim);">—</span>'}</td>
           <td class="px-4 py-2.5" style="color: var(--fg-muted);">${esc(a.program_name || '—')}</td>
-          <td class="px-4 py-2.5">${statusHtml}</td>
+          <td class="px-4 py-2.5" style="color: var(--fg-muted);">${hasSite ? esc(a.site_name) : '<span style="color: var(--fg-dim);">—</span>'}</td>
+          <td class="px-4 py-2.5" style="color: var(--fg-muted);">${a.site_location ? esc(a.site_location) : '<span style="color: var(--fg-dim);">—</span>'}</td>
+          <td class="px-4 py-2.5" style="color: var(--fg-muted);">${a.supervisor_name ? esc(a.supervisor_name) : '<span style="color: var(--fg-dim);">—</span>'}</td>
           <td class="px-4 py-2.5 text-right">
             <div class="flex items-center justify-end gap-1">
               <button class="ghost-btn !p-1.5" title="Edit" onclick="openEditSiteModal('${a.id}')"><i data-lucide="pencil" class="w-3 h-3"></i></button>
@@ -2293,186 +2327,7 @@
     });
   }
 
-  // ===== SITE APPROVALS =====
-  let siteApprovalList = [];
-  let siteApprovalFilter = 'all';
-  let siteApprovalCurrentPage = 0;
-  const SITE_APPROVAL_PER_PAGE = 10;
-
-  function switchSitesSubtab(tab) {
-    document.getElementById('sitesSubtabApprovals').classList.toggle('hidden', tab !== 'approvals');
-    document.getElementById('sitesSubtabAssignments').classList.toggle('hidden', tab !== 'assignments');
-    document.getElementById('sitesTabApprovals').classList.toggle('active', tab === 'approvals');
-    document.getElementById('sitesTabAssignments').classList.toggle('active', tab === 'assignments');
-    if (tab === 'approvals') loadSiteApprovals();
-    else loadSiteAssignments();
-  }
-
-  function filterSiteApprovals(filter, btn) {
-    siteApprovalFilter = filter;
-    siteApprovalCurrentPage = 0;
-    document.querySelectorAll('.site-approval-filter').forEach(b => b.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-    renderSiteApprovalTable();
-  }
-
-  function siteApprovalPage(dir) { siteApprovalCurrentPage += dir; renderSiteApprovalTable(); }
-
-  async function loadSiteApprovals() {
-    const tbody = document.getElementById('siteApprovalTableBody');
-    tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-10"><div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div><div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div><div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div></td></tr>';
-    try {
-      const res = await fetch('/api/coordinator/site-approvals/all/', { credentials: 'same-origin' });
-      if (!res.ok) {
-        tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-10 text-center" style="color: var(--danger);">Failed to load</td></tr>';
-        return;
-      }
-      siteApprovalList = await res.json();
-      renderSiteApprovalTable();
-      updateSiteApprovalBadge();
-    } catch (e) {
-      tbody.innerHTML = '<tr><td colspan="5" class="px-4 py-10 text-center" style="color: var(--danger);">Error loading</td></tr>';
-    }
-  }
-
-  function renderSiteApprovalTable() {
-    const tbody = document.getElementById('siteApprovalTableBody');
-    const filtered = siteApprovalFilter === 'all'
-      ? siteApprovalList
-      : siteApprovalList.filter(s => s.status === siteApprovalFilter);
-
-    if (!filtered.length) {
-      tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-10 text-center" style="color: var(--fg-dim);">No ${siteApprovalFilter === 'all' ? '' : siteApprovalFilter + ' '}sites found</td></tr>`;
-      renderPaginationControls(0, 0, SITE_APPROVAL_PER_PAGE, 'siteApprovalPageCount', 'siteApprovalPrev', 'siteApprovalNext', 'siteApprovalPageButtons', (p) => { siteApprovalCurrentPage = p; renderSiteApprovalTable(); });
-      return;
-    }
-
-    const totalPages = Math.ceil(filtered.length / SITE_APPROVAL_PER_PAGE);
-    if (siteApprovalCurrentPage >= totalPages) siteApprovalCurrentPage = totalPages - 1;
-    const page = filtered.slice(siteApprovalCurrentPage * SITE_APPROVAL_PER_PAGE, (siteApprovalCurrentPage + 1) * SITE_APPROVAL_PER_PAGE);
-
-    tbody.innerHTML = '';
-    page.forEach(s => {
-      const statusBadge = s.status === 'approved'
-        ? '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6rem] font-semibold" style="background: rgba(34,197,94,0.15); color: var(--success);"><span class="inline-block w-1.5 h-1.5 rounded-full" style="background: var(--success);"></span> Approved</span>'
-        : s.status === 'rejected'
-        ? `<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6rem] font-semibold" style="background: rgba(239,68,68,0.15); color: var(--danger);"><span class="inline-block w-1.5 h-1.5 rounded-full" style="background: var(--danger);"></span> Rejected</span>`
-        : '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[0.6rem] font-semibold" style="background: rgba(234,179,8,0.15); color: var(--gold);"><span class="inline-block w-1.5 h-1.5 rounded-full" style="background: var(--gold);"></span> Pending</span>';
-
-      const actionsHtml = s.status === 'pending'
-        ? `<div class="flex items-center justify-end gap-1">
-             <button class="ghost-btn !p-1.5" title="Approve" onclick="approveSite('${s.id}')" style="color: var(--success);"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i></button>
-             <button class="ghost-btn !p-1.5" title="Reject" onclick="rejectSite('${s.id}')" style="color: var(--danger);"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i></button>
-           </div>`
-        : s.status === 'rejected' && s.rejection_reason
-        ? `<button class="ghost-btn !text-[0.6rem] !px-2 !py-1" onclick="showRejectionReason('${esc(s.rejection_reason)}')" style="color: var(--danger); border: 1px solid var(--danger);">View Reason</button>`
-        : '<span class="text-[0.6rem]" style="color: var(--fg-dim);">—</span>';
-
-      tbody.insertAdjacentHTML('beforeend', `
-        <tr style="border-bottom: 1px solid var(--card-border);">
-          <td class="px-4 py-2.5 font-semibold" style="color: var(--fg);">${esc(s.name)}</td>
-          <td class="px-4 py-2.5" style="color: var(--fg-muted);">${esc(s.course_name || '—')}</td>
-          <td class="px-4 py-2.5" style="color: var(--fg-muted);">${esc(s.contact_persons || '—')}</td>
-          <td class="px-4 py-2.5">${statusBadge}</td>
-          <td class="px-4 py-2.5 text-right">${actionsHtml}</td>
-        </tr>
-      `);
-    });
-    lucide.createIcons();
-    renderPaginationControls(filtered.length, siteApprovalCurrentPage, SITE_APPROVAL_PER_PAGE, 'siteApprovalPageCount', 'siteApprovalPrev', 'siteApprovalNext', 'siteApprovalPageButtons', (p) => { siteApprovalCurrentPage = p; renderSiteApprovalTable(); });
-  }
-
-  function showRejectionReason(reason) {
-    if (typeof Swal !== 'undefined') {
-      Swal.fire({ title: 'Rejection Reason', html: `<p style="text-align:left;color:var(--fg-muted);">${esc(reason)}</p>`, confirmButtonColor: '#7b1818', customClass: { popup: 'swal-dark' } });
-    } else {
-      alert('Rejection Reason:\n' + reason);
-    }
-  }
-
-  async function approveSite(id) {
-    const site = siteApprovalList.find(s => s.id === id);
-    const name = site ? site.name : 'this site';
-    const result = await Swal.fire({
-      title: 'Approve Site?',
-      html: `<p style="color:var(--fg-muted);">Are you sure you want to approve <strong>${esc(name)}</strong>?</p>`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonColor: '#22c55e',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Yes, approve',
-      cancelButtonText: 'Cancel',
-      customClass: { popup: 'swal-dark' }
-    });
-    if (!result.isConfirmed) return;
-    try {
-      const res = await fetch(`/api/coordinator/site-approvals/${id}/approve/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin'
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.detail || err.error || 'Failed');
-      }
-      await Swal.fire({ title: 'Approved', text: `${name} has been approved.`, icon: 'success', confirmButtonColor: '#7b1818', customClass: { popup: 'swal-dark' } });
-      loadSiteApprovals();
-    } catch (e) {
-      await Swal.fire({ title: 'Error', text: e.message, icon: 'error', confirmButtonColor: '#7b1818', customClass: { popup: 'swal-dark' } });
-    }
-  }
-
-  async function rejectSite(id) {
-    const site = siteApprovalList.find(s => s.id === id);
-    const name = site ? site.name : 'this site';
-    const { value: reason } = await Swal.fire({
-      title: 'Reject Site',
-      html: `<p style="color:var(--fg-muted);margin-bottom:8px;">Provide a reason for rejecting <strong>${esc(name)}</strong>:</p>`,
-      input: 'textarea',
-      inputPlaceholder: 'Enter rejection reason...',
-      inputAttributes: { style: 'resize:vertical; min-height: 80px;' },
-      showCancelButton: true,
-      confirmButtonColor: '#ef4444',
-      cancelButtonColor: '#6b7280',
-      confirmButtonText: 'Reject',
-      cancelButtonText: 'Cancel',
-      inputValidator: (v) => { if (!v || !v.trim()) return 'Rejection reason is required'; },
-      customClass: { popup: 'swal-dark' }
-    });
-    if (!reason) return;
-    try {
-      const res = await fetch(`/api/coordinator/site-approvals/${id}/reject/`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({ rejection_reason: reason.trim() })
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.detail || err.error || 'Failed');
-      }
-      await Swal.fire({ title: 'Rejected', text: `${name} has been rejected.`, icon: 'success', confirmButtonColor: '#7b1818', customClass: { popup: 'swal-dark' } });
-      loadSiteApprovals();
-    } catch (e) {
-      await Swal.fire({ title: 'Error', text: e.message, icon: 'error', confirmButtonColor: '#7b1818', customClass: { popup: 'swal-dark' } });
-    }
-  }
-
-  function updateSiteApprovalBadge() {
-    const pendingCount = siteApprovalList.filter(s => s.status === 'pending').length;
-    const badgeDesktop = document.getElementById('sitePendingBadgeDesktop');
-    const badgeMobile = document.getElementById('sitePendingBadgeMobile');
-    const badgeInSubtab = document.getElementById('siteApprovalBadge');
-    [badgeDesktop, badgeMobile, badgeInSubtab].forEach(badge => {
-      if (!badge) return;
-      if (pendingCount > 0) {
-        badge.textContent = pendingCount;
-        badge.style.display = 'inline-flex';
-      } else {
-        badge.style.display = 'none';
-      }
-    });
-  }
+  // ===== SITE ASSIGNMENTS (auto-created with application approval) =====
 
   function updateStats(prefix, values) {
     Object.entries(values).forEach(([k, v]) => {
@@ -2676,7 +2531,6 @@
       loadPrograms();
       loadStudentAccounts();
       loadProgramsForFilter();
-      loadSiteApprovals();
       switchSection('overview');
     }
   });
@@ -2702,10 +2556,6 @@
     if (sec === 'overview') loadOverview();
     else if (sec === 'attendance') loadAttendance();
     else if (sec === 'reports') loadStudentReports();
-    else if (sec === 'sites') {
-      if (!document.getElementById('sitesSubtabAssignments').classList.contains('hidden')) loadSiteAssignments();
-      else loadSiteApprovals();
-    }
     else if (sec === 'applications') loadApplications();
   }, 30000);
 
@@ -2760,8 +2610,9 @@
       <i data-lucide="clock" class="w-4 h-4"></i> Attendance
     </button>
     <button class="mobile-drawer-item" data-section="sites" onclick="switchSection('sites'); closeMobileDrawer()">
-      <i data-lucide="map-pin" class="w-4 h-4"></i> Sites <span id="sitePendingBadgeMobile" class="inline-flex items-center justify-center min-w-[1.1rem] h-[1.1rem] px-1 rounded-full text-[0.5rem] font-bold text-white" style="background: var(--danger); display: none; margin-left: 2px; vertical-align: middle;">0</span>
+      <i data-lucide="building" class="w-4 h-4"></i> Sites
     </button>
+
   </div>
   <div class="px-5 py-4 border-t mt-2" style="border-color: var(--card-border);">
     <p class="text-[0.55rem] font-semibold uppercase tracking-wider" style="color: var(--fg-dim);">IC OJT Monitoring System</p>
