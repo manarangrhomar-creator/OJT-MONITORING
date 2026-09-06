@@ -929,8 +929,6 @@
   </div>
 </div>
 
-
-
 <div id="approveModal" class="modal" role="dialog" aria-modal="true">
   <div class="modal-content narrow">
     <div class="modal-header"><h2>Approve Request</h2><button class="close-btn" onclick="closeModal('approveModal')">&times;</button></div>
@@ -1923,7 +1921,7 @@
         function restoreStudent(id) {
             const s = students[id];
             if (!s) return;
-            openRestoreModal(id, s.full_name || s.username, 'student');
+            openRestoreModal(id, s.name || s.username || 'Unknown', 'student');
         }
 
         // ===== COORDINATOR MANAGEMENT =====
@@ -2152,7 +2150,8 @@
         function restoreCoordinator(id) {
             const c = coordinators[id] || coordinatorList.find(x => x.id === id);
             if (!c) return;
-            openRestoreModal(id, c.full_name || c.username, 'coordinator');
+            const displayName = c.name || (c.first_name && c.last_name ? `${c.first_name} ${c.last_name}` : null) || c.username || 'Unknown';
+            openRestoreModal(id, displayName, 'coordinator');
         }
 
         // ===== COORDINATOR APPROVAL FUNCTIONS =====
