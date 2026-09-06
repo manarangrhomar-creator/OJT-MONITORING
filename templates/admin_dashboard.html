@@ -121,11 +121,25 @@
       .modal-buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 24px; }
 
       .swal2-container { z-index: 9999 !important; }
-      .swal2-container.swal2-backdrop-show { background: rgba(0, 0, 0, 0.85) !important; }
-      .swal2-popup { background: var(--primary) !important; border-radius: 16px !important; }
-      .swal2-title { color: #fff !important; }
-      .swal2-html-container { color: #eaf4ec !important; }
-      .swal2-icon { border-color: #fff !important; color: #fff !important; }
+      .swal2-container.swal2-backdrop-show { background: rgba(0, 0, 0, 0.45) !important; backdrop-filter: blur(4px); }
+      .swal2-popup { background: #ffffff !important; border-radius: 20px !important; padding: 1.75rem !important; box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important; border: 1px solid #E8E9F0 !important; }
+      .swal2-title { color: #1A1A2E !important; font-weight: 700 !important; font-size: 1.25rem !important; }
+      .swal2-html-container { color: #6b7280 !important; font-size: 0.9rem !important; }
+      .swal2-icon.swal2-warning { border-color: #F59E0B !important; color: #F59E0B !important; }
+      .swal2-icon.swal2-success { border-color: #10B981 !important; color: #10B981 !important; }
+      .swal2-icon.swal2-error { border-color: #EF4444 !important; color: #EF4444 !important; }
+      .swal2-icon.swal2-info { border-color: #3B82F6 !important; color: #3B82F6 !important; }
+      .swal2-icon.swal2-question { border-color: #7B1818 !important; color: #7B1818 !important; }
+      .swal-confirm-btn { background: #7B1818 !important; color: #fff !important; border-radius: 12px !important; padding: 0.65rem 1.5rem !important; font-weight: 600 !important; font-size: 0.875rem !important; box-shadow: 0 4px 12px rgba(123,24,24,0.25) !important; transition: all 0.2s !important; border: none !important; }
+      .swal-confirm-btn:hover { background: #4A0E0E !important; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(123,24,24,0.35) !important; }
+      .swal-confirm-btn-success { background: #10B981 !important; color: #fff !important; border-radius: 12px !important; padding: 0.65rem 1.5rem !important; font-weight: 600 !important; font-size: 0.875rem !important; box-shadow: 0 4px 12px rgba(16,185,129,0.3) !important; transition: all 0.2s !important; border: none !important; }
+      .swal-confirm-btn-success:hover { background: #059669 !important; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(16,185,129,0.4) !important; }
+      .swal-confirm-btn-danger { background: #EF4444 !important; color: #fff !important; border-radius: 12px !important; padding: 0.65rem 1.5rem !important; font-weight: 600 !important; font-size: 0.875rem !important; box-shadow: 0 4px 12px rgba(239,68,68,0.3) !important; transition: all 0.2s !important; border: none !important; }
+      .swal-confirm-btn-danger:hover { background: #DC2626 !important; transform: translateY(-1px); box-shadow: 0 6px 16px rgba(239,68,68,0.4) !important; }
+      .swal-cancel-btn { background: #ffffff !important; color: #374151 !important; border: 1.5px solid #D1D5DB !important; border-radius: 12px !important; padding: 0.65rem 1.5rem !important; font-weight: 600 !important; font-size: 0.875rem !important; transition: all 0.2s !important; }
+      .swal-cancel-btn:hover { background: #F9FAFB !important; border-color: #9CA3AF !important; color: #1F2937 !important; }
+      .swal2-actions { gap: 0.75rem !important; margin-top: 1.25rem !important; }
+      .swal2-styled.swal2-confirm:focus, .swal2-styled.swal2-cancel:focus { box-shadow: none !important; }
 
 
 
@@ -3332,8 +3346,19 @@
                 html: `Approve <strong>${esc(s.name)}</strong>?`,
                 icon: 'question',
                 showCancelButton: true,
-                confirmButtonColor: 'var(--success)',
                 confirmButtonText: 'Yes, approve it',
+                cancelButtonText: 'Cancel',
+                background: '#ffffff', color: '#1A1A2E',
+                reverseButtons: true, focusCancel: true,
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'rounded-2xl',
+                    title: 'text-xl font-bold',
+                    htmlContainer: 'text-sm',
+                    confirmButton: 'swal-confirm-btn-success',
+                    cancelButton: 'swal-cancel-btn',
+                    actions: 'gap-3'
+                }
             });
             if (!result.isConfirmed) return;
             try {
@@ -3363,8 +3388,20 @@
                 inputAttributes: { maxlength: 500 },
                 inputValidator: (v) => { if (!v || !v.trim()) return 'Rejection reason is required'; },
                 showCancelButton: true,
-                confirmButtonColor: 'var(--danger)',
                 confirmButtonText: 'Reject',
+                cancelButtonText: 'Cancel',
+                background: '#ffffff', color: '#1A1A2E',
+                reverseButtons: true, focusCancel: true,
+                buttonsStyling: false,
+                customClass: {
+                    popup: 'rounded-2xl',
+                    title: 'text-xl font-bold',
+                    htmlContainer: 'text-sm',
+                    confirmButton: 'swal-confirm-btn-danger',
+                    cancelButton: 'swal-cancel-btn',
+                    actions: 'gap-3',
+                    input: 'rounded-xl border-gray-300 focus:border-red-400 focus:ring-red-400'
+                }
             });
             if (reason === undefined) return;
             try {
