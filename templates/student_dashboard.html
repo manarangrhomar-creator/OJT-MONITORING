@@ -300,6 +300,9 @@
 
       /* === Leaflet Map === */
       #siteMapModalMap { height: 320px; border-radius: 12px; z-index: 1; }
+      @media (max-width: 640px) {
+        #siteMapModalMap { height: 260px; }
+      }
       .leaflet-popup-content-wrapper { border-radius: 10px !important; font-family: var(--font-body) !important; }
       .leaflet-popup-content { margin: 10px 14px !important; font-size: 12px !important; }
       .leaflet-popup-content h4 { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
@@ -814,8 +817,8 @@
         #sectionApply:not(.hidden) {
           display: flex !important;
           flex-direction: column;
-          min-height: 100dvh;
-          min-height: 100vh;
+          height: 100dvh;
+          height: 100vh;
           padding-top: 8px;
         }
         /* Hide stepper on mobile — intro cards replace it */
@@ -824,12 +827,14 @@
           flex: 1;
           display: flex;
           flex-direction: column;
-          overflow-y: auto;
-          -webkit-overflow-scrolling: touch;
+          overflow: hidden;
           padding-bottom: env(safe-area-inset-bottom, 0px);
         }
         #sectionApply:not(.hidden) [id^="applyWizStep"]:not(.hidden) > * {
           flex-shrink: 0;
+        }
+        #sectionApply:not(.hidden) [id^="applyWizStep"]:not(.hidden) > .wiz-step-body {
+          flex-shrink: 1;
         }
         #sectionApply:not(.hidden) [id^="applyWizStep"]:not(.hidden) .glass-card,
         #sectionApply:not(.hidden) [id^="applyWizStep"]:not(.hidden) .bento-card {
@@ -838,8 +843,82 @@
         /* Step 1: subject cards grid */
         #applyWizStep1 #programsGrid {
           display: grid;
-          grid-template-columns: 1fr;
-          gap: 10px;
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+          gap: 8px;
+          min-height: 0;
+        }
+        #applyWizStep1 .apply-subject-card.glass-card {
+          padding: 10px;
+          border-radius: 10px;
+          display: flex;
+          flex-direction: column;
+          overflow: hidden;
+        }
+        #applyWizStep1 .apply-subject-card .flex.items-start {
+          gap: 6px;
+        }
+        #applyWizStep1 .apply-subject-card h4 {
+          font-size: 12px;
+          margin-bottom: 2px;
+        }
+        #applyWizStep1 .apply-subject-card p {
+          font-size: 10px;
+          line-height: 1.3;
+          line-clamp: 2;
+          -webkit-line-clamp: 2;
+          overflow: hidden;
+          display: -webkit-box;
+          -webkit-box-orient: vertical;
+        }
+        #applyWizStep1 .apply-subject-card .apply-radio {
+          width: 18px;
+          height: 18px;
+        }
+        #applyWizStep1 .apply-subject-card .apply-radio-dot {
+          width: 10px;
+          height: 10px;
+        }
+        #applyWizStep1 .apply-subject-card .flex.items-center.justify-between {
+          gap: 4px;
+          padding-top: 4px;
+        }
+        #applyWizStep1 .apply-subject-card .slots-badge {
+          font-size: 10px;
+          padding: 2px 6px;
+          border-radius: 6px;
+        }
+        #applyWizStep1 .search-enhanced { margin-bottom: 12px; }
+        #applyWizStep1 .search-enhanced input { padding: 8px 12px 8px 34px; font-size: 12px; }
+        #applyWizStep1 .filter-chip { padding: 4px 8px; font-size: 10px; }
+        /* Compact step 1 header */
+        #applyWizStep1 .flex.flex-col.sm\:flex-row { gap: 8px; margin-bottom: 10px; }
+        #applyWizStep1 .w-10.h-10 { width: 32px; height: 32px; }
+        #applyWizStep1 .w-5.h-5 { width: 16px; height: 16px; }
+        #applyWizStep1 h2.text-lg { font-size: 14px; }
+        #applyWizStep1 .text-center.py-14 { padding-top: 24px; padding-bottom: 24px; }
+        #applyWizStep1 .text-center.py-10 { padding-top: 16px; padding-bottom: 16px; }
+        /* Sticky confirm button at bottom of wizard step */
+        .wiz-step-footer {
+          position: sticky;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          display: flex;
+          justify-content: center;
+          padding: 16px 20px;
+          padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+          background: linear-gradient(to top, var(--bg-body) 60%, transparent);
+          z-index: 10;
+          margin-top: auto;
+        }
+        /* Sticky search + filters at top */
+        #applySearchBar {
+          position: sticky;
+          top: 0;
+          z-index: 10;
+          background: var(--bg-body);
+          padding-bottom: 8px;
+          border-bottom: 1px solid var(--border);
         }
         /* Step 5: success card centers nicely */
         #applyWizStep5:not(.hidden) {
@@ -864,7 +943,12 @@
           display: none;
         }
         [id^="applyWizStep"]:not(.hidden) > .wiz-step-body.step-visible {
-          display: block;
+          display: flex;
+          flex-direction: column;
+          flex: 1;
+          min-height: 0;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
         }
         [id^="applyWizStep"]:not(.hidden) > .wiz-intro .wiz-intro-icon {
           width: 80px;
@@ -940,9 +1024,63 @@
 
       /* ── Mobile: stack modal buttons + full width ── */
       @media (max-width: 640px) {
+        #applyWizStep1 #programsGrid { grid-template-columns: 1fr; gap: 6px; height: fit-content; }
+        #applyWizStep1 .apply-subject-card.glass-card { padding: 8px; border-radius: 8px; max-height: 90px; }
+        #applyWizStep1 .apply-subject-card .flex.items-start { gap: 4px; margin-bottom: 0; }
+        #applyWizStep1 .apply-subject-card .flex.items-center.justify-between { padding-top: 2px; margin-top: 0; border-top: none; }
+        #applyWizStep1 .apply-subject-card p { font-size: 9px; line-clamp: 1; -webkit-line-clamp: 1; }
         .modal-content { padding: 20px 16px; }
         .modal-buttons { flex-direction: column; gap: 8px; }
         .modal-buttons .ghost-btn { width: 100%; text-align: center; padding: 14px 20px; font-size: 15px; }
+        /* ── Site Map Modal: stack layout + full-screen on mobile ── */
+        #siteMapModal .modal-content.wide {
+          width: 100% !important;
+          max-width: 100% !important;
+          height: 100dvh !important;
+          height: 100vh !important;
+          max-height: 100% !important;
+          border-radius: 12px 12px 0 0 !important;
+          padding: 16px 12px !important;
+        }
+        #siteMapModal .flex.flex-1.gap-4 {
+          flex-direction: column !important;
+          gap: 12px !important;
+        }
+        #siteMapModal .flex.flex-1.gap-4 > div {
+          flex: none !important;
+          min-width: 0 !important;
+        }
+        #siteMapModal .flex.flex-1.gap-4 > div:first-child {
+          flex: 1 !important;
+          min-height: 0 !important;
+        }
+        #siteMapModal .flex.flex-col.justify-between {
+          flex-direction: row !important;
+          flex-wrap: wrap !important;
+          gap: 8px !important;
+          align-items: center !important;
+        }
+        #siteMapModal .flex.flex-col.justify-between > .space-y-3 {
+          display: flex !important;
+          gap: 8px !important;
+          flex: 1 !important;
+          min-width: 0 !important;
+          align-items: center !important;
+        }
+        #siteMapModal .flex.flex-col.justify-between > .space-y-3 > div {
+          flex: 1 !important;
+          min-width: 0 !important;
+        }
+        #siteMapModal .flex.flex-col.justify-between > .space-y-3 > div label {
+          display: none !important;
+        }
+        #siteMapModal .flex.flex-col.justify-between > .space-y-3 > button {
+          flex: none !important;
+          white-space: nowrap !important;
+        }
+        #siteMapModal .modal-buttons {
+          margin-top: 0 !important;
+        }
       }
 
       @media (min-width: 640px) {
@@ -1380,7 +1518,7 @@
       </div>
 
       <!-- Search + Filter Row -->
-      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-5">
+      <div id="applySearchBar" class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-5">
         <div class="search-enhanced flex-1">
           <input type="text" id="programSearch" oninput="filterPrograms()" placeholder="Search by subject name...">
           <i data-lucide="search" class="search-icon"></i>
@@ -1409,7 +1547,7 @@
         <p class="text-xs text-[var(--muted)]">Try adjusting your search or check back later.</p>
       </div>
       <div id="programsGrid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-      <div class="flex justify-center mt-7">
+      <div class="wiz-step-footer">
         <button type="button" id="confirmSubjectBtn" onclick="applySelectSubjectAndNext()" disabled
                 class="inline-flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-[var(--primary)] to-[var(--primary-dark)] hover:from-[var(--primary-dark)] hover:to-[var(--primary)] text-white font-bold text-xs rounded-xl transition-all shadow-md hover:shadow-lg disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none">
           <i data-lucide="check" class="w-4 h-4"></i> Confirm Subject
@@ -4150,6 +4288,7 @@ async function loadArchives() {
       placeSiteMapPin(latN, lngN);
     }
     setTimeout(() => { if (siteMapModal) siteMapModal.invalidateSize(); }, 200);
+    setTimeout(() => { if (siteMapModal) siteMapModal.invalidateSize(); }, 500);
   }
 
   function closeSiteMapModal() {
