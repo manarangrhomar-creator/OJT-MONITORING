@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Scan Leave QR — IC OJT Portal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --maroon: #7B1818;
+      --maroon-light: #9B2C2C;
+      --gold: #C8A44A;
+      --gold-light: #E5D09E;
+      --paper: #F7F5F0;
+      --charcoal: #1A1A1A;
+      --font-display: 'Fraunces', Georgia, serif;
+      --font-body: 'DM Sans', system-ui, sans-serif;
+    }
+    body { font-family: var(--font-body); background-color: var(--paper); color: var(--charcoal); }
+    #reader { width: 100%; max-width: 400px; margin: 0 auto; }
+    #reader video { border-radius: 12px; }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div class="max-w-lg mx-auto px-4 py-8">
+    <!-- Header -->
+    <div class="text-center mb-6">
+      <h1 class="text-2xl font-bold" style="font-family: var(--font-display); color: var(--maroon);">
+        Scan Leave QR Code
+      </h1>
+      <p class="text-sm text-gray-500 mt-1">Point camera at student's QR code</p>
+    </div>
+
+    <!-- Login Form (shown when not authenticated) -->
+    <div id="login-section" class="bg-white rounded-2xl shadow-sm p-6 mb-6">
+      <h2 class="text-lg font-semibold mb-4">Supervisor Login</h2>
+      <form id="login-form">
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Username or Email</label>
+          <input type="text" id="login-identifier" required
+            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--maroon)] focus:border-transparent" />
+        </div>
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
+          <input type="password" id="login-password" required
+            class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[var(--maroon)] focus:border-transparent" />
+        </div>
+        <button type="submit" id="login-btn"
+          class="w-full py-2.5 rounded-xl text-white font-semibold transition-colors"
+          style="background-color: var(--maroon);">
+          Sign In
+        </button>
+      </form>
+    </div>
+
+    <!-- Scanner (shown when authenticated) -->
+    <div id="scanner-section" class="hidden">
+      <div id="reader" class="bg-white rounded-2xl shadow-sm overflow-hidden mb-6"></div>
+
+      <!-- Manual Entry Fallback -->
+      <div class="bg-white rounded-2xl shadow-sm p-6">
+        <h3 class="text-sm font-semibold text-gray-600 mb-3">Or enter token manually</h3>
+        <form id="manual-form" class="flex gap-2">
+          <input type="text" id="manual-token" placeholder="Paste QR token"
+            class="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-[var(--maroon)]" />
+          <button type="submit" id="manual-btn"
+            class="px-5 py-2.5 rounded-xl text-white text-sm font-semibold"
+            style="background-color: var(--maroon);">
+            Verify
+          </button>
+        </form>
+      </div>
+
+      <!-- Result -->
+      <div id="result-section" class="hidden mt-6 bg-white rounded-2xl shadow-sm p-6">
+        <div id="result-content"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = window.location.origin + '/api';
+    let token = localStorage.getItem('scan_token');
+    let html5QrCode = null;
+
+    // ── Login ──
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const identifier = document.getElementById('login-identifier').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      try {
+        const res = await fetch(`${API_BASE}/auth/login/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ identifier, password }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) throw new Error(data.error || 'Login failed');
+
+        token = data.token || data.key;
+        localStorage.setItem('scan_token', token);
+        showScanner();
+      } catch (err) {
+        Swal.fire('Login Failed', err.message, 'error');
+      }
+    });
+
+    // ── Show scanner after login ──
+    function showScanner() {
+      document.getElementById('login-section').classList.add('hidden');
+      document.getElementById('scanner-section').classList.remove('hidden');
+      startScanner();
+    }
+
+    // ── Check existing session ──
+    if (token) {
+      fetch(`${API_BASE}/auth/user/`, {
+        headers: { 'Authorization': `Token ${token}` },
+      }).then(res => {
+        if (res.ok) showScanner();
+        else { token = null; localStorage.removeItem('scan_token'); }
+      }).catch(() => {});
+    }
+
+    // ── QR Scanner ──
+    function startScanner() {
+      html5QrCode = new Html5Qrcode('reader');
+      html5QrCode.start(
+        { facingMode: 'environment' },
+        { fps: 10, qrbox: { width: 250, height: 250 } },
+        onScanSuccess,
+        () => {}
+      ).catch(err => {
+        console.warn('Camera not available:', err);
+      });
+    }
+
+    async function onScanSuccess(decodedText) {
+      // Stop scanning after success
+      if (html5QrCode && html5QrCode.isScanning) {
+        html5QrCode.stop().catch(() => {});
+      }
+      await verifyToken(decodedText.trim());
+    }
+
+    // ── Manual entry ──
+    document.getElementById('manual-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const manualToken = document.getElementById('manual-token').value.trim();
+      if (manualToken) await verifyToken(manualToken);
+    });
+
+    // ── Verify QR token ──
+    async function verifyToken(qrToken) {
+      try {
+        const res = await fetch(`${API_BASE}/coordinator/leave-scan/verify/`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Token ${token}`,
+          },
+          body: JSON.stringify({ qr_token: qrToken }),
+        });
+        const data = await res.json();
+
+        const resultSection = document.getElementById('result-section');
+        const resultContent = document.getElementById('result-content');
+        resultSection.classList.remove('hidden');
+
+        if (!res.ok) throw new Error(data.error || 'Verification failed');
+
+        resultContent.innerHTML = `
+          <div class="text-center">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style="background-color: #d1fae5;">
+              <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-green-700 mb-2">Leave Approved</h3>
+            <p class="text-sm text-gray-600 mb-1"><strong>${data.student_name}</strong></p>
+            <p class="text-sm text-gray-500 mb-1">Reason: ${data.reason}</p>
+            <p class="text-sm text-gray-500 mb-3">Duration: ${data.duration_minutes} minutes</p>
+            <p class="text-xs text-gray-400">Leave ends at ${new Date(data.leave_end).toLocaleTimeString()}</p>
+          </div>
+        `;
+
+        // Restart scanner after 5 seconds
+        setTimeout(() => {
+          resultSection.classList.add('hidden');
+          startScanner();
+        }, 5000);
+
+      } catch (err) {
+        const resultSection = document.getElementById('result-section');
+        const resultContent = document.getElementById('result-content');
+        resultSection.classList.remove('hidden');
+
+        resultContent.innerHTML = `
+          <div class="text-center">
+            <div class="w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center" style="background-color: #fee2e2;">
+              <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </div>
+            <h3 class="text-lg font-bold text-red-700 mb-2">Verification Failed</h3>
+            <p class="text-sm text-gray-500">${err.message}</p>
+          </div>
+        `;
+
+        setTimeout(() => {
+          resultSection.classList.add('hidden');
+          startScanner();
+        }, 3000);
+      }
+    }
+  </script>
+</body>
+</html>

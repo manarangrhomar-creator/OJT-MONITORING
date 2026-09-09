@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 from apps.core.models import BaseModel, User
 
 
@@ -193,4 +194,44 @@ class SiteAssignment(BaseModel):
     def __str__(self):
         return f"{self.student.username} -> {self.site.name if self.site else 'No site'}"
 
+
+class TemporaryLeave(BaseModel):
+    """Temporary leave request with QR code for supervisor approval."""
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+        ('expired', 'Expired'),
+        ('completed', 'Completed'),
+    ]
+
+    student = models.ForeignKey(User, on_delete=models.CASCADE, related_name='temporary_leaves', limit_choices_to={'role': 'student'})
+    attendance = models.ForeignKey(Attendance, on_delete=models.CASCADE, related_name='temporary_leaves')
+    reason = models.TextField()
+    duration_minutes = models.IntegerField(help_text='Leave duration in minutes')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)
+    qr_token = models.CharField(max_length=255, unique=True, db_index=True)
+    qr_expires_at = models.DateTimeField()
+    approved_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_leaves')
+    approved_at = models.DateTimeField(null=True, blank=True)
+    leave_start = models.DateTimeField(null=True, blank=True)
+    leave_end = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'Temporary Leave'
+        verbose_name_plural = 'Temporary Leaves'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Leave: {self.student.username} ({self.status})"
+
+    def is_expired(self):
+        return timezone.now() > self.qr_expires_at
+
+    def is_active(self):
+        if self.status != 'approved':
+            return False
+        if self.leave_end and timezone.now() > self.leave_end:
+            return False
+        return True
 

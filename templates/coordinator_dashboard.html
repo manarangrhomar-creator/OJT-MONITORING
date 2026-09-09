@@ -761,9 +761,9 @@
         <input type="text" id="reportSearchInput" placeholder="Search reports..." class="w-full pl-9 pr-4 py-2.5 !rounded-xl text-xs">
       </div>
       <div class="flex flex-wrap gap-1.5">
-        <button class="pill-btn !text-[0.6rem]" onclick="filterReports('all')">All</button>
-        <button class="pill-btn !text-[0.6rem]" style="border-color: #8B1A2B; color: #8B1A2B;" onclick="filterReports('pending')">Pending</button>
-        <button class="pill-btn !text-[0.6rem]" style="border-color: #D4A574; color: #D4A574;" onclick="filterReports('graded')">Graded</button>
+        <button class="pill-btn !text-[0.6rem] active" onclick="filterReports('all', this)">All</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterReports('pending', this)">Pending</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterReports('graded', this)">Graded</button>
       </div>
     </div>
     <div class="bento-card overflow-hidden">
@@ -1301,7 +1301,7 @@
   let overviewCache = {};
 
   function resetPills() {
-    document.querySelectorAll('.pill-btn').forEach(b => { b.classList.remove('active'); });
+    document.querySelectorAll('#pillNav .pill-btn').forEach(b => { b.classList.remove('active'); });
   }
 
   function switchSection(section) {
@@ -1968,8 +1968,10 @@
 
   let currentReportFilter = 'all';
 
-  function filterReports(status) {
+  function filterReports(status, btn) {
     currentReportFilter = status;
+    document.querySelectorAll('#reportsSection .pill-btn').forEach(b => b.classList.remove('active'));
+    if (btn) btn.classList.add('active');
     renderStudentReports();
   }
 

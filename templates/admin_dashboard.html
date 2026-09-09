@@ -775,9 +775,8 @@
       <h2 class="text-lg font-bold">Manage Sites</h2>
       <div class="flex flex-wrap gap-2">
         <button class="pill-btn !text-[0.6rem] active" onclick="filterSitesByStatus('all', this)">All</button>
-        <button class="pill-btn !text-[0.6rem]" onclick="filterSitesByStatus('pending', this)" style="border-color: var(--gold); color: var(--gold);">Pending</button>
-        <button class="pill-btn !text-[0.6rem]" onclick="filterSitesByStatus('approved', this)" style="border-color: var(--success); color: var(--success);">Approved</button>
-        <button class="pill-btn !text-[0.6rem]" onclick="filterSitesByStatus('rejected', this)" style="border-color: var(--danger); color: var(--danger);">Rejected</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterSitesByStatus('pending', this)">Pending</button>
+        <button class="pill-btn !text-[0.6rem]" onclick="filterSitesByStatus('approved', this)">Approved</button>
       </div>
       <button onclick="openAddSiteModal()" class="accent-btn flex items-center gap-1.5">
         <i data-lucide="plus" class="w-4 h-4"></i> Add Site

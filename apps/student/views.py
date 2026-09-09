@@ -196,6 +196,262 @@ class StudentDashboardViewSet(viewsets.ViewSet):
                 'in_session_am': hour < 12,
             })
 
+    @action(detail=False, methods=['post'], url_path='track-location')
+    def track_location(self, request):
+        """Track student location and auto clock-out if outside geofence.
+        
+        Students should call this endpoint periodically (e.g., every 5 minutes)
+        while clocked in. If they leave the geofence radius, they will be
+        automatically clocked out and flagged.
+        
+        Request body:
+            latitude (float): Student's current latitude
+            longitude (float): Student's current longitude
+        
+        Returns:
+            200: Location tracked successfully
+            400: Missing location data or not clocked in
+            200: Auto clocked-out if outside geofence
+        """
+        from apps.coordinator.models import FlagRecord
+        from apps.core.utils import create_and_send_notification
+        
+        student = request.user
+        latitude = request.data.get('latitude')
+        longitude = request.data.get('longitude')
+        
+        if latitude is None or longitude is None:
+            return Response(
+                {'error': 'Location data is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Get today's attendance
+        today = timezone.now().date()
+        try:
+            attendance = Attendance.objects.get(student=student, date=today)
+        except Attendance.DoesNotExist:
+            return Response(
+                {'error': 'No attendance record for today'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Check if student is currently clocked in (not yet clocked out)
+        now = timezone.localtime(timezone.now())
+        hour = now.hour
+        is_am = hour < 12
+        
+        if is_am:
+            is_clocked_in = attendance.time_in_am is not None and attendance.time_out_am is None
+        else:
+            is_clocked_in = attendance.time_in_pm is not None and attendance.time_out_pm is None
+        
+        if not is_clocked_in:
+            return Response(
+                {'message': 'Not currently clocked in'},
+                status=status.HTTP_200_OK
+            )
+        
+        # Get site location for geofence check
+        application = OJTApplication.objects.filter(
+            student=student, status='approved'
+        ).select_related('program').first()
+        
+        if not application:
+            return Response(
+                {'error': 'No approved OJT application found'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        site_assignment = SiteAssignment.objects.filter(
+            student=student, program=application.program
+        ).select_related('site').first()
+        
+        if not site_assignment or not site_assignment.site:
+            return Response(
+                {'error': 'No site assigned'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        site = site_assignment.site
+        
+        # Check for active approved temporary leave (geofence bypass)
+        from apps.coordinator.models import TemporaryLeave
+        active_leave = TemporaryLeave.objects.filter(
+            student=student,
+            status='approved',
+            leave_end__gte=timezone.now()
+        ).first()
+        
+        if active_leave:
+            return Response({
+                'message': 'Location tracked successfully (on approved leave)',
+                'clocked_out': False,
+                'on_leave': True
+            }, status=status.HTTP_200_OK)
+        
+        # Check geofence
+        if site.latitude is not None and site.longitude is not None:
+            distance = haversine_distance(latitude, longitude, site.latitude, site.longitude)
+            
+            if distance > GEOFENCE_RADIUS_METERS:
+                # Auto clock-out student
+                now_time = now.time()
+                
+                if is_am:
+                    attendance.time_out_am = now_time
+                else:
+                    attendance.time_out_pm = now_time
+                
+                attendance.time_out = now_time
+                attendance.auto_clocked_out = True
+                attendance.save(update_fields=[
+                    'time_out', 'time_out_am', 'time_out_pm', 'auto_clocked_out'
+                ])
+                
+                # Create flag record
+                FlagRecord.objects.get_or_create(
+                    attendance=attendance,
+                    flag_type='geofence',
+                    defaults={
+                        'reason': f'Student left geofence radius ({distance:.0f}m from site). Auto clocked-out.'
+                    }
+                )
+                
+                # Notify coordinator
+                create_and_send_notification(
+                    recipient=application.program.coordinator,
+                    title='Geofence Violation',
+                    message=(
+                        f'{student.get_full_name() or student.username} left the work site '
+                        f'geofence ({distance:.0f}m from site). They have been auto clocked-out.'
+                    ),
+                    type='attendance_update',
+                    related_object=attendance,
+                    related_object_type='Attendance',
+                    email_subject='Geofence Violation Alert',
+                )
+                
+                # Broadcast dashboard update
+                serializer = AttendanceSerializer(attendance)
+                broadcast_dashboard_update(
+                    'attendance',
+                    data={'action': 'update', 'item': serializer.data}
+                )
+                
+                return Response({
+                    'message': 'Outside geofence - auto clocked out',
+                    'distance': distance,
+                    'clocked_out': True
+                }, status=status.HTTP_200_OK)
+        
+        return Response({
+            'message': 'Location tracked successfully',
+            'clocked_out': False
+        }, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'], url_path='request-leave')
+    def request_leave(self, request):
+        """Request a temporary leave from the work site.
+        
+        Generates a QR code that the site supervisor can scan to approve the leave.
+        Geofence monitoring is paused during approved leave.
+        
+        Request body:
+            reason (str): Reason for leaving
+            duration_minutes (int): How long the student will be away (max 120 min)
+        
+        Returns:
+            201: QR code data for supervisor scanning
+            400: Missing data, not clocked in, or already has active leave
+        """
+        import uuid
+        from apps.coordinator.models import TemporaryLeave
+        
+        student = request.user
+        reason = request.data.get('reason', '').strip()
+        duration_minutes = request.data.get('duration_minutes')
+        
+        if not reason:
+            return Response(
+                {'error': 'Reason is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if not duration_minutes or not isinstance(duration_minutes, int) or duration_minutes < 1:
+            return Response(
+                {'error': 'Duration must be a positive integer (minutes)'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        if duration_minutes > 120:
+            return Response(
+                {'error': 'Maximum leave duration is 120 minutes'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Check if student has an active leave
+        active_leave = TemporaryLeave.objects.filter(
+            student=student,
+            status='approved',
+            leave_end__gte=timezone.now()
+        ).first()
+        
+        if active_leave:
+            return Response(
+                {'error': 'You already have an active temporary leave'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Get today's attendance
+        today = timezone.now().date()
+        try:
+            attendance = Attendance.objects.get(student=student, date=today)
+        except Attendance.DoesNotExist:
+            return Response(
+                {'error': 'No attendance record for today'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Check if student is currently clocked in
+        now = timezone.localtime(timezone.now())
+        hour = now.hour
+        is_am = hour < 12
+        
+        if is_am:
+            is_clocked_in = attendance.time_in_am is not None and attendance.time_out_am is None
+        else:
+            is_clocked_in = attendance.time_in_pm is not None and attendance.time_out_pm is None
+        
+        if not is_clocked_in:
+            return Response(
+                {'error': 'You must be clocked in to request a leave'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Generate QR token
+        qr_token = str(uuid.uuid4())
+        qr_expires_at = timezone.now() + timedelta(minutes=15)  # QR valid for 15 min
+        
+        # Create leave request
+        leave = TemporaryLeave.objects.create(
+            student=student,
+            attendance=attendance,
+            reason=reason,
+            duration_minutes=duration_minutes,
+            qr_token=qr_token,
+            qr_expires_at=qr_expires_at,
+        )
+        
+        return Response({
+            'message': 'Leave request created. Show QR code to your supervisor.',
+            'leave_id': leave.id,
+            'qr_token': qr_token,
+            'qr_expires_at': qr_expires_at.isoformat(),
+            'reason': reason,
+            'duration_minutes': duration_minutes,
+        }, status=status.HTTP_201_CREATED)
+
     @action(detail=False, methods=['post'])
     def clock_in(self, request):
         """Student clock in using facial recognition."""

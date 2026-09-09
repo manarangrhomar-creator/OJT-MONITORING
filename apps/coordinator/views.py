@@ -2,6 +2,7 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
+from datetime import timedelta
 from django.db import models
 from django.db.models import Exists, OuterRef
 from django.utils import timezone
@@ -705,3 +706,96 @@ class SiteAssignmentViewSet(viewsets.ModelViewSet):
             return Response(serializer.data)
         except SiteAssignment.DoesNotExist:
             return Response({'error': 'No assignment found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class LeaveScanViewSet(viewsets.ViewSet):
+    """ViewSet for scanning and approving temporary leave QR codes."""
+    permission_classes = [IsCoordinator]
+
+    @action(detail=False, methods=['post'], url_path='verify')
+    def verify(self, request):
+        """Verify a QR token and approve the leave.
+        
+        Request body:
+            qr_token (str): The QR token scanned from student's device
+        
+        Returns:
+            200: Leave approved with details
+            400: Invalid/expired token
+        """
+        from apps.coordinator.models import TemporaryLeave
+        from apps.core.utils import create_and_send_notification
+        
+        qr_token = request.data.get('qr_token', '').strip()
+        
+        if not qr_token:
+            return Response(
+                {'error': 'QR token is required'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        try:
+            leave = TemporaryLeave.objects.select_related(
+                'student', 'attendance', 'attendance__student'
+            ).get(qr_token=qr_token)
+        except TemporaryLeave.DoesNotExist:
+            return Response(
+                {'error': 'Invalid QR code'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Check if QR is expired
+        if leave.is_expired():
+            leave.status = 'expired'
+            leave.save(update_fields=['status'])
+            return Response(
+                {'error': 'QR code has expired. Ask student to generate a new one.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Check if already approved
+        if leave.status == 'approved':
+            return Response(
+                {'error': 'Leave already approved'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Approve the leave
+        now = timezone.now()
+        leave_end = now + timedelta(minutes=leave.duration_minutes)
+        
+        leave.status = 'approved'
+        leave.approved_by = request.user
+        leave.approved_at = now
+        leave.leave_start = now
+        leave.leave_end = leave_end
+        leave.save(update_fields=[
+            'status', 'approved_by', 'approved_at', 'leave_start', 'leave_end'
+        ])
+        
+        # Notify student
+        create_and_send_notification(
+            recipient=leave.student,
+            title='Temporary Leave Approved',
+            message=(
+                f'Your temporary leave has been approved by {request.user.get_full_name() or request.user.username}. '
+                f'You have {leave.duration_minutes} minutes. Please return on time.'
+            ),
+            type='leave_update',
+        )
+        
+        # Broadcast dashboard update
+        broadcast_dashboard_update('attendance', data={
+            'action': 'leave_approved',
+            'student_id': leave.student.id,
+            'leave_end': leave_end.isoformat(),
+        })
+        
+        return Response({
+            'message': 'Leave approved successfully',
+            'student_name': leave.student.get_full_name() or leave.student.username,
+            'reason': leave.reason,
+            'duration_minutes': leave.duration_minutes,
+            'leave_start': leave.leave_start.isoformat(),
+            'leave_end': leave_end.isoformat(),
+        }, status=status.HTTP_200_OK)

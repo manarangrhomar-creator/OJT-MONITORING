@@ -81,6 +81,9 @@ urlpatterns = [
     path('student/facial/', TemplateView.as_view(template_name='ojtstudent_facial.html'), name='student-facial'),
     path('student/attendance/', TemplateView.as_view(template_name='facial.html'), name='student-attendance'),
     
+    # Supervisor Leave Scanning
+    path('scan-leave/', TemplateView.as_view(template_name='scan_leave.html'), name='scan-leave'),
+    
     # Admin panel (Django built-in)
     path('admin/', admin.site.urls),
     
