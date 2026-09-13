@@ -68,13 +68,17 @@ class StudentProgramSerializer(serializers.ModelSerializer):
         return obj.applications.filter(status='approved').count()
 
 
-ALLOWED_DOC_EXTENSIONS = {'.pdf'}
+ALLOWED_DOC_EXTENSIONS = {'.pdf', '.png', '.jpg', '.jpeg'}
 
 class StudentApplySerializer(serializers.Serializer):
     """Student application submission with optional inline site creation."""
     program = serializers.PrimaryKeyRelatedField(queryset=OJTProgram.objects.filter(status='active'))
     application_letter = serializers.FileField()
     resume = serializers.FileField(required=False, allow_null=True)
+    insurance = serializers.FileField(required=False, allow_null=True)
+    waiver_consent = serializers.FileField(required=False, allow_null=True)
+    moa = serializers.FileField(required=False, allow_null=True)
+    reply_form = serializers.FileField(required=False, allow_null=True)
     face_image = serializers.ImageField(required=False, allow_null=True)
     preferred_site = serializers.PrimaryKeyRelatedField(
         queryset=Site.objects.filter(is_active=True),
@@ -95,7 +99,7 @@ class StudentApplySerializer(serializers.Serializer):
         ext = os.path.splitext(value.name)[1].lower()
         if ext not in ALLOWED_DOC_EXTENSIONS:
             raise serializers.ValidationError(
-                f'{field_name}: File type "{ext}" not allowed. Accepted: PDF only.'
+                f'{field_name}: File type "{ext}" not allowed. Accepted: PDF, PNG, JPG only.'
             )
         return value
 
@@ -105,6 +109,26 @@ class StudentApplySerializer(serializers.Serializer):
     def validate_resume(self, value):
         if value:
             return self._validate_file_ext(value, 'Resume')
+        return value
+
+    def validate_insurance(self, value):
+        if value:
+            return self._validate_file_ext(value, 'Insurance')
+        return value
+
+    def validate_waiver_consent(self, value):
+        if value:
+            return self._validate_file_ext(value, 'Waiver for Parent\'s Consent')
+        return value
+
+    def validate_moa(self, value):
+        if value:
+            return self._validate_file_ext(value, 'MOA')
+        return value
+
+    def validate_reply_form(self, value):
+        if value:
+            return self._validate_file_ext(value, 'Reply Form')
         return value
 
     def validate_program(self, value):

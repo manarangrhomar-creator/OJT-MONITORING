@@ -755,6 +755,10 @@ class StudentDashboardViewSet(viewsets.ViewSet):
                 existing.status = 'pending'
                 existing.application_letter = serializer.validated_data['application_letter']
                 existing.resume = serializer.validated_data.get('resume', None)
+                existing.insurance = serializer.validated_data.get('insurance', None)
+                existing.waiver_consent = serializer.validated_data.get('waiver_consent', None)
+                existing.moa = serializer.validated_data.get('moa', None)
+                existing.reply_form = serializer.validated_data.get('reply_form', None)
                 existing.preferred_site = preferred_site
                 existing.rejection_reason = ''
                 existing.approved_date = None
@@ -767,6 +771,10 @@ class StudentDashboardViewSet(viewsets.ViewSet):
                     program=program,
                     application_letter=serializer.validated_data['application_letter'],
                     resume=serializer.validated_data.get('resume', None),
+                    insurance=serializer.validated_data.get('insurance', None),
+                    waiver_consent=serializer.validated_data.get('waiver_consent', None),
+                    moa=serializer.validated_data.get('moa', None),
+                    reply_form=serializer.validated_data.get('reply_form', None),
                     preferred_site=preferred_site,
                     status='pending',
                     created_by=request.user,

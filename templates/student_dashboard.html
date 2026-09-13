@@ -1565,7 +1565,7 @@
           <i data-lucide="file-text"></i>
         </div>
         <h2>Fill Application Details</h2>
-        <p>Upload your application letter to proceed</p>
+        <p>Upload all required documents to proceed</p>
         <button type="button" onclick="wizIntroGo(this)">
           Continue <i data-lucide="arrow-right"></i>
         </button>
@@ -1583,7 +1583,7 @@
             Application Letter <span class="text-red-500">*</span>
           </label>
           <div class="relative">
-            <input type="file" id="applyLetterWiz" required accept=".pdf"
+            <input type="file" id="applyLetterWiz" required accept=".pdf,.png,.jpg,.jpeg"
                    class="w-full p-3 pr-10 border-2 border-dashed border-[var(--border)] text-sm outline-none bg-[var(--primary-light)]/40 rounded-xl
                           file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold
                           file:bg-[var(--primary)] file:text-white hover:file:bg-[var(--primary-dark)]
@@ -1591,7 +1591,92 @@
             <i data-lucide="upload-cloud" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none"></i>
           </div>
           <p class="text-[10px] text-[var(--muted)] mt-1.5 flex items-center gap-1">
-            <i data-lucide="info" class="w-3 h-3"></i> Upload your application letter (PDF only)
+            <i data-lucide="info" class="w-3 h-3"></i> Upload your application letter (PDF, PNG, JPG only)
+          </p>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-[var(--fg)] block mb-2">
+            <i data-lucide="file-text" class="w-3.5 h-3.5 inline-block -mt-0.5 mr-1 text-[var(--primary)]"></i>
+            Resume <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <input type="file" id="applyResumeWiz" required accept=".pdf,.png,.jpg,.jpeg"
+                   class="w-full p-3 pr-10 border-2 border-dashed border-[var(--border)] text-sm outline-none bg-[var(--primary-light)]/40 rounded-xl
+                          file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold
+                          file:bg-[var(--primary)] file:text-white hover:file:bg-[var(--primary-dark)]
+                          focus:border-[var(--primary)] transition-colors">
+            <i data-lucide="upload-cloud" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none"></i>
+          </div>
+          <p class="text-[10px] text-[var(--muted)] mt-1.5 flex items-center gap-1">
+            <i data-lucide="info" class="w-3 h-3"></i> Upload your resume (PDF, PNG, JPG only)
+          </p>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-[var(--fg)] block mb-2">
+            <i data-lucide="shield" class="w-3.5 h-3.5 inline-block -mt-0.5 mr-1 text-[var(--primary)]"></i>
+            Insurance <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <input type="file" id="applyInsuranceWiz" required accept=".pdf,.png,.jpg,.jpeg"
+                   class="w-full p-3 pr-10 border-2 border-dashed border-[var(--border)] text-sm outline-none bg-[var(--primary-light)]/40 rounded-xl
+                          file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold
+                          file:bg-[var(--primary)] file:text-white hover:file:bg-[var(--primary-dark)]
+                          focus:border-[var(--primary)] transition-colors">
+            <i data-lucide="upload-cloud" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none"></i>
+          </div>
+          <p class="text-[10px] text-[var(--muted)] mt-1.5 flex items-center gap-1">
+            <i data-lucide="info" class="w-3 h-3"></i> Upload your insurance document (PDF, PNG, JPG only)
+          </p>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-[var(--fg)] block mb-2">
+            <i data-lucide="file-check" class="w-3.5 h-3.5 inline-block -mt-0.5 mr-1 text-[var(--primary)]"></i>
+            Waiver for Parent's Consent <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <input type="file" id="applyWaiverWiz" required accept=".pdf,.png,.jpg,.jpeg"
+                   class="w-full p-3 pr-10 border-2 border-dashed border-[var(--border)] text-sm outline-none bg-[var(--primary-light)]/40 rounded-xl
+                          file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold
+                          file:bg-[var(--primary)] file:text-white hover:file:bg-[var(--primary-dark)]
+                          focus:border-[var(--primary)] transition-colors">
+            <i data-lucide="upload-cloud" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none"></i>
+          </div>
+          <p class="text-[10px] text-[var(--muted)] mt-1.5 flex items-center gap-1">
+            <i data-lucide="info" class="w-3 h-3"></i> Upload signed waiver for parent's consent (PDF, PNG, JPG only)
+          </p>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-[var(--fg)] block mb-2">
+            <i data-lucide="file-text" class="w-3.5 h-3.5 inline-block -mt-0.5 mr-1 text-[var(--primary)]"></i>
+            MOA <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <input type="file" id="applyMoaWiz" required accept=".pdf,.png,.jpg,.jpeg"
+                   class="w-full p-3 pr-10 border-2 border-dashed border-[var(--border)] text-sm outline-none bg-[var(--primary-light)]/40 rounded-xl
+                          file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold
+                          file:bg-[var(--primary)] file:text-white hover:file:bg-[var(--primary-dark)]
+                          focus:border-[var(--primary)] transition-colors">
+            <i data-lucide="upload-cloud" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none"></i>
+          </div>
+          <p class="text-[10px] text-[var(--muted)] mt-1.5 flex items-center gap-1">
+            <i data-lucide="info" class="w-3 h-3"></i> Upload your Memorandum of Agreement (PDF, PNG, JPG only)
+          </p>
+        </div>
+        <div>
+          <label class="text-[11px] font-semibold text-[var(--fg)] block mb-2">
+            <i data-lucide="reply" class="w-3.5 h-3.5 inline-block -mt-0.5 mr-1 text-[var(--primary)]"></i>
+            Reply Form <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <input type="file" id="applyReplyWiz" required accept=".pdf,.png,.jpg,.jpeg"
+                   class="w-full p-3 pr-10 border-2 border-dashed border-[var(--border)] text-sm outline-none bg-[var(--primary-light)]/40 rounded-xl
+                          file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold
+                          file:bg-[var(--primary)] file:text-white hover:file:bg-[var(--primary-dark)]
+                          focus:border-[var(--primary)] transition-colors">
+            <i data-lucide="upload-cloud" class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--muted)] pointer-events-none"></i>
+          </div>
+          <p class="text-[10px] text-[var(--muted)] mt-1.5 flex items-center gap-1">
+            <i data-lucide="info" class="w-3 h-3"></i> Upload your reply form (PDF, PNG, JPG only)
           </p>
         </div>
         <div id="applyErrorWiz" class="hidden p-3 bg-red-50 border border-red-200 text-red-600 text-xs font-medium rounded-xl flex items-center gap-2">
@@ -4450,10 +4535,15 @@ async function loadArchives() {
   async function submitApplication(e) {
     e.preventDefault();
     const letterFile = document.getElementById('applyLetterWiz').files[0];
+    const resumeFile = document.getElementById('applyResumeWiz').files[0];
+    const insuranceFile = document.getElementById('applyInsuranceWiz').files[0];
+    const waiverFile = document.getElementById('applyWaiverWiz').files[0];
+    const moaFile = document.getElementById('applyMoaWiz').files[0];
+    const replyFile = document.getElementById('applyReplyWiz').files[0];
     const faceBlob = window._faceRegBlob;
-    if (!selectedSubjectId || !letterFile) {
+    if (!selectedSubjectId || !letterFile || !resumeFile || !insuranceFile || !waiverFile || !moaFile || !replyFile) {
       const errDiv = document.getElementById('applySiteError');
-      errDiv.innerHTML = '<strong>Error:</strong> Please upload your application letter before submitting.';
+      errDiv.innerHTML = '<strong>Error:</strong> Please upload all required documents before submitting.';
       errDiv.classList.remove('hidden');
       return;
     }
@@ -4483,6 +4573,11 @@ async function loadArchives() {
     const formData = new FormData();
     formData.append('program', selectedSubjectId);
     formData.append('application_letter', letterFile);
+    formData.append('resume', resumeFile);
+    formData.append('insurance', insuranceFile);
+    formData.append('waiver_consent', waiverFile);
+    formData.append('moa', moaFile);
+    formData.append('reply_form', replyFile);
     formData.append('face_image', faceBlob, 'face_photo.jpg');
     if (siteMode === 'existing' && selectedSiteId) {
       formData.append('preferred_site', selectedSiteId);
@@ -5077,15 +5172,25 @@ async function loadArchives() {
     document.getElementById('confirmSubjectBtn').disabled = true;
     document.getElementById('applySelectedSubject').textContent = selectedSubjectName;
     document.getElementById('applyLetterWiz').value = '';
+    document.getElementById('applyResumeWiz').value = '';
+    document.getElementById('applyInsuranceWiz').value = '';
+    document.getElementById('applyWaiverWiz').value = '';
+    document.getElementById('applyMoaWiz').value = '';
+    document.getElementById('applyReplyWiz').value = '';
     document.getElementById('applyErrorWiz').classList.add('hidden');
     applyGoStep(2);
   }
 
   function applyGoStep2To3() {
     const letterFile = document.getElementById('applyLetterWiz').files[0];
-    if (!letterFile) {
+    const resumeFile = document.getElementById('applyResumeWiz').files[0];
+    const insuranceFile = document.getElementById('applyInsuranceWiz').files[0];
+    const waiverFile = document.getElementById('applyWaiverWiz').files[0];
+    const moaFile = document.getElementById('applyMoaWiz').files[0];
+    const replyFile = document.getElementById('applyReplyWiz').files[0];
+    if (!letterFile || !resumeFile || !insuranceFile || !waiverFile || !moaFile || !replyFile) {
       const err = document.getElementById('applyErrorWiz');
-      err.querySelector('span').textContent = 'Please upload your application letter (PDF) before proceeding.';
+      err.querySelector('span').textContent = 'Please upload all required documents before proceeding.';
       err.classList.remove('hidden');
       return;
     }

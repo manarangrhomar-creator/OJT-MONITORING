@@ -31,7 +31,7 @@ class OJTApplicationSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = OJTApplication
-        fields = ('id', 'student', 'student_name', 'program', 'program_name', 'preferred_site', 'preferred_site_name', 'preferred_site_address', 'preferred_site_supervisor', 'preferred_site_contact', 'preferred_site_gmail', 'preferred_site_latitude', 'preferred_site_longitude', 'preferred_site_contact_persons', 'status', 'application_letter', 'resume', 'approved_date', 'rejection_reason', 'created_at')
+        fields = ('id', 'student', 'student_name', 'program', 'program_name', 'preferred_site', 'preferred_site_name', 'preferred_site_address', 'preferred_site_supervisor', 'preferred_site_contact', 'preferred_site_gmail', 'preferred_site_latitude', 'preferred_site_longitude', 'preferred_site_contact_persons', 'status', 'application_letter', 'resume', 'insurance', 'waiver_consent', 'moa', 'reply_form', 'approved_date', 'rejection_reason', 'created_at')
         read_only_fields = ('id', 'created_at', 'approved_date')
 
 

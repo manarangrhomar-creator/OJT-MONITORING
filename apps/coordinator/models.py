@@ -47,6 +47,10 @@ class OJTApplication(BaseModel):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending', db_index=True)
     application_letter = models.FileField(upload_to='applications/')
     resume = models.FileField(upload_to='resumes/', blank=True, null=True)
+    insurance = models.FileField(upload_to='insurance/', blank=True, null=True)
+    waiver_consent = models.FileField(upload_to='waivers/', blank=True, null=True)
+    moa = models.FileField(upload_to='moa/', blank=True, null=True)
+    reply_form = models.FileField(upload_to='reply_forms/', blank=True, null=True)
     approved_date = models.DateTimeField(blank=True, null=True)
     rejection_reason = models.TextField(blank=True)
     
