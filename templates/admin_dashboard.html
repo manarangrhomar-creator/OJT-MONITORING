@@ -2994,10 +2994,7 @@
                 const sm = statusMap[st] || statusMap.approved;
                 const cpList = (s.contact_persons || []).map(cp => `<div class="text-[0.65rem] leading-snug">${esc(cp.name || '—')} · ${esc(cp.phone || '—')} · ${esc(cp.email || '—')}</div>`).join('') || '<span style="color: var(--fg-dim);">—</span>';
                 const actionBtns = [];
-                if (st === 'pending') {
-                    actionBtns.push(`<button class="ghost-btn !p-1.5" title="Approve" onclick="approveSiteAdmin('${esc(s.id)}')" style="color: var(--success);"><i data-lucide="check-circle" class="w-3.5 h-3.5"></i></button>`);
-                    actionBtns.push(`<button class="ghost-btn !p-1.5" title="Reject" onclick="rejectSiteAdmin('${esc(s.id)}')" style="color: var(--danger);"><i data-lucide="x-circle" class="w-3.5 h-3.5"></i></button>`);
-                }
+                // Approve/Reject removed from Admin — coordinator approves via OJT Application (auto-approves site)
                 actionBtns.push(`<button class="ghost-btn !p-1.5" title="Edit" onclick="editSite('${esc(s.id)}')"><i data-lucide="pencil" class="w-3.5 h-3.5"></i></button>`);
                 if (s.is_active) {
                     actionBtns.push(`<button class="ghost-btn !p-1.5" title="Archive" onclick="deleteSite('${esc(s.id)}')"><i data-lucide="archive" class="w-3.5 h-3.5"></i></button>`);

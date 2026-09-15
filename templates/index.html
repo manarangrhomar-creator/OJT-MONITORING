@@ -192,10 +192,38 @@
     </section>
   </main>
 
-  <footer class="relative z-10 border-t border-[var(--charcoal)]/5 px-6 md:px-12 lg:px-24 py-8">
-    <div class="max-w-4xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-[var(--charcoal)]/40">
-      <p>&copy; 2026 Isabela Colleges, Inc. — Cauayan City, Isabela. All rights reserved.</p>
-      <p class="tracking-wider">bakit hindi ka nagrereply? i miss you 😞 - Adrian yearner</p>
+  <footer class="relative z-10 bg-white border-t border-[var(--charcoal)]/5">
+    <div class="h-[3px] w-full" style="background: linear-gradient(90deg, var(--maroon) 0%, var(--gold) 50%, var(--maroon) 100%); opacity: 0.85;"></div>
+    <div class="px-6 md:px-12 lg:px-24 py-7 sm:py-8">
+      <div class="max-w-4xl mx-auto flex flex-col gap-5">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+          <div class="flex items-center gap-3.5">
+            <img src="{% static 'images/isabela_colleges_logo.png' %}" alt="Isabela Colleges" class="w-10 h-10 rounded-xl object-contain bg-white shadow-sm border border-black/5 p-1.5 flex-shrink-0" />
+            <div>
+              <p class="text-[14px] font-semibold tracking-tight text-[var(--charcoal)] leading-none">Isabela Colleges, Inc.</p>
+              <p class="text-xs text-[var(--charcoal)]/45 mt-1 flex flex-wrap items-center gap-1.5">
+                <span>Cauayan City, Isabela</span>
+                <span class="w-1 h-1 rounded-full bg-[var(--gold)] inline-block"></span>
+                <span class="font-medium text-[var(--charcoal)]/55">OJT Monitoring System</span>
+              </p>
+            </div>
+          </div>
+          <a href="https://www.facebook.com/share/1BrZBoD2wT/" target="_blank" rel="noopener noreferrer"
+             class="group inline-flex items-center gap-3 bg-[#1877F2] hover:bg-[#0d65d9] text-white text-sm font-semibold pl-2 pr-5 py-2.5 rounded-full transition-all duration-200 hover:shadow-xl hover:-translate-y-0.5 shadow-lg shadow-blue-500/20 whitespace-nowrap w-full sm:w-auto justify-center"
+             aria-label="Follow Isabela Colleges on Facebook">
+            <span class="w-8 h-8 rounded-full bg-white flex items-center justify-center flex-shrink-0 shadow-sm">
+              <svg class="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="#1877F2" aria-hidden="true"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+            </span>
+            Follow us on Facebook
+            <svg class="w-3.5 h-3.5 opacity-70 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+          </a>
+        </div>
+        <div class="h-px bg-[var(--charcoal)]/5"></div>
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-2 text-xs">
+          <p class="text-[var(--charcoal)]/35 text-center sm:text-left">&copy; 2026 Isabela Colleges, Inc. — All rights reserved.</p>
+          <a href="https://www.facebook.com/share/1BrZBoD2wT/" target="_blank" rel="noopener noreferrer" class="text-[11px] tracking-wide font-medium text-[var(--charcoal)]/30 hover:text-[#1877F2] transition-colors">facebook.com/share/1BrZBoD2wT • Official Page</a>
+        </div>
+      </div>
     </div>
   </footer>
 
