@@ -132,6 +132,8 @@ class OJTApplicationViewSet(viewsets.ModelViewSet):
         except Exception:
             pass
         broadcast_dashboard_update('applications', data={'action': 'update', 'item': OJTApplicationSerializer(application).data})
+        if application.preferred_site and application.preferred_site.status == 'approved':
+            broadcast_dashboard_update('sites')
         return Response({'message': 'Application approved'}, status=status.HTTP_200_OK)
     
     @action(detail=True, methods=['post'])
@@ -202,6 +204,7 @@ class AttendanceViewSet(viewsets.ModelViewSet):
             program_id=program_id,
             date=timezone.now().date(),
             defaults={
+                'time_in': now_time,
                 'latitude': request.data.get('latitude'),
                 'longitude': request.data.get('longitude'),
                 'ip_address': request.META.get('REMOTE_ADDR'),
@@ -277,6 +280,32 @@ class AttendanceViewSet(viewsets.ModelViewSet):
                 related_object_type='Attendance',
             )
 
+        serializer = self.get_serializer(attendance)
+        broadcast_dashboard_update('attendance', data={'action': 'update', 'item': serializer.data})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['post'], url_path='update-times')
+    def update_times(self, request):
+        """Update attendance time fields (AM In, AM Out, PM In, PM Out) for a record."""
+        attendance_id = request.data.get('attendance_id')
+        if not attendance_id:
+            return Response({'error': 'attendance_id is required'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            attendance = Attendance.objects.get(id=attendance_id)
+        except Attendance.DoesNotExist:
+            return Response({'error': 'Attendance record not found'}, status=status.HTTP_404_NOT_FOUND)
+
+        fields = ['time_in_am', 'time_out_am', 'time_in_pm', 'time_out_pm']
+        updated = False
+        for f in fields:
+            val = request.data.get(f)
+            if val is not None:
+                setattr(attendance, f, val if val else None)
+                updated = True
+        if not updated:
+            return Response({'error': 'No time fields provided'}, status=status.HTTP_400_BAD_REQUEST)
+
+        attendance.save()
         serializer = self.get_serializer(attendance)
         broadcast_dashboard_update('attendance', data={'action': 'update', 'item': serializer.data})
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -424,6 +453,8 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
             )
 
         broadcast_dashboard_update('applications', data={'action': 'update', 'item': OJTApplicationSerializer(application).data})
+        if application.preferred_site and application.preferred_site.status == 'approved':
+            broadcast_dashboard_update('sites')
         return Response({'message': 'Student approved successfully'}, status=status.HTTP_200_OK)
     
     @action(detail=False, methods=['post'], url_path='reject-student')
@@ -534,6 +565,8 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         narrative.graded_at = timezone.now()
         narrative.save(update_fields=['grade', 'feedback', 'graded_by', 'graded_at'])
 
+        broadcast_dashboard_update('reports')
+
         student_name = narrative.student.get_full_name() or narrative.student.username
         send_email_task.delay(
             recipient_email=narrative.student.email,
@@ -590,36 +623,233 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'], url_path='report/csv')
     def report_csv(self, request):
-        """Export attendance CSV for coordinator's students."""
-        import csv
+        """Export monthly attendance report as A4 landscape PDF.
+
+        Query params:
+            month (int): Month number 1-12 (default: current month)
+            year (int): Year (default: current year)
+            program_id (int): Optional program filter
+        """
         from django.http import HttpResponse
+        import calendar
+        from datetime import date as date_cls
+        from collections import defaultdict
+        import io
+        from reportlab.lib.pagesizes import A4, landscape
+        from reportlab.lib import colors
+        from reportlab.lib.units import mm
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
         coordinator = request.user
+        now = timezone.now()
+        month = int(request.query_params.get('month', now.month))
+        year = int(request.query_params.get('year', now.year))
+        program_id = request.query_params.get('program_id')
+
         programs = OJTProgram.objects.filter(coordinator=coordinator)
+        if program_id:
+            programs = programs.filter(id=program_id)
+
+        num_days = calendar.monthrange(year, month)[1]
+        month_start = date_cls(year, month, 1)
+        month_end = date_cls(year, month, num_days)
+
+        # Get all approved student applications in coordinator's programs
+        applications = OJTApplication.objects.filter(
+            program__in=programs,
+            status='approved'
+        ).select_related('student', 'program').order_by(
+            'student__last_name', 'student__first_name', 'student__username'
+        )
+
+        # Build student list with program info
+        students = []
+        seen = set()
+        for app in applications:
+            sid = app.student.id
+            if sid not in seen:
+                seen.add(sid)
+                students.append({
+                    'student': app.student,
+                    'program': app.program,
+                })
+
+        # Fetch attendance for the month
         attendances = Attendance.objects.filter(
-            program__in=programs
-        ).select_related('student', 'program').order_by('-date', 'student__username')
+            program__in=programs,
+            date__gte=month_start,
+            date__lte=month_end,
+        ).select_related('student', 'program')
 
-        response = HttpResponse(content_type='text/csv')
-        response['Content-Disposition'] = f'attachment; filename="attendance_report_{timezone.now().date()}.csv"'
-
-        writer = csv.writer(response)
-        writer.writerow(['Student', 'Program', 'Date', 'AM Time In', 'AM Time Out', 'PM Time In', 'PM Time Out', 'AM Status', 'PM Status', 'Overall Status', 'Facial Recognition', 'Notes'])
+        # Build lookup: (student_id, day) -> attendance status
+        day_map = defaultdict(str)
         for att in attendances:
-            writer.writerow([
-                att.student.get_full_name() or att.student.username,
-                att.program.name,
-                att.date,
-                str(att.time_in_am)[:5] if att.time_in_am else '',
-                str(att.time_out_am)[:5] if att.time_out_am else '',
-                str(att.time_in_pm)[:5] if att.time_in_pm else '',
-                str(att.time_out_pm)[:5] if att.time_out_pm else '',
-                att.get_am_status(),
-                att.get_pm_status(),
-                att.get_overall_status(),
-                'Yes' if att.facial_recognition_used else 'No',
-                att.notes or '',
-            ])
+            day = att.date.day
+            key = (att.student_id, day)
+            overall = att.get_overall_status()
+            if overall in ('Present', 'Late'):
+                day_map[key] = '\u2713'
+            else:
+                day_map[key] = '\u2014'
+
+        # Calculate per-student totals
+        totals = defaultdict(int)
+        for s in students:
+            sid = s['student'].id
+            for d in range(1, num_days + 1):
+                if day_map.get((sid, d)) == '\u2713':
+                    totals[sid] += 1
+
+        # --- Build PDF ---
+        page_w, page_h = landscape(A4)
+        output = io.BytesIO()
+        doc = SimpleDocTemplate(
+            output,
+            pagesize=landscape(A4),
+            leftMargin=12 * mm,
+            rightMargin=12 * mm,
+            topMargin=15 * mm,
+            bottomMargin=15 * mm,
+        )
+
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle(
+            'Title2', parent=styles['Title'], fontSize=14, spaceAfter=2 * mm,
+            textColor=colors.HexColor('#7B1818'),
+        )
+        subtitle_style = ParagraphStyle(
+            'Sub', parent=styles['Normal'], fontSize=8, leading=10,
+        )
+        footer_style = ParagraphStyle(
+            'Footer', parent=styles['Normal'], fontSize=7, alignment=TA_CENTER,
+            textColor=colors.HexColor('#888888'), spaceBefore=4 * mm,
+        )
+        cell_style = ParagraphStyle(
+            'Cell', parent=styles['Normal'], fontSize=6, leading=7, alignment=TA_CENTER,
+        )
+        cell_left = ParagraphStyle(
+            'CellL', parent=styles['Normal'], fontSize=6, leading=7, alignment=TA_LEFT,
+        )
+
+        elements = []
+
+        # Title block
+        program_name = programs.first().name if programs.exists() else 'All Programs'
+        coordinator_name = coordinator.get_full_name() or coordinator.username
+        elements.append(Paragraph('Monthly Attendance Report', title_style))
+        elements.append(Paragraph(
+            f'Month: {calendar.month_name[month]} {year} &nbsp;&nbsp;|&nbsp;&nbsp; '
+            f'Program: {program_name} &nbsp;&nbsp;|&nbsp;&nbsp; '
+            f'Coordinator: {coordinator_name} &nbsp;&nbsp;|&nbsp;&nbsp; '
+            f'Generated: {now.strftime("%B %d, %Y")}',
+            subtitle_style,
+        ))
+        elements.append(Spacer(1, 4 * mm))
+
+        # Build table data
+        gold = colors.HexColor('#D4A843')
+        dark_maroon = colors.HexColor('#7B1818')
+
+        # Header row
+        header = ['No.', 'Student Name']
+        for d in range(1, num_days + 1):
+            header.append(str(d))
+        header.append('Total')
+
+        table_data = [header]
+
+        # Student rows
+        for idx, s in enumerate(students, start=1):
+            row = [str(idx)]
+            student_name = s['student'].get_full_name() or s['student'].username
+            row.append(student_name)
+            for d in range(1, num_days + 1):
+                mark = day_map.get((s['student'].id, d), '')
+                row.append(mark)
+            row.append(str(totals.get(s['student'].id, 0)))
+            table_data.append(row)
+
+        # Total Days row
+        total_row = ['', 'Total Days']
+        for d in range(1, num_days + 1):
+            day_count = sum(
+                1 for s in students
+                if day_map.get((s['student'].id, d)) == '\u2713'
+            )
+            total_row.append(str(day_count))
+        total_row.append(str(sum(totals.values())))
+        table_data.append(total_row)
+
+        # Column widths — landscape A4 ~ 277mm usable
+        # No.(8mm) + Name(35mm) + 31 days(5.5mm each=170.5mm) + Total(8mm) = ~221mm fits well
+        col_widths = [8 * mm, 35 * mm] + [5.5 * mm] * num_days + [8 * mm]
+
+        table = Table(table_data, colWidths=col_widths, repeatRows=1)
+
+        # Style commands
+        style_cmds = [
+            # Header row
+            ('BACKGROUND', (0, 0), (-1, 0), gold),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.white),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 6),
+            ('ALIGN', (0, 0), (-1, 0), 'CENTER'),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            # Grid
+            ('GRID', (0, 0), (-1, -1), 0.5, colors.grey),
+            ('LINEBELOW', (0, 0), (-1, 0), 1, dark_maroon),
+            # Data cells
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -1), 6),
+            # No. column centered
+            ('ALIGN', (0, 1), (0, -1), 'CENTER'),
+            # Name column left-aligned
+            ('ALIGN', (1, 1), (1, -1), 'LEFT'),
+            # Day columns centered
+            ('ALIGN', (2, 1), (-2, -1), 'CENTER'),
+            # Total column centered + bold
+            ('ALIGN', (-1, 1), (-1, -1), 'CENTER'),
+            ('FONTNAME', (-1, 1), (-1, -1), 'Helvetica-Bold'),
+            # Bottom total row
+            ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#F0EDE8')),
+            ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, -1), (-1, -1), 6),
+            # Alternating row shading
+        ]
+
+        # Alternating row colors for readability
+        for i in range(1, len(table_data) - 1):
+            if i % 2 == 0:
+                style_cmds.append(
+                    ('BACKGROUND', (0, i), (-1, i), colors.HexColor('#FDF9F0'))
+                )
+
+        # Color checkmarks green, dashes red
+        for r_idx in range(1, len(table_data) - 1):
+            for c_idx in range(2, 2 + num_days):
+                cell_val = table_data[r_idx][c_idx]
+                if cell_val == '\u2713':
+                    style_cmds.append(('TEXTCOLOR', (c_idx, r_idx), (c_idx, r_idx), colors.HexColor('#008000')))
+                elif cell_val == '\u2014':
+                    style_cmds.append(('TEXTCOLOR', (c_idx, r_idx), (c_idx, r_idx), colors.HexColor('#CC0000')))
+
+        table.setStyle(TableStyle(style_cmds))
+        elements.append(table)
+
+        # Footer
+        elements.append(Paragraph(
+            'MONTHLY ATTENDANCE REPORT &mdash; OJT MONITORING SYSTEM',
+            footer_style,
+        ))
+
+        doc.build(elements)
+        output.seek(0)
+
+        response = HttpResponse(output.getvalue(), content_type='application/pdf')
+        filename = f'monthly_attendance_{calendar.month_name[month]}_{year}.pdf'
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
 
     @action(detail=False, methods=['get'], url_path='report/stats')
@@ -679,6 +909,10 @@ class SiteAssignmentViewSet(viewsets.ModelViewSet):
         return SiteAssignment.objects.filter(
             program__coordinator=coordinator
         ).select_related('student', 'program', 'site')
+
+    def perform_create(self, serializer):
+        serializer.save()
+        broadcast_dashboard_update('sites')
 
     @action(detail=False, methods=['get'], url_path='my-site')
     def my_site(self, request):

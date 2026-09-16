@@ -3043,6 +3043,7 @@
   }
 
   function switchToDashboard() {
+    currentSection = 'dashboard';
     stopAttCamera();
     resetTabPills();
     tabDashboardBtn.className = "tab-pill-active px-3 sm:px-5 py-2 rounded-xl text-[10px] sm:text-xs transition-all flex items-center gap-1.5 sm:gap-2";
@@ -3055,6 +3056,7 @@
   }
 
   function switchToReport() {
+    currentSection = 'report';
     stopAttCamera();
     resetTabPills();
     tabReportBtn.className = "tab-pill-active px-3 sm:px-5 py-2 rounded-xl text-[10px] sm:text-xs transition-all flex items-center gap-1.5 sm:gap-2";
@@ -3067,6 +3069,7 @@
   }
 
   function switchToArchives() {
+    currentSection = 'archives';
     stopAttCamera();
     resetTabPills();
     tabArchivesBtn.className = "tab-pill-active px-3 sm:px-5 py-2 rounded-xl text-[10px] sm:text-xs transition-all flex items-center gap-1.5 sm:gap-2";
@@ -3079,6 +3082,7 @@
   }
 
   function switchToAttendance() {
+    currentSection = 'attendance';
     resetTabPills();
     tabAttendanceBtn.className = "tab-pill-active px-3 sm:px-5 py-2 rounded-xl text-[10px] sm:text-xs transition-all flex items-center gap-1.5 sm:gap-2";
     tabAttendanceBtn.setAttribute('aria-selected', 'true');
@@ -3580,6 +3584,7 @@
         attVerifyBtn.innerHTML = `<i data-lucide="log-out" class="w-4 h-4 inline mr-2"></i> Clock Out (${sessionLabel})`;
         attStatusBadge.textContent = `Clocked In (${sessionLabel})`;
         attStatusBadge.className = 'inline-block px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700';
+        startGeofenceTracking();
         const detail = data.in_session_am
           ? `AM In: ${data.time_in_am || '—'} — Ready for AM Out`
           : `PM In: ${data.time_in_pm || '—'} — Ready for PM Out`;
@@ -3592,6 +3597,7 @@
         attStatusBadge.textContent = 'Completed';
         attStatusBadge.className = 'inline-block px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700';
         attStatusDetail.textContent = `AM: ${data.time_in_am || '—'} → ${data.time_out_am || '—'} | PM: ${data.time_in_pm || '—'} → ${data.time_out_pm || '—'}`;
+        stopGeofenceTracking();
       }
       updateNarrativeFormState();
       lucide.createIcons();
@@ -3673,6 +3679,7 @@
       if (resp.ok) {
         attStatusBadge.textContent = attCurrentAction === 'clock_in' ? 'Clocked In' : 'Clocked Out';
         attStatusBadge.className = 'inline-block px-3 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700';
+        if (attCurrentAction === 'clock_in') startGeofenceTracking(); else stopGeofenceTracking();
         Swal.fire({ icon: 'success', title: attCurrentAction === 'clock_in' ? 'Clocked In!' : 'Clocked Out!', text: data.message || '', confirmButtonColor: '#7B1818', timer: 2000, showConfirmButton: false });
         await checkAttTodayStatus();
         loadAttendanceHistory();
@@ -3687,6 +3694,35 @@
       lucide.createIcons();
     }
   });
+
+  // ── Geofence Auto-Push ──
+  let geofenceIntervalId = null;
+
+  async function pushLocationToServer() {
+    try {
+      const pos = await new Promise((resolve, reject) => {
+        if (!navigator.geolocation) return reject(new Error('No geolocation'));
+        navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 });
+      });
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      await fetch('/api/student/dashboard/track-location/', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfCookie() },
+        body: JSON.stringify({ latitude: lat, longitude: lon })
+      });
+    } catch (_) { /* silent — will retry next interval */ }
+  }
+
+  function startGeofenceTracking() {
+    if (geofenceIntervalId) return;
+    geofenceIntervalId = setInterval(pushLocationToServer, 5 * 60 * 1000);
+  }
+
+  function stopGeofenceTracking() {
+    if (geofenceIntervalId) { clearInterval(geofenceIntervalId); geofenceIntervalId = null; }
+  }
 
   tabDashboardBtn.addEventListener('click', switchToDashboard);
   tabReportBtn.addEventListener('click', switchToReport);
@@ -5415,6 +5451,9 @@ async function loadArchives() {
   }
   connectNotifSocket();
 
+  // ── Current section tracker (for polling fallback) ──
+  let currentSection = 'dashboard';
+
   // Dashboard real-time updates via WebSocket
   let dashboardSocket = null;
   let dashReconnectDelay = 1000;
@@ -5431,7 +5470,7 @@ async function loadArchives() {
     dashboardSocket.onmessage = function(e) {
       const data = JSON.parse(e.data);
       if (data.type === 'dashboard_refresh') {
-        const sec = data.section || '';
+        const sec = data.section || 'all';
         if (sec === 'attendance' || sec === 'all') {
           loadDashboard();
           loadAttendanceHistory();
@@ -5455,6 +5494,15 @@ async function loadArchives() {
     dashboardSocket.onerror = function() { if (dashboardSocket) dashboardSocket.close(); };
   }
   connectDashboardSocket();
+
+  // ── 30s polling fallback (in case WebSocket is down) ──
+  setInterval(function() {
+    const sec = currentSection;
+    if (sec === 'dashboard') loadDashboard();
+    else if (sec === 'attendance') loadAttendanceHistory();
+    else if (sec === 'archives') loadArchives();
+    else if (sec === 'report') initApp();
+  }, 30000);
 
   let notifOffset = 0;
 

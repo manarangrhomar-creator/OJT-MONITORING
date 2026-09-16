@@ -117,6 +117,8 @@ class Attendance(BaseModel):
         am = self.get_am_status()
         pm = self.get_pm_status()
         if am == 'Not Yet' and pm == 'Not Yet':
+            if self.time_in:
+                return 'Present'
             return 'Absent'
         if am == 'Late' or pm == 'Late':
             return 'Late'

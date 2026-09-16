@@ -20,14 +20,27 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Fredoka:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --maroon: #7B1818;
+            --maroon-light: #9B2C2C;
+            --gold: #D4A843;
+            --gold-light: #E5D09E;
+            --paper: #F7F5F0;
+            --charcoal: #1A1A1A;
+            --font-display: 'Fraunces', Georgia, serif;
+            --font-body: 'DM Sans', system-ui, sans-serif;
+        }
         .custom-heading { font-family: 'Fredoka', sans-serif; }
         .custom-text { font-family: 'Inter', sans-serif; }
-
+        .gold-divider {
+            height: 1px;
+            background: linear-gradient(90deg, var(--gold) 0%, transparent 100%);
+        }
     </style>
 </head>
-<body class="custom-text bg-gray-50">
+<body class="custom-text" style="font-family: var(--font-body); background-color: var(--paper); color: var(--charcoal);">
 
     <!-- Navigation -->
     <nav class="bg-[#7B1818] text-white shadow-lg">
@@ -63,9 +76,24 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-gray-800 text-white mt-12 sm:mt-16">
-        <div class="max-w-7xl mx-auto px-4 py-6 sm:py-8 text-center">
-            <p class="text-xs sm:text-sm">&copy; 2026 Isabela Colleges - OJT Monitoring System. All rights reserved.</p>
+    <footer class="px-4 sm:px-6 lg:px-8 pt-10 pb-12">
+        <div class="gold-divider mb-10"></div>
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+            <div class="flex items-center gap-3">
+                <img src="{% static 'images/isabela_colleges_logo.png' %}" alt="Isabela Colleges" class="w-9 h-9 rounded-lg object-contain flex-shrink-0" />
+                <div>
+                    <p class="text-sm font-semibold text-[var(--charcoal)]" style="font-family: var(--font-display);">Isabela Colleges, Inc.</p>
+                    <p class="text-xs text-[var(--charcoal)]/40 mt-0.5">Cauayan City, Isabela</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-5 text-xs text-[var(--charcoal)]/40">
+                <a href="https://www.facebook.com/share/1BrZBoD2wT/" target="_blank" rel="noopener noreferrer"
+                   class="inline-flex items-center gap-1.5 hover:text-[var(--maroon)] transition-colors">
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                    Facebook
+                </a>
+                <span>&copy; 2026</span>
+            </div>
         </div>
     </footer>
 

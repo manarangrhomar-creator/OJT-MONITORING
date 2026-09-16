@@ -599,7 +599,7 @@
     </div>
   </div>
 
-  <!-- ===== STUDENTS SECTION ===== -->
+    <!-- ===== STUDENTS SECTION ===== -->
   <div id="studentsSection" class="section-container hidden animate-in" role="tabpanel">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">Student Accounts</h2>
@@ -610,6 +610,12 @@
       </div>
     </div>
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
+      <div class="relative w-full sm:w-48">
+        <i data-lucide="book-open" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 search-icon"></i>
+        <select id="studentCourseFilter" class="w-full pl-9 pr-4 py-2.5 !rounded-xl text-xs" style="appearance: auto;" onchange="filterStudentsByCourse(this.value)">
+          <option value="all">All Courses</option>
+        </select>
+      </div>
       <div class="relative w-full sm:w-64">
         <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 search-icon"></i>
         <input type="text" id="studentSearchInput" placeholder="Search student by name or email..." class="w-full pl-9 pr-4 py-2.5 !rounded-xl text-xs">
@@ -619,6 +625,7 @@
       <div class="overflow-x-auto"><table class="w-full text-left">
         <thead><tr>
           <th class="table-header">Name</th><th class="table-header">Email</th>
+          <th class="table-header">Course</th><th class="table-header text-center">Hours</th>
           <th class="table-header">Status</th><th class="table-header text-center">Action</th>
         </tr></thead>
         <tbody id="studentTableBody" class="divide-y tbody-table"></tbody>
@@ -1210,6 +1217,7 @@
         const STUDENTS_PER_PAGE = 10;
         let studentStatusFilter = 'all';
         let studentSearchFilter = '';
+        let studentCourseFilter = 'all';
 
         // ===== COORDINATOR TABLE PAGINATION STATE =====
         let filteredCoordinators = [];
@@ -1371,6 +1379,7 @@
         function applyStudentFilters() {
             filteredStudents = Object.values(students).filter(s => {
                 if (studentStatusFilter !== 'all' && s.status.toLowerCase() !== studentStatusFilter) return false;
+                if (studentCourseFilter !== 'all' && s.course_id !== studentCourseFilter) return false;
                 if (studentSearchFilter) {
                     const name = (s.name || '').toLowerCase();
                     const email = (s.email || '').toLowerCase();
@@ -1380,6 +1389,11 @@
             });
             studentCurrentPage = 0;
             renderStudentTable();
+        }
+
+        function filterStudentsByCourse(courseId, btn) {
+            studentCourseFilter = courseId;
+            applyStudentFilters();
         }
 
         function studentPage(dir) {
@@ -1734,7 +1748,7 @@
         async function loadStudents() {
             const tbody = document.getElementById('studentTableBody');
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
                 lucide.createIcons();
             }
             try {
@@ -1747,10 +1761,26 @@
                     }
                 });
                 if (!response.ok) {
-                    if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-xs" style="color: var(--danger);">Failed to load</td></tr>';
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-xs" style="color: var(--danger);">Failed to load</td></tr>';
                     return;
                 }
                 const data = await response.json();
+                // Populate course filter dropdown
+                const courseSet = new Map();
+                data.forEach(item => {
+                    if (item.course && item.course !== 'N/A' && item.course_id) {
+                        courseSet.set(item.course_id, item.course);
+                    }
+                });
+                const courseSelect = document.getElementById('studentCourseFilter');
+                if (courseSelect) {
+                    const currentVal = courseSelect.value;
+                    courseSelect.innerHTML = '<option value="all">All Courses</option>';
+                    [...courseSet.entries()].sort((a, b) => a[1].localeCompare(b[1])).forEach(([id, name]) => {
+                        courseSelect.innerHTML += `<option value="${id}">${esc(name)}</option>`;
+                    });
+                    courseSelect.value = currentVal;
+                }
                 data.forEach(item => {
                     students[item.id] = {
                         id: item.id,
@@ -1759,14 +1789,17 @@
                         role: item.role || 'Student',
                         status: item.is_active ? 'Active' : 'Inactive',
                         course: item.course || 'N/A',
-                        year: item.year || 'N/A'
+                        course_id: item.course_id || null,
+                        total_hours: item.total_hours || 0,
+                        remaining_hours: item.remaining_hours || 0,
+                        required_hours: item.required_hours || 480
                     };
                 });
                 applyStudentFilters();
             } catch (error) {
                 filteredStudents = [];
                 renderStudentTable();
-                if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="py-12 text-center text-xs" style="color: var(--danger);">Error loading</td></tr>';
+                if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-xs" style="color: var(--danger);">Error loading</td></tr>';
                 console.error('Error loading students:', error);
             }
         }
@@ -1776,7 +1809,7 @@
             if (!tbody) return;
             tbody.innerHTML = '';
             if (filteredStudents.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="users" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No students found</span></div></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="users" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No students found</span></div></td></tr>';
                 renderStudentPagination();
                 return;
             }
@@ -1784,9 +1817,22 @@
             const page = filteredStudents.slice(start, start + STUDENTS_PER_PAGE);
             page.forEach(student => {
                 const sc = student.status === 'Active' ? 'var(--success)' : 'var(--gold)';
+                const hrs = student.total_hours || 0;
+                const rem = student.remaining_hours || 0;
+                const req = student.required_hours || 480;
                 tbody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-black/[0.02] transition-colors">
                     <td class="table-cell font-bold">${esc(student.name)}</td>
                     <td class="table-cell" style="color: var(--fg-muted);">${esc(student.email)}</td>
+                    <td class="table-cell" style="color: var(--fg-muted);">${esc(student.course)}</td>
+                    <td class="table-cell text-center">
+                      <div class="flex flex-col items-center gap-1">
+                        <span class="text-xs font-semibold">${hrs.toFixed(1)} / ${req}</span>
+                        <div class="w-full h-1.5 rounded-full overflow-hidden" style="background: var(--bg-alt);">
+                          <div class="h-full rounded-full transition-all duration-500" style="width: ${Math.min((hrs / req) * 100, 100)}%; background: ${rem <= 0 ? 'var(--success)' : 'var(--gold)'};"></div>
+                        </div>
+                        <span class="text-[0.55rem]" style="color: ${rem <= 0 ? 'var(--success)' : 'var(--fg-dim)'};">${rem <= 0 ? 'Complete' : rem.toFixed(1) + ' left'}</span>
+                      </div>
+                    </td>
                     <td class="table-cell"><span class="text-[0.6rem] font-bold px-2.5 py-0.5 rounded-full" style="background: ${sc}20; color: ${sc};">${esc(student.status)}</span></td>
                     <td class="table-cell text-center">
                         <button class="ghost-btn !p-1.5" title="View" onclick="viewStudent('${esc(student.id)}')"><i data-lucide="eye" class="w-3.5 h-3.5"></i></button>
@@ -1806,11 +1852,20 @@
             if (!student) return;
             const details = document.getElementById('viewDetails');
             if (details) {
+                const hrs = student.total_hours || 0;
+                const rem = student.remaining_hours || 0;
+                const req = student.required_hours || 480;
+                const hrsHtml = hrs > 0
+                    ? `<div class="detail-row"><span class="detail-label">Total Hours:</span><span class="detail-value">${hrs.toFixed(1)} / ${req}</span></div>
+                       <div class="detail-row"><span class="detail-label">Remaining:</span><span class="detail-value" style="color: ${rem <= 0 ? 'var(--success)' : 'var(--gold)'};">${rem <= 0 ? 'Complete' : rem.toFixed(1) + ' hours left'}</span></div>`
+                    : `<div class="detail-row"><span class="detail-label">Hours:</span><span class="detail-value" style="color: var(--fg-dim);">No attendance records</span></div>`;
                 details.innerHTML = `
                     <div class="detail-row"><span class="detail-label">Name:</span><span class="detail-value">${esc(student.name)}</span></div>
                     <div class="detail-row"><span class="detail-label">Email:</span><span class="detail-value">${esc(student.email)}</span></div>
+                    <div class="detail-row"><span class="detail-label">Course:</span><span class="detail-value">${esc(student.course)}</span></div>
                     <div class="detail-row"><span class="detail-label">Role:</span><span class="detail-value">${esc(student.role)}</span></div>
                     <div class="detail-row"><span class="detail-label">Status:</span><span class="detail-value">${esc(student.status)}</span></div>
+                    ${hrsHtml}
                 `;
             }
             openModal('viewModal');
@@ -1941,7 +1996,7 @@
         async function loadCoordinators() {
             const tbody = document.getElementById('coordinatorTableBody');
             if (tbody) {
-                tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center"><i data-lucide="loader-2" class="animate-spin w-5 h-5 mx-auto" style="color: var(--fg-dim);"></i></td></tr>';
                 lucide.createIcons();
             }
             try {
@@ -1954,7 +2009,7 @@
                     }
                 });
                 if (!response.ok) {
-                    if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="py-12 text-center text-xs" style="color: var(--danger);">Failed to load</td></tr>';
+                    if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="py-12 text-center text-xs" style="color: var(--danger);">Failed to load</td></tr>';
                     return;
                 }
                 const data = await response.json();

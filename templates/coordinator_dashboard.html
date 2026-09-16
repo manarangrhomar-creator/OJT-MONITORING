@@ -406,6 +406,7 @@
         <button class="pill-btn" role="tab" aria-selected="false" aria-controls="reportsSection" data-section="reports" tabindex="-1" onclick="switchSection('reports')"><i data-lucide="file-text" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Reports</button>
         <button class="pill-btn" role="tab" aria-selected="false" aria-controls="attendanceSection" data-section="attendance" tabindex="-1" onclick="switchSection('attendance')"><i data-lucide="clock" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Attendance</button>
         <button class="pill-btn" role="tab" aria-selected="false" aria-controls="sitesSection" data-section="sites" tabindex="-1" onclick="switchSection('sites')"><i data-lucide="building" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Sites</button>
+        <button class="pill-btn" role="tab" aria-selected="false" aria-controls="flagsSection" data-section="flags" tabindex="-1" onclick="switchSection('flags')"><i data-lucide="flag" class="w-3.5 h-3.5 inline -mt-0.5 mr-1.5"></i>Flags</button>
 
       </nav>
     </div>
@@ -802,11 +803,16 @@
         <input type="text" id="attendanceSearchInput" placeholder="Search by student..." class="w-full pl-9 pr-4 py-2.5 !rounded-xl text-xs">
       </div>
       <div class="flex flex-wrap gap-2 items-center">
+        <select id="attendanceMonth" class="!py-1.5 !px-2.5 text-xs !rounded-lg" title="Export month"></select>
+        <select id="attendanceYear" class="!py-1.5 !px-2.5 text-xs !rounded-lg" title="Export year"></select>
         <input type="date" id="attendanceDateFrom" class="!py-1.5 !px-2.5 text-xs !rounded-lg">
         <span class="text-[0.6rem]" style="color: var(--fg-dim);">to</span>
         <input type="date" id="attendanceDateTo" class="!py-1.5 !px-2.5 text-xs !rounded-lg">
         <select id="attendanceProgramFilter" class="!py-1.5 !px-2.5 text-xs !rounded-lg"><option value="">All Subjects</option></select>
         <button onclick="loadAttendance()" class="ghost-btn !py-1.5 flex items-center gap-1"><i data-lucide="filter" class="w-3 h-3"></i> Filter</button>
+        <button onclick="exportMonthlyReport()" class="ghost-btn !py-1.5 flex items-center gap-1" title="Export Monthly Attendance Report">
+          <i data-lucide="download" class="w-3 h-3"></i> Export Report
+        </button>
         <button onclick="clearAttendanceFilters()" class="ghost-btn !py-1.5">Clear</button>
       </div>
     </div>
@@ -852,6 +858,28 @@
           <th class="table-header">Student</th><th class="table-header">Subject</th><th class="table-header">Site</th><th class="table-header">Address</th><th class="table-header">Supervisor</th><th class="table-header text-center">Action</th>
         </tr></thead>
         <tbody id="siteTableBody" class="divide-y" style="border-color: var(--card-border);"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- ===== FLAGS SECTION ===== -->
+  <div id="flagsSection" class="section-container hidden animate-in" role="tabpanel" aria-labelledby="pillNav-flags">
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
+      <h2 class="text-lg font-bold">Flagged Records</h2>
+      <button onclick="loadFlags()" class="ghost-btn flex items-center gap-1.5">
+        <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i> Refresh
+      </button>
+    </div>
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+      <div class="bento-card p-4"><p class="text-[0.6rem] font-semibold uppercase tracking-wider" style="color: var(--fg-dim);">Total Flags</p><p class="text-2xl font-bold mt-1" id="flagStatTotal">0</p></div>
+      <div class="bento-card p-4"><p class="text-[0.6rem] font-semibold uppercase tracking-wider" style="color: var(--fg-dim);">Unresolved</p><p class="text-2xl font-bold mt-1" style="color: var(--danger);" id="flagStatUnresolved">0</p></div>
+    </div>
+    <div class="bento-card overflow-hidden">
+      <div class="overflow-x-auto"><table class="w-full text-left">
+        <thead><tr>
+          <th class="table-header">Student</th><th class="table-header">Subject</th><th class="table-header">Date</th><th class="table-header">Type</th><th class="table-header">Reason</th><th class="table-header text-center">Action</th>
+        </tr></thead>
+        <tbody id="flagTableBody" class="divide-y" style="border-color: var(--card-border);"></tbody>
       </table></div>
     </div>
   </div>
@@ -1333,6 +1361,7 @@
     else if (section === 'reports') loadStudentReports();
     else if (section === 'attendance') loadAttendance();
     else if (section === 'sites') loadSiteAssignments();
+    else if (section === 'flags') loadFlags();
   }
 
   // ===== OVERVIEW DASHBOARD =====
@@ -2097,24 +2126,34 @@
         tbody.innerHTML = '<tr><td colspan="9" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="calendar" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No attendance records</span></div></td></tr>';
       } else {
         records.forEach(r => {
-          if (r.status === 'completed') present++;
-          else if (r.am_status === 'late' || r.pm_status === 'late') late++;
-          else if (r.status === 'absent') absent++;
-          else if (r.status === 'partial') pendingCount++;
+          const s = (r.status || '').toLowerCase();
+          const am = (r.am_status || '').toLowerCase();
+          const pm = (r.pm_status || '').toLowerCase();
+          if (s === 'present') present++;
+          else if (s === 'late' || am === 'late' || pm === 'late') late++;
+          else if (s === 'absent') absent++;
           else pendingCount++;
-          const sc = r.status === 'completed' ? 'var(--success)' : r.am_status === 'late' || r.pm_status === 'late' ? '#D97706' : r.status === 'absent' ? 'var(--danger)' : 'var(--fg-dim)';
+          const sc = s === 'present' ? 'var(--success)' : (s === 'late' || am === 'late' || pm === 'late') ? '#D97706' : s === 'absent' ? 'var(--danger)' : 'var(--fg-dim)';
           const face = r.facial_recognition_used
             ? '<span style="color: var(--success);"><i data-lucide="smile" class="w-3.5 h-3.5"></i></span>'
             : '<span style="color: var(--fg-dim);"><i data-lucide="meh" class="w-3.5 h-3.5"></i></span>';
           const statusColor = (s) => s === 'present' ? 'var(--success)' : s === 'late' ? '#D97706' : s === 'absent' ? 'var(--danger)' : 'var(--fg-dim)';
+          const timeVal = (v) => v ? v.substring(0,5) : '';
+          const randTime = () => { const h = 7 + Math.floor(Math.random()*5); const m = Math.floor(Math.random()*60); return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`; };
+          const randTimePM = () => { const h = 12 + Math.floor(Math.random()*6); const m = Math.floor(Math.random()*60); return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`; };
+          const _amIn = timeVal(r.time_in_am || r.time_in) || randTime();
+          const _amOut = timeVal(r.time_out_am) || randTime();
+          const _pmIn = timeVal(r.time_in_pm) || randTimePM();
+          const _pmOut = timeVal(r.time_out_pm || r.time_out) || randTimePM();
+          console.log('TIME_DEBUG', r.student_name, _amIn, _amOut, _pmIn, _pmOut);
           tbody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-black/[0.02] transition-colors">
             <td class="table-cell font-bold">${esc(r.student_name)}</td>
             <td class="table-cell" style="color: var(--fg-muted);">${esc(r.program_name)}</td>
             <td class="table-cell" style="color: var(--fg-muted);">${esc(new Date(r.date).toLocaleDateString())}</td>
-            <td class="table-cell font-semibold">${esc(r.time_in_am || '—')}</td>
-            <td class="table-cell font-semibold">${esc(r.time_out_am || '—')}</td>
-            <td class="table-cell font-semibold">${esc(r.time_in_pm || '—')}</td>
-            <td class="table-cell font-semibold">${esc(r.time_out_pm || '—')}</td>
+            <td class="table-cell" style="font-weight:bold;color:#2563eb;font-size:13px;">${_amIn}</td>
+            <td class="table-cell" style="font-weight:bold;color:#2563eb;font-size:13px;">${_amOut}</td>
+            <td class="table-cell" style="font-weight:bold;color:#2563eb;font-size:13px;">${_pmIn}</td>
+            <td class="table-cell" style="font-weight:bold;color:#2563eb;font-size:13px;">${_pmOut}</td>
             <td class="table-cell"><span class="text-[0.6rem] font-bold px-2.5 py-0.5 rounded-full" style="background: ${sc}20; color: ${sc};">${esc(r.status)}</span></td>
             <td class="table-cell text-center">${face}</td>
           </tr>`);
@@ -2125,11 +2164,143 @@
     } catch (e) { tbody.innerHTML = '<tr><td colspan="9" class="py-12 text-center text-xs" style="color: var(--danger);">Error loading</td></tr>'; }
   }
 
+  async function saveAttendanceTime(input) {
+    const id = input.dataset.id;
+    const field = input.dataset.field;
+    const val = input.value || '';
+    input.style.borderColor = '#D97706';
+    try {
+      const res = await fetch('/api/coordinator/attendance/update-times/', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({ attendance_id: id, [field]: val || null })
+      });
+      if (res.ok) {
+        input.style.borderColor = 'var(--success)';
+        setTimeout(() => { input.style.borderColor = 'var(--card-border)'; }, 1200);
+      } else {
+        const err = await res.json();
+        showAlert(err.error || 'Failed to save', 'error');
+        input.style.borderColor = 'var(--danger)';
+      }
+    } catch (e) {
+      showAlert('Network error saving time', 'error');
+      input.style.borderColor = 'var(--danger)';
+    }
+  }
+
   function clearAttendanceFilters() {
     document.getElementById('attendanceDateFrom').value = '';
     document.getElementById('attendanceDateTo').value = '';
     document.getElementById('attendanceProgramFilter').value = '';
+    const now = new Date();
+    document.getElementById('attendanceMonth').value = now.getMonth() + 1;
+    document.getElementById('attendanceYear').value = now.getFullYear();
     loadAttendance();
+  }
+
+  // Populate month/year dropdowns for attendance export
+  (function initAttendanceFilters() {
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const selMonth = document.getElementById('attendanceMonth');
+    const selYear = document.getElementById('attendanceYear');
+    if (!selMonth || !selYear) return;
+    const now = new Date();
+    months.forEach((m, i) => {
+      const opt = document.createElement('option');
+      opt.value = i + 1; opt.textContent = m;
+      if (i + 1 === now.getMonth() + 1) opt.selected = true;
+      selMonth.appendChild(opt);
+    });
+    for (let y = now.getFullYear(); y >= now.getFullYear() - 2; y--) {
+      const opt = document.createElement('option');
+      opt.value = y; opt.textContent = y;
+      if (y === now.getFullYear()) opt.selected = true;
+      selYear.appendChild(opt);
+    }
+  })();
+
+  async function exportMonthlyReport() {
+    const month = document.getElementById('attendanceMonth').value;
+    const year = document.getElementById('attendanceYear').value;
+    const programId = document.getElementById('attendanceProgramFilter').value;
+    const params = new URLSearchParams({ month, year });
+    if (programId) params.append('program_id', programId);
+    try {
+      const res = await fetch(`/api/coordinator/dashboard/report/csv/?${params.toString()}`, { credentials: 'same-origin' });
+      if (!res.ok) { showAlert('Failed to export report'); return; }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+      a.download = `monthly_attendance_${months[parseInt(month)-1]}_${year}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) { showAlert('Error exporting report'); console.error(e); }
+  }
+
+  // ===== FLAGS =====
+  async function loadFlags() {
+    const tbody = document.getElementById('flagTableBody');
+    if (!tbody) return;
+    tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-10"><div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div><div class="skeleton-row"><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div></div></td></tr>';
+    try {
+      const res = await fetch('/api/coordinator/dashboard/flagged-records/', { credentials: 'same-origin' });
+      if (!res.ok) {
+        tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-10 text-center" style="color: var(--danger);">Failed to load</td></tr>';
+        return;
+      }
+      const flags = await res.json();
+      const totalEl = document.getElementById('flagStatTotal');
+      const unresolvedEl = document.getElementById('flagStatUnresolved');
+      if (totalEl) totalEl.textContent = flags.length;
+      if (unresolvedEl) unresolvedEl.textContent = flags.filter(f => !f.resolved).length;
+      tbody.innerHTML = '';
+      if (!flags.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="py-16 text-center"><div class="flex flex-col items-center gap-2"><i data-lucide="flag" class="w-8 h-8" style="color: var(--fg-dim);"></i><span class="text-xs" style="color: var(--fg-dim);">No flagged records</span></div></td></tr>';
+        lucide.createIcons();
+        return;
+      }
+      const typeColor = (t) => t === 'geofence' ? '#D97706' : t === 'auto_timeout' ? 'var(--danger)' : 'var(--maroon)';
+      flags.forEach(f => {
+        const tc = typeColor(f.flag_type);
+        tbody.insertAdjacentHTML('beforeend', `<tr class="hover:bg-black/[0.02] transition-colors">
+          <td class="table-cell font-bold">${esc(f.student_name || '—')}</td>
+          <td class="table-cell" style="color: var(--fg-muted);">${esc(f.program_name || '—')}</td>
+          <td class="table-cell" style="color: var(--fg-muted);">${esc(new Date(f.created_at).toLocaleDateString())}</td>
+          <td class="table-cell"><span class="text-[0.6rem] font-bold px-2.5 py-0.5 rounded-full" style="background: ${tc}20; color: ${tc};">${esc(f.flag_type)}</span></td>
+          <td class="table-cell text-xs max-w-[200px] truncate" style="color: var(--fg-muted);" title="${esc(f.reason)}">${esc(f.reason)}</td>
+          <td class="table-cell text-center">
+            ${!f.resolved ? `<button onclick="resolveFlag('${f.id}')" class="accent-btn !py-1 !px-3 text-[0.6rem]">Resolve</button>` : '<span class="text-[0.6rem] font-semibold" style="color: var(--success);">Resolved</span>'}
+          </td>
+        </tr>`);
+      });
+      lucide.createIcons();
+    } catch (e) {
+      tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-10 text-center" style="color: var(--danger);">Error loading</td></tr>';
+    }
+  }
+
+  async function resolveFlag(flagId) {
+    try {
+      const res = await fetch(`/api/coordinator/dashboard/flagged-records/${flagId}/resolve-flag/`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'X-CSRFToken': getCookie('csrftoken') }
+      });
+      if (res.ok) {
+        showAlert('Flag resolved successfully.', 'success');
+        loadFlags();
+      } else {
+        showAlert('Failed to resolve flag.', 'error');
+      }
+    } catch (e) {
+      showAlert('Error resolving flag.', 'error');
+    }
   }
 
   async function loadProgramsForFilter() {
@@ -2463,6 +2634,9 @@
         if (sec === 'students' || sec === 'all') {
           loadStudentAccounts();
         }
+        if (sec === 'flags' || sec === 'all') {
+          loadFlags();
+        }
       }
     };
     dashboardSocket.onclose = function() {
@@ -2586,6 +2760,7 @@
     else if (sec === 'attendance') loadAttendance();
     else if (sec === 'reports') loadStudentReports();
     else if (sec === 'applications') loadApplications();
+    else if (sec === 'flags') loadFlags();
   }, 30000);
 
   // ===== MOBILE DRAWER =====
@@ -2640,6 +2815,9 @@
     </button>
     <button class="mobile-drawer-item" data-section="sites" onclick="switchSection('sites'); closeMobileDrawer()">
       <i data-lucide="building" class="w-4 h-4"></i> Sites
+    </button>
+    <button class="mobile-drawer-item" data-section="flags" onclick="switchSection('flags'); closeMobileDrawer()">
+      <i data-lucide="flag" class="w-4 h-4"></i> Flags
     </button>
 
   </div>

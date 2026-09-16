@@ -2,11 +2,12 @@ from rest_framework import viewsets, status, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.core.cache import cache
+from django.db import models
 from django.shortcuts import get_object_or_404
 from apps.core.models import User, Course
 from apps.core.tasks import send_email_task
 from apps.core.utils import broadcast_dashboard_update
-from apps.coordinator.models import Site, OJTProgram, OJTApplication
+from apps.coordinator.models import Site, OJTProgram, OJTApplication, Attendance
 from .models import SystemLog
 from .serializers import (AdminUserSerializer, CourseSerializer, SiteSerializer,
                           SystemLogSerializer, AdminProgramSerializer,
@@ -43,10 +44,56 @@ class AdminDashboardViewSet(viewsets.ViewSet):
     
     @action(detail=False, methods=["get"])
     def students(self, request):
-        """Get only approved OJT student accounts for admin listing."""
+        """Get only approved OJT student accounts with remaining hours."""
+        from django.db.models import Sum, DurationField, ExpressionWrapper, F
+        REQUIRED_HOURS = 480
+
         students = User.objects.filter(role="student", approval_status="approved").select_related('course').order_by("-created_at")
-        serializer = AdminUserSerializer(students, many=True)
-        return Response(serializer.data)
+
+        # Optional course filter
+        course_id = request.query_params.get('course')
+        if course_id:
+            students = students.filter(course_id=course_id)
+
+        # Annotate total hours from attendance
+        students = students.annotate(
+            total_attendance_duration=Sum(
+                ExpressionWrapper(
+                    F('attendances__time_out') - F('attendances__time_in'),
+                    output_field=DurationField()
+                ),
+                filter=models.Q(
+                    attendances__time_out__isnull=False,
+                )
+            )
+        )
+
+        data = []
+        for s in students:
+            duration = s.total_attendance_duration
+            if duration:
+                total_seconds = int(duration.total_seconds())
+            else:
+                total_seconds = 0
+            total_hours = round(total_seconds / 3600, 2)
+            remaining_hours = max(REQUIRED_HOURS - total_hours, 0)
+
+            data.append({
+                'id': str(s.id),
+                'username': s.username,
+                'email': s.email,
+                'first_name': s.first_name,
+                'last_name': s.last_name,
+                'role': s.role,
+                'is_active': s.is_active,
+                'course': s.course.name if s.course else 'N/A',
+                'course_id': str(s.course_id) if s.course_id else None,
+                'created_at': s.created_at.isoformat() if s.created_at else None,
+                'total_hours': total_hours,
+                'remaining_hours': remaining_hours,
+                'required_hours': REQUIRED_HOURS,
+            })
+        return Response(data)
     
     @action(detail=False, methods=["get"])
     def coordinators(self, request):
@@ -274,6 +321,7 @@ class AdminProgramViewSet(viewsets.ModelViewSet):
             admin_user=self.request.user,
         )
         invalidate_system_logs_cache()
+        broadcast_dashboard_update('programs')
 
     def perform_update(self, serializer):
         serializer.save(updated_by=self.request.user)
@@ -345,11 +393,14 @@ class SitesViewSet(viewsets.ModelViewSet):
     pagination_class = None
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        # Admin-created sites are auto-approved (no coordinator approval needed)
+        serializer.save(created_by=self.request.user, status='approved')
+        broadcast_dashboard_update('sites')
 
     def perform_update(self, serializer):
         # Admin editing a site can also adjust status if needed
         serializer.save(updated_by=self.request.user)
+        broadcast_dashboard_update('sites')
 
     @action(detail=True, methods=['post'], url_path='approve')
     def approve(self, request, pk=None):
@@ -371,6 +422,8 @@ class SitesViewSet(viewsets.ModelViewSet):
             app.approved_date = tz.now()
             app.save(update_fields=['status', 'approved_date', 'updated_at'])
 
+        broadcast_dashboard_update('sites')
+        broadcast_dashboard_update('applications')
         return Response({'message': f'Site "{site.name}" approved.'}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'], url_path='reject')
@@ -391,6 +444,7 @@ class SitesViewSet(viewsets.ModelViewSet):
         site.status = 'rejected'
         site.rejection_reason = reason
         site.save(update_fields=['status', 'rejection_reason', 'updated_at'])
+        broadcast_dashboard_update('sites')
         return Response({'message': f'Site "{site.name}" rejected.'}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'], url_path='archive')
@@ -398,6 +452,7 @@ class SitesViewSet(viewsets.ModelViewSet):
         site = self.get_object()
         site.is_active = False
         site.save(update_fields=['is_active'])
+        broadcast_dashboard_update('sites')
         return Response({'message': 'Site archived successfully.'}, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post'], url_path='unarchive')
@@ -405,4 +460,5 @@ class SitesViewSet(viewsets.ModelViewSet):
         site = self.get_object()
         site.is_active = True
         site.save(update_fields=['is_active'])
+        broadcast_dashboard_update('sites')
         return Response({'message': 'Site restored successfully.'}, status=status.HTTP_200_OK)

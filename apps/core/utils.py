@@ -3,7 +3,6 @@ Utils for the application
 """
 import logging
 import math
-import threading
 from datetime import datetime, timedelta
 
 from asgiref.sync import async_to_sync
@@ -158,17 +157,13 @@ def create_and_send_notification(recipient, title, message, type='general',
     if recipient.email:
         try:
             recipient_name = recipient.get_full_name() or recipient.username
-            threading.Thread(
-                target=send_email_task.delay,
-                kwargs={
-                    'recipient_email': recipient.email,
-                    'subject': email_subject or title,
-                    'message': message,
-                    'title': title,
-                    'recipient_name': recipient_name,
-                },
-                daemon=True,
-            ).start()
+            send_email_task.delay(
+                recipient_email=recipient.email,
+                subject=email_subject or title,
+                message=message,
+                title=title,
+                recipient_name=recipient_name,
+            )
         except Exception:
             logger.exception('Failed to send email notification to %s', recipient.email)
 

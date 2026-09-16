@@ -98,6 +98,32 @@ def auto_clockout_stale_attendances(self):
         )
         count += 1
 
+        # ── Check if student completed OJT (480 hours) ──
+        REQUIRED_HOURS = 480
+        from django.db.models import Sum, F
+        from django.db.models.fields import DurationField as DF
+        total_duration = Attendance.objects.filter(
+            student=att.student, time_out__isnull=False
+        ).aggregate(
+            total=Sum(
+                F('time_out') - F('time_in'),
+                output_field=DF()
+            )
+        )['total']
+        if total_duration:
+            total_hours = round(total_duration.total_seconds() / 3600, 2)
+            if total_hours >= REQUIRED_HOURS:
+                from apps.core.models import User
+                admins = User.objects.filter(role='admin', is_active=True)
+                student_name = att.student.get_full_name() or att.student.username
+                for admin in admins:
+                    create_notification(
+                        recipient=admin,
+                        title='OJT Completed',
+                        message=f'{student_name} has completed {total_hours} OJT hours (target: {REQUIRED_HOURS}h).',
+                        type='general',
+                    )
+
     return f'Auto clocked-out {count} stale attendances'
 
 

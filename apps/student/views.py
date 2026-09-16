@@ -9,7 +9,9 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.throttling import UserRateThrottle
 from datetime import datetime, timedelta
-from django.db.models import Q, Count, F
+from django.db.models import Q, Count, F, Sum
+from django.db.models.fields import DurationField
+from django.db.models.functions import Now
 from django.utils import timezone
 from django.core.cache import cache
 from django.shortcuts import get_object_or_404
@@ -677,6 +679,34 @@ class StudentDashboardViewSet(viewsets.ViewSet):
 
         serializer = AttendanceSerializer(attendance)
         broadcast_dashboard_update('attendance', data={'action': 'update', 'item': serializer.data})
+
+        # ── Check if student completed OJT (480 hours) ──
+        REQUIRED_HOURS = 480
+        total_duration = Attendance.objects.filter(
+            student=student, time_out__isnull=False
+        ).aggregate(
+            total=Sum(
+                F('time_out') - F('time_in'),
+                output_field=DurationField()
+            )
+        )['total']
+        if total_duration:
+            total_hours = round(total_duration.total_seconds() / 3600, 2)
+            if total_hours >= REQUIRED_HOURS:
+                from django.contrib.auth import get_user_model
+                User = get_user_model()
+                admins = User.objects.filter(role='admin', is_active=True)
+                student_name = student.get_full_name() or student.username
+                for admin in admins:
+                    create_and_send_notification(
+                        recipient=admin,
+                        title='OJT Completed',
+                        message=f'{student_name} has completed {total_hours} OJT hours (target: {REQUIRED_HOURS}h).',
+                        type='general',
+                        email_subject='Student OJT Completed',
+                    )
+                broadcast_dashboard_update('students')
+
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'])
@@ -840,6 +870,8 @@ class StudentDashboardViewSet(viewsets.ViewSet):
             )
             out_serializer = OJTApplicationSerializer(application)
             broadcast_dashboard_update('applications', data={'action': 'create', 'item': out_serializer.data})
+            if create_site:
+                broadcast_dashboard_update('sites')
             return Response(out_serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
