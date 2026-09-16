@@ -473,7 +473,7 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
 
     @action(detail=False, methods=['get'], url_path='attendance-records')
     def attendance_records(self, request):
-        """Get attendance records for coordinator's students."""
+        """Get attendance records for coordinator's students, including absent entries."""
         coordinator = request.user
         program_id = request.query_params.get('program_id')
         student_id = request.query_params.get('student_id')
@@ -484,19 +484,26 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         if program_id:
             programs = programs.filter(id=program_id)
 
+        # Default to today if no date range provided
+        today = timezone.now().date()
+        if not date_from:
+            date_from = str(today)
+        if not date_to:
+            date_to = str(today)
+
         attendances = Attendance.objects.filter(
-            program__in=programs
+            program__in=programs,
+            date__gte=date_from,
+            date__lte=date_to,
         ).select_related('student', 'program').order_by('-date', 'time_in')
 
         if student_id:
             attendances = attendances.filter(student_id=student_id)
-        if date_from:
-            attendances = attendances.filter(date__gte=date_from)
-        if date_to:
-            attendances = attendances.filter(date__lte=date_to)
 
         records = []
+        existing_keys = set()
         for att in attendances:
+            existing_keys.add((att.student_id, att.program_id, str(att.date)))
             records.append({
                 'id': att.id,
                 'student_id': att.student.id,
@@ -504,12 +511,12 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
                 'program_id': att.program.id,
                 'program_name': att.program.name,
                 'date': att.date,
-                'time_in': str(att.time_in)[:5] if att.time_in else '—',
-                'time_out': str(att.time_out)[:5] if att.time_out else '—',
-                'time_in_am': str(att.time_in_am)[:5] if att.time_in_am else '—',
-                'time_out_am': str(att.time_out_am)[:5] if att.time_out_am else '—',
-                'time_in_pm': str(att.time_in_pm)[:5] if att.time_in_pm else '—',
-                'time_out_pm': str(att.time_out_pm)[:5] if att.time_out_pm else '—',
+                'time_in': str(att.time_in)[:5] if att.time_in else None,
+                'time_out': str(att.time_out)[:5] if att.time_out else None,
+                'time_in_am': str(att.time_in_am)[:5] if att.time_in_am else None,
+                'time_out_am': str(att.time_out_am)[:5] if att.time_out_am else None,
+                'time_in_pm': str(att.time_in_pm)[:5] if att.time_in_pm else None,
+                'time_out_pm': str(att.time_out_pm)[:5] if att.time_out_pm else None,
                 'am_status': att.get_am_status(),
                 'pm_status': att.get_pm_status(),
                 'status': att.get_overall_status(),
@@ -517,6 +524,48 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
                 'notes': att.notes,
             })
 
+        # Generate absent entries for approved students with no record
+        from datetime import date as date_cls, timedelta
+        approved_apps = OJTApplication.objects.filter(
+            program__in=programs, status='approved'
+        ).select_related('student', 'program')
+
+        if student_id:
+            approved_apps = approved_apps.filter(student_id=student_id)
+
+        df = date_cls.fromisoformat(date_from)
+        dt = date_cls.fromisoformat(date_to)
+        d = df
+        dates = []
+        while d <= dt:
+            dates.append(str(d))
+            d += timedelta(days=1)
+
+        for app in approved_apps:
+            for date_str in dates:
+                key = (app.student_id, app.program_id, date_str)
+                if key not in existing_keys:
+                    records.append({
+                        'id': None,
+                        'student_id': app.student.id,
+                        'student_name': app.student.get_full_name(),
+                        'program_id': app.program.id,
+                        'program_name': app.program.name,
+                        'date': date_str,
+                        'time_in': None,
+                        'time_out': None,
+                        'time_in_am': None,
+                        'time_out_am': None,
+                        'time_in_pm': None,
+                        'time_out_pm': None,
+                        'am_status': 'Absent',
+                        'pm_status': 'Absent',
+                        'status': 'Absent',
+                        'facial_recognition_used': False,
+                        'notes': '',
+                    })
+
+        records.sort(key=lambda r: (r['date'], r['student_name']), reverse=True)
         return Response(records)
 
     @action(detail=False, methods=['get'], url_path='student-narratives')
