@@ -565,7 +565,7 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
                         'notes': '',
                     })
 
-        records.sort(key=lambda r: (r['date'], r['student_name']), reverse=True)
+        records.sort(key=lambda r: (str(r['date']), r['student_name']), reverse=True)
         return Response(records)
 
     @action(detail=False, methods=['get'], url_path='student-narratives')

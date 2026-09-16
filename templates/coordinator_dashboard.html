@@ -729,7 +729,7 @@
     <div class="bento-card overflow-hidden">
       <div class="overflow-x-auto"><table class="w-full text-left">
         <thead><tr>
-          <th class="table-header">Student</th><th class="table-header">Subject</th><th class="table-header">Preferred Site</th><th class="table-header">Letter</th>
+          <th class="table-header">Student</th><th class="table-header">Subject</th><th class="table-header">Preferred Site</th><th class="table-header">Documents</th>
           <th class="table-header">Date</th><th class="table-header">Status</th><th class="table-header text-center">Action</th>
         </tr></thead>
         <tbody id="applicationTableBody" class="divide-y" style="border-color: var(--card-border);"></tbody>
@@ -963,19 +963,47 @@
       </div>
       <div>
         <p class="text-[0.55rem] font-bold uppercase tracking-wider mb-2" style="color: var(--fg-muted);">Submitted Documents</p>
-        <div class="space-y-2">
-          <div id="approveAppLetterWrap" class="hidden">
-            <div class="flex items-center gap-2.5 p-2.5 rounded-lg text-xs font-semibold" style="background: var(--card-bg); border: 1px solid var(--card-border);">
-              <i data-lucide="file-text" class="w-4 h-4 shrink-0"></i>
+        <div class="flex flex-wrap gap-2">
+          <div id="approveAppLetterWrap" class="hidden w-full">
+            <div class="flex items-center gap-2 p-2 rounded-lg text-[0.6rem] font-semibold" style="background: var(--card-bg); border: 1px solid var(--card-border);">
+              <i data-lucide="file-text" class="w-3.5 h-3.5 shrink-0"></i>
               <span>Application Letter</span>
-              <a id="approveAppLetter" href="#" target="_blank" class="ml-auto text-[0.55rem] underline" style="color: var(--primary);">Open in new tab</a>
+              <a id="approveAppLetter" href="#" target="_blank" class="ml-auto" title="Open in new tab" style="color: var(--primary);"><i data-lucide="external-link" class="w-3 h-3"></i></a>
             </div>
           </div>
-          <div id="approveAppResumeWrap" class="hidden">
-            <div class="flex items-center gap-2.5 p-2.5 rounded-lg text-xs font-semibold" style="background: var(--card-bg); border: 1px solid var(--card-border);">
-              <i data-lucide="file" class="w-4 h-4 shrink-0"></i>
+          <div id="approveAppResumeWrap" class="hidden" style="flex: 1 1 calc(50% - 0.25rem); min-width: 140px;">
+            <div class="flex items-center gap-2 p-2 rounded-lg text-[0.6rem] font-semibold" style="background: var(--card-bg); border: 1px solid var(--card-border);">
+              <i data-lucide="file" class="w-3.5 h-3.5 shrink-0"></i>
               <span>Resume / CV</span>
-              <a id="approveAppResume" href="#" target="_blank" class="ml-auto text-[0.55rem] underline" style="color: var(--primary);">Open in new tab</a>
+              <a id="approveAppResume" href="#" target="_blank" class="ml-auto" title="Open in new tab" style="color: var(--primary);"><i data-lucide="external-link" class="w-3 h-3"></i></a>
+            </div>
+          </div>
+          <div id="approveAppInsuranceWrap" class="hidden" style="flex: 1 1 calc(50% - 0.25rem); min-width: 140px;">
+            <div class="flex items-center gap-2 p-2 rounded-lg text-[0.6rem] font-semibold" style="background: var(--card-bg); border: 1px solid var(--card-border);">
+              <i data-lucide="shield-check" class="w-3.5 h-3.5 shrink-0"></i>
+              <span>Insurance</span>
+              <a id="approveAppInsurance" href="#" target="_blank" class="ml-auto" title="Open in new tab" style="color: var(--primary);"><i data-lucide="external-link" class="w-3 h-3"></i></a>
+            </div>
+          </div>
+          <div id="approveAppWaiverWrap" class="hidden" style="flex: 1 1 calc(50% - 0.25rem); min-width: 140px;">
+            <div class="flex items-center gap-2 p-2 rounded-lg text-[0.6rem] font-semibold" style="background: var(--card-bg); border: 1px solid var(--card-border);">
+              <i data-lucide="file-signature" class="w-3.5 h-3.5 shrink-0"></i>
+              <span>Consent / Waiver</span>
+              <a id="approveAppWaiver" href="#" target="_blank" class="ml-auto" title="Open in new tab" style="color: var(--primary);"><i data-lucide="external-link" class="w-3 h-3"></i></a>
+            </div>
+          </div>
+          <div id="approveAppMoaWrap" class="hidden" style="flex: 1 1 calc(50% - 0.25rem); min-width: 140px;">
+            <div class="flex items-center gap-2 p-2 rounded-lg text-[0.6rem] font-semibold" style="background: var(--card-bg); border: 1px solid var(--card-border);">
+              <i data-lucide="file-text" class="w-3.5 h-3.5 shrink-0"></i>
+              <span>MOA</span>
+              <a id="approveAppMoa" href="#" target="_blank" class="ml-auto" title="Open in new tab" style="color: var(--primary);"><i data-lucide="external-link" class="w-3 h-3"></i></a>
+            </div>
+          </div>
+          <div id="approveAppReplyWrap" class="hidden" style="flex: 1 1 calc(50% - 0.25rem); min-width: 140px;">
+            <div class="flex items-center gap-2 p-2 rounded-lg text-[0.6rem] font-semibold" style="background: var(--card-bg); border: 1px solid var(--card-border);">
+              <i data-lucide="reply" class="w-3.5 h-3.5 shrink-0"></i>
+              <span>Reply Form</span>
+              <a id="approveAppReply" href="#" target="_blank" class="ml-auto" title="Open in new tab" style="color: var(--primary);"><i data-lucide="external-link" class="w-3 h-3"></i></a>
             </div>
           </div>
         </div>
@@ -1150,6 +1178,7 @@
     modal.classList.add('active');
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-modal', 'true');
+    document.body.style.overflow = 'hidden';
     const firstFocusable = modal.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
     if (firstFocusable) firstFocusable.focus();
     modal._previousFocus = document.activeElement;
@@ -1158,6 +1187,7 @@
     const modal = document.getElementById(id);
     modal.classList.remove('active');
     modal.removeAttribute('aria-modal');
+    document.body.style.overflow = '';
     if (modal._previousFocus) { modal._previousFocus.focus(); modal._previousFocus = null; }
   }
   document.addEventListener('keydown', function(e) {
@@ -1828,7 +1858,12 @@
         <td class="table-cell font-bold">${esc(a.student_name)}</td>
         <td class="table-cell" style="color: var(--fg-muted);">${esc(a.program_name)}</td>
         <td class="table-cell" style="color: var(--fg-muted);">${a.preferred_site_name ? esc(a.preferred_site_name) : '<span style="color: var(--fg-dim);">—</span>'}</td>
-        <td class="table-cell">${a.application_letter ? `<a href="${esc(a.application_letter)}" target="_blank" class="text-[0.6rem] font-semibold" style="color: var(--primary);">View Letter</a>` : '<span style="color: var(--fg-dim);">—</span>'}</td>
+        <td class="table-cell">${(() => {
+      const docs = ['application_letter', 'resume', 'insurance', 'waiver_consent', 'moa', 'reply_form'].filter(k => a[k]);
+      if (!docs.length) return '<span style="color: var(--fg-dim);">—</span>';
+      const full = docs.length;
+      return `<button class="text-[0.6rem] font-semibold" style="color: var(--primary);" onclick="requestApproveApplication('${a.id}')" title="Click to review documents">${full}/6 submitted</button>`;
+    })()}</td>
         <td class="table-cell" style="color: var(--fg-muted);">${esc(dateStr)}</td>
         <td class="table-cell"><span class="text-[0.6rem] font-bold px-2.5 py-0.5 rounded-full" style="background: var(--gold)20; color: var(--gold);">Pending</span></td>
         <td class="table-cell text-center whitespace-nowrap">
@@ -1870,6 +1905,15 @@
     } else {
       resumeWrap.classList.add('hidden');
     }
+    const setDocWrap = (wrapId, linkId, val) => {
+      const wrap = document.getElementById(wrapId);
+      const link = document.getElementById(linkId);
+      if (val) { link.href = val; wrap.classList.remove('hidden'); } else { wrap.classList.add('hidden'); }
+    };
+    setDocWrap('approveAppInsuranceWrap', 'approveAppInsurance', a.insurance);
+    setDocWrap('approveAppWaiverWrap', 'approveAppWaiver', a.waiver_consent);
+    setDocWrap('approveAppMoaWrap', 'approveAppMoa', a.moa);
+    setDocWrap('approveAppReplyWrap', 'approveAppReply', a.reply_form);
     document.getElementById('approveAppDate').textContent = a.created_at ? new Date(a.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
     document.getElementById('confirmApproveAppBtn').style.display = 'inline-block';
     openModal('approveAppModal');
