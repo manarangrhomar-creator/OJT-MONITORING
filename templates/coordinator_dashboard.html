@@ -839,9 +839,6 @@
   <div id="sitesSection" class="section-container hidden animate-in" role="tabpanel" aria-labelledby="pillNav-sites">
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-5">
       <h2 class="text-lg font-bold">Site Assignments</h2>
-      <button onclick="openAddSiteModal()" class="accent-btn flex items-center gap-1.5">
-        <i data-lucide="plus" class="w-4 h-4"></i> Assign Site
-      </button>
     </div>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
       <div class="bento-card p-4"><p class="text-[0.6rem] font-semibold uppercase tracking-wider" style="color: var(--fg-dim);">Total Assignments</p><p class="text-2xl font-bold mt-1" id="siteStatTotal">0</p></div>
@@ -1927,10 +1924,12 @@
 
   let viewSiteMapObj = null;
   let viewSiteMapMarker = null;
+  let viewSiteSource = 'application';
 
   function viewSiteFromApplication() {
     const a = currentApproveApp;
     if (!a || !a.preferred_site_name) return;
+    viewSiteSource = 'application';
     document.getElementById('viewSiteName').textContent = a.preferred_site_name;
     document.getElementById('viewSiteAddress').textContent = a.preferred_site_address || 'No address provided';
     document.getElementById('viewSiteSupervisor').textContent = a.preferred_site_supervisor || '—';
@@ -1977,7 +1976,9 @@
   function closeViewSiteModal() {
     closeModal('viewSiteModal');
     if (viewSiteMapObj) { viewSiteMapObj.remove(); viewSiteMapObj = null; }
-    openModal('approveAppModal');
+    if (viewSiteSource === 'application') {
+      openModal('approveAppModal');
+    }
   }
 
   async function confirmApproveApplication() {
@@ -2412,8 +2413,7 @@
           <td class="px-4 py-2.5" style="color: var(--fg-muted);">${a.supervisor_name ? esc(a.supervisor_name) : '<span style="color: var(--fg-dim);">—</span>'}</td>
           <td class="px-4 py-2.5 text-right">
             <div class="flex items-center justify-end gap-1">
-              <button class="ghost-btn !p-1.5" title="Edit" onclick="openEditSiteModal('${a.id}')"><i data-lucide="pencil" class="w-3 h-3"></i></button>
-              <button class="ghost-btn !p-1.5" title="Delete" onclick="deleteSiteAssignment('${a.id}')" style="color: var(--danger);"><i data-lucide="trash-2" class="w-3 h-3"></i></button>
+              <button class="ghost-btn !p-1.5" title="View Site" onclick="viewSiteAssignment('${a.id}')"><i data-lucide="eye" class="w-3 h-3"></i></button>
             </div>
           </td>
         </tr>
@@ -2557,16 +2557,55 @@
     finally { btn.disabled = false; btn.innerHTML = orig; }
   }
 
-  function deleteSiteAssignment(id) {
-    showConfirm('Delete this site assignment?', async () => {
-      try {
-        const res = await fetch(`/api/coordinator/site-assignments/${id}/`, {
-          method: 'DELETE', credentials: 'same-origin'
-        });
-        if (!res.ok) throw new Error('Failed');
-        showAlert('Deleted'); loadSiteAssignments();
-      } catch (e) { showAlert('Error: ' + e.message); }
-    });
+  function viewSiteAssignment(id) {
+    const a = siteList.find(x => x.id === id);
+    if (!a || !a.site) { showAlert('No site linked to this assignment'); return; }
+    viewSiteSource = 'siteAssignment';
+    fetch(`/api/coordinator/site-assignments/${id}/site-details/`, { credentials: 'same-origin' })
+      .then(r => { if (!r.ok) throw new Error('Failed to load site details'); return r.json(); })
+      .then(site => {
+        document.getElementById('viewSiteName').textContent = site.name || '—';
+        document.getElementById('viewSiteAddress').textContent = site.address || 'No address provided';
+        document.getElementById('viewSiteSupervisor').textContent = site.supervisor_name || '—';
+        document.getElementById('viewSiteContact').textContent = site.contact_number || '—';
+        document.getElementById('viewSiteEmail').textContent = site.gmail || '—';
+        const persons = site.contact_persons;
+        const personsWrap = document.getElementById('viewSiteContactPersonsWrap');
+        const personsDiv = document.getElementById('viewSiteContactPersons');
+        if (Array.isArray(persons) && persons.length > 0) {
+          personsWrap.classList.remove('hidden');
+          personsDiv.innerHTML = persons.map(p => {
+            if (typeof p === 'string') return `<p class="text-xs" style="color: var(--fg-muted);">${esc(p)}</p>`;
+            return `<p class="text-xs" style="color: var(--fg-muted);">${esc(p.name || '')}${p.contact ? ' — ' + esc(p.contact) : ''}</p>`;
+          }).join('');
+        } else {
+          personsWrap.classList.add('hidden');
+        }
+        const lat = site.latitude;
+        const lng = site.longitude;
+        const coordsEl = document.getElementById('viewSiteCoords');
+        coordsEl.textContent = (lat && lng) ? `${lat.toFixed(6)}, ${lng.toFixed(6)}` : 'Coordinates not available';
+        openModal('viewSiteModal');
+        setTimeout(() => {
+          const mapEl = document.getElementById('viewSiteMap');
+          if (viewSiteMapObj) { viewSiteMapObj.remove(); viewSiteMapObj = null; }
+          if (lat && lng) {
+            viewSiteMapObj = L.map(mapEl, { zoomControl: true, scrollWheelZoom: false }).setView([lat, lng], 16);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(viewSiteMapObj);
+            viewSiteMapMarker = L.marker([lat, lng]).addTo(viewSiteMapObj)
+              .bindPopup(`<b>${esc(site.name)}</b><br>${esc(site.address || '')}`).openPopup();
+          } else {
+            viewSiteMapObj = L.map(mapEl, { zoomControl: true, scrollWheelZoom: false }).setView([16.9380, 121.7714], 6);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(viewSiteMapObj);
+            mapEl.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--fg-dim);font-size:0.7rem;">No location pinned for this site</div>';
+          }
+        }, 200);
+      })
+      .catch(e => showAlert('Error: ' + e.message));
   }
 
   // ===== SITE ASSIGNMENTS (auto-created with application approval) =====

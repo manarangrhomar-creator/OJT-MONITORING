@@ -990,6 +990,29 @@ class SiteAssignmentViewSet(viewsets.ModelViewSet):
         except SiteAssignment.DoesNotExist:
             return Response({'error': 'No assignment found'}, status=status.HTTP_404_NOT_FOUND)
 
+    @action(detail=True, methods=['get'], url_path='site-details')
+    def site_details(self, request, pk=None):
+        """Get full site details for a site assignment (read-only)."""
+        try:
+            assignment = self.get_queryset().get(pk=pk)
+        except SiteAssignment.DoesNotExist:
+            return Response({'error': 'Assignment not found'}, status=status.HTTP_404_NOT_FOUND)
+        site = assignment.site
+        if not site:
+            return Response({'error': 'No site linked to this assignment'}, status=status.HTTP_404_NOT_FOUND)
+        data = {
+            'id': str(site.id),
+            'name': site.name,
+            'address': site.address or '',
+            'supervisor_name': site.supervisor_name or '',
+            'contact_number': site.contact_number or '',
+            'gmail': site.gmail or '',
+            'contact_persons': site.contact_persons or [],
+            'latitude': float(site.latitude) if site.latitude else None,
+            'longitude': float(site.longitude) if site.longitude else None,
+        }
+        return Response(data)
+
 
 class LeaveScanViewSet(viewsets.ViewSet):
     """ViewSet for scanning and approving temporary leave QR codes."""
