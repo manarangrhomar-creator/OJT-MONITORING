@@ -875,6 +875,247 @@ class StudentDashboardViewSet(viewsets.ViewSet):
             return Response(out_serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+    @action(detail=False, methods=['get'], url_path='export-dtr')
+    def export_dtr(self, request):
+        """Export student DTR (Daily Time Record) as a PDF matching the DTR.pdf template.
+
+        Query params:
+            month (int): Month number 1-12 (default: current month)
+            year (int): Year (default: current year)
+        """
+        import io
+        import calendar
+        from datetime import date as date_cls
+        import os
+        from django.conf import settings
+        from reportlab.lib.pagesizes import LETTER
+        from reportlab.lib.units import inch
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.enums import TA_CENTER, TA_LEFT
+        from reportlab.lib import colors
+
+        student_user = request.user
+        now = timezone.now()
+        month = int(request.query_params.get('month', now.month))
+        year = int(request.query_params.get('year', now.year))
+
+        num_days = calendar.monthrange(year, month)[1]
+        month_start = date_cls(year, month, 1)
+        month_end = date_cls(year, month, num_days)
+
+        # Get student profile
+        try:
+            profile = StudentProfile.objects.get(user=student_user)
+        except StudentProfile.DoesNotExist:
+            profile = None
+
+        # Get OJT application for program info
+        application = OJTApplication.objects.filter(
+            student=student_user, status='approved'
+        ).select_related('program').first()
+
+        # Get site assignment for department/site info
+        site_assignment = SiteAssignment.objects.filter(
+            student=student_user
+        ).select_related('site').first()
+
+        # Get attendance records for the month
+        attendances = Attendance.objects.filter(
+            student=student_user,
+            date__gte=month_start,
+            date__lte=month_end
+        ).order_by('date')
+
+        # Build attendance lookup
+        attendance_map = {}
+        for att in attendances:
+            attendance_map[att.date] = att
+
+        # Calculate total absences
+        total_absences = 0
+        for day in range(1, num_days + 1):
+            d = date_cls(year, month, day)
+            if d.weekday() < 5:  # Weekdays only
+                if d not in attendance_map:
+                    total_absences += 1
+
+        # --- Build PDF (single page) ---
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(
+            buffer,
+            pagesize=LETTER,
+            leftMargin=0.4 * inch,
+            rightMargin=0.4 * inch,
+            topMargin=0.3 * inch,
+            bottomMargin=0.3 * inch,
+        )
+
+        styles = getSampleStyleSheet()
+        title_style = ParagraphStyle('Title2', parent=styles['Title'], fontSize=10, spaceAfter=1, spaceBefore=0, alignment=TA_CENTER, fontName='Helvetica-Bold')
+        subtitle_style = ParagraphStyle('Subtitle2', parent=styles['Normal'], fontSize=8, alignment=TA_CENTER, spaceAfter=2, spaceBefore=0)
+        dtr_title_style = ParagraphStyle('DTRTitle', parent=styles['Title'], fontSize=9, spaceAfter=4, spaceBefore=0, alignment=TA_CENTER, fontName='Helvetica-Bold')
+        label_style = ParagraphStyle('Label', parent=styles['Normal'], fontSize=7, fontName='Helvetica-Bold')
+        value_style = ParagraphStyle('Value', parent=styles['Normal'], fontSize=7)
+        small_style = ParagraphStyle('Small', parent=styles['Normal'], fontSize=6, alignment=TA_CENTER)
+        footer_style = ParagraphStyle('Footer', parent=styles['Normal'], fontSize=7, spaceBefore=4)
+
+        elements = []
+
+        # Header with logo
+        logo_path = os.path.join(settings.STATICFILES_DIRS[0] if settings.STATICFILES_DIRS else '', 'images', 'isabela_colleges_logo.png')
+        if not os.path.exists(logo_path):
+            # Fallback: try from BASE_DIR
+            logo_path = os.path.join(settings.BASE_DIR, 'static', 'images', 'isabela_colleges_logo.png')
+        if os.path.exists(logo_path):
+            logo = Image(logo_path, width=0.6*inch, height=0.6*inch)
+            header_data = [[logo, Paragraph("ISABELA COLLEGES, INC.", title_style)]]
+            header_table = Table(header_data, colWidths=[0.7*inch, 6.5*inch])
+            header_table.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+                ('TOPPADDING', (0, 0), (-1, -1), 0),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+            ]))
+            elements.append(header_table)
+        else:
+            elements.append(Paragraph("ISABELA COLLEGES, INC.", title_style))
+        elements.append(Paragraph("Cauayan City, Isabela", subtitle_style))
+        elements.append(Paragraph("ON-THE-JOB TRAINING DAILY ATTENDANCE REPORT", dtr_title_style))
+
+        # Student info fields
+        surname = student_user.last_name or ''
+        given_name = student_user.first_name or ''
+        student_id = profile.student_id if profile else ''
+        course_obj = profile.course if profile else None
+        course_name = str(course_obj) if course_obj else ''
+        department = site_assignment.site.name if site_assignment and site_assignment.site else ''
+        program_name = application.program.name if application and application.program else ''
+
+        info_data = [
+            [Paragraph("<b>Name of Student Trainee:</b>", label_style), Paragraph(f"{surname}, {given_name}", value_style), '', ''],
+            [Paragraph("<b>Student ID Number:</b>", label_style), Paragraph(str(student_id), value_style), Paragraph("<b>Course &amp; Section:</b>", label_style), Paragraph(course_name, value_style)],
+            [Paragraph("<b>Department Assigned:</b>", label_style), Paragraph(department, value_style), Paragraph("<b>OJT Program:</b>", label_style), Paragraph(program_name, value_style)],
+            [Paragraph("<b>Month/Year:</b>", label_style), Paragraph(f"{calendar.month_name[month]} {year}", value_style), '', ''],
+        ]
+
+        info_table = Table(info_data, colWidths=[1.3*inch, 2.4*inch, 1.1*inch, 2.0*inch])
+        info_table.setStyle(TableStyle([
+            ('VALIGN', (0, 0), (-1, -1), 'BOTTOM'),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+            ('TOPPADDING', (0, 0), (-1, -1), 0),
+            ('LEFTPADDING', (0, 0), (-1, -1), 0),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+            ('SPAN', (1, 0), (3, 0)),
+            ('SPAN', (1, 3), (3, 3)),
+        ]))
+        elements.append(info_table)
+        elements.append(Spacer(1, 4))
+
+        # DTR table header
+        header_row = [
+            Paragraph("<b>Date</b>", small_style),
+            Paragraph("<b>AM In</b>", small_style),
+            Paragraph("<b>AM Out</b>", small_style),
+            Paragraph("<b>PM In</b>", small_style),
+            Paragraph("<b>PM Out</b>", small_style),
+            Paragraph("<b>Remarks</b>", small_style),
+        ]
+
+        # Build rows for left half (1-15) and right half (16-end)
+        def build_day_row(day_num):
+            d = date_cls(year, month, day_num)
+            date_str = f"{day_num} {d.strftime('%a')}"
+            att = attendance_map.get(d)
+            if att:
+                am_in = str(att.time_in_am)[:5] if att.time_in_am else '—'
+                am_out = str(att.time_out_am)[:5] if att.time_out_am else '—'
+                pm_in = str(att.time_in_pm)[:5] if att.time_in_pm else '—'
+                pm_out = str(att.time_out_pm)[:5] if att.time_out_pm else '—'
+                if att.notes:
+                    remarks = att.notes[:20]
+                elif att.facial_recognition_used:
+                    remarks = "Facial Recog."
+                else:
+                    remarks = "Present"
+            else:
+                if d.weekday() >= 5:
+                    am_in = am_out = pm_in = pm_out = '—'
+                    remarks = "Weekend"
+                else:
+                    am_in = am_out = pm_in = pm_out = ''
+                    remarks = "Absent"
+            return [
+                Paragraph(date_str, small_style),
+                Paragraph(am_in, small_style),
+                Paragraph(am_out, small_style),
+                Paragraph(pm_in, small_style),
+                Paragraph(pm_out, small_style),
+                Paragraph(remarks, small_style),
+            ]
+
+        half1_data = [header_row]
+        half2_data = [header_row[:]]
+        for day in range(1, 16):
+            half1_data.append(build_day_row(day))
+        for day in range(16, num_days + 1):
+            half2_data.append(build_day_row(day))
+
+        half_col_widths = [0.7*inch, 0.6*inch, 0.6*inch, 0.6*inch, 0.6*inch, 0.7*inch]
+
+        half1_table = Table(half1_data, colWidths=half_col_widths, repeatRows=1)
+        half1_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.Color(0.85, 0.85, 0.85)),
+            ('GRID', (0, 0), (-1, -1), 0.4, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 1),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 1),
+            ('LEFTPADDING', (0, 0), (-1, -1), 1),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 1),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.Color(0.95, 0.95, 0.95)]),
+        ]))
+
+        half2_table = Table(half2_data, colWidths=half_col_widths, repeatRows=1)
+        half2_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.Color(0.85, 0.85, 0.85)),
+            ('GRID', (0, 0), (-1, -1), 0.4, colors.black),
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 1),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 1),
+            ('LEFTPADDING', (0, 0), (-1, -1), 1),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 1),
+            ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.Color(0.95, 0.95, 0.95)]),
+        ]))
+
+        # Side-by-side layout
+        wrapper = Table([[half1_table, Spacer(0.15*inch, 1), half2_table]], colWidths=[3.85*inch, 0.15*inch, 3.85*inch])
+        wrapper.setStyle(TableStyle([
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('LEFTPADDING', (0, 0), (-1, -1), 0),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+            ('TOPPADDING', (0, 0), (-1, -1), 0),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+        ]))
+        elements.append(wrapper)
+        elements.append(Spacer(1, 6))
+
+        # Footer
+        elements.append(Paragraph(f"Total No. of Absences: {total_absences}", footer_style))
+        elements.append(Spacer(1, 8))
+        elements.append(Paragraph("Signed by:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Checked/Verified by:", footer_style))
+        elements.append(Spacer(1, 10))
+        elements.append(Paragraph("________________________&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;________________________", footer_style))
+        elements.append(Paragraph("Company Supervisor&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;OJT Coordinator", footer_style))
+
+        doc.build(elements)
+        buffer.seek(0)
+
+        filename = f"DTR_{student_user.username}_{month:02d}_{year}.pdf"
+        response = HttpResponse(buffer.getvalue(), content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
 
 class StudentNarrativeViewSet(viewsets.ModelViewSet):
     """ViewSet for Student Narrative Report management."""

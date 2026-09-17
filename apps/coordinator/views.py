@@ -686,8 +686,9 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
         import io
         from reportlab.lib.pagesizes import A4, landscape
         from reportlab.lib import colors
-        from reportlab.lib.units import mm
-        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+        from reportlab.lib.units import mm, inch
+        import os as _os
+        from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer, Image as _Image
         from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
         from reportlab.lib.enums import TA_CENTER, TA_LEFT
 
@@ -784,10 +785,24 @@ class CoordinatorDashboardViewSet(viewsets.ViewSet):
 
         elements = []
 
-        # Title block
-        program_name = programs.first().name if programs.exists() else 'All Programs'
-        coordinator_name = coordinator.get_full_name() or coordinator.username
-        elements.append(Paragraph('Monthly Attendance Report', title_style))
+        # Title block with logo
+        logo_path = _os.path.join(settings.BASE_DIR, 'static', 'images', 'isabela_colleges_logo.png')
+        if _os.path.exists(logo_path):
+            logo = _Image(logo_path, width=0.6*inch, height=0.6*inch)
+            program_name = programs.first().name if programs.exists() else 'All Programs'
+            coordinator_name = coordinator.get_full_name() or coordinator.username
+            header_data = [[logo, Paragraph('Monthly Attendance Report', title_style)]]
+            header_table = Table(header_data, colWidths=[0.7*inch, 6.5*inch])
+            header_table.setStyle(TableStyle([
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+                ('LEFTPADDING', (0, 0), (-1, -1), 0),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+                ('TOPPADDING', (0, 0), (-1, -1), 0),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 0),
+            ]))
+            elements.append(header_table)
+        else:
+            elements.append(Paragraph('Monthly Attendance Report', title_style))
         elements.append(Paragraph(
             f'Month: {calendar.month_name[month]} {year} &nbsp;&nbsp;|&nbsp;&nbsp; '
             f'Program: {program_name} &nbsp;&nbsp;|&nbsp;&nbsp; '
