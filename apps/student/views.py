@@ -1035,8 +1035,6 @@ class StudentDashboardViewSet(viewsets.ViewSet):
                 pm_out = str(att.time_out_pm)[:5] if att.time_out_pm else '—'
                 if att.notes:
                     remarks = att.notes[:20]
-                elif att.facial_recognition_used:
-                    remarks = "Facial Recog."
                 else:
                     remarks = "Present"
             else:
