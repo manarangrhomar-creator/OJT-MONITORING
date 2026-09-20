@@ -75,7 +75,14 @@ async function apiRequest(endpoint, method = 'GET', data = null) {
 
     try {
         const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
-        const responseData = await response.json();
+        const responseText = await response.text();
+        let responseData;
+
+        try {
+            responseData = responseText ? JSON.parse(responseText) : {};
+        } catch {
+            throw new Error(`Server returned ${response.status} ${response.statusText} instead of JSON.`);
+        }
 
         if (!response.ok) {
             const message = responseData.detail
