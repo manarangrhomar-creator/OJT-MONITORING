@@ -239,12 +239,19 @@ CORS_ALLOW_ALL_ORIGINS = False  # Be explicit about allowed origins
 
 # Security Settings (for production)
 if not DEBUG:
-    SECURE_SSL_REDIRECT = True
-    SESSION_COOKIE_SECURE = True
-    CSRF_COOKIE_SECURE = True
-    SECURE_HSTS_SECONDS = 31536000
-    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-    SECURE_HSTS_PRELOAD = True
+    # Only force SSL if SITE_URL uses HTTPS (cPanel may not have SSL)
+    _use_ssl = config('USE_SSL', default=False, cast=bool)
+    if _use_ssl:
+        SECURE_SSL_REDIRECT = True
+        SESSION_COOKIE_SECURE = True
+        CSRF_COOKIE_SECURE = True
+        SECURE_HSTS_SECONDS = 31536000
+        SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+        SECURE_HSTS_PRELOAD = True
+    else:
+        SECURE_SSL_REDIRECT = False
+        SESSION_COOKIE_SECURE = False
+        CSRF_COOKIE_SECURE = False
 
 # Security headers (always on)
 SECURE_CONTENT_TYPE_NOSNIFF = True
