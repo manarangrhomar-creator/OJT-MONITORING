@@ -1,8 +1,7 @@
 /* Design Tokens — OJT Monitoring System
- * Canonical source for all design values.
+ * Canonical source for all design values. rene guide us all
  * Import via: @import url('/static/css/design-tokens.css');
  */
-
 :root {
   /* ── Brand ── */
   --primary: #11693A;
