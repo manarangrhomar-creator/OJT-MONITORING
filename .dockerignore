@@ -1,0 +1,16 @@
+venv/
+.venv-browser-use/
+Python/
+.kilo/
+.agents/
+.codex/
+.git/
+media/
+staticfiles/
+logs/
+__pycache__/
+*.py[cod]
+db.sqlite3
+.env
+*.bak
+*.backup
