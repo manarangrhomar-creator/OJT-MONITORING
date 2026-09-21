@@ -1,5 +1,5 @@
 RewriteEngine On
-
+//hihihiih
 # Redirect all non-static, non-existing requests to Django via Passenger
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
