@@ -13,6 +13,7 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'ojt_monitoring.settings')
 # Uncomment and adjust the path if your cPanel uses a virtualenv
 # virtualenv_path = os.path.join(PROJECT_DIR, 'venv', 'Lib', 'site-packages')
 # sys.path.insert(0, virtualenv_path)
+//uhuhuhuhuh
 
 from django.core.wsgi import get_wsgi_application
 application = get_wsgi_application()
